@@ -1,4 +1,4 @@
-# Pulse Development Guide
+# GitPulse Development Guide
 
 This guide outlines our development principles and practices for building robust, maintainable, and reliable software.
 

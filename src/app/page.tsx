@@ -33,7 +33,7 @@ export default function Home() {
           color: 'var(--neon-green)', 
           textShadow: '0 0 10px rgba(0, 255, 135, 0.5)' 
         }}>
-          PULSE
+          GITPULSE
         </h1>
         
         <div className="flex items-center justify-center space-x-2 mb-4">

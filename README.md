@@ -1,6 +1,6 @@
-# Pulse - GitHub Commit Summary
+# GitPulse - GitHub Commit Summary
 
-Pulse is a web application that generates summaries of GitHub commits for individuals and teams. Built with Next.js and TypeScript, Pulse provides easy visualization of coding activity across repositories.
+GitPulse is a web application that generates summaries of GitHub commits for individuals and teams. Built with Next.js and TypeScript, GitPulse provides easy visualization of coding activity across repositories.
 
 ## Features
 
@@ -36,7 +36,7 @@ Pulse is a web application that generates summaries of GitHub commits for indivi
 1. Go to your GitHub account settings
 2. Navigate to "Developer settings" > "OAuth Apps" > "New OAuth App"
 3. Register a new application with the following settings:
-   - Application name: Pulse (or your preferred name)
+   - Application name: GitPulse (or your preferred name)
    - Homepage URL: `http://localhost:3000`
    - Authorization callback URL: `http://localhost:3000/api/auth/callback/github`
 4. After registration, note your Client ID and generate a Client Secret
@@ -45,8 +45,8 @@ Pulse is a web application that generates summaries of GitHub commits for indivi
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/phrazzld/pulse.git
-cd pulse
+git clone https://github.com/phrazzld/gitpulse.git
+cd gitpulse
 ```
 
 2. Install dependencies:
@@ -98,7 +98,7 @@ If you encounter GitHub authentication errors:
 
 ## Deployment
 
-The easiest way to deploy Pulse is using Vercel:
+The easiest way to deploy GitPulse is using Vercel:
 
 1. Push your code to a GitHub repository
 2. Import your repository on [Vercel](https://vercel.com/new)

@@ -10,7 +10,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pulse - GitHub Commit Summary",
+  title: "GitPulse - GitHub Commit Summary",
   description: "Summarize GitHub commits for individuals and teams",
 };
 
