@@ -104,7 +104,7 @@
     - **AC Ref:** PLAN.md Step 3
 
 ## Testing Updates
-- [ ] **Write Unit Tests for `createAuthenticatedOctokit`:**
+- [x] **Write Unit Tests for `createAuthenticatedOctokit`:**
     - **Action:** Create `src/lib/auth/githubAuth.test.ts` and write unit tests covering both OAuth and App authentication paths, including success and error cases. Mock environment variables and `createAppAuth` as needed.
     - **Depends On:** Add Error Handling and Logging to Auth Module
     - **AC Ref:** PLAN.md Step 4
