@@ -112,7 +112,7 @@
     - **Action:** Update existing unit/integration tests for `fetchAllRepositories` to pass a mocked `Octokit` instance instead of mocking internal auth logic. Verify the correct Octokit methods are called.
     - **Depends On:** Refactor `fetchAllRepositories` Signature
     - **AC Ref:** PLAN.md Step 4
-- [ ] **Update Tests for `fetchRepositoryCommits`:**
+- [x] **Update Tests for `fetchRepositoryCommits`:**
     - **Action:** Update existing unit/integration tests for `fetchRepositoryCommits` to use a mocked `Octokit` instance.
     - **Depends On:** Refactor `fetchRepositoryCommits` Signature
     - **AC Ref:** PLAN.md Step 4
