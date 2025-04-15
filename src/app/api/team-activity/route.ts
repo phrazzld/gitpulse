@@ -3,11 +3,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { 
   fetchAllRepositories, 
-  fetchCommitsForRepositories, 
+  fetchCommitsForRepositoriesWithOctokit, 
   Commit,
-  Repository,
-  AppInstallation 
-} from "@/lib/github";
+  Repository
+} from "@/lib/githubData";
+import {
+  createAuthenticatedOctokit,
+  GitHubCredentials,
+  AppInstallation
+} from "@/lib/auth/githubAuth";
 import { logger } from "@/lib/logger";
 import { optimizedJsonResponse, isCacheValid, notModifiedResponse, CacheTTL, generateETag, generateCacheKey } from "@/lib/cache";
 import { optimizeCommit, optimizeRepository, optimizeContributor, MinimalCommit, MinimalRepository, MinimalContributor } from "@/lib/optimize";
@@ -140,9 +144,16 @@ export async function GET(request: NextRequest) {
       });
     }
     
+    // Create credentials object for authentication
+    const credentials: GitHubCredentials = installationId
+      ? { type: 'app', installationId }
+      : { type: 'oauth', token: accessToken };
+    
     // Fetch all repositories accessible to the user
     let allRepositories: Repository[] = [];
     try {
+      // We're still using the backward-compatible function for now
+      // This will create its own Octokit instance internally
       allRepositories = await fetchAllRepositories(accessToken, installationId);
     } catch (error: any) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
@@ -202,9 +213,12 @@ export async function GET(request: NextRequest) {
     // Fetch commits for filtered repositories (for all team members - no author filter)
     let allCommits: Commit[] = [];
     try {
-      allCommits = await fetchCommitsForRepositories(
-        accessToken,
-        installationId,
+      // Create an authenticated Octokit instance
+      const octokit = await createAuthenticatedOctokit(credentials);
+      
+      // Use the new function with the authenticated Octokit instance
+      allCommits = await fetchCommitsForRepositoriesWithOctokit(
+        octokit,
         repoFullNames,
         since,
         until

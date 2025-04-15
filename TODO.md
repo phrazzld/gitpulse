@@ -94,7 +94,7 @@
     - **Action:** Update the `/api/my-org-activity/route.ts` handler: Get auth details from session, create client via `createAuthenticatedOctokit`, pass client to appropriate data fetching functions. Maintain response format and error handling.
     - **Depends On:** Add Error Handling and Logging to Auth Module, Refactor `fetchAllRepositories` Signature, Refactor `fetchCommitsForRepositories` Signature
     - **AC Ref:** PLAN.md Step 3
-- [ ] **Refactor `/api/team-activity` Route Handler:**
+- [x] **Refactor `/api/team-activity` Route Handler:**
     - **Action:** Update the `/api/team-activity/route.ts` handler: Get auth details from session, create client via `createAuthenticatedOctokit`, pass client to appropriate data fetching functions. Maintain response format and error handling.
     - **Depends On:** Add Error Handling and Logging to Auth Module, Refactor `fetchAllRepositories` Signature, Refactor `fetchCommitsForRepositories` Signature
     - **AC Ref:** PLAN.md Step 3
