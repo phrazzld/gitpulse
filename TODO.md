@@ -82,7 +82,7 @@
     - **Action:** Update the `/api/my-activity/route.ts` handler: Get auth details from session, create client via `createAuthenticatedOctokit`, pass client to `fetchCommitsForRepositories` in `githubData.ts`. Maintain response format and error handling.
     - **Depends On:** Add Error Handling and Logging to Auth Module, Refactor `fetchCommitsForRepositories` Signature
     - **AC Ref:** PLAN.md Step 3
-- [ ] **Refactor `/api/summary` Route Handler:**
+- [x] **Refactor `/api/summary` Route Handler:**
     - **Action:** Update the `/api/summary/route.ts` handler: Get auth details from session, create client via `createAuthenticatedOctokit`, pass client to appropriate data fetching functions. Maintain response format and error handling.
     - **Depends On:** Add Error Handling and Logging to Auth Module, Refactor `fetchAllRepositories` Signature, Refactor `fetchCommitsForRepositories` Signature
     - **AC Ref:** PLAN.md Step 3

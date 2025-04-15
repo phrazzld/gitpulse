@@ -3,12 +3,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { 
   fetchAllRepositories, 
-  fetchCommitsForRepositories, 
-  Commit, 
-  checkAppInstallation, 
+  fetchCommitsForRepositories,
+  fetchCommitsForRepositoriesWithOctokit,
+  fetchRepositories,
+  fetchAppRepositories,
+  Commit,
+  Repository
+} from "@/lib/githubData";
+import {
   getAllAppInstallations,
-  AppInstallation 
-} from "@/lib/github";
+  createAuthenticatedOctokit,
+  GitHubCredentials,
+  AppInstallation
+} from "@/lib/auth/githubAuth";
 import { generateCommitSummary } from "@/lib/gemini";
 import { logger } from "@/lib/logger";
 
@@ -227,23 +234,35 @@ export async function GET(request: NextRequest) {
     let allRepos = [];
     
     if (installationIds.length > 0) {
-      // Fetch repos from all installations in parallel
-      const repoPromises = installationIds.map(id => 
-        fetchAllRepositories(session.accessToken, id)
-      );
-      
-      const repoResults = await Promise.all(repoPromises);
+      // Create authenticated Octokit instances for each installation ID
+      const repoPromises = await Promise.all(installationIds.map(async id => {
+        // Create credentials for GitHub App authentication
+        const credentials: GitHubCredentials = { type: 'app', installationId: id };
+        
+        // Create an authenticated Octokit instance
+        const octokit = await createAuthenticatedOctokit(credentials);
+        
+        // Fetch repositories using the Octokit instance
+        return fetchAppRepositories(octokit);
+      }));
       
       // Combine all repositories from all installations
-      allRepos = repoResults.flat();
+      allRepos = repoPromises.flat();
       
       logger.debug(MODULE_NAME, "Fetched repositories from multiple installations", {
         installationCount: installationIds.length,
         totalRepoCount: allRepos.length
       });
     } else {
-      // Fetch with OAuth only
-      allRepos = await fetchAllRepositories(session.accessToken);
+      // Create credentials for OAuth authentication
+      const accessToken = session.accessToken as string;
+      const credentials: GitHubCredentials = { type: 'oauth', token: accessToken };
+      
+      // Create an authenticated Octokit instance
+      const octokit = await createAuthenticatedOctokit(credentials);
+      
+      // Fetch repositories using the Octokit instance
+      allRepos = await fetchRepositories(octokit);
     }
     
     // Apply organization and repository filters
@@ -388,10 +407,17 @@ export async function GET(request: NextRequest) {
       if (key === 'oauth') {
         // Fetch with OAuth if the user has an access token
         if (session.accessToken) {
+          // Create credentials for OAuth authentication
+          const accessToken = session.accessToken as string;
+          const credentials: GitHubCredentials = { type: 'oauth', token: accessToken };
+          
+          // Create an authenticated Octokit instance
+          const octokit = await createAuthenticatedOctokit(credentials);
+          
+          // Fetch commits using the Octokit instance
           commitFetchPromises.push(
-            fetchCommitsForRepositories(
-              session.accessToken,
-              undefined, // No installation ID for OAuth
+            fetchCommitsForRepositoriesWithOctokit(
+              octokit,
               repos,
               since,
               until,
@@ -402,10 +428,17 @@ export async function GET(request: NextRequest) {
       } else {
         // Fetch with installation ID
         const installationId = parseInt(key, 10);
+        
+        // Create credentials for GitHub App authentication
+        const credentials: GitHubCredentials = { type: 'app', installationId };
+        
+        // Create an authenticated Octokit instance
+        const octokit = await createAuthenticatedOctokit(credentials);
+        
+        // Fetch commits using the Octokit instance
         commitFetchPromises.push(
-          fetchCommitsForRepositories(
-            session.accessToken,
-            installationId,
+          fetchCommitsForRepositoriesWithOctokit(
+            octokit,
             repos,
             since,
             until,
