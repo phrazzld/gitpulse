@@ -22,7 +22,7 @@
   - **Depends On:** None
   - **AC Ref:** TESTING_STRATEGY.md (Automation, Guiding Principles)
 
-- [ ] **Replace Magic Values with Named Constants:** Eliminate hard-coded values for improved maintainability.
+- [x] **Replace Magic Values with Named Constants:** Eliminate hard-coded values for improved maintainability.
   - **Action:** Identify literal values throughout the codebase (e.g., `'oauth'` in `src/app/dashboard/page.tsx:72`, `batchSize` in `src/lib/github.ts:421`, cache TTLs). Create named constants with descriptive names (either in a central `constants.ts` file or within relevant modules). Replace all instances of these magic values with the new constants.
   - **Depends On:** None
   - **AC Ref:** CORE_PRINCIPLES.md (Explicit is Better than Implicit), CODING_STANDARDS.md (Meaningful Naming)

@@ -12,6 +12,7 @@ import {
   GitHubConfigError,
   handleGitHubError
 } from "./errors";
+import { GITHUB_API } from "./constants";
 
 const MODULE_NAME = "github";
 
@@ -834,7 +835,7 @@ export async function fetchCommitsForRepositories(
 
   const allCommits: Commit[] = [];
   let githubUsername = author;
-  const batchSize = 5;
+  const batchSize = GITHUB_API.BATCH_SIZE;
 
   // first pass with "author" if provided
   for (let i = 0; i < repositories.length; i += batchSize) {

@@ -5,6 +5,7 @@ import { logger } from './logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { compressedJsonResponse } from './compress';
 import { optimizedJSONStringify } from './optimize';
+import { SERVER_CACHE_TTL } from './constants';
 
 const MODULE_NAME = 'cache';
 
@@ -90,7 +91,7 @@ export function cachedJsonResponse(
   // Use provided cache control or generate one with optional parameters
   const cacheControl = options.cacheControl || 
     generateCacheControl(
-      options.maxAge || CacheTTL.SHORT,
+      options.maxAge || SERVER_CACHE_TTL.SHORT,
       options.staleWhileRevalidate,
       options.isPrivate !== undefined ? options.isPrivate : true
     );
@@ -136,7 +137,7 @@ export async function optimizedJsonResponse(
   // Use provided cache control or generate one with optional parameters
   const cacheControl = options.cacheControl || 
     generateCacheControl(
-      options.maxAge || CacheTTL.SHORT,
+      options.maxAge || SERVER_CACHE_TTL.SHORT,
       options.staleWhileRevalidate,
       options.isPrivate !== undefined ? options.isPrivate : true
     );
@@ -165,13 +166,9 @@ export async function optimizedJsonResponse(
 
 /**
  * Default caching options for different types of data (in seconds)
+ * @deprecated Use SERVER_CACHE_TTL from constants.ts instead
  */
-export const CacheTTL = {
-  SHORT: 60, // 1 minute - for dynamic data that changes frequently
-  MEDIUM: 900, // 15 minutes - for semi-dynamic data
-  LONG: 3600, // 1 hour - for relatively static data
-  VERY_LONG: 86400, // 24 hours - for very static data
-};
+export const CacheTTL = SERVER_CACHE_TTL;
 
 /**
  * Formats a value consistently for use in cache keys
@@ -245,7 +242,7 @@ export function generateCacheKey(
  * @returns A formatted Cache-Control header value
  */
 export function generateCacheControl(
-  maxAge: number = CacheTTL.SHORT,
+  maxAge: number = SERVER_CACHE_TTL.SHORT,
   staleWhileRevalidate: number = maxAge * 2,
   isPrivate: boolean = true
 ): string {

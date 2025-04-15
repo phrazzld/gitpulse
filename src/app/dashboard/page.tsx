@@ -22,9 +22,9 @@ import { createActivityFetcher } from '@/lib/activity';
 import { 
   setCacheItem, 
   getCacheItem,
-  getStaleItem,
-  ClientCacheTTL
+  getStaleItem
 } from '@/lib/localStorageCache';
+import { CLIENT_CACHE_TTL, AUTH_METHODS, GITHUB_API, STORAGE_REFRESH } from '@/lib/constants';
 import { CommitSummary } from '@/types/summary';
 import { Repository, Installation } from '@/types/github';
 
@@ -69,7 +69,7 @@ function getGitHubAppInstallUrl() {
   if (!appName) {
     // If no app name is configured, we'll create a more informative error
     console.error("GitHub App name not configured. Please set NEXT_PUBLIC_GITHUB_APP_NAME environment variable.");
-    return "#github-app-not-configured";
+    return GITHUB_API.APP_INSTALLATION_URL_FRAGMENT;
   }
   
   // Use the standard GitHub App installation URL - our custom handler will intercept it
@@ -202,7 +202,7 @@ export default function Dashboard() {
       
       // Cache the repositories for future use with 1 hour TTL
       if (data.repositories && data.repositories.length > 0) {
-        setCacheItem(cacheKey, data.repositories, ClientCacheTTL.LONG);
+        setCacheItem(cacheKey, data.repositories, CLIENT_CACHE_TTL.LONG);
       }
       
       setRepositories(data.repositories);
@@ -226,7 +226,7 @@ export default function Dashboard() {
         console.log('Available installations:', data.installations.length);
         
         // Cache installations with a longer TTL
-        setCacheItem('installations', data.installations, ClientCacheTTL.LONG);
+        setCacheItem('installations', data.installations, CLIENT_CACHE_TTL.LONG);
       }
       
       // Update current installations
@@ -243,7 +243,7 @@ export default function Dashboard() {
         console.log('Current installation:', data.currentInstallation.account.login);
         
         // Cache current installations
-        setCacheItem('currentInstallations', data.currentInstallations || [data.currentInstallation], ClientCacheTTL.LONG);
+        setCacheItem('currentInstallations', data.currentInstallations || [data.currentInstallation], CLIENT_CACHE_TTL.LONG);
       }
       
       setError(null); // Clear any previous errors
@@ -344,10 +344,9 @@ export default function Dashboard() {
     if (repositories.length > 0) {
       const lastRefreshTime = localStorage.getItem('lastRepositoryRefresh');
       if (lastRefreshTime) {
-        // Use longer TTL - 1 hour for repository data
-        const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
+        // Use longer TTL for repository data
         const timeSinceLastRefresh = Date.now() - parseInt(lastRefreshTime, 10);
-        return timeSinceLastRefresh > oneHour;
+        return timeSinceLastRefresh > STORAGE_REFRESH.REPOSITORY_REFRESH_INTERVAL;
       }
     }
     
@@ -624,7 +623,7 @@ export default function Dashboard() {
             />
             
             {/* Consolidated Account Selection Panel */}
-            {authMethod === 'github_app' && installations.length > 0 && (
+            {authMethod === AUTH_METHODS.GITHUB_APP && installations.length > 0 && (
               <AccountManagementPanel
                 authMethod={authMethod}
                 installations={installations}
