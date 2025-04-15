@@ -5,6 +5,7 @@ import { logger } from './logger';
 import { NextRequest, NextResponse } from 'next/server';
 import { compressedJsonResponse } from './compress';
 import { optimizedJSONStringify } from './optimize';
+import { SERVER_CACHE_TTL } from './constants';
 
 const MODULE_NAME = 'cache';
 
@@ -90,7 +91,7 @@ export function cachedJsonResponse(
   // Use provided cache control or generate one with optional parameters
   const cacheControl = options.cacheControl || 
     generateCacheControl(
-      options.maxAge || CacheTTL.SHORT,
+      options.maxAge || SERVER_CACHE_TTL.SHORT,
       options.staleWhileRevalidate,
       options.isPrivate !== undefined ? options.isPrivate : true
     );
@@ -136,7 +137,7 @@ export async function optimizedJsonResponse(
   // Use provided cache control or generate one with optional parameters
   const cacheControl = options.cacheControl || 
     generateCacheControl(
-      options.maxAge || CacheTTL.SHORT,
+      options.maxAge || SERVER_CACHE_TTL.SHORT,
       options.staleWhileRevalidate,
       options.isPrivate !== undefined ? options.isPrivate : true
     );
@@ -165,13 +166,73 @@ export async function optimizedJsonResponse(
 
 /**
  * Default caching options for different types of data (in seconds)
+ * @deprecated Use SERVER_CACHE_TTL from constants.ts instead
  */
-export const CacheTTL = {
-  SHORT: 60, // 1 minute - for dynamic data that changes frequently
-  MEDIUM: 900, // 15 minutes - for semi-dynamic data
-  LONG: 3600, // 1 hour - for relatively static data
-  VERY_LONG: 86400, // 24 hours - for very static data
-};
+export const CacheTTL = SERVER_CACHE_TTL;
+
+/**
+ * Formats a value consistently for use in cache keys
+ * 
+ * @param value Any value to be formatted for a cache key
+ * @returns A string representation of the value
+ */
+function formatCacheValue(value: any): string {
+  if (value === null || value === undefined) {
+    return 'null';
+  }
+  if (Array.isArray(value)) {
+    return value.length ? value.sort().join(',') : 'empty';
+  }
+  if (typeof value === 'object') {
+    // Sort object keys for consistency
+    const sortedObj = Object.keys(value)
+      .sort()
+      .reduce((result: Record<string, any>, key: string) => {
+        result[key] = value[key];
+        return result;
+      }, {});
+    return JSON.stringify(sortedObj);
+  }
+  return String(value);
+}
+
+/**
+ * Generates a consistent cache key from a set of parameters
+ * 
+ * @param params Record of key-value pairs to include in the cache key
+ * @param namespace Optional namespace to prefix the cache key
+ * @returns A string cache key
+ */
+export function generateCacheKey(
+  params: Record<string, any>,
+  namespace?: string
+): string {
+  try {
+    // Sort keys to ensure consistent ordering
+    const sortedKeys = Object.keys(params).sort();
+    
+    // Build key parts
+    const parts: string[] = [];
+    
+    // Add namespace if provided
+    if (namespace) {
+      parts.push(namespace);
+    }
+    
+    // Add each parameter as key:value
+    for (const key of sortedKeys) {
+      const value = params[key];
+      const formattedValue = formatCacheValue(value);
+      parts.push(`${key}:${formattedValue}`);
+    }
+    
+    return parts.join(':');
+  } catch (error) {
+    logger.warn(MODULE_NAME, 'Error generating cache key', { error, params });
+    // Fallback to a simple timestamp if key generation fails
+    return `fallback:${Date.now().toString(36)}`;
+  }
+}
 
 /**
  * Generates a Cache-Control header value with appropriate directives
@@ -181,7 +242,7 @@ export const CacheTTL = {
  * @returns A formatted Cache-Control header value
  */
 export function generateCacheControl(
-  maxAge: number = CacheTTL.SHORT,
+  maxAge: number = SERVER_CACHE_TTL.SHORT,
   staleWhileRevalidate: number = maxAge * 2,
   isPrivate: boolean = true
 ): string {

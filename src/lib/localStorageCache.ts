@@ -2,13 +2,11 @@
  * Client-side localStorage caching utilities with TTL support
  */
 
+import { CLIENT_CACHE_TTL } from './constants';
+
 // TTL values in milliseconds for client caching
-export const ClientCacheTTL = {
-  SHORT: 60 * 1000, // 1 minute
-  MEDIUM: 15 * 60 * 1000, // 15 minutes
-  LONG: 60 * 60 * 1000, // 1 hour
-  VERY_LONG: 24 * 60 * 60 * 1000, // 24 hours
-};
+// @deprecated Use CLIENT_CACHE_TTL from constants.ts instead
+export const ClientCacheTTL = CLIENT_CACHE_TTL;
 
 // Cache entry structure
 interface CacheEntry<T> {
@@ -25,7 +23,7 @@ interface CacheEntry<T> {
  * @param ttl Time-to-live in milliseconds
  * @returns true if successful, false if storage failed
  */
-export function setCacheItem<T>(key: string, data: T, ttl: number = ClientCacheTTL.MEDIUM): boolean {
+export function setCacheItem<T>(key: string, data: T, ttl: number = CLIENT_CACHE_TTL.MEDIUM): boolean {
   try {
     // Create a cache entry with timestamp and TTL
     const entry: CacheEntry<T> = {
