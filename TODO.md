@@ -18,7 +18,7 @@
     - **Action:** Implement `async function createAuthenticatedOctokit(credentials: GitHubCredentials): Promise<Octokit>` that handles both OAuth and App authentication methods. Include necessary imports and error handling.
     - **Depends On:** Define GitHubCredentials Type
     - **AC Ref:** PLAN.md Step 1
-- [ ] **Move and Integrate `getInstallationOctokit` Logic:**
+- [x] **Move and Integrate `getInstallationOctokit` Logic:**
     - **Action:** Move the logic from `getInstallationOctokit` in `src/lib/github.ts` into the 'app' branch of `createAuthenticatedOctokit`. The function should retrieve App credentials from environment variables, use `createAppAuth` to generate an installation token, and return an authenticated Octokit instance.
     - **Depends On:** Implement `createAuthenticatedOctokit` Factory Function
     - **AC Ref:** PLAN.md Step 1
