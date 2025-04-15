@@ -101,13 +101,59 @@
   - **Depends On:** Define Props for DashboardHeader, Define Props for AuthenticationStatusBanner, Define Props for AccountManagementPanel, Define Props for FilterControls, Define Props for RepositoryInfoPanel, Define Props for ActionButton, Define Props for SummaryDisplay
   - **AC Ref:** 5.1, 5.2, 5.3, 5.4
 
+## Component Testing
+- [x] **Set Up Testing Infrastructure:** Initialize Jest and React Testing Library
+  - **Action:** Install Jest, React Testing Library, and jest-dom. Create jest.config.js, jest.setup.js, and update package.json with test scripts.
+  - **Depends On:** Refactor DashboardPage to Use New Components
+  - **AC Ref:** 6.1
+
+- [x] **Create Testing Utilities:** Set up common test helpers and mock data
+  - **Action:** Create test-utils.js with renderWithProviders helper and mock data factories for session, repositories, and summary data.
+  - **Depends On:** Set Up Testing Infrastructure
+  - **AC Ref:** 6.1
+
+- [x] **Test ActionButton Component:** Create tests for ActionButton
+  - **Action:** Create tests verifying proper rendering in normal/loading states, disabled state when loading, and correct visual styling.
+  - **Depends On:** Create Testing Utilities
+  - **AC Ref:** 6.1
+
+- [x] **Test DashboardHeader Component:** Create tests for DashboardHeader
+  - **Action:** Create tests verifying proper rendering with/without session, signOut function is called on disconnect, and user info display.
+  - **Depends On:** Create Testing Utilities
+  - **AC Ref:** 6.1
+
+- [x] **Test AuthenticationStatusBanner Component:** Create tests for AuthenticationStatusBanner
+  - **Action:** Create tests verifying error message display, auth method banner rendering, signOut function calls, and installation URL button behavior.
+  - **Depends On:** Create Testing Utilities
+  - **AC Ref:** 6.1
+
+- [x] **Test RepositoryInfoPanel Component:** Create tests for RepositoryInfoPanel
+  - **Action:** Create tests verifying repository list rendering, show/hide toggle functionality, and filtering based on active filters.
+  - **Depends On:** Create Testing Utilities
+  - **AC Ref:** 6.1
+
+- [x] **Test FilterControls Component:** Create tests for FilterControls
+  - **Action:** Create tests verifying rendering with different activity modes, handler functions called with correct parameters, and proper UI display.
+  - **Depends On:** Create Testing Utilities
+  - **AC Ref:** 6.1
+
+- [x] **Test AccountManagementPanel Component:** Create tests for AccountManagementPanel
+  - **Action:** Create tests verifying conditional rendering based on auth method, account list display, and switchInstallations function called correctly.
+  - **Depends On:** Create Testing Utilities
+  - **AC Ref:** 6.1
+
+- [x] **Test SummaryDisplay Component:** Create tests for SummaryDisplay
+  - **Action:** Create tests verifying conditional rendering based on summary presence, activity feed/stats/AI summary sections display, and props passed correctly.
+  - **Depends On:** Create Testing Utilities
+  - **AC Ref:** 6.1
+
 ## Testing
-- [ ] **Test Individual Components:** Write unit tests for all extracted components
+- [x] **Test Individual Components:** Write unit tests for all extracted components
   - **Action:** Create unit tests for each component using React Testing Library, testing proper rendering based on different prop values, correct function calls when interactive elements are clicked, and proper state changes in response to user interactions.
   - **Depends On:** Refactor DashboardPage to Use New Components
   - **AC Ref:** 6.1
 
-- [ ] **Test Dashboard Integration:** Test component integration in Dashboard page
+- [x] **Test Dashboard Integration:** Test component integration in Dashboard page
   - **Action:** Create integration tests that verify the Dashboard page correctly renders all child components, passes the correct props to them, and that interactions with child components correctly affect the parent state.
   - **Depends On:** Test Individual Components
   - **AC Ref:** 6.2
