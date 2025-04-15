@@ -108,7 +108,7 @@
     - **Action:** Create `src/lib/auth/githubAuth.test.ts` and write unit tests covering both OAuth and App authentication paths, including success and error cases. Mock environment variables and `createAppAuth` as needed.
     - **Depends On:** Add Error Handling and Logging to Auth Module
     - **AC Ref:** PLAN.md Step 4
-- [ ] **Update Tests for `fetchAllRepositories`:**
+- [x] **Update Tests for `fetchAllRepositories`:**
     - **Action:** Update existing unit/integration tests for `fetchAllRepositories` to pass a mocked `Octokit` instance instead of mocking internal auth logic. Verify the correct Octokit methods are called.
     - **Depends On:** Refactor `fetchAllRepositories` Signature
     - **AC Ref:** PLAN.md Step 4
