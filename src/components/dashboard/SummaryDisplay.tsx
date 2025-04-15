@@ -4,50 +4,7 @@ import { ActivityMode } from '@/components/ModeSelector';
 import { DateRange } from '@/components/DateRangePicker';
 import { FilterState } from '@/app/dashboard/page';
 import { createActivityFetcher } from '@/lib/activity';
-
-interface TechnicalArea {
-  name: string;
-  count: number;
-}
-
-interface CommitType {
-  type: string;
-  count: number;
-  description: string;
-}
-
-interface TimelineHighlight {
-  date: string;
-  description: string;
-}
-
-interface AISummary {
-  keyThemes: string[];
-  technicalAreas: TechnicalArea[];
-  accomplishments: string[];
-  commitsByType: CommitType[];
-  timelineHighlights: TimelineHighlight[];
-  overallSummary: string;
-}
-
-interface CommitSummary {
-  user?: string;
-  commits: any[];
-  stats: {
-    totalCommits: number;
-    repositories: string[];
-    dates: string[];
-  };
-  aiSummary?: AISummary;
-  authMethod?: string;
-  installationId?: number | null;
-  filterInfo?: {
-    contributors: string[] | null;
-    organizations: string[] | null;
-    repositories: string[] | null;
-    dateRange: { since: string, until: string };
-  };
-}
+import { CommitSummary } from '@/types/summary';
 
 interface Props {
   summary: CommitSummary | null;

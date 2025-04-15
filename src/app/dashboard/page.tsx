@@ -25,6 +25,7 @@ import {
   getStaleItem,
   ClientCacheTTL
 } from '@/lib/localStorageCache';
+import { CommitSummary, AISummary } from '@/types/summary';
 
 // Preserve the FilterState type from the removed FilterPanel
 export type FilterState = {
@@ -45,44 +46,7 @@ type Repository = {
   language?: string | null;
 };
 
-interface AISummary {
-  keyThemes: string[];
-  technicalAreas: {
-    name: string;
-    count: number;
-  }[];
-  accomplishments: string[];
-  commitsByType: {
-    type: string;
-    count: number;
-    description: string;
-  }[];
-  timelineHighlights: {
-    date: string;
-    description: string;
-  }[];
-  overallSummary: string;
-}
-
-type CommitSummary = {
-  user?: string;
-  commits: any[];
-  stats: {
-    totalCommits: number;
-    repositories: string[];
-    dates: string[];
-  };
-  aiSummary?: AISummary;
-  authMethod?: string;
-  installationId?: number | null;
-  filterInfo?: {
-    contributors: string[] | null;
-    organizations: string[] | null;
-    repositories: string[] | null;
-    dateRange: { since: string, until: string };
-  };
-  // Removed groupedResults field since we're standardizing on chronological view
-};
+// Using imported types from /src/types/summary.ts
 
 // Removed GroupedResult type - no longer needed with chronological view only
 
