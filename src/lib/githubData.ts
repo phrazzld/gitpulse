@@ -13,6 +13,9 @@ import {
 } from "./errors";
 import { GITHUB_API } from "./constants";
 
+// Import from the auth module to use in the backward-compatible function
+import { createAuthenticatedOctokit, GitHubCredentials } from "./auth/githubAuth";
+
 // Module name for consistent logging
 const MODULE_NAME = "githubData";
 
@@ -65,25 +68,24 @@ export interface Commit {
 }
 
 /**
- * Fetch repositories using user OAuth token.
- * @param accessToken User's GitHub OAuth access token.
+ * Fetch repositories using an authenticated Octokit instance.
+ * @param octokit An authenticated Octokit instance.
  * @returns A promise resolving to an array of Repository objects.
- * @throws {GitHubAuthError} If the access token is invalid or lacks required permissions.
+ * @throws {GitHubAuthError} If authentication fails or lacks required permissions.
  * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
  * @throws {GitHubApiError} For other GitHub API errors.
  * @throws {GitHubError} For unexpected errors.
  */
-export async function fetchAllRepositoriesOAuth(
-  accessToken: string,
+export async function fetchRepositories(
+  octokit: Octokit
 ): Promise<Repository[]> {
-  const context = { functionName: 'fetchAllRepositoriesOAuth', accessTokenLength: accessToken?.length };
-  logger.debug(MODULE_NAME, "fetchAllRepositoriesOAuth called", context);
+  const context = { functionName: 'fetchRepositories' };
+  logger.debug(MODULE_NAME, "fetchRepositories called", context);
   
-  if (!accessToken) {
-    throw new GitHubAuthError("Access token is required", { context });
+  if (!octokit) {
+    throw new GitHubError("Octokit instance is required", { context });
   }
 
-  const octokit = new Octokit({ auth: accessToken });
   let allRepos: Repository[] = [];
 
   try {
@@ -263,23 +265,26 @@ export async function fetchAllRepositoriesOAuth(
   }
 }
 
-// Import from the auth module
-import { createAuthenticatedOctokit } from "./auth/githubAuth";
-
-// Fetch repositories using GitHub App installation
-export async function fetchAllRepositoriesApp(
-  installationId: number,
+/**
+ * Fetch repositories accessible to a GitHub App installation.
+ * @param octokit An authenticated Octokit instance with App installation auth.
+ * @returns A promise resolving to an array of Repository objects.
+ * @throws {GitHubAuthError} If authentication fails.
+ * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
+ * @throws {GitHubApiError} For other GitHub API errors.
+ * @throws {GitHubError} For unexpected errors.
+ */
+export async function fetchAppRepositories(
+  octokit: Octokit
 ): Promise<Repository[]> {
-  const context = { functionName: 'fetchAllRepositoriesApp', installationId };
-  logger.debug(MODULE_NAME, "fetchAllRepositoriesApp called", context);
+  const context = { functionName: 'fetchAppRepositories' };
+  logger.debug(MODULE_NAME, "fetchAppRepositories called", context);
+
+  if (!octokit) {
+    throw new GitHubError("Octokit instance is required", { context });
+  }
 
   try {
-    // Get an Octokit instance with the installation access token using the auth module
-    const octokit = await createAuthenticatedOctokit({
-      type: 'app',
-      installationId
-    });
-
     // Check rate limits
     try {
       const rateLimit = await octokit.rest.rateLimit.get();
@@ -331,15 +336,24 @@ export async function fetchAllRepositoriesApp(
 
     return repositories;
   } catch (error) {
-    logger.error(MODULE_NAME, "Error fetching repositories via GitHub App", {
-      ...context,
-      error,
-    });
     return handleGitHubError(error, context);
   }
 }
 
-// Unified function to fetch repositories via OAuth or GitHub App
+/**
+ * Unified function to fetch repositories (backward-compatible version).
+ * This function maintains the previous API for compatibility but uses the new pattern internally.
+ * It authenticates using the provided credentials and then calls the appropriate repository fetching function.
+ * 
+ * @param accessToken Optional GitHub OAuth access token
+ * @param installationId Optional GitHub App installation ID
+ * @returns A promise resolving to an array of Repository objects
+ * @throws {GitHubAuthError} If authentication fails or credentials are invalid
+ * @throws {GitHubConfigError} If required GitHub App configuration is missing
+ * @throws {GitHubError} For other unexpected errors
+ * 
+ * @deprecated Use fetchRepositories() or fetchAppRepositories() with a pre-authenticated Octokit instance instead
+ */
 export async function fetchAllRepositories(
   accessToken?: string,
   installationId?: number,
@@ -350,10 +364,30 @@ export async function fetchAllRepositories(
     hasInstallationId: !!installationId
   };
   
-  logger.debug(MODULE_NAME, "fetchAllRepositories called", context);
+  logger.debug(MODULE_NAME, "fetchAllRepositories called (deprecated)", context);
+
+  // Validate that we have at least one authentication method
+  if (!accessToken && !installationId) {
+    logger.error(
+      MODULE_NAME,
+      "No authentication method available for repository access",
+      context
+    );
+    throw new GitHubAuthError(
+      "No GitHub authentication available. Please sign in again.",
+      { context }
+    );
+  }
 
   try {
-    // Prefer GitHub App installation if available
+    // Create an authenticated Octokit instance using the auth module
+    const credentials: GitHubCredentials = installationId
+      ? { type: 'app', installationId }
+      : { type: 'oauth', token: accessToken! };
+    
+    const octokit = await createAuthenticatedOctokit(credentials);
+    
+    // Now call the appropriate repository fetching function
     if (installationId) {
       logger.info(
         MODULE_NAME,
@@ -363,21 +397,10 @@ export async function fetchAllRepositories(
           installationId,
         },
       );
-      return await fetchAllRepositoriesApp(installationId);
-    } else if (accessToken) {
-      logger.info(MODULE_NAME, "Using OAuth token for repository access", context);
-      return await fetchAllRepositoriesOAuth(accessToken);
+      return await fetchAppRepositories(octokit);
     } else {
-      // Neither authentication method is available
-      logger.error(
-        MODULE_NAME,
-        "No authentication method available for repository access",
-        context
-      );
-      throw new GitHubAuthError(
-        "No GitHub authentication available. Please sign in again.",
-        { context }
-      );
+      logger.info(MODULE_NAME, "Using OAuth token for repository access", context);
+      return await fetchRepositories(octokit);
     }
   } catch (error) {
     return handleGitHubError(error, context);

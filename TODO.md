@@ -44,7 +44,7 @@
     - **Action:** Move the `fetchAllRepositories` function (and its variants like `fetchAllRepositoriesOAuth`, `fetchAllRepositoriesApp` if they exist) from `src/lib/github.ts` to `src/lib/githubData.ts`.
     - **Depends On:** Create Data Fetching Module File
     - **AC Ref:** PLAN.md Step 2
-- [ ] **Refactor `fetchAllRepositories` Signature:**
+- [x] **Refactor `fetchAllRepositories` Signature:**
     - **Action:** Modify the signature of the moved `fetchAllRepositories` function to accept `octokit: Octokit` as a parameter instead of handling authentication internally. Remove internal Octokit instance creation.
     - **Depends On:** Move `fetchAllRepositories` Function
     - **AC Ref:** PLAN.md Step 2
