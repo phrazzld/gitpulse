@@ -5,7 +5,7 @@
     - **Action:** Create the new file `src/lib/auth/githubAuth.ts`.
     - **Depends On:** None
     - **AC Ref:** PLAN.md Step 1
-- [ ] **Define GitHubCredentials Type:**
+- [x] **Define GitHubCredentials Type:**
     - **Action:** Define the `GitHubCredentials` discriminated union type in `githubAuth.ts`:
       ```typescript
       type GitHubCredentials =

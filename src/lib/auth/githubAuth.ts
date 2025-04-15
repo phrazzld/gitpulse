@@ -17,6 +17,14 @@ import { AUTH_METHODS } from "../constants";
 const MODULE_NAME = "githubAuth";
 
 /**
+ * Discriminated union type representing the different authentication methods for GitHub.
+ * This allows for type-safe handling of authentication variants in a single interface.
+ */
+export type GitHubCredentials =
+  | { type: 'oauth'; token: string }
+  | { type: 'app'; installationId: number };
+
+/**
  * This module will contain authentication-related functions for GitHub,
  * including:
  * 
@@ -26,6 +34,3 @@ const MODULE_NAME = "githubAuth";
  * 
  * The functions will be implemented in subsequent tasks according to the plan.
  */
-
-// Export placeholder to make TypeScript happy until implementations are added
-export {};
