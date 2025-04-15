@@ -24,7 +24,7 @@
   - **Depends On:** Create Basic Component Files
   - **AC Ref:** 3.1, 3.2, 3.3
 
-- [ ] **Define Props for DashboardHeader:** Create props interface for the header component
+- [x] **Define Props for DashboardHeader:** Create props interface for the header component
   - **Action:** Identify state variables and functions needed by DashboardHeader (e.g., session), define a Props interface, update the component's function signature, and replace direct state access with props.
   - **Depends On:** Extract JSX for DashboardHeader
   - **AC Ref:** 4.1, 4.2, 4.3, 4.4
