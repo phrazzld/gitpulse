@@ -25,7 +25,8 @@ import {
   getStaleItem,
   ClientCacheTTL
 } from '@/lib/localStorageCache';
-import { CommitSummary, AISummary } from '@/types/summary';
+import { CommitSummary } from '@/types/summary';
+import { Repository, Installation } from '@/types/github';
 
 // Preserve the FilterState type from the removed FilterPanel
 export type FilterState = {
@@ -33,36 +34,6 @@ export type FilterState = {
   organizations: string[];
   repositories: string[];
   // Removed groupBy, standardized on chronological view
-};
-
-type Repository = {
-  id: number;
-  full_name: string;
-  name: string;
-  owner: {
-    login: string;
-  };
-  private: boolean;
-  language?: string | null;
-};
-
-// Using imported types from /src/types/summary.ts
-
-// Removed GroupedResult type - no longer needed with chronological view only
-
-type InstallationAccount = {
-  login: string;
-  type: string;
-  avatarUrl?: string;
-};
-
-type Installation = {
-  id: number;
-  account: InstallationAccount;
-  appSlug: string;
-  appId: number;
-  repositorySelection: string;
-  targetType: string;
 };
 
 type ReposResponse = {

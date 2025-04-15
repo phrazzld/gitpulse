@@ -1,16 +1,6 @@
 import React from 'react';
 import { FilterState } from '@/app/dashboard/page';
-
-type Repository = {
-  id: number;
-  full_name: string;
-  name: string;
-  owner: {
-    login: string;
-  };
-  private: boolean;
-  language?: string | null;
-};
+import { Repository } from '@/types/github';
 
 interface Props {
   repositories: Repository[];
