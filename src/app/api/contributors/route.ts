@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { fetchAllRepositories, fetchCommitsForRepositories, Commit } from "@/lib/github";
 import { logger } from "@/lib/logger";
-import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl } from "@/lib/cache";
+import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl, generateCacheKey } from "@/lib/cache";
 
 const MODULE_NAME = "api:contributors";
 
@@ -52,8 +52,8 @@ export async function GET(request: NextRequest) {
   const since = request.nextUrl.searchParams.get('since') || '';
   const until = request.nextUrl.searchParams.get('until') || '';
   
-  // Create cache key based on query parameters and user
-  const cacheKey = {
+  // Create cache key parameters based on query parameters and user
+  const cacheParams = {
     user: session.user?.email || 'unknown',
     installationId: installationId || 'oauth',
     organizations,
@@ -65,7 +65,9 @@ export async function GET(request: NextRequest) {
     timestamp: Math.floor(Date.now() / (CacheTTL.MEDIUM * 1000))
   };
   
-  const etag = generateETag(cacheKey);
+  // Generate consistent cache key and ETag
+  const cacheKey = generateCacheKey(cacheParams, 'contributors');
+  const etag = generateETag(cacheParams);
   
   // Check if client has valid cached data
   if (isCacheValid(request, etag)) {

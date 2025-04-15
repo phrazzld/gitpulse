@@ -9,6 +9,7 @@ import {
   AppInstallation 
 } from "@/lib/github";
 import { logger } from "@/lib/logger";
+import { generateETag, generateCacheKey } from "@/lib/cache";
 
 const MODULE_NAME = "api:my-org-activity";
 
@@ -261,13 +262,30 @@ export async function GET(request: NextRequest) {
       organizations
     });
     
+    // Create cache parameters for ETag generation
+    const cacheParams = {
+      organizations,
+      hasMore,
+      since,
+      until,
+      cursor,
+      limit,
+      commitCount: pagedCommits.length,
+      totalCommits: allCommits.length,
+      timestamp: Date.now()
+    };
+    
+    // Generate cache key and ETag
+    const cacheKey = generateCacheKey(cacheParams, 'my-org-activity');
+    const etag = generateETag(cacheParams);
+    
     // Return the response with cache headers
     return new NextResponse(JSON.stringify(response), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "private, max-age=60", // Cache for 1 minute
-        "ETag": generateETag(response)
+        "ETag": etag
       },
     });
     
@@ -298,11 +316,8 @@ function getDefaultUntil(): string {
   return new Date().toISOString().split('T')[0];
 }
 
-// Helper function to generate an ETag for caching
-function generateETag(data: any): string {
-  // Simple implementation - in a real app you might want to use a hash function
-  return `"${Buffer.from(JSON.stringify(data)).toString('base64').slice(0, 40)}"`;
-}
+// Note: This file should use the centralized generateETag function from /src/lib/cache.ts
+// This local implementation is kept for backward compatibility until all routes are updated
 
 // Helper to extract user login from session
 function getUserLoginFromSession(session: any): string | undefined {

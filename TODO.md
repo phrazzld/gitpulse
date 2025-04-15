@@ -6,7 +6,7 @@
   - **Depends On:** None
   - **AC Ref:** ARCHITECTURE_GUIDELINES.md (Consistent Error Handling)
 
-- [ ] **Extract Cache Key Generation Logic:** Create a central utility function for generating consistent cache keys.
+- [x] **Extract Cache Key Generation Logic:** Create a central utility function for generating consistent cache keys.
   - **Action:** Implement a reusable function `generateCacheKey(params: Record<string, any>): string` in `src/lib/cache.ts` that takes relevant parameters (user ID, installation ID, filters, etc.) and produces a consistent cache key string. Refactor all API routes (e.g., `src/app/api/contributors/route.ts`, `src/app/api/repos/route.ts`) to use this new utility function.
   - **Depends On:** None
   - **AC Ref:** ARCHITECTURE_GUIDELINES.md (Embrace the Unix Philosophy, Separation of Concerns)

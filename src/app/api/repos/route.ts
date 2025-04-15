@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchAllRepositories, checkAppInstallation, getAllAppInstallations, AppInstallation, Repository } from "@/lib/github";
 import { logger } from "@/lib/logger";
-import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl } from "@/lib/cache";
+import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl, generateCacheKey } from "@/lib/cache";
 import { withAuthValidation } from "@/lib/auth/apiAuth";
 
 const MODULE_NAME = "api:repos";
@@ -42,14 +42,16 @@ async function handleGetRepositories(request: NextRequest, session: any) {
   let requestedInstallationId = request.nextUrl.searchParams.get('installation_id');
   let installationId = requestedInstallationId ? parseInt(requestedInstallationId, 10) : session.installationId;
   
-  // Create a cache key for this request based on user ID and installation ID
-  const cacheKey = `repos:${session.user?.email || 'unknown'}:${installationId || 'oauth'}`;
-  const etagInput = {
+  // Create cache key parameters
+  const cacheParams = {
     user: session.user?.email || 'unknown',
     installationId: installationId || 'oauth',
     timestamp: Math.floor(Date.now() / CacheTTL.LONG * 1000) // Cache busts every 1 hour
   };
-  const etag = generateETag(etagInput);
+  
+  // Generate consistent cache key and ETag
+  const cacheKey = generateCacheKey(cacheParams, 'repos');
+  const etag = generateETag(cacheParams);
   
   // Check if client has a valid cached response
   if (isCacheValid(request, etag)) {

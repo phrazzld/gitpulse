@@ -174,6 +174,70 @@ export const CacheTTL = {
 };
 
 /**
+ * Formats a value consistently for use in cache keys
+ * 
+ * @param value Any value to be formatted for a cache key
+ * @returns A string representation of the value
+ */
+function formatCacheValue(value: any): string {
+  if (value === null || value === undefined) {
+    return 'null';
+  }
+  if (Array.isArray(value)) {
+    return value.length ? value.sort().join(',') : 'empty';
+  }
+  if (typeof value === 'object') {
+    // Sort object keys for consistency
+    const sortedObj = Object.keys(value)
+      .sort()
+      .reduce((result: Record<string, any>, key: string) => {
+        result[key] = value[key];
+        return result;
+      }, {});
+    return JSON.stringify(sortedObj);
+  }
+  return String(value);
+}
+
+/**
+ * Generates a consistent cache key from a set of parameters
+ * 
+ * @param params Record of key-value pairs to include in the cache key
+ * @param namespace Optional namespace to prefix the cache key
+ * @returns A string cache key
+ */
+export function generateCacheKey(
+  params: Record<string, any>,
+  namespace?: string
+): string {
+  try {
+    // Sort keys to ensure consistent ordering
+    const sortedKeys = Object.keys(params).sort();
+    
+    // Build key parts
+    const parts: string[] = [];
+    
+    // Add namespace if provided
+    if (namespace) {
+      parts.push(namespace);
+    }
+    
+    // Add each parameter as key:value
+    for (const key of sortedKeys) {
+      const value = params[key];
+      const formattedValue = formatCacheValue(value);
+      parts.push(`${key}:${formattedValue}`);
+    }
+    
+    return parts.join(':');
+  } catch (error) {
+    logger.warn(MODULE_NAME, 'Error generating cache key', { error, params });
+    // Fallback to a simple timestamp if key generation fails
+    return `fallback:${Date.now().toString(36)}`;
+  }
+}
+
+/**
  * Generates a Cache-Control header value with appropriate directives
  * @param maxAge Max age in seconds
  * @param staleWhileRevalidate Time in seconds the resource is stale but still usable

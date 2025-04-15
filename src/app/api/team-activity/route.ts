@@ -9,7 +9,7 @@ import {
   AppInstallation 
 } from "@/lib/github";
 import { logger } from "@/lib/logger";
-import { optimizedJsonResponse, isCacheValid, notModifiedResponse, CacheTTL, generateETag } from "@/lib/cache";
+import { optimizedJsonResponse, isCacheValid, notModifiedResponse, CacheTTL, generateETag, generateCacheKey } from "@/lib/cache";
 import { optimizeCommit, optimizeRepository, optimizeContributor, MinimalCommit, MinimalRepository, MinimalContributor } from "@/lib/optimize";
 
 const MODULE_NAME = "api:team-activity";
@@ -297,8 +297,23 @@ export async function GET(request: NextRequest) {
       organizations
     });
     
-    // Generate ETag for the response
-    const etag = generateETag(response);
+    // Create cache parameters for ETag generation
+    const cacheParams = {
+      organizations,
+      hasMore,
+      since,
+      until,
+      cursor,
+      limit,
+      commitCount: pagedCommits.length,
+      totalCommits: allCommits.length,
+      contributorCount: contributors.length,
+      timestamp: Date.now()
+    };
+    
+    // Generate cache key and ETag
+    const cacheKey = generateCacheKey(cacheParams, 'team-activity');
+    const etag = generateETag(cacheParams);
     
     // Check if client has valid cached data
     if (isCacheValid(request, etag)) {
