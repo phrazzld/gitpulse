@@ -74,7 +74,7 @@
   - **AC Ref:** 4.1, 4.2, 4.3, 4.4
 
 ## Extract ActionButton Component
-- [ ] **Extract JSX for ActionButton:** Extract analyze button from dashboard page
+- [x] **Extract JSX for ActionButton:** Extract analyze button from dashboard page
   - **Action:** Identify and cut the JSX for the "Analyze Commits" button including loading state handling from `src/app/dashboard/page.tsx`, and paste it into `ActionButton.tsx`, ensuring all styles are included.
   - **Depends On:** Create Basic Component Files
   - **AC Ref:** 3.1, 3.2, 3.3
