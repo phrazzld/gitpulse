@@ -19,7 +19,7 @@
   - **AC Ref:** 2.2
 
 ## Extract DashboardHeader Component
-- [ ] **Extract JSX for DashboardHeader:** Extract header section from dashboard page
+- [x] **Extract JSX for DashboardHeader:** Extract header section from dashboard page
   - **Action:** Identify and cut the header section JSX (containing app name, terminal indicator, user info, sign-out button) from `src/app/dashboard/page.tsx`, and paste it into the `DashboardHeader.tsx` file, ensuring all styles are included.
   - **Depends On:** Create Basic Component Files
   - **AC Ref:** 3.1, 3.2, 3.3
