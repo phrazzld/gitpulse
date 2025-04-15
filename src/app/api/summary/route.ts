@@ -356,11 +356,11 @@ export async function GET(request: NextRequest) {
     
     reposToAnalyze.forEach(repoFullName => {
       const orgName = repoFullName.split('/')[0];
-      const installId = orgToInstallationMap.get(orgName);
+      const installationId = orgToInstallationMap.get(orgName);
       
-      if (installId) {
+      if (installationId) {
         // Use the installation ID as the key
-        const key = installId.toString();
+        const key = installationId.toString();
         if (!reposByInstallation[key]) {
           reposByInstallation[key] = [];
         }
@@ -401,11 +401,11 @@ export async function GET(request: NextRequest) {
         }
       } else {
         // Fetch with installation ID
-        const installId = parseInt(key, 10);
+        const installationId = parseInt(key, 10);
         commitFetchPromises.push(
           fetchCommitsForRepositories(
             session.accessToken,
-            installId,
+            installationId,
             repos,
             since,
             until,

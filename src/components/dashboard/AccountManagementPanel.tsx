@@ -97,7 +97,7 @@ export default function AccountManagementPanel({
             onSelectionChange={(selected) => {
               if (selected.length > 0) {
                 // Map selected login names to installation IDs
-                const selectedInstallIds = selected
+                const selectedInstallationIds = selected
                   .map(login => {
                     const inst = installations.find(i => i.account.login === login);
                     return inst ? inst.id : null;
@@ -105,7 +105,7 @@ export default function AccountManagementPanel({
                   .filter(id => id !== null) as number[];
                 
                 // Switch to the selected installations
-                switchInstallations(selectedInstallIds);
+                switchInstallations(selectedInstallationIds);
               } else {
                 // Handle case when no accounts are selected
                 switchInstallations([]);

@@ -261,29 +261,29 @@ export default function Dashboard() {
   }, [handleAuthError, handleAppInstallationNeeded, setRepositories, setError, setLoading, setAuthMethod, setInstallationIds, setInstallations, setCurrentInstallations, session]);
   
   // Function to handle switching installations
-  const switchInstallations = useCallback((installIds: InstallationId[]) => {
+  const switchInstallations = useCallback((installationIds: InstallationId[]) => {
     // Check if the installation selection has changed
     const currentIds = currentInstallations.map(inst => inst.id);
     const hasSelectionChanged = 
-      installIds.length !== currentIds.length || 
-      installIds.some(id => !currentIds.includes(id));
+      installationIds.length !== currentIds.length || 
+      installationIds.some(id => !currentIds.includes(id));
     
     if (hasSelectionChanged) {
-      console.log('Switching to installation IDs:', installIds);
+      console.log('Switching to installation IDs:', installationIds);
       
       // Get the selected installations' account logins
-      const selectedInstallations = installations.filter(inst => installIds.includes(inst.id));
+      const selectedInstallations = installations.filter(inst => installationIds.includes(inst.id));
       
       // If no installations are selected, don't fetch anything
-      if (installIds.length === 0) {
+      if (installationIds.length === 0) {
         return;
       }
       
       // For now, we'll use the first selected installation ID for fetching
       // This will need to be updated in the API to support multiple installation IDs
-      const primaryInstallId = installIds[0];
+      const primaryInstallationId = installationIds[0];
       
-      fetchRepositories(primaryInstallId).then(success => {
+      fetchRepositories(primaryInstallationId).then(success => {
         // If we successfully switched, update the cache timestamp and organization filter
         if (success) {
           // Update last refresh timestamp
@@ -313,7 +313,7 @@ export default function Dashboard() {
           setCurrentInstallations(selectedInstallations);
           
           // Update the installation IDs state
-          setInstallationIds(installIds);
+          setInstallationIds(installationIds);
         }
       });
     }
@@ -408,9 +408,9 @@ export default function Dashboard() {
       if (installCookie) {
         console.log('Found GitHub installation cookie:', installCookie);
         // Parse the installation ID from cookie and use it
-        const installId: InstallationId = parseInt(installCookie, 10);
-        if (!isNaN(installId)) {
-          fetchRepositories(installId).then(success => {
+        const installationId: InstallationId = parseInt(installCookie, 10);
+        if (!isNaN(installationId)) {
+          fetchRepositories(installationId).then(success => {
             if (success) {
               localStorage.setItem('lastRepositoryRefresh', Date.now().toString());
             }
