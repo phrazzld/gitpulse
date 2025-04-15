@@ -1,6 +1,7 @@
 import React from 'react';
 import AccountSelector from '@/components/AccountSelector';
 import { Installation } from '@/types/github';
+import { Session } from 'next-auth';
 
 interface Props {
   authMethod: string | null;
@@ -14,7 +15,7 @@ interface Props {
     type: string
   ) => string;
   switchInstallations: (installationIds: number[]) => void;
-  session?: { user?: { name?: string | null } | null };
+  session: Session | null;
 }
 
 export default function AccountManagementPanel({

@@ -41,7 +41,7 @@
   - **AC Ref:** 4.1, 4.2, 4.3, 4.4
 
 ## Extract AccountManagementPanel Component
-- [ ] **Extract JSX for AccountManagementPanel:** Extract account management section from dashboard page
+- [x] **Extract JSX for AccountManagementPanel:** Extract account management section from dashboard page
   - **Action:** Identify and cut the JSX for the GitHub App account selection and management section from `src/app/dashboard/page.tsx`, and paste it into `AccountManagementPanel.tsx`, ensuring all styles are included.
   - **Depends On:** Create Basic Component Files
   - **AC Ref:** 3.1, 3.2, 3.3
