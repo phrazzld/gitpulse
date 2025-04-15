@@ -64,7 +64,7 @@
     - **Action:** Modify the signature of the moved `fetchCommitsForRepositories` function to accept `octokit: Octokit` as a parameter. Remove internal Octokit instance creation.
     - **Depends On:** Move `fetchCommitsForRepositories` Function
     - **AC Ref:** PLAN.md Step 2
-- [ ] **Verify Data Fetching Auth Independence:**
+- [x] **Verify Data Fetching Auth Independence:**
     - **Action:** Review all functions within `githubData.ts` to ensure they rely solely on the provided `Octokit` instance for authentication and make no assumptions about the underlying auth mechanism.
     - **Depends On:** Refactor `fetchAllRepositories` Signature, Refactor `fetchRepositoryCommits` Signature, Refactor `fetchCommitsForRepositories` Signature
     - **AC Ref:** PLAN.md Step 2

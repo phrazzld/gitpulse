@@ -519,7 +519,12 @@ export async function fetchRepositoryCommitsOAuth(
   }
 
   try {
-    const octokit = new Octokit({ auth: accessToken });
+    // Create an authenticated Octokit instance using the auth module
+    const octokit = await createAuthenticatedOctokit({
+      type: 'oauth',
+      token: accessToken
+    });
+    
     return await fetchRepositoryCommitsWithOctokit(
       octokit,
       owner,
