@@ -408,22 +408,21 @@ export async function fetchAllRepositories(
 }
 
 /**
- * Fetch repository commits using OAuth token.
- * @param accessToken User's GitHub OAuth access token.
+ * Fetch repository commits using an authenticated Octokit instance.
+ * @param octokit An authenticated Octokit instance.
  * @param owner Repository owner (user or organization).
  * @param repo Repository name.
  * @param since Start date for commit range (ISO string).
  * @param until End date for commit range (ISO string).
  * @param author Optional author filter.
  * @returns A promise resolving to an array of Commit objects.
- * @throws {GitHubAuthError} If the access token is invalid or lacks permissions.
  * @throws {GitHubNotFoundError} If the repository is not found.
  * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
  * @throws {GitHubApiError} For other GitHub API errors.
  * @throws {GitHubError} For unexpected errors.
  */
-export async function fetchRepositoryCommitsOAuth(
-  accessToken: string,
+export async function fetchRepositoryCommitsWithOctokit(
+  octokit: Octokit,
   owner: string,
   repo: string,
   since: string,
@@ -431,24 +430,21 @@ export async function fetchRepositoryCommitsOAuth(
   author?: string,
 ): Promise<Commit[]> {
   const context = {
-    functionName: 'fetchRepositoryCommitsOAuth',
-    accessTokenLength: accessToken?.length,
+    functionName: 'fetchRepositoryCommitsWithOctokit',
     owner,
     repo,
     since,
     until,
     author: author || "not specified",
   };
-  // This function returns GitHub commits cast to our interface
-  logger.debug(MODULE_NAME, `fetchRepositoryCommitsOAuth called for ${owner}/${repo}`, context);
+  
+  logger.debug(MODULE_NAME, `Fetching commits for ${owner}/${repo}`, context);
 
-  if (!accessToken) {
-    throw new GitHubAuthError("Access token is required", { context });
+  if (!octokit) {
+    throw new GitHubError("Octokit instance is required", { context });
   }
 
   try {
-    const octokit = new Octokit({ auth: accessToken });
-
     logger.debug(MODULE_NAME, `Starting pagination for ${owner}/${repo} commits`, context);
     const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
       owner,
@@ -482,7 +478,63 @@ export async function fetchRepositoryCommitsOAuth(
 }
 
 /**
- * Fetch repository commits using GitHub App installation.
+ * Fetch repository commits using OAuth token (backward compatibility).
+ * @param accessToken User's GitHub OAuth access token.
+ * @param owner Repository owner (user or organization).
+ * @param repo Repository name.
+ * @param since Start date for commit range (ISO string).
+ * @param until End date for commit range (ISO string).
+ * @param author Optional author filter.
+ * @returns A promise resolving to an array of Commit objects.
+ * @throws {GitHubAuthError} If the access token is invalid or lacks permissions.
+ * @throws {GitHubNotFoundError} If the repository is not found.
+ * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
+ * @throws {GitHubApiError} For other GitHub API errors.
+ * @throws {GitHubError} For unexpected errors.
+ * 
+ * @deprecated Use fetchRepositoryCommitsWithOctokit with a pre-authenticated Octokit instance instead
+ */
+export async function fetchRepositoryCommitsOAuth(
+  accessToken: string,
+  owner: string,
+  repo: string,
+  since: string,
+  until: string,
+  author?: string,
+): Promise<Commit[]> {
+  const context = {
+    functionName: 'fetchRepositoryCommitsOAuth',
+    accessTokenLength: accessToken?.length,
+    owner,
+    repo,
+    since,
+    until,
+    author: author || "not specified",
+  };
+  // This function returns GitHub commits cast to our interface
+  logger.debug(MODULE_NAME, `fetchRepositoryCommitsOAuth called for ${owner}/${repo} (deprecated)`, context);
+
+  if (!accessToken) {
+    throw new GitHubAuthError("Access token is required", { context });
+  }
+
+  try {
+    const octokit = new Octokit({ auth: accessToken });
+    return await fetchRepositoryCommitsWithOctokit(
+      octokit,
+      owner,
+      repo,
+      since,
+      until,
+      author
+    );
+  } catch (error) {
+    return handleGitHubError(error, context);
+  }
+}
+
+/**
+ * Fetch repository commits using GitHub App installation (backward compatibility).
  * @param installationId The GitHub App installation ID.
  * @param owner Repository owner (user or organization).
  * @param repo Repository name.
@@ -490,6 +542,8 @@ export async function fetchRepositoryCommitsOAuth(
  * @param until End date for commit range (ISO string).
  * @param author Optional author filter.
  * @returns A promise resolving to an array of Commit objects.
+ * 
+ * @deprecated Use fetchRepositoryCommitsWithOctokit with a pre-authenticated Octokit instance instead
  */
 export async function fetchRepositoryCommitsApp(
   installationId: number,
@@ -511,7 +565,7 @@ export async function fetchRepositoryCommitsApp(
   
   logger.debug(
     MODULE_NAME,
-    `fetchRepositoryCommitsApp called for ${owner}/${repo}`,
+    `fetchRepositoryCommitsApp called for ${owner}/${repo} (deprecated)`,
     context
   );
 
@@ -522,43 +576,14 @@ export async function fetchRepositoryCommitsApp(
       installationId
     });
 
-    logger.debug(
-      MODULE_NAME,
-      `Starting pagination for ${owner}/${repo} commits via GitHub App`,
-      context
-    );
-
-    const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
+    return await fetchRepositoryCommitsWithOctokit(
+      octokit,
       owner,
       repo,
       since,
       until,
-      author,
-      per_page: 100,
-    });
-
-    logger.info(
-      MODULE_NAME,
-      `Fetched commits for ${owner}/${repo} via GitHub App`,
-      {
-        ...context,
-        count: commits.length,
-        firstCommitSha: commits.length > 0 ? commits[0].sha : null,
-        lastCommitSha:
-          commits.length > 0 ? commits[commits.length - 1].sha : null,
-      },
+      author
     );
-
-    // attach repository info
-    const commitsWithRepoInfo = commits.map((commit) => ({
-      ...commit,
-      repository: {
-        full_name: `${owner}/${repo}`,
-      },
-    }));
-
-    // Cast to ensure compatibility with our interface
-    return commitsWithRepoInfo as any as Commit[];
   } catch (error) {
     logger.error(
       MODULE_NAME,
@@ -573,8 +598,8 @@ export async function fetchRepositoryCommitsApp(
 }
 
 /**
- * Unified function to fetch repository commits.
- * This function selects the appropriate authentication method based on the provided credentials.
+ * Unified function to fetch repository commits (backward compatibility).
+ * This function creates an authenticated Octokit instance and then calls fetchRepositoryCommitsWithOctokit.
  * 
  * @param accessToken Optional GitHub OAuth access token.
  * @param installationId Optional GitHub App installation ID.
@@ -584,6 +609,8 @@ export async function fetchRepositoryCommitsApp(
  * @param until End date for commit range (ISO string).
  * @param author Optional author filter.
  * @returns A promise resolving to an array of Commit objects.
+ * 
+ * @deprecated Use fetchRepositoryCommitsWithOctokit with a pre-authenticated Octokit instance instead
  */
 export async function fetchRepositoryCommits(
   accessToken?: string,
@@ -607,41 +634,13 @@ export async function fetchRepositoryCommits(
   
   logger.debug(
     MODULE_NAME,
-    `fetchRepositoryCommits called for ${owner}/${repo}`,
+    `fetchRepositoryCommits called for ${owner}/${repo} (deprecated)`,
     context
   );
 
   try {
-    // Prefer GitHub App installation if available
-    if (installationId) {
-      logger.info(
-        MODULE_NAME,
-        "Using GitHub App installation for commit access",
-        {
-          ...context,
-          installationId,
-        },
-      );
-      return await fetchRepositoryCommitsApp(
-        installationId,
-        owner,
-        repo,
-        since,
-        until,
-        author,
-      );
-    } else if (accessToken) {
-      logger.info(MODULE_NAME, "Using OAuth token for commit access", context);
-      return await fetchRepositoryCommitsOAuth(
-        accessToken,
-        owner,
-        repo,
-        since,
-        until,
-        author,
-      );
-    } else {
-      // Neither authentication method is available
+    // Validate that we have at least one authentication method
+    if (!accessToken && !installationId) {
       logger.error(
         MODULE_NAME,
         "No authentication method available for commit access",
@@ -652,6 +651,23 @@ export async function fetchRepositoryCommits(
         { context }
       );
     }
+
+    // Create an authenticated Octokit instance using the auth module
+    const credentials: GitHubCredentials = installationId
+      ? { type: 'app', installationId }
+      : { type: 'oauth', token: accessToken! };
+    
+    const octokit = await createAuthenticatedOctokit(credentials);
+    
+    // Call the new function with the authenticated Octokit instance
+    return await fetchRepositoryCommitsWithOctokit(
+      octokit,
+      owner,
+      repo,
+      since,
+      until,
+      author
+    );
   } catch (error) {
     logger.error(
       MODULE_NAME,
