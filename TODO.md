@@ -57,7 +57,7 @@
   - **Depends On:** Create Basic Component Files
   - **AC Ref:** 3.1, 3.2, 3.3
 
-- [ ] **Define Props for FilterControls:** Create props interface for the filter controls
+- [x] **Define Props for FilterControls:** Create props interface for the filter controls
   - **Action:** Identify state variables and functions needed (activityMode, dateRange, activeFilters, installations, loading, handleModeChange, handleDateRangeChange, handleOrganizationChange, session), define a Props interface, update the component's function signature, and replace direct state access with props.
   - **Depends On:** Extract JSX for FilterControls
   - **AC Ref:** 4.1, 4.2, 4.3, 4.4
