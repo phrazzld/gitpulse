@@ -3,11 +3,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { 
   fetchAllRepositories, 
-  fetchCommitsForRepositories, 
+  fetchCommitsForRepositoriesWithOctokit,
   Commit,
-  Repository,
-  AppInstallation 
-} from "@/lib/github";
+  Repository 
+} from "@/lib/githubData";
+import {
+  createAuthenticatedOctokit,
+  GitHubCredentials
+} from "@/lib/auth/githubAuth";
 import { logger } from "@/lib/logger";
 import { generateETag, generateCacheKey } from "@/lib/cache";
 
@@ -139,9 +142,19 @@ export async function GET(request: NextRequest) {
       });
     }
     
+    // Create credentials object for authentication
+    const credentials: GitHubCredentials = installationId
+      ? { type: 'app', installationId }
+      : { type: 'oauth', token: accessToken };
+    
     // Fetch all repositories accessible to the user
     let allRepositories: Repository[] = [];
     try {
+      // Create an authenticated Octokit instance
+      const octokit = await createAuthenticatedOctokit(credentials);
+      
+      // Fetch repositories using the backward-compatible function
+      // Note: We're still using fetchAllRepositories which internally uses the new pattern
       allRepositories = await fetchAllRepositories(accessToken, installationId);
     } catch (error: any) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
@@ -201,9 +214,12 @@ export async function GET(request: NextRequest) {
     // Fetch commits for filtered repositories
     let allCommits: Commit[] = [];
     try {
-      allCommits = await fetchCommitsForRepositories(
-        accessToken,
-        installationId,
+      // Create an authenticated Octokit instance
+      const octokit = await createAuthenticatedOctokit(credentials);
+      
+      // Use the new function with the authenticated Octokit instance
+      allCommits = await fetchCommitsForRepositoriesWithOctokit(
+        octokit,
         repoFullNames,
         since,
         until,
