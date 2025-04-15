@@ -14,7 +14,7 @@
       ```
     - **Depends On:** Create Authentication Module File
     - **AC Ref:** PLAN.md Step 1
-- [ ] **Implement `createAuthenticatedOctokit` Factory Function:**
+- [x] **Implement `createAuthenticatedOctokit` Factory Function:**
     - **Action:** Implement `async function createAuthenticatedOctokit(credentials: GitHubCredentials): Promise<Octokit>` that handles both OAuth and App authentication methods. Include necessary imports and error handling.
     - **Depends On:** Define GitHubCredentials Type
     - **AC Ref:** PLAN.md Step 1
