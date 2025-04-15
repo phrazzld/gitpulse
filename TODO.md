@@ -63,7 +63,7 @@
   - **AC Ref:** 4.1, 4.2, 4.3, 4.4
 
 ## Extract RepositoryInfoPanel Component
-- [ ] **Extract JSX for RepositoryInfoPanel:** Extract repository info section from dashboard page
+- [x] **Extract JSX for RepositoryInfoPanel:** Extract repository info section from dashboard page
   - **Action:** Identify and cut the JSX for the repository information panel (list/summary, toggle button) from `src/app/dashboard/page.tsx`, and paste it into `RepositoryInfoPanel.tsx`, ensuring all styles are included.
   - **Depends On:** Create Basic Component Files
   - **AC Ref:** 3.1, 3.2, 3.3
