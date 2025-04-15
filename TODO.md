@@ -40,7 +40,7 @@
     - **Action:** Create the new file `src/lib/githubData.ts`.
     - **Depends On:** None
     - **AC Ref:** PLAN.md Step 2
-- [ ] **Move `fetchAllRepositories` Function:**
+- [x] **Move `fetchAllRepositories` Function:**
     - **Action:** Move the `fetchAllRepositories` function (and its variants like `fetchAllRepositoriesOAuth`, `fetchAllRepositoriesApp` if they exist) from `src/lib/github.ts` to `src/lib/githubData.ts`.
     - **Depends On:** Create Data Fetching Module File
     - **AC Ref:** PLAN.md Step 2
