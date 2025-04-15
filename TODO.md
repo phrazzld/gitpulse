@@ -22,11 +22,11 @@
     - **Action:** Move the logic from `getInstallationOctokit` in `src/lib/github.ts` into the 'app' branch of `createAuthenticatedOctokit`. The function should retrieve App credentials from environment variables, use `createAppAuth` to generate an installation token, and return an authenticated Octokit instance.
     - **Depends On:** Implement `createAuthenticatedOctokit` Factory Function
     - **AC Ref:** PLAN.md Step 1
-- [ ] **Move `checkAppInstallation` Function:**
+- [x] **Move `checkAppInstallation` Function:**
     - **Action:** Move the `checkAppInstallation` function from `src/lib/github.ts` to `src/lib/auth/githubAuth.ts`. Update imports where this function is used.
     - **Depends On:** Create Authentication Module File
     - **AC Ref:** PLAN.md Step 1
-- [ ] **Move `getAllAppInstallations` Function:**
+- [x] **Move `getAllAppInstallations` Function:**
     - **Action:** Move the `getAllAppInstallations` function from `src/lib/github.ts` to `src/lib/auth/githubAuth.ts`. Update imports where this function is used.
     - **Depends On:** Create Authentication Module File
     - **AC Ref:** PLAN.md Step 1
