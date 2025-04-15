@@ -36,7 +36,7 @@
     - **AC Ref:** PLAN.md Step 1, Justification (Coding Conventions)
 
 ## Data Fetching Module (`src/lib/githubData.ts`)
-- [ ] **Create Data Fetching Module File:**
+- [x] **Create Data Fetching Module File:**
     - **Action:** Create the new file `src/lib/githubData.ts`.
     - **Depends On:** None
     - **AC Ref:** PLAN.md Step 2
