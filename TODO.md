@@ -60,7 +60,7 @@
     - **Action:** Move the `fetchCommitsForRepositories` function from `src/lib/github.ts` to `src/lib/githubData.ts`.
     - **Depends On:** Create Data Fetching Module File
     - **AC Ref:** PLAN.md Step 2
-- [ ] **Refactor `fetchCommitsForRepositories` Signature:**
+- [x] **Refactor `fetchCommitsForRepositories` Signature:**
     - **Action:** Modify the signature of the moved `fetchCommitsForRepositories` function to accept `octokit: Octokit` as a parameter. Remove internal Octokit instance creation.
     - **Depends On:** Move `fetchCommitsForRepositories` Function
     - **AC Ref:** PLAN.md Step 2

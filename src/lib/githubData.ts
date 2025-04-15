@@ -679,46 +679,34 @@ export async function fetchRepositoryCommits(
 }
 
 /**
- * Fetch commits for multiple repositories.
- * @param accessToken Optional GitHub OAuth access token.
- * @param installationId Optional GitHub App installation ID.
+ * Fetch commits for multiple repositories using an authenticated Octokit instance.
+ * @param octokit An authenticated Octokit instance.
  * @param repositories List of repositories in the format "owner/repo".
  * @param since Start date for commit range (ISO string).
  * @param until End date for commit range (ISO string).
  * @param author Optional author filter.
  * @returns A promise resolving to an array of Commit objects.
+ * @throws {GitHubError} For unexpected errors.
  */
-export async function fetchCommitsForRepositories(
-  accessToken?: string,
-  installationId?: number,
+export async function fetchCommitsForRepositoriesWithOctokit(
+  octokit: Octokit,
   repositories: string[] = [],
   since: string = "",
   until: string = "",
   author?: string,
 ): Promise<Commit[]> {
   const context = {
-    functionName: 'fetchCommitsForRepositories',
+    functionName: 'fetchCommitsForRepositoriesWithOctokit',
     repositoriesCount: repositories.length,
-    hasAccessToken: !!accessToken,
-    hasInstallationId: !!installationId,
     since,
     until,
     author: author || "not specified",
   };
   
-  // The return value will be properly cast to our Commit interface
-  logger.debug(MODULE_NAME, "fetchCommitsForRepositories called", context);
+  logger.debug(MODULE_NAME, "fetchCommitsForRepositoriesWithOctokit called", context);
 
-  if (!accessToken && !installationId) {
-    logger.error(
-      MODULE_NAME,
-      "No authentication method provided for fetching commits",
-      context
-    );
-    throw new GitHubAuthError(
-      "No GitHub authentication available. Please sign in again.",
-      { context }
-    );
+  if (!octokit) {
+    throw new GitHubError("Octokit instance is required", { context });
   }
 
   const allCommits: Commit[] = [];
@@ -737,9 +725,8 @@ export async function fetchCommitsForRepositories(
     const results = await Promise.all(
       batch.map((repoFullName) => {
         const [owner, repo] = repoFullName.split("/");
-        return fetchRepositoryCommits(
-          accessToken,
-          installationId,
+        return fetchRepositoryCommitsWithOctokit(
+          octokit,
           owner,
           repo,
           since,
@@ -767,9 +754,8 @@ export async function fetchCommitsForRepositories(
         const results = await Promise.all(
           batch.map((repoFullName) => {
             const [owner, repo] = repoFullName.split("/");
-            return fetchRepositoryCommits(
-              accessToken,
-              installationId,
+            return fetchRepositoryCommitsWithOctokit(
+              octokit,
               owner,
               repo,
               since,
@@ -794,9 +780,8 @@ export async function fetchCommitsForRepositories(
       const results = await Promise.all(
         batch.map((repoFullName) => {
           const [owner, repo] = repoFullName.split("/");
-          return fetchRepositoryCommits(
-            accessToken,
-            installationId,
+          return fetchRepositoryCommitsWithOctokit(
+            octokit,
             owner,
             repo,
             since,
@@ -814,8 +799,78 @@ export async function fetchCommitsForRepositories(
     totalRepositories: repositories.length,
     totalCommits: allCommits.length,
     finalAuthorFilter: githubUsername || "none",
-    authMethod: installationId ? "GitHub App" : "OAuth",
   });
 
   return allCommits;
+}
+
+/**
+ * Fetch commits for multiple repositories (backward compatibility).
+ * @param accessToken Optional GitHub OAuth access token.
+ * @param installationId Optional GitHub App installation ID.
+ * @param repositories List of repositories in the format "owner/repo".
+ * @param since Start date for commit range (ISO string).
+ * @param until End date for commit range (ISO string).
+ * @param author Optional author filter.
+ * @returns A promise resolving to an array of Commit objects.
+ * 
+ * @deprecated Use fetchCommitsForRepositoriesWithOctokit with a pre-authenticated Octokit instance instead
+ */
+export async function fetchCommitsForRepositories(
+  accessToken?: string,
+  installationId?: number,
+  repositories: string[] = [],
+  since: string = "",
+  until: string = "",
+  author?: string,
+): Promise<Commit[]> {
+  const context = {
+    functionName: 'fetchCommitsForRepositories',
+    repositoriesCount: repositories.length,
+    hasAccessToken: !!accessToken,
+    hasInstallationId: !!installationId,
+    since,
+    until,
+    author: author || "not specified",
+  };
+  
+  // The return value will be properly cast to our Commit interface
+  logger.debug(MODULE_NAME, "fetchCommitsForRepositories called (deprecated)", context);
+
+  if (!accessToken && !installationId) {
+    logger.error(
+      MODULE_NAME,
+      "No authentication method provided for fetching commits",
+      context
+    );
+    throw new GitHubAuthError(
+      "No GitHub authentication available. Please sign in again.",
+      { context }
+    );
+  }
+
+  try {
+    // Create an authenticated Octokit instance using the auth module
+    const credentials: GitHubCredentials = installationId
+      ? { type: 'app', installationId }
+      : { type: 'oauth', token: accessToken! };
+    
+    const octokit = await createAuthenticatedOctokit(credentials);
+    
+    // Call the new function with the authenticated Octokit instance
+    return await fetchCommitsForRepositoriesWithOctokit(
+      octokit,
+      repositories,
+      since,
+      until,
+      author
+    );
+  } catch (error) {
+    logger.error(
+      MODULE_NAME,
+      "Error in fetchCommitsForRepositories",
+      { ...context, error },
+    );
+    return handleGitHubError(error, context);
+  }
 }
