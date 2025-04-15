@@ -98,7 +98,7 @@
     - **Action:** Update the `/api/team-activity/route.ts` handler: Get auth details from session, create client via `createAuthenticatedOctokit`, pass client to appropriate data fetching functions. Maintain response format and error handling.
     - **Depends On:** Add Error Handling and Logging to Auth Module, Refactor `fetchAllRepositories` Signature, Refactor `fetchCommitsForRepositories` Signature
     - **AC Ref:** PLAN.md Step 3
-- [ ] **Verify API Route Error Handling:**
+- [x] **Verify API Route Error Handling:**
     - **Action:** Review all updated API route handlers to ensure error handling (including errors from the auth and data modules) is consistent and results in appropriate HTTP responses.
     - **Depends On:** Refactor all Route Handlers
     - **AC Ref:** PLAN.md Step 3
