@@ -4,6 +4,7 @@ import DateRangePicker, { DateRange } from '@/components/DateRangePicker';
 import OrganizationPicker from '@/components/OrganizationPicker';
 import { FilterState } from '@/app/dashboard/page';
 import { Installation } from '@/types/github';
+import { Session } from 'next-auth';
 
 interface Props {
   activityMode: ActivityMode;
@@ -14,7 +15,7 @@ interface Props {
   handleModeChange: (mode: ActivityMode) => void;
   handleDateRangeChange: (newDateRange: DateRange) => void;
   handleOrganizationChange: (selectedOrgs: string[]) => void;
-  session?: { user?: { name?: string | null } | null };
+  session: Session | null;
 }
 
 export default function FilterControls({

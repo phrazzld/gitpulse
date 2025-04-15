@@ -52,7 +52,7 @@
   - **AC Ref:** 4.1, 4.2, 4.3, 4.4
 
 ## Extract FilterControls Component
-- [ ] **Extract JSX for FilterControls:** Extract filter controls section from dashboard page
+- [x] **Extract JSX for FilterControls:** Extract filter controls section from dashboard page
   - **Action:** Identify and cut the JSX for the filter controls (ModeSelector, DateRangePicker, OrganizationPicker, parameters display) from `src/app/dashboard/page.tsx`, and paste it into `FilterControls.tsx`, ensuring all styles are included.
   - **Depends On:** Create Basic Component Files
   - **AC Ref:** 3.1, 3.2, 3.3
