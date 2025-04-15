@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchAllRepositories, checkAppInstallation, getAllAppInstallations, AppInstallation, Repository } from "@/lib/github";
+import { fetchRepositories, fetchAppRepositories, Repository } from "@/lib/githubData";
+import { getAllAppInstallations, AppInstallation, createAuthenticatedOctokit, GitHubCredentials } from "@/lib/auth/githubAuth";
 import { logger } from "@/lib/logger";
 import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl, generateCacheKey } from "@/lib/cache";
 import { withAuthValidation } from "@/lib/auth/apiAuth";
@@ -84,8 +85,9 @@ async function handleGetRepositories(request: NextRequest, session: any) {
       
       // Validate that the requested installation ID is in our list
       if (requestedInstallationId && allInstallations.length > 0) {
+        const parsedId = parseInt(requestedInstallationId, 10);
         const validInstallation = allInstallations.find(
-          inst => inst.id === parseInt(requestedInstallationId, 10)
+          inst => inst.id === parsedId
         );
         
         if (!validInstallation) {
@@ -137,6 +139,12 @@ async function handleGetRepositories(request: NextRequest, session: any) {
     logger.debug(MODULE_NAME, "Fetching all user repositories");
     const startTime = Date.now();
     
+    // Create credentials object for authentication
+    const credentials: GitHubCredentials = installationId
+      ? { type: 'app', installationId }
+      : { type: 'oauth', token: session.accessToken };
+    
+    // Log authentication method being used
     if (installationId) {
       logger.debug(MODULE_NAME, "Using GitHub App installation", { installationId });
     } else if (session.accessToken) {
@@ -148,8 +156,13 @@ async function handleGetRepositories(request: NextRequest, session: any) {
       logger.debug(MODULE_NAME, "Using GitHub access token", tokenInfo);
     }
     
-    // Get all repositories the user has access to (owned, org, and collaborative)
-    const rawRepositories = await fetchAllRepositories(session.accessToken, installationId);
+    // Create an authenticated Octokit instance
+    const octokit = await createAuthenticatedOctokit(credentials);
+    
+    // Call the appropriate repository fetching function with the authenticated Octokit instance
+    const rawRepositories = installationId
+      ? await fetchAppRepositories(octokit)
+      : await fetchRepositories(octokit);
     
     // Optimize the repository data by extracting only necessary fields
     const repositories = rawRepositories.map(optimizeRepositoryData);
