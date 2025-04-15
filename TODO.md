@@ -79,7 +79,7 @@
   - **Depends On:** Create Basic Component Files
   - **AC Ref:** 3.1, 3.2, 3.3
 
-- [ ] **Define Props for ActionButton:** Create props interface for the action button
+- [x] **Define Props for ActionButton:** Create props interface for the action button
   - **Action:** Identify state variables and functions needed (loading, form submission handler), define a Props interface, update the component's function signature, and replace direct state access with props.
   - **Depends On:** Extract JSX for ActionButton
   - **AC Ref:** 4.1, 4.2, 4.3, 4.4
