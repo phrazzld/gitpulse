@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { fetchAllRepositories, fetchCommitsForRepositories, Commit } from "@/lib/github";
+import { 
+  fetchAllRepositories, 
+  fetchCommitsForRepositories,
+  fetchCommitsForRepositoriesWithOctokit,
+  fetchRepositories,
+  fetchAppRepositories,
+  Commit,
+  Repository
+} from "@/lib/githubData";
+import {
+  createAuthenticatedOctokit,
+  GitHubCredentials
+} from "@/lib/auth/githubAuth";
 import { logger } from "@/lib/logger";
 import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl, generateCacheKey } from "@/lib/cache";
 
@@ -93,8 +105,29 @@ export async function GET(request: NextRequest) {
   });
 
   try {
-    // Fetch repositories
-    const repositories = await fetchAllRepositories(session.accessToken, installationId);
+    // Create credentials object for authentication
+    const accessToken = session.accessToken as string;
+    let repositories: Repository[] = [];
+    
+    if (installationId) {
+      // Create credentials for GitHub App authentication
+      const credentials: GitHubCredentials = { type: 'app', installationId };
+      
+      // Create an authenticated Octokit instance
+      const octokit = await createAuthenticatedOctokit(credentials);
+      
+      // Fetch repositories using the App authentication
+      repositories = await fetchAppRepositories(octokit);
+    } else {
+      // Create credentials for OAuth authentication
+      const credentials: GitHubCredentials = { type: 'oauth', token: accessToken };
+      
+      // Create an authenticated Octokit instance
+      const octokit = await createAuthenticatedOctokit(credentials);
+      
+      // Fetch repositories using OAuth authentication
+      repositories = await fetchRepositories(octokit);
+    }
     
     // Apply organization and repository filters
     let filteredRepos = repositories;
@@ -119,9 +152,17 @@ export async function GET(request: NextRequest) {
     
     let commits: Commit[] = [];
     if (needCommits && repoNames.length > 0) {
-      commits = await fetchCommitsForRepositories(
-        session.accessToken,
-        installationId,
+      // Create an authenticated Octokit instance based on authentication method
+      const credentials: GitHubCredentials = installationId
+        ? { type: 'app', installationId }
+        : { type: 'oauth', token: accessToken };
+      
+      // Create an authenticated Octokit instance
+      const octokit = await createAuthenticatedOctokit(credentials);
+      
+      // Fetch commits using the Octokit instance
+      commits = await fetchCommitsForRepositoriesWithOctokit(
+        octokit,
         repoNames,
         since,
         until
@@ -167,9 +208,17 @@ export async function GET(request: NextRequest) {
         const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
         
         try {
-          const defaultCommits = await fetchCommitsForRepositories(
-            session.accessToken,
-            installationId,
+          // Create an authenticated Octokit instance based on authentication method
+          const credentials: GitHubCredentials = installationId
+            ? { type: 'app', installationId }
+            : { type: 'oauth', token: accessToken };
+          
+          // Create an authenticated Octokit instance
+          const octokit = await createAuthenticatedOctokit(credentials);
+          
+          // Fetch commits using the Octokit instance
+          const defaultCommits = await fetchCommitsForRepositoriesWithOctokit(
+            octokit,
             repoNames,
             startDate,
             endDate
