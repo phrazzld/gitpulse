@@ -78,7 +78,7 @@
     - **Action:** Update the `/api/repos/route.ts` handler to: 1) Get auth details from session, 2) Determine `GitHubCredentials`, 3) Call `createAuthenticatedOctokit` from `githubAuth.ts`, 4) Pass the resulting `octokit` client to the refactored `fetchAllRepositories` in `githubData.ts`, 5) Maintain existing response format and error handling.
     - **Depends On:** Add Error Handling and Logging to Auth Module, Refactor `fetchAllRepositories` Signature
     - **AC Ref:** PLAN.md Step 3
-- [ ] **Refactor `/api/my-activity` Route Handler:**
+- [x] **Refactor `/api/my-activity` Route Handler:**
     - **Action:** Update the `/api/my-activity/route.ts` handler: Get auth details from session, create client via `createAuthenticatedOctokit`, pass client to `fetchCommitsForRepositories` in `githubData.ts`. Maintain response format and error handling.
     - **Depends On:** Add Error Handling and Logging to Auth Module, Refactor `fetchCommitsForRepositories` Signature
     - **AC Ref:** PLAN.md Step 3
