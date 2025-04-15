@@ -11,7 +11,7 @@
   - **Depends On:** None
   - **AC Ref:** ARCHITECTURE_GUIDELINES.md (Embrace the Unix Philosophy, Separation of Concerns)
 
-- [ ] **Add Explicit Type Definitions in Dashboard Page:** Strengthen type safety in the Dashboard component.
+- [x] **Add Explicit Type Definitions in Dashboard Page:** Strengthen type safety in the Dashboard component.
   - **Action:** In `src/app/dashboard/page.tsx`, explicitly define TypeScript types for `requestedInstallationIds`, `installationIds`, and any other variables with implicit typing (around lines 68-70). Create interfaces or types as needed and apply them consistently.
   - **Depends On:** None
   - **AC Ref:** CODING_STANDARDS.md (Leverage Types Diligently)

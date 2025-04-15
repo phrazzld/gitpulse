@@ -39,11 +39,14 @@ export type FilterState = {
 type ReposResponse = {
   repositories: Repository[];
   authMethod?: string;
-  installationId?: number | null;
-  installationIds?: number[];
+  installationId?: RequestedInstallationId;
+  installationIds?: InstallationId[];
   installations?: Installation[];
   currentInstallation?: Installation | null;
   currentInstallations?: Installation[];
+  error?: string;
+  code?: string;
+  needsInstallation?: boolean;
 };
 
 // Helper functions for date formatting
@@ -73,23 +76,33 @@ function getGitHubAppInstallUrl() {
   return `https://github.com/apps/${appName}/installations/new`;
 }
 
+// Type definitions for Dashboard component state
+type InstallationId = number;
+type RequestedInstallationId = InstallationId | null;
+
+// Type for date range state
+interface DateRangeState {
+  since: string;
+  until: string;
+}
+
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   
   const [repositories, setRepositories] = useState<Repository[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [initialLoad, setInitialLoad] = useState(true);
-  const [dateRange, setDateRange] = useState({
+  const [loading, setLoading] = useState<boolean>(false);
+  const [initialLoad, setInitialLoad] = useState<boolean>(true);
+  const [dateRange, setDateRange] = useState<DateRangeState>({
     since: getLastWeekDate(),
     until: getTodayDate(),
   });
   const [summary, setSummary] = useState<CommitSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showRepoList, setShowRepoList] = useState(true);
+  const [showRepoList, setShowRepoList] = useState<boolean>(true);
   const [authMethod, setAuthMethod] = useState<string | null>(null);
-  const [needsInstallation, setNeedsInstallation] = useState(false);
-  const [installationIds, setInstallationIds] = useState<number[]>([]);
+  const [needsInstallation, setNeedsInstallation] = useState<boolean>(false);
+  const [installationIds, setInstallationIds] = useState<InstallationId[]>([]);
   const [installations, setInstallations] = useState<Installation[]>([]);
   const [currentInstallations, setCurrentInstallations] = useState<Installation[]>([]);
   
@@ -115,7 +128,7 @@ export default function Dashboard() {
     setError('GitHub App installation required. Please install the GitHub App to access all your repositories, including private ones.');
   }, [setError, setNeedsInstallation]);
   
-  const fetchRepositories = useCallback(async (selectedInstallationId?: number) => {
+  const fetchRepositories = useCallback(async (selectedInstallationId?: InstallationId) => {
     // Create a consistent cache key
     const cacheKey = `repos:${session?.user?.email || 'user'}`;
     let forceFetch = false;
@@ -153,11 +166,15 @@ export default function Dashboard() {
         ? `/api/repos?installation_id=${selectedInstallationId}` 
         : '/api/repos';
       
-      const response = await fetch(url);
+      const response: Response = await fetch(url);
       
       if (!response.ok) {
         // Parse the error response
-        const errorData = await response.json();
+        const errorData: {
+          error?: string;
+          code?: string;
+          needsInstallation?: boolean;
+        } = await response.json();
         
         if (errorData.needsInstallation) {
           // GitHub App not installed
@@ -231,9 +248,10 @@ export default function Dashboard() {
       
       setError(null); // Clear any previous errors
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching repositories:', error);
-      setError('Failed to fetch repositories. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch repositories. Please try again.';
+      setError(errorMessage);
       return false;
     } finally {
       if (!forceFetch) {
@@ -243,7 +261,7 @@ export default function Dashboard() {
   }, [handleAuthError, handleAppInstallationNeeded, setRepositories, setError, setLoading, setAuthMethod, setInstallationIds, setInstallations, setCurrentInstallations, session]);
   
   // Function to handle switching installations
-  const switchInstallations = useCallback((installIds: number[]) => {
+  const switchInstallations = useCallback((installIds: InstallationId[]) => {
     // Check if the installation selection has changed
     const currentIds = currentInstallations.map(inst => inst.id);
     const hasSelectionChanged = 
@@ -391,7 +409,7 @@ export default function Dashboard() {
       if (installCookie) {
         console.log('Found GitHub installation cookie:', installCookie);
         // Parse the installation ID from cookie and use it
-        const installId = parseInt(installCookie, 10);
+        const installId: InstallationId = parseInt(installCookie, 10);
         if (!isNaN(installId)) {
           fetchRepositories(installId).then(success => {
             if (success) {
@@ -492,9 +510,13 @@ export default function Dashboard() {
       // Always use chronological view
       params.append('groupBy', 'chronological');
 
-      const response = await fetch(`/api/summary?${params.toString()}`);
+      const response: Response = await fetch(`/api/summary?${params.toString()}`);
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData: { 
+          error?: string; 
+          code?: string; 
+          needsInstallation?: boolean;
+        } = await response.json();
         
         // Check for installation needed error
         if (errorData.needsInstallation) {
@@ -514,7 +536,12 @@ export default function Dashboard() {
         throw new Error(errorData.error || 'Failed to generate summary');
       }
 
-      const data = await response.json();
+      const data: CommitSummary & {
+        authMethod?: string;
+        installationIds?: InstallationId[];
+        installations?: Installation[];
+        currentInstallations?: Installation[];
+      } = await response.json();
       setSummary(data);
       
       // Update auth method and installation IDs if available
@@ -536,9 +563,10 @@ export default function Dashboard() {
       if (data.currentInstallations && data.currentInstallations.length > 0) {
         setCurrentInstallations(data.currentInstallations);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error generating summary:', error);
-      setError(error.message || 'Failed to generate summary. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate summary. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
