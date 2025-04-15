@@ -48,7 +48,7 @@
     - **Action:** Modify the signature of the moved `fetchAllRepositories` function to accept `octokit: Octokit` as a parameter instead of handling authentication internally. Remove internal Octokit instance creation.
     - **Depends On:** Move `fetchAllRepositories` Function
     - **AC Ref:** PLAN.md Step 2
-- [ ] **Move `fetchRepositoryCommits` Function:**
+- [x] **Move `fetchRepositoryCommits` Function:**
     - **Action:** Move the `fetchRepositoryCommits` function (and its variants) from `src/lib/github.ts` to `src/lib/githubData.ts`.
     - **Depends On:** Create Data Fetching Module File
     - **AC Ref:** PLAN.md Step 2
@@ -56,7 +56,7 @@
     - **Action:** Modify the signature of the moved `fetchRepositoryCommits` function to accept `octokit: Octokit` as a parameter. Remove internal Octokit instance creation.
     - **Depends On:** Move `fetchRepositoryCommits` Function
     - **AC Ref:** PLAN.md Step 2
-- [ ] **Move `fetchCommitsForRepositories` Function:**
+- [x] **Move `fetchCommitsForRepositories` Function:**
     - **Action:** Move the `fetchCommitsForRepositories` function from `src/lib/github.ts` to `src/lib/githubData.ts`.
     - **Depends On:** Create Data Fetching Module File
     - **AC Ref:** PLAN.md Step 2
