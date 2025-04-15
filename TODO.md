@@ -30,7 +30,7 @@
   - **AC Ref:** 4.1, 4.2, 4.3, 4.4
 
 ## Extract AuthenticationStatusBanner Component
-- [ ] **Extract JSX for AuthenticationStatusBanner:** Extract authentication banners from dashboard page
+- [x] **Extract JSX for AuthenticationStatusBanner:** Extract authentication banners from dashboard page
   - **Action:** Identify and cut the JSX for the authentication status banners (error message, auth method, installation needed warnings) from `src/app/dashboard/page.tsx`, and paste it into `AuthenticationStatusBanner.tsx`, ensuring all styles are included.
   - **Depends On:** Create Basic Component Files
   - **AC Ref:** 3.1, 3.2, 3.3
