@@ -3,6 +3,15 @@
 import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
 import { logger } from "./logger";
+import {
+  GitHubError,
+  GitHubAuthError,
+  GitHubRateLimitError,
+  GitHubNotFoundError,
+  GitHubApiError,
+  GitHubConfigError,
+  handleGitHubError
+} from "./errors";
 
 const MODULE_NAME = "github";
 
@@ -89,13 +98,24 @@ export function getInstallationManagementUrl(
   return `https://github.com/settings/installations/${installationId}`;
 }
 
-// Get all GitHub App installations for the authenticated user
+/**
+ * Get all GitHub App installations for the authenticated user.
+ * @param accessToken User's GitHub OAuth access token.
+ * @returns A promise resolving to an array of AppInstallation objects.
+ * @throws {GitHubAuthError} If the access token is invalid or lacks permissions.
+ * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
+ * @throws {GitHubApiError} For other GitHub API errors.
+ * @throws {GitHubError} For unexpected errors.
+ */
 export async function getAllAppInstallations(
   accessToken: string,
 ): Promise<AppInstallation[]> {
-  logger.debug(MODULE_NAME, "getAllAppInstallations called", {
-    accessTokenLength: accessToken?.length,
-  });
+  const context = { functionName: 'getAllAppInstallations', accessTokenLength: accessToken?.length };
+  logger.debug(MODULE_NAME, "getAllAppInstallations called", context);
+
+  if (!accessToken) {
+    throw new GitHubAuthError("Access token is required", { context });
+  }
 
   try {
     const octokit = new Octokit({ auth: accessToken });
@@ -109,6 +129,7 @@ export async function getAllAppInstallations(
     const appId = process.env.GITHUB_APP_ID;
 
     logger.debug(MODULE_NAME, "Retrieved user installations", {
+      ...context,
       installationsCount: data.installations.length,
       appName,
       appId,
@@ -155,6 +176,7 @@ export async function getAllAppInstallations(
     });
 
     logger.info(MODULE_NAME, "Found GitHub App installations", {
+      ...context,
       count: installations.length,
       accounts: installations
         .filter(i => i.account !== null && 'login' in i.account)
@@ -164,23 +186,28 @@ export async function getAllAppInstallations(
 
     return installations;
   } catch (error) {
-    logger.error(MODULE_NAME, "Error getting GitHub App installations", {
-      error,
-    });
-    return [];
+    return handleGitHubError(error, context);
   }
 }
 
-// Check if the GitHub App is installed for the authenticated user
+/**
+ * Check if the GitHub App is installed for the authenticated user.
+ * Returns the ID of the first found installation, or null if none are found.
+ * @param accessToken User's GitHub OAuth access token.
+ * @returns A promise resolving to the installation ID or null.
+ * @throws {GitHubAuthError} If the access token is invalid or lacks permissions.
+ * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
+ * @throws {GitHubApiError} For other GitHub API errors.
+ * @throws {GitHubError} For unexpected errors.
+ */
 export async function checkAppInstallation(
   accessToken: string,
 ): Promise<number | null> {
-  logger.debug(MODULE_NAME, "checkAppInstallation called", {
-    accessTokenLength: accessToken?.length,
-  });
+  const context = { functionName: 'checkAppInstallation', accessTokenLength: accessToken?.length };
+  logger.debug(MODULE_NAME, "checkAppInstallation called", context);
 
   try {
-    // Get all installations
+    // Get all installations - this will throw if there's an error
     const installations = await getAllAppInstallations(accessToken);
 
     if (installations.length > 0) {
@@ -189,6 +216,7 @@ export async function checkAppInstallation(
       const installationId = installations[0].id;
 
       logger.info(MODULE_NAME, "Using first GitHub App installation", {
+        ...context,
         installationId,
         account: installations[0].account?.login || 'unknown',
       });
@@ -196,37 +224,42 @@ export async function checkAppInstallation(
       return installationId;
     }
 
-    logger.info(MODULE_NAME, "No GitHub App installation found for this user");
-    return null;
+    logger.info(MODULE_NAME, "No GitHub App installation found for this user", context);
+    return null; // Only return null when the API call succeeds but no installations exist
   } catch (error) {
-    logger.error(MODULE_NAME, "Error checking for GitHub App installation", {
-      error,
-    });
-    return null;
+    return handleGitHubError(error, context);
   }
 }
 
-// Get an Octokit instance with installation access token
+/**
+ * Get an Octokit instance authenticated as a GitHub App installation.
+ * @param installationId The ID of the GitHub App installation.
+ * @returns A promise resolving to an authenticated Octokit instance.
+ * @throws {GitHubConfigError} If required App credentials (ID, Private Key) are missing.
+ * @throws {GitHubAuthError} If authentication fails during token generation.
+ * @throws {GitHubApiError} For other API errors during token generation.
+ * @throws {GitHubError} For unexpected errors.
+ */
 export async function getInstallationOctokit(
   installationId: number,
 ): Promise<Octokit> {
-  logger.debug(MODULE_NAME, "getInstallationOctokit called", {
-    installationId,
-  });
+  const context = { functionName: 'getInstallationOctokit', installationId };
+  logger.debug(MODULE_NAME, "getInstallationOctokit called", context);
+
+  // Verify required environment variables
+  const appId = process.env.GITHUB_APP_ID;
+  const privateKey = process.env.GITHUB_APP_PRIVATE_KEY_PKCS8;
+
+  if (!appId || !privateKey) {
+    logger.error(MODULE_NAME, "Missing GitHub App credentials", {
+      ...context,
+      hasAppId: !!appId,
+      hasPrivateKey: !!privateKey,
+    });
+    throw new GitHubConfigError("GitHub App credentials (GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY_PKCS8) not configured", { context });
+  }
 
   try {
-    // Verify required environment variables
-    const appId = process.env.GITHUB_APP_ID;
-    const privateKey = process.env.GITHUB_APP_PRIVATE_KEY_PKCS8;
-
-    if (!appId || !privateKey) {
-      logger.error(MODULE_NAME, "Missing GitHub App credentials", {
-        hasAppId: !!appId,
-        hasPrivateKey: !!privateKey,
-      });
-      throw new Error("GitHub App credentials not configured");
-    }
-
     // Create an Octokit instance authenticated as the GitHub App installation
     const auth = createAppAuth({
       appId: appId,
@@ -237,6 +270,7 @@ export async function getInstallationOctokit(
     // Get an installation access token
     const installationAuth = await auth({ type: "installation" });
     logger.debug(MODULE_NAME, "Generated installation access token", {
+      ...context,
       tokenType: installationAuth.type,
       expiresAt: installationAuth.expiresAt,
     });
@@ -244,18 +278,29 @@ export async function getInstallationOctokit(
     // Create an Octokit instance with the installation token
     return new Octokit({ auth: installationAuth.token });
   } catch (error) {
-    logger.error(MODULE_NAME, "Error creating installation Octokit", { error });
-    throw error;
+    return handleGitHubError(error, context);
   }
 }
 
-// Fetch repositories using user OAuth token
+/**
+ * Fetch repositories using user OAuth token.
+ * @param accessToken User's GitHub OAuth access token.
+ * @returns A promise resolving to an array of Repository objects.
+ * @throws {GitHubAuthError} If the access token is invalid or lacks required permissions.
+ * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
+ * @throws {GitHubApiError} For other GitHub API errors.
+ * @throws {GitHubError} For unexpected errors.
+ */
 export async function fetchAllRepositoriesOAuth(
   accessToken: string,
 ): Promise<Repository[]> {
-  logger.debug(MODULE_NAME, "fetchAllRepositoriesOAuth called", {
-    accessTokenLength: accessToken?.length,
-  });
+  const context = { functionName: 'fetchAllRepositoriesOAuth', accessTokenLength: accessToken?.length };
+  logger.debug(MODULE_NAME, "fetchAllRepositoriesOAuth called", context);
+  
+  if (!accessToken) {
+    throw new GitHubAuthError("Access token is required", { context });
+  }
+
   const octokit = new Octokit({ auth: accessToken });
   let allRepos: Repository[] = [];
 
@@ -265,6 +310,7 @@ export async function fetchAllRepositoriesOAuth(
       const rateLimit = await octokit.rest.rateLimit.get();
       const core = rateLimit.data.resources.core;
       logger.info(MODULE_NAME, "GitHub API rate limit status", {
+        ...context,
         limit: core.limit,
         remaining: core.remaining,
         reset: new Date(core.reset * 1000).toISOString(),
@@ -274,12 +320,15 @@ export async function fetchAllRepositoriesOAuth(
 
       if (core.remaining < 100) {
         logger.warn(MODULE_NAME, "GitHub API rate limit is running low", {
+          ...context,
           remaining: core.remaining,
           resetTime: new Date(core.reset * 1000).toISOString(),
         });
       }
     } catch (rateLimitError) {
+      // Non-fatal error, just log and continue
       logger.warn(MODULE_NAME, "Failed to check GitHub API rate limits", {
+        ...context,
         error: rateLimitError,
       });
     }
@@ -291,6 +340,7 @@ export async function fetchAllRepositoriesOAuth(
       const scopes = scopesHeader ? scopesHeader.split(", ") : [];
 
       logger.info(MODULE_NAME, "Authenticated user details", {
+        ...context,
         login: userInfo.data.login,
         id: userInfo.data.id,
         type: userInfo.data.type,
@@ -299,7 +349,6 @@ export async function fetchAllRepositoriesOAuth(
         tokenScopes: scopes,
         hasRepoScope: scopes.includes("repo"),
         hasReadOrgScope: scopes.includes("read:org"),
-        // etc...
       });
 
       // strongly recommend ensuring 'repo' and 'read:org' if you want all repos
@@ -307,9 +356,11 @@ export async function fetchAllRepositoriesOAuth(
         logger.warn(
           MODULE_NAME,
           "GitHub token is missing 'repo' scope. This will prevent access to private repositories.",
+          context,
         );
-        throw new Error(
+        throw new GitHubAuthError(
           "GitHub token is missing 'repo' scope. Please re-authenticate with the necessary permissions.",
+          { context }
         );
       }
 
@@ -317,13 +368,19 @@ export async function fetchAllRepositoriesOAuth(
         logger.warn(
           MODULE_NAME,
           "GitHub token is missing 'read:org' scope. This may limit access to organization data.",
+          context,
         );
-        // optionally make this an error if you absolutely need org repos
-        // throw new Error("GitHub token is missing 'read:org' scope. Please re-authenticate with the necessary permissions.");
+        // Note: We're not throwing an error for missing read:org, just warning
       }
     } catch (userInfoError) {
+      // This could be an auth error, so we should throw it
       logger.warn(MODULE_NAME, "Could not retrieve authenticated user info", {
+        ...context,
         error: userInfoError,
+      });
+      return handleGitHubError(userInfoError, {
+        ...context,
+        subOperation: "getAuthenticated"
       });
     }
 
@@ -331,6 +388,7 @@ export async function fetchAllRepositoriesOAuth(
     logger.debug(
       MODULE_NAME,
       "Fetching all repos with combined affiliation=owner,collaborator,organization_member and visibility=all",
+      context,
     );
     const combinedRepos = await octokit.paginate(
       octokit.rest.repos.listForAuthenticatedUser,
@@ -342,6 +400,7 @@ export async function fetchAllRepositoriesOAuth(
       },
     );
     logger.info(MODULE_NAME, "Fetched combined affiliation repos", {
+      ...context,
       count: combinedRepos.length,
     });
     allRepos = combinedRepos;
@@ -356,6 +415,7 @@ export async function fetchAllRepositoriesOAuth(
         },
       );
       logger.info(MODULE_NAME, "Fetched user organizations", {
+        ...context,
         count: orgs.length,
         orgs: orgs.map((o) => o.login),
       });
@@ -372,6 +432,7 @@ export async function fetchAllRepositoriesOAuth(
             },
           );
           logger.info(MODULE_NAME, `Fetched repos for org: ${org.login}`, {
+            ...context,
             count: orgRepos.length,
           });
           // Make sure we're creating a proper array of repositories
@@ -384,35 +445,39 @@ export async function fetchAllRepositoriesOAuth(
             allRepos.push(orgRepos);
           }
         } catch (orgError) {
+          // Non-fatal error, just log and continue
           logger.warn(
             MODULE_NAME,
             `Error fetching repos for org: ${org.login}`,
-            { error: orgError },
+            { ...context, error: orgError },
           );
         }
       }
     } catch (orgListError) {
+      // Non-fatal error, just log and continue
       logger.warn(MODULE_NAME, "Failed to list user orgs", {
+        ...context,
         error: orgListError,
       });
     }
 
     // deduplicate by full_name
     logger.debug(MODULE_NAME, "Deduplicating repositories", {
+      ...context,
       beforeCount: allRepos.length,
     });
     const uniqueRepos = Array.from(
       new Map(allRepos.map((r) => [r.full_name, r])).values(),
     );
     logger.info(MODULE_NAME, "Deduplicated repositories", {
+      ...context,
       afterCount: uniqueRepos.length,
       duplicatesRemoved: allRepos.length - uniqueRepos.length,
     });
 
     return uniqueRepos;
   } catch (error) {
-    logger.error(MODULE_NAME, "Error fetching repositories", { error });
-    throw error;
+    return handleGitHubError(error, context);
   }
 }
 
@@ -524,7 +589,21 @@ export async function fetchAllRepositories(
   }
 }
 
-// Fetch repository commits using OAuth token
+/**
+ * Fetch repository commits using OAuth token.
+ * @param accessToken User's GitHub OAuth access token.
+ * @param owner Repository owner (user or organization).
+ * @param repo Repository name.
+ * @param since Start date for commit range (ISO string).
+ * @param until End date for commit range (ISO string).
+ * @param author Optional author filter.
+ * @returns A promise resolving to an array of Commit objects.
+ * @throws {GitHubAuthError} If the access token is invalid or lacks permissions.
+ * @throws {GitHubNotFoundError} If the repository is not found.
+ * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
+ * @throws {GitHubApiError} For other GitHub API errors.
+ * @throws {GitHubError} For unexpected errors.
+ */
 export async function fetchRepositoryCommitsOAuth(
   accessToken: string,
   owner: string,
@@ -533,24 +612,26 @@ export async function fetchRepositoryCommitsOAuth(
   until: string,
   author?: string,
 ): Promise<Commit[]> {
+  const context = {
+    functionName: 'fetchRepositoryCommitsOAuth',
+    accessTokenLength: accessToken?.length,
+    owner,
+    repo,
+    since,
+    until,
+    author: author || "not specified",
+  };
   // This function returns GitHub commits cast to our interface
-  logger.debug(
-    MODULE_NAME,
-    `fetchRepositoryCommitsOAuth called for ${owner}/${repo}`,
-    {
-      since,
-      until,
-      author: author || "not specified",
-    },
-  );
+  logger.debug(MODULE_NAME, `fetchRepositoryCommitsOAuth called for ${owner}/${repo}`, context);
 
-  const octokit = new Octokit({ auth: accessToken });
+  if (!accessToken) {
+    throw new GitHubAuthError("Access token is required", { context });
+  }
 
   try {
-    logger.debug(
-      MODULE_NAME,
-      `Starting pagination for ${owner}/${repo} commits`,
-    );
+    const octokit = new Octokit({ auth: accessToken });
+
+    logger.debug(MODULE_NAME, `Starting pagination for ${owner}/${repo} commits`, context);
     const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
       owner,
       repo,
@@ -561,10 +642,10 @@ export async function fetchRepositoryCommitsOAuth(
     });
 
     logger.info(MODULE_NAME, `Fetched commits for ${owner}/${repo}`, {
+      ...context,
       count: commits.length,
       firstCommitSha: commits.length > 0 ? commits[0].sha : null,
-      lastCommitSha:
-        commits.length > 0 ? commits[commits.length - 1].sha : null,
+      lastCommitSha: commits.length > 0 ? commits[commits.length - 1].sha : null,
     });
 
     // attach repository info
@@ -578,11 +659,7 @@ export async function fetchRepositoryCommitsOAuth(
     // Cast to ensure compatibility with our interface
     return commitsWithRepoInfo as any as Commit[];
   } catch (error) {
-    logger.error(MODULE_NAME, `Error fetching commits for ${owner}/${repo}`, {
-      error,
-    });
-    // return empty array if there's an access or other error
-    return [];
+    return handleGitHubError(error, context);
   }
 }
 

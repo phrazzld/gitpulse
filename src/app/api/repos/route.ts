@@ -215,48 +215,76 @@ async function handleGetRepositories(request: NextRequest, session: any) {
     
   } catch (error) {
     logger.error(MODULE_NAME, "Error fetching repositories", { error });
-    // Check what kind of error we have
-    const errorObj = error as { name?: string; message?: string } || {};
-    const errorName = errorObj.name || '';
-    const errorMsg = errorObj.message || '';
     
-    const isAuthError = errorName === 'HttpError' && 
-                       (errorMsg.includes('credentials') || 
-                        errorMsg.includes('authentication'));
-    
-    const isScopeError = errorMsg.includes('missing') && errorMsg.includes('scope');
-    const isAppError = errorMsg.includes('GitHub App credentials not configured');
-    
-    // GitHub tokens can become invalid for various reasons:
-    // 1. Token was revoked by the user
-    // 2. Token was revoked by an org admin
-    // 3. Token expired (if it had an expiration)
-    // 4. Token scopes changed
-    // 5. User revoked app access
-    // 6. Token missing required scopes
-    // 7. GitHub App credentials missing
+    // Import GitHubError classes directly in this file
+    const { 
+      GitHubAuthError, 
+      GitHubConfigError, 
+      GitHubRateLimitError, 
+      GitHubNotFoundError,
+      GitHubApiError,
+      GitHubError 
+    } = await import('@/lib/errors');
     
     let errorMessage = "Failed to fetch repositories";
     let errorCode = "API_ERROR";
-    
-    if (isAppError) {
+    let statusCode = 500;
+    let signOutRequired = false;
+    let errorDetails = "";
+    let needsInstallation = false;
+
+    // Check for specific error types based on our custom error classes
+    if (error instanceof GitHubConfigError) {
       errorMessage = "GitHub App not properly configured. Please contact the administrator.";
       errorCode = "GITHUB_APP_CONFIG_ERROR";
-    } else if (isScopeError) {
-      errorMessage = "Your GitHub token is missing required permissions. Please sign out and sign in again to grant access to your repositories.";
-      errorCode = "GITHUB_SCOPE_ERROR";
-    } else if (isAuthError) {
-      errorMessage = "GitHub authentication failed. Your access token is invalid or expired.";
-      errorCode = "GITHUB_AUTH_ERROR";
+      statusCode = 500;
+      errorDetails = error.message;
+    } else if (error instanceof GitHubAuthError) {
+      if (error.message.includes('scope')) {
+        errorMessage = "Your GitHub token is missing required permissions. Please sign out and sign in again to grant access to your repositories.";
+        errorCode = "GITHUB_SCOPE_ERROR";
+      } else {
+        errorMessage = "GitHub authentication failed. Your access token is invalid or expired.";
+        errorCode = "GITHUB_AUTH_ERROR";
+      }
+      statusCode = 403; // Use 403 instead of 401 to prevent automatic browser redirects
+      signOutRequired = true;
+      errorDetails = error.message;
+    } else if (error instanceof GitHubRateLimitError) {
+      errorMessage = "GitHub API rate limit exceeded. Please try again later.";
+      errorCode = "GITHUB_RATE_LIMIT_ERROR";
+      statusCode = 429;
+      // Add reset time if available
+      const resetTime = error.resetTimestamp ? 
+        new Date(error.resetTimestamp * 1000).toISOString() : 
+        "unknown";
+      errorDetails = `Rate limit exceeded. Reset at ${resetTime}`;
+    } else if (error instanceof GitHubNotFoundError) {
+      errorMessage = "GitHub resource not found.";
+      errorCode = "GITHUB_NOT_FOUND_ERROR";
+      statusCode = 404;
+      errorDetails = error.message;
+    } else if (error instanceof GitHubApiError) {
+      errorMessage = "GitHub API error occurred.";
+      errorCode = "GITHUB_API_ERROR";
+      statusCode = error.status;
+      errorDetails = error.message;
+    } else {
+      // For any other type of error, including generic GitHubError
+      errorMessage = "Failed to fetch repositories";
+      errorCode = "API_ERROR";
+      statusCode = 500;
+      errorDetails = error instanceof Error ? error.message : String(error);
     }
     
     // Use 403 for auth errors rather than 401 to prevent automatic browser redirects
     return cachedJsonResponse({ 
       error: errorMessage,
-      details: errorMsg,
+      details: errorDetails,
       code: errorCode,
-      signOutRequired: isAuthError || isScopeError
-    }, (isAuthError || isScopeError || isAppError) ? 403 : 500);
+      signOutRequired: signOutRequired,
+      needsInstallation: needsInstallation
+    }, statusCode);
   }
 }
 

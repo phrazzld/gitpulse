@@ -1,7 +1,7 @@
 # TODO
 
 ## Code Quality & Standards Compliance (High Priority)
-- [ ] **Standardize Error Handling in GitHub Utilities:** Choose a consistent approach for error handling across all GitHub utility functions.
+- [x] **Standardize Error Handling in GitHub Utilities:** Choose a consistent approach for error handling across all GitHub utility functions.
   - **Action:** Review all error handling in `src/lib/github.ts`. Decide on a consistent approach (either re-throwing specific error types or returning structured error objects). Refactor functions like `getAllAppInstallations`, `fetchAllRepositoriesOAuth`, and `fetchCommitsForRepositories` to follow this standard. Update any calling code to handle errors appropriately.
   - **Depends On:** None
   - **AC Ref:** ARCHITECTURE_GUIDELINES.md (Consistent Error Handling)
