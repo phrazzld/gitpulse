@@ -53,7 +53,7 @@
     - **Action:** Create a simple flow diagram (e.g., using MermaidJS) illustrating the authentication process (session check, credential selection, Octokit creation). Embed this diagram in the `README.md` authentication section.
     - **Depends On:** [T011]
     - **AC Ref:** Improve Authentication Documentation Plan, Success Criteria 3
-- [ ] **T013:** Add troubleshooting steps to README auth section
+- [x] **T013:** Add troubleshooting steps to README auth section
     - **Action:** Edit `README.md`. Add a subsection within the "Authentication" or "Troubleshooting" section detailing common authentication issues (e.g., invalid token, missing scopes, App not installed, incorrect env vars) and their resolution steps for both OAuth and GitHub App methods.
     - **Depends On:** [T011]
     - **AC Ref:** Improve Authentication Documentation Plan, Success Criteria 3

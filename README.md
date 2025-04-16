@@ -251,24 +251,107 @@ The diagram shows:
 
 ### Troubleshooting Authentication
 
+GitPulse provides detailed error messages to help diagnose authentication issues. This section will help you understand and resolve common authentication problems.
+
+#### Common Error Messages
+
+| Error Code | Message | Meaning | Solution |
+|------------|---------|---------|----------|
+| `GITHUB_AUTH_ERROR` | "GitHub authentication failed" | General authentication failure | Sign out and sign back in |
+| `GITHUB_TOKEN_ERROR` | "GitHub token is invalid or expired" | OAuth token has expired or been revoked | Sign out and sign back in to get a new token |
+| `GITHUB_SCOPE_ERROR` | "GitHub token is missing required permissions" | Your OAuth token doesn't have the necessary permission scopes | Review and update OAuth app permissions |
+| `GITHUB_APP_CONFIG_ERROR` | "GitHub App not properly configured" | Missing or invalid GitHub App configuration | Check environment variables |
+| `GITHUB_RATE_LIMIT_ERROR` | "GitHub API rate limit exceeded" | You've hit GitHub's API rate limits | Wait for the rate limit to reset (time provided in error) |
+| `GITHUB_NOT_FOUND_ERROR` | "GitHub resource not found" | Repository or resource doesn't exist or you lack access | Verify the resource exists and you have permission |
+
 #### OAuth Authentication Issues
 
 If you encounter GitHub OAuth authentication errors:
 
-1. Click the "Sign Out" button in the dashboard header
-2. Sign back in with your GitHub account to refresh your access token
-3. If problems persist, ensure your GitHub OAuth app still has the necessary permissions
-4. Verify your OAuth application settings match the callback URL of your deployment
+1. **Token Expiration**: 
+   - Symptom: "GitHub token is invalid or expired" error
+   - Solution: Click the "Sign Out" button in the dashboard header and sign back in to refresh your token
+
+2. **Missing Permission Scopes**:
+   - Symptom: "GitHub token is missing required permissions" error
+   - Solution: 
+     - Go to your [GitHub OAuth App settings](https://github.com/settings/applications)
+     - Find the GitPulse application and click "Revoke access"
+     - Sign back into GitPulse to reauthorize with the correct scopes
+
+3. **Incorrect OAuth Application Configuration**:
+   - Symptom: Redirect errors during login or "callback URL mismatch" errors
+   - Solution:
+     - Verify that the OAuth application's callback URL in GitHub matches your deployment URL
+     - The callback URL should be `https://your-deployment-url/api/auth/callback/github`
+     - Update the callback URL in your GitHub OAuth App settings if needed
+
+4. **OAuth Credential Issues**:
+   - Symptom: Authentication fails immediately with server errors
+   - Solution:
+     - Check that `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` are correctly set in your `.env.local` file
+     - Verify these values match what's shown in your GitHub OAuth App settings
+     - Ensure you didn't accidentally revoke the OAuth App's client secret
 
 #### GitHub App Authentication Issues
 
-If you encounter GitHub App authentication errors:
+If you encounter GitHub App authentication issues:
 
-1. Verify your GitHub App installation is active
-2. Check that the App permissions match what's needed for repository access
-3. Ensure all environment variables are correctly configured
-4. Make sure your private key is in the correct PKCS8 format
-5. Check that your GitHub App is installed on the accounts/organizations you need access to
+1. **Installation Problems**:
+   - Symptom: "No installations found" or cannot select GitHub App authentication
+   - Solution:
+     - Verify your GitHub App is installed on your account/organization
+     - Check the installation at: `https://github.com/settings/installations`
+     - Install or reinstall the app if needed
+
+2. **Permission Configuration**:
+   - Symptom: "Resource not accessible by integration" or similar errors
+   - Solution:
+     - Go to [GitHub App settings](https://github.com/settings/apps)
+     - Select your app and check "Repository permissions" 
+     - Ensure "Contents", "Metadata", and potentially "Pull requests" have at least Read-only access
+     - If you update permissions, you'll need to accept the new permissions in your installation
+
+3. **Environment Variable Issues**:
+   - Symptom: "GitHub App not properly configured" errors
+   - Solution:
+     - Verify the following variables are correctly set in `.env.local`:
+       - `GITHUB_APP_ID`: Must be the numeric ID from your GitHub App settings
+       - `GITHUB_APP_PRIVATE_KEY_PKCS8`: Complete private key in PKCS8 format (including BEGIN/END lines)
+       - `NEXT_PUBLIC_GITHUB_APP_NAME`: Name of your GitHub App as shown in GitHub
+     - Check for typos and formatting issues, especially in the private key
+
+4. **Private Key Format Problems**:
+   - Symptom: "Invalid private key" or signing errors
+   - Solution:
+     - Ensure your key is in PKCS8 format (convert if needed using OpenSSL)
+     - The key must include both the BEGIN and END lines
+     - Line breaks should be preserved (use \n in environment variables)
+     - If stored in .env file, ensure it's properly quoted
+
+5. **Installation Access Issues**:
+   - Symptom: Can authenticate but cannot access certain repositories
+   - Solution:
+     - Go to your [GitHub App installation settings](https://github.com/settings/installations)
+     - Click "Configure" next to your app
+     - Under "Repository access", ensure the repositories you need are either:
+       - Included in "Select repositories" if you chose specific access
+       - Or that "All repositories" is selected for full access
+
+#### Checking Error Responses
+
+For developers, GitPulse returns standardized error responses that can help diagnose issues:
+
+```json
+{
+  "error": "GitHub authentication token is invalid or expired",
+  "code": "GITHUB_TOKEN_ERROR",
+  "details": "The detailed error message",
+  "signOutRequired": true
+}
+```
+
+If you see `signOutRequired: true` in the error response, the user should be prompted to sign out and sign back in to refresh their token.
 
 ## Deployment
 
