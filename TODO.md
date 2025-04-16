@@ -89,7 +89,7 @@
   - **Depends On:** None
   - **AC Ref:** Success Criteria 2
 
-- [ ] **T010:** Implement GitHub Actions workflow
+- [x] **T010:** Implement GitHub Actions workflow
 
   - **Action:** Create `.github/workflows/ci.yml` with the configuration specified in the implementation plan, including code quality checks (typecheck, lint) and tests for both push and pull request events to main/master branches.
   - **Depends On:** [T008, T009]
