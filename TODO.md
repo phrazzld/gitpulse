@@ -63,7 +63,7 @@
     - **AC Ref:** Improve Authentication Documentation Plan, Success Criteria 3
 
 ## 4. Expand Test Coverage for Error Cases
-- [ ] **T015:** Add API route tests for specific GitHub error types
+- [x] **T015:** Add API route tests for specific GitHub error types
     - **Action:** In the API route tests (`src/__tests__/api/*.test.ts`), add specific test cases that mock the data fetching layer (`githubData.ts` functions) to throw `GitHubRateLimitError`, `GitHubNotFoundError`, and `GitHubAuthenticationError`.
     - **Depends On:** [T006]
     - **AC Ref:** Expand Test Coverage for Error Cases Plan, Success Criteria 4, Success Criteria 5
