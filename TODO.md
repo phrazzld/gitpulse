@@ -67,7 +67,7 @@
     - **Action:** In the API route tests (`src/__tests__/api/*.test.ts`), add specific test cases that mock the data fetching layer (`githubData.ts` functions) to throw `GitHubRateLimitError`, `GitHubNotFoundError`, and `GitHubAuthenticationError`.
     - **Depends On:** [T006]
     - **AC Ref:** Expand Test Coverage for Error Cases Plan, Success Criteria 4, Success Criteria 5
-- [ ] **T016:** Verify error type mapping to HTTP status/response in tests
+- [x] **T016:** Verify error type mapping to HTTP status/response in tests
     - **Action:** Within the tests created in T015, assert that when specific `GitHubError` types are thrown, the `withErrorHandling` HOF correctly maps them to the appropriate HTTP status code (e.g., 429 for RateLimit, 404 for NotFound, 403 for Auth) and the standardized JSON error response format.
     - **Depends On:** [T015]
     - **AC Ref:** Expand Test Coverage for Error Cases Plan, Success Criteria 4, Success Criteria 5
