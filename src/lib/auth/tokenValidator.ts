@@ -2,6 +2,11 @@ import { logger } from "../logger";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 
+// Extend Session type to include accessToken
+interface GitHubSession extends Session {
+  accessToken?: string;
+}
+
 const MODULE_NAME = "auth:tokenValidator";
 
 /**
@@ -56,7 +61,7 @@ export async function isGitHubTokenValid(accessToken: string): Promise<boolean> 
  * @returns {Promise<boolean>} True if the session is valid, false otherwise
  */
 export async function validateAuthState(
-  session: Session | null, 
+  session: GitHubSession | null, 
   options: { 
     forceSignOut?: boolean;
     callback?: (isValid: boolean) => void;

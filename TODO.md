@@ -160,12 +160,13 @@
   - **Depends On:** [T014]
   - **Resolution:** Replaced explicit `any` types with more specific types throughout the codebase. Used `unknown` for index signatures, created specific interfaces for test data, added proper typing for function parameters and return values, and improved type safety in the ContributorLike and CommitSummary interfaces.
 
-- [ ] **T021:** Refactor Complex Functions
+- [x] **T021:** Refactor Complex Functions
 
   - **Description:** Many functions exceed the maximum allowed complexity (10) or line count (100)
   - **Example files:** `src/lib/errors.ts`, `src/lib/githubData.ts`, `src/lib/gemini.ts`
   - **Priority:** Medium - These impact code maintainability but don't cause failures
   - **Depends On:** [T014]
+  - **Resolution:** Refactored complex functions by breaking them down into smaller, more focused functions with single responsibilities. Applied these changes to handleGitHubError in errors.ts, several fetch functions in githubData.ts, and the generateCommitSummary function in gemini.ts. Improved code readability, maintainability, and added proper TypeScript types throughout. Extracted utility functions for common operations to reduce code duplication and complexity.
 
 - [ ] **T022:** Standardize Naming Conventions
 
@@ -188,3 +189,24 @@
   - **Priority:** Low - This doesn't affect functionality but causes noise in linting output
   - **Depends On:** [T014]
   - **Result:** Added `.eslintignore` file with entries for `.next/`, `dist/`, `node_modules/`, and other build output directories.
+
+### Pre-commit hook fixes
+
+- [x] **T025:** Modify lint-staged config to fix TypeScript checking issues
+
+  - **Action:** Update the `lint-staged` section in `package.json`. Change the command for `*.{ts,tsx}` files from `tsc --noEmit` to `bash -c 'npm run typecheck'` to ensure proper exclusion of node_modules during pre-commit hooks.
+  - **Depends On:** None
+  - **AC Ref:** None
+  - **Result:** Successfully updated the lint-staged configuration in package.json to use the existing npm typecheck script via bash -c. This approach ensures that TypeScript properly respects the tsconfig.json settings, including the exclusion of node_modules, when type checking during pre-commit hooks. The solution aligns with lint-staged best practices for handling TypeScript checks.
+
+- [ ] **T026:** Test the updated pre-commit hook configuration
+
+  - **Action:** Stage one or more TypeScript files (`.ts` or `.tsx`) and attempt to commit them. Verify that the `npm run typecheck` command is executed successfully during the pre-commit hook through `bash -c`, does *not* produce errors related to type checking `node_modules`, but *does* correctly identify any legitimate type errors within the staged project files.
+  - **Depends On:** [T025]
+  - **AC Ref:** None
+
+- [ ] **T027:** Mark T022 (Standardize Naming Conventions) as complete
+
+  - **Action:** After verifying the pre-commit hook fix (T026 is complete) *and* completing the actual work required for standardizing naming conventions (as originally intended by T022), update the status of task T022 in `TODO.md` to `[x]`.
+  - **Depends On:** [T026]
+  - **AC Ref:** None

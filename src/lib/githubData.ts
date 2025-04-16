@@ -39,6 +39,401 @@ import { createAuthenticatedOctokit, GitHubCredentials } from "./auth/githubAuth
 // Module name for consistent logging
 const MODULE_NAME = "githubData";
 
+// Utility functions
+
+/**
+ * Checks the GitHub API rate limit status.
+ * 
+ * @param octokit Authenticated Octokit instance
+ * @param context Logging context information
+ * @returns Promise that resolves when check is complete
+ */
+async function checkRateLimits(
+  octokit: Octokit, 
+  context: Record<string, unknown>
+): Promise<void> {
+  try {
+    const rateLimit = await octokit.rest.rateLimit.get();
+    const core = rateLimit.data.resources.core;
+    
+    logger.info(MODULE_NAME, "GitHub API rate limit status", {
+      ...context,
+      limit: core.limit,
+      remaining: core.remaining,
+      reset: new Date(core.reset * 1000).toISOString(),
+      usedPercent: 100 - Number(((core.remaining / core.limit) * 100).toFixed(1)),
+    });
+
+    if (core.remaining < 100) {
+      logger.warn(MODULE_NAME, "GitHub API rate limit is running low", {
+        ...context,
+        remaining: core.remaining,
+        resetTime: new Date(core.reset * 1000).toISOString(),
+      });
+    }
+  } catch (rateLimitError) {
+    // Non-fatal error, just log and continue
+    logger.warn(MODULE_NAME, "Failed to check GitHub API rate limits", {
+      ...context,
+      error: rateLimitError,
+    });
+  }
+}
+
+/**
+ * Validates token scopes and permissions.
+ * 
+ * @param octokit Authenticated Octokit instance
+ * @param context Logging context information
+ * @returns Promise that resolves to the user info if successful
+ * @throws GitHubAuthError if token lacks required scopes
+ */
+async function validateTokenScopes(
+  octokit: Octokit, 
+  context: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  try {
+    const userInfo = await octokit.rest.users.getAuthenticated();
+    const scopesHeader = userInfo.headers["x-oauth-scopes"] || "";
+    const scopes = scopesHeader ? scopesHeader.split(", ") : [];
+
+    logger.info(MODULE_NAME, "Authenticated user details", {
+      ...context,
+      login: userInfo.data.login,
+      id: userInfo.data.id,
+      type: userInfo.data.type,
+      twoFactorEnabled: (userInfo.data as Record<string, unknown>).two_factor_authentication,
+      tokenScopes: scopes,
+      hasRepoScope: scopes.includes("repo"),
+      hasReadOrgScope: scopes.includes("read:org"),
+    });
+
+    // strongly recommend ensuring 'repo' and 'read:org' if you want all repos
+    if (!scopes.includes("repo")) {
+      logger.warn(
+        MODULE_NAME,
+        "GitHub token is missing 'repo' scope. This will prevent access to private repositories.",
+        context,
+      );
+      throw new GitHubAuthError(
+        "GitHub token is missing 'repo' scope. Please re-authenticate with the necessary permissions.",
+        { context }
+      );
+    }
+
+    if (!scopes.includes("read:org")) {
+      logger.warn(
+        MODULE_NAME,
+        "GitHub token is missing 'read:org' scope. This may limit access to organization data.",
+        context,
+      );
+      // Note: We're not throwing an error for missing read:org, just warning
+    }
+    
+    return userInfo.data;
+  } catch (userInfoError) {
+    // This could be an auth error, so we should throw it
+    logger.warn(MODULE_NAME, "Could not retrieve authenticated user info", {
+      ...context,
+      error: userInfoError,
+    });
+    return handleGitHubError(userInfoError, {
+      ...context,
+      subOperation: "getAuthenticated"
+    });
+  }
+}
+
+/**
+ * Fetches repositories for an authenticated user with combined affiliations.
+ * 
+ * @param octokit Authenticated Octokit instance
+ * @param context Logging context information
+ * @returns Promise that resolves to array of repositories
+ */
+async function fetchUserRepositories(
+  octokit: Octokit, 
+  context: Record<string, unknown>
+): Promise<Repository[]> {
+  logger.debug(
+    MODULE_NAME,
+    "Fetching all repos with combined affiliation=owner,collaborator,organization_member and visibility=all",
+    context,
+  );
+  
+  const combinedRepos = await octokit.paginate(
+    octokit.rest.repos.listForAuthenticatedUser,
+    {
+      per_page: 100,
+      sort: "updated",
+      visibility: "all",
+      affiliation: "owner,collaborator,organization_member",
+    },
+  );
+  
+  logger.info(MODULE_NAME, "Fetched combined affiliation repos", {
+    ...context,
+    count: combinedRepos.length,
+  });
+  
+  return combinedRepos;
+}
+
+/**
+ * Fetches repositories from organizations the user belongs to.
+ * 
+ * @param octokit Authenticated Octokit instance
+ * @param context Logging context information
+ * @returns Promise that resolves to array of repositories
+ */
+async function fetchOrganizationRepositories(
+  octokit: Octokit, 
+  context: Record<string, unknown>
+): Promise<Repository[]> {
+  let orgRepositories: Repository[] = [];
+  
+  try {
+    const orgs = await octokit.paginate(
+      octokit.rest.orgs.listForAuthenticatedUser,
+      {
+        per_page: 100,
+      },
+    );
+    
+    logger.info(MODULE_NAME, "Fetched user organizations", {
+      ...context,
+      count: orgs.length,
+      orgs: orgs.map((o) => o.login),
+    });
+
+    for (const org of orgs) {
+      try {
+        const orgRepos = await octokit.paginate(
+          octokit.rest.repos.listForOrg,
+          {
+            org: org.login,
+            per_page: 100,
+            sort: "updated",
+            type: "all", // private + public + forks, etc. as long as your token can see them
+          },
+        );
+        
+        logger.info(MODULE_NAME, `Fetched repos for org: ${org.login}`, {
+          ...context,
+          count: orgRepos.length,
+        });
+        
+        // Make sure we're creating a proper array of repositories
+        if (Array.isArray(orgRepos)) {
+          orgRepositories = [...orgRepositories, ...orgRepos];
+        } else if (orgRepos) {
+          // If it's a single repo, add it to the array
+          orgRepositories.push(orgRepos as Repository);
+        }
+      } catch (orgError) {
+        // Non-fatal error, just log and continue
+        logger.warn(
+          MODULE_NAME,
+          `Error fetching repos for org: ${org.login}`,
+          { ...context, error: orgError },
+        );
+      }
+    }
+  } catch (orgListError) {
+    // Non-fatal error, just log and continue
+    logger.warn(MODULE_NAME, "Failed to list user orgs", {
+      ...context,
+      error: orgListError,
+    });
+  }
+  
+  return orgRepositories;
+}
+
+/**
+ * Deduplicates repositories by full_name.
+ * 
+ * @param repositories Array of repositories to deduplicate
+ * @param context Logging context information
+ * @returns Array of unique repositories
+ */
+function deduplicateRepositories(
+  repositories: Repository[], 
+  context: Record<string, unknown>
+): Repository[] {
+  logger.debug(MODULE_NAME, "Deduplicating repositories", {
+    ...context,
+    beforeCount: repositories.length,
+  });
+  
+  const uniqueRepos = Array.from(
+    new Map(repositories.map((r) => [r.full_name, r])).values(),
+  );
+  
+  logger.info(MODULE_NAME, "Deduplicated repositories", {
+    ...context,
+    afterCount: uniqueRepos.length,
+    duplicatesRemoved: repositories.length - uniqueRepos.length,
+  });
+  
+  return uniqueRepos;
+}
+
+/**
+ * Process a batch of repositories to fetch commits.
+ * 
+ * @param octokit Authenticated Octokit instance
+ * @param repoFullNames Array of repository full names to process
+ * @param since Start date for commit range
+ * @param until End date for commit range
+ * @param author Optional GitHub username to filter commits by
+ * @param context Logging context information
+ * @returns Promise resolving to array of commits
+ */
+async function processBatchForCommits(
+  octokit: Octokit,
+  repoFullNames: string[],
+  since: string,
+  until: string,
+  author: string | undefined,
+  context: Record<string, unknown>
+): Promise<Commit[]> {
+  logger.debug(
+    MODULE_NAME,
+    `Processing batch of ${repoFullNames.length} repositories`,
+    { ...context, repoFullNames }
+  );
+  
+  const results = await Promise.all(
+    repoFullNames.map((repoFullName) => {
+      const [owner, repo] = repoFullName.split("/");
+      return fetchRepositoryCommitsWithOctokit(
+        octokit,
+        owner,
+        repo,
+        since,
+        until,
+        author
+      );
+    })
+  );
+  
+  const allCommits: Commit[] = [];
+  results.forEach((commits) => allCommits.push(...commits));
+  
+  return allCommits;
+}
+
+/**
+ * Process repositories in batches with different author filters.
+ * Implements a fallback strategy when no commits are found with the primary author.
+ * 
+ * @param octokit Authenticated Octokit instance
+ * @param repositories Array of repository full names to process
+ * @param since Start date for commit range
+ * @param until End date for commit range
+ * @param author Optional GitHub username to filter commits by
+ * @param context Logging context information
+ * @returns Promise resolving to array of commits
+ */
+async function processRepositoriesWithFallback(
+  octokit: Octokit,
+  repositories: string[],
+  since: string,
+  until: string,
+  author: string | undefined,
+  context: Record<string, unknown>
+): Promise<Commit[]> {
+  const batchSize = GITHUB_API.BATCH_SIZE;
+  const allCommits: Commit[] = [];
+  let githubUsername = author;
+  
+  // First attempt: Use provided author
+  for (let i = 0; i < repositories.length; i += batchSize) {
+    const batch = repositories.slice(i, i + batchSize);
+    logger.debug(
+      MODULE_NAME,
+      `Processing batch ${Math.floor(i / batchSize) + 1} with author=${githubUsername || 'none'}`,
+      { ...context, batchSize, totalBatches: Math.ceil(repositories.length / batchSize) }
+    );
+    
+    const batchCommits = await processBatchForCommits(
+      octokit,
+      batch,
+      since,
+      until,
+      githubUsername,
+      context
+    );
+    
+    allCommits.push(...batchCommits);
+  }
+  
+  // If no commits found and author specified, try with repo owner as fallback
+  if (allCommits.length === 0 && author) {
+    logger.info(
+      MODULE_NAME,
+      "No commits found with provided author name; retrying with the repo owner as author",
+      context
+    );
+    
+    if (repositories.length > 0) {
+      const [fallbackOwner] = repositories[0].split("/");
+      githubUsername = fallbackOwner;
+      
+      for (let i = 0; i < repositories.length; i += batchSize) {
+        const batch = repositories.slice(i, i + batchSize);
+        const batchCommits = await processBatchForCommits(
+          octokit,
+          batch,
+          since,
+          until,
+          githubUsername,
+          context
+        );
+        
+        allCommits.push(...batchCommits);
+      }
+    }
+  }
+  
+  // Final fallback: No author filter at all
+  if (allCommits.length === 0 && author) {
+    logger.info(
+      MODULE_NAME,
+      "Still no commits found, retrying without author filter",
+      context
+    );
+    
+    for (let i = 0; i < repositories.length; i += batchSize) {
+      const batch = repositories.slice(i, i + batchSize);
+      const batchCommits = await processBatchForCommits(
+        octokit,
+        batch,
+        since,
+        until,
+        undefined,
+        context
+      );
+      
+      allCommits.push(...batchCommits);
+    }
+  }
+  
+  logger.info(
+    MODULE_NAME,
+    "Completed repositories processing for commits",
+    {
+      ...context,
+      totalRepositories: repositories.length,
+      totalCommits: allCommits.length,
+      finalAuthorFilter: githubUsername || "none",
+    }
+  );
+  
+  return allCommits;
+}
+
 /**
  * Represents a GitHub repository with essential metadata.
  * 
@@ -157,6 +552,23 @@ export interface Commit {
  * const repositories = await fetchRepositories(octokit);
  * console.log(`Found ${repositories.length} repositories`);
  */
+/**
+ * Fetches all accessible repositories for the authenticated user across personal and organization accounts.
+ * 
+ * This comprehensive function:
+ * 1. Checks current GitHub API rate limits to avoid unexpected throttling
+ * 2. Validates OAuth token scopes to ensure sufficient permissions
+ * 3. Fetches repositories the user has access to via all affiliations
+ * 4. Fetches repositories from all organizations the user belongs to
+ * 5. Deduplicates repositories to provide a clean, unified list
+ * 
+ * @param octokit - An authenticated Octokit instance (OAuth token-based auth)
+ * @returns A promise resolving to an array of Repository objects the user can access
+ * @throws {GitHubError} If the Octokit instance is not provided
+ * @throws {GitHubAuthError} If authentication fails or token lacks required permissions ('repo' scope)
+ * @throws {GitHubRateLimitError} If the GitHub API rate limit is exceeded
+ * @throws {GitHubApiError} For other GitHub API errors
+ */
 export async function fetchRepositories(
   octokit: Octokit
 ): Promise<Repository[]> {
@@ -167,180 +579,22 @@ export async function fetchRepositories(
     throw new GitHubError("Octokit instance is required", { context });
   }
 
-  let allRepos: Repository[] = [];
-
   try {
-    // check github api rate limits
-    try {
-      const rateLimit = await octokit.rest.rateLimit.get();
-      const core = rateLimit.data.resources.core;
-      logger.info(MODULE_NAME, "GitHub API rate limit status", {
-        ...context,
-        limit: core.limit,
-        remaining: core.remaining,
-        reset: new Date(core.reset * 1000).toISOString(),
-        usedPercent:
-          100 - Number(((core.remaining / core.limit) * 100).toFixed(1)),
-      });
-
-      if (core.remaining < 100) {
-        logger.warn(MODULE_NAME, "GitHub API rate limit is running low", {
-          ...context,
-          remaining: core.remaining,
-          resetTime: new Date(core.reset * 1000).toISOString(),
-        });
-      }
-    } catch (rateLimitError) {
-      // Non-fatal error, just log and continue
-      logger.warn(MODULE_NAME, "Failed to check GitHub API rate limits", {
-        ...context,
-        error: rateLimitError,
-      });
-    }
-
-    // retrieve authenticated user info (and check token scopes)
-    try {
-      const userInfo = await octokit.rest.users.getAuthenticated();
-      const scopesHeader = userInfo.headers["x-oauth-scopes"] || "";
-      const scopes = scopesHeader ? scopesHeader.split(", ") : [];
-
-      logger.info(MODULE_NAME, "Authenticated user details", {
-        ...context,
-        login: userInfo.data.login,
-        id: userInfo.data.id,
-        type: userInfo.data.type,
-        // this property isn't in official octokit types:
-        twoFactorEnabled: (userInfo.data as any).two_factor_authentication,
-        tokenScopes: scopes,
-        hasRepoScope: scopes.includes("repo"),
-        hasReadOrgScope: scopes.includes("read:org"),
-      });
-
-      // strongly recommend ensuring 'repo' and 'read:org' if you want all repos
-      if (!scopes.includes("repo")) {
-        logger.warn(
-          MODULE_NAME,
-          "GitHub token is missing 'repo' scope. This will prevent access to private repositories.",
-          context,
-        );
-        throw new GitHubAuthError(
-          "GitHub token is missing 'repo' scope. Please re-authenticate with the necessary permissions.",
-          { context }
-        );
-      }
-
-      if (!scopes.includes("read:org")) {
-        logger.warn(
-          MODULE_NAME,
-          "GitHub token is missing 'read:org' scope. This may limit access to organization data.",
-          context,
-        );
-        // Note: We're not throwing an error for missing read:org, just warning
-      }
-    } catch (userInfoError) {
-      // This could be an auth error, so we should throw it
-      logger.warn(MODULE_NAME, "Could not retrieve authenticated user info", {
-        ...context,
-        error: userInfoError,
-      });
-      return handleGitHubError(userInfoError, {
-        ...context,
-        subOperation: "getAuthenticated"
-      });
-    }
-
-    // the simplest approach to get as many repos as possible:
-    logger.debug(
-      MODULE_NAME,
-      "Fetching all repos with combined affiliation=owner,collaborator,organization_member and visibility=all",
-      context,
-    );
-    const combinedRepos = await octokit.paginate(
-      octokit.rest.repos.listForAuthenticatedUser,
-      {
-        per_page: 100,
-        sort: "updated",
-        visibility: "all",
-        affiliation: "owner,collaborator,organization_member",
-      },
-    );
-    logger.info(MODULE_NAME, "Fetched combined affiliation repos", {
-      ...context,
-      count: combinedRepos.length,
-    });
-    allRepos = combinedRepos;
-
-    // you can optionally also iterate over orgs you belong to and list them directly,
-    // in case you want to see if the direct org approach yields anything new:
-    try {
-      const orgs = await octokit.paginate(
-        octokit.rest.orgs.listForAuthenticatedUser,
-        {
-          per_page: 100,
-        },
-      );
-      logger.info(MODULE_NAME, "Fetched user organizations", {
-        ...context,
-        count: orgs.length,
-        orgs: orgs.map((o) => o.login),
-      });
-
-      for (const org of orgs) {
-        try {
-          const orgRepos = await octokit.paginate(
-            octokit.rest.repos.listForOrg,
-            {
-              org: org.login,
-              per_page: 100,
-              sort: "updated",
-              type: "all", // private + public + forks, etc. as long as your token can see them
-            },
-          );
-          logger.info(MODULE_NAME, `Fetched repos for org: ${org.login}`, {
-            ...context,
-            count: orgRepos.length,
-          });
-          // Make sure we're creating a proper array of repositories
-          // @ts-ignore - Octokit types for returned repository data vary
-          if (Array.isArray(orgRepos)) {
-            allRepos = [...allRepos, ...orgRepos];
-          } else if (orgRepos) {
-            // If it's a single repo, add it to the array
-            // @ts-ignore - Octokit type complexities
-            allRepos.push(orgRepos);
-          }
-        } catch (orgError) {
-          // Non-fatal error, just log and continue
-          logger.warn(
-            MODULE_NAME,
-            `Error fetching repos for org: ${org.login}`,
-            { ...context, error: orgError },
-          );
-        }
-      }
-    } catch (orgListError) {
-      // Non-fatal error, just log and continue
-      logger.warn(MODULE_NAME, "Failed to list user orgs", {
-        ...context,
-        error: orgListError,
-      });
-    }
-
-    // deduplicate by full_name
-    logger.debug(MODULE_NAME, "Deduplicating repositories", {
-      ...context,
-      beforeCount: allRepos.length,
-    });
-    const uniqueRepos = Array.from(
-      new Map(allRepos.map((r) => [r.full_name, r])).values(),
-    );
-    logger.info(MODULE_NAME, "Deduplicated repositories", {
-      ...context,
-      afterCount: uniqueRepos.length,
-      duplicatesRemoved: allRepos.length - uniqueRepos.length,
-    });
-
-    return uniqueRepos;
+    // Check rate limits (non-fatal if this fails)
+    await checkRateLimits(octokit, context);
+    
+    // Validate token scopes (throws if required scopes are missing)
+    await validateTokenScopes(octokit, context);
+    
+    // Step 1: Get repositories through the combined affiliations approach
+    const userRepos = await fetchUserRepositories(octokit, context);
+    
+    // Step 2: Get repositories from organizations the user belongs to
+    const orgRepos = await fetchOrganizationRepositories(octokit, context);
+    
+    // Step 3: Combine and deduplicate repositories
+    const allRepos = [...userRepos, ...orgRepos];
+    return deduplicateRepositories(allRepos, context);
   } catch (error) {
     return handleGitHubError(error, context);
   }
@@ -378,6 +632,21 @@ export async function fetchRepositories(
  * const repositories = await fetchAppRepositories(octokit);
  * console.log(`App installation can access ${repositories.length} repositories`);
  */
+/**
+ * Fetches repositories accessible to a GitHub App installation.
+ * 
+ * This function retrieves all repositories that a GitHub App installation has access to.
+ * Unlike the fetchRepositories function which is intended for OAuth authentication, this
+ * function is specifically designed for GitHub App installations and uses a different
+ * GitHub API endpoint.
+ * 
+ * @param octokit - An authenticated Octokit instance with GitHub App installation authentication
+ * @returns A promise resolving to an array of Repository objects accessible to the installation
+ * @throws {GitHubError} If the Octokit instance is not provided
+ * @throws {GitHubAuthError} If authentication fails or the installation token is invalid
+ * @throws {GitHubRateLimitError} If the GitHub API rate limit is exceeded
+ * @throws {GitHubApiError} For other GitHub API errors
+ */
 export async function fetchAppRepositories(
   octokit: Octokit
 ): Promise<Repository[]> {
@@ -390,27 +659,7 @@ export async function fetchAppRepositories(
 
   try {
     // Check rate limits
-    try {
-      const rateLimit = await octokit.rest.rateLimit.get();
-      const core = rateLimit.data.resources.core;
-      logger.info(MODULE_NAME, "GitHub API rate limit status (App auth)", {
-        ...context,
-        limit: core.limit,
-        remaining: core.remaining,
-        reset: new Date(core.reset * 1000).toISOString(),
-        usedPercent:
-          100 - Number(((core.remaining / core.limit) * 100).toFixed(1)),
-      });
-    } catch (rateLimitError) {
-      logger.warn(
-        MODULE_NAME,
-        "Failed to check GitHub API rate limits (App auth)",
-        {
-          ...context,
-          error: rateLimitError,
-        },
-      );
-    }
+    await checkRateLimits(octokit, context);
 
     // List all repositories accessible to the installation
     logger.debug(
@@ -854,6 +1103,21 @@ export async function fetchRepositoryCommits(
  * );
  * console.log(`Found ${commits.length} commits across ${repositories.length} repositories`);
  */
+/**
+ * Fetches commits across multiple repositories with smart author detection.
+ * 
+ * This high-level function is a key component for generating activity reports across
+ * multiple repositories. It implements a sophisticated approach to commit retrieval
+ * with automatic fallback strategies for author detection.
+ * 
+ * @param octokit - An authenticated Octokit instance (supports both OAuth and App auth)
+ * @param repositories - Array of repository identifiers in "owner/repo" format
+ * @param since - ISO 8601 formatted date string for the earliest commits to include
+ * @param until - ISO 8601 formatted date string for the latest commits to include
+ * @param author - Optional GitHub username to filter commits by author
+ * @returns A promise resolving to an array of Commit objects from all specified repositories
+ * @throws {GitHubError} If the Octokit instance is not provided or for other unexpected errors
+ */
 export async function fetchCommitsForRepositoriesWithOctokit(
   octokit: Octokit,
   repositories: string[] = [],
@@ -875,99 +1139,14 @@ export async function fetchCommitsForRepositoriesWithOctokit(
     throw new GitHubError("Octokit instance is required", { context });
   }
 
-  const allCommits: Commit[] = [];
-  let githubUsername = author;
-  const batchSize = GITHUB_API.BATCH_SIZE;
-
-  // first pass with "author" if provided
-  for (let i = 0; i < repositories.length; i += batchSize) {
-    const batch = repositories.slice(i, i + batchSize);
-    logger.debug(
-      MODULE_NAME,
-      `processing batch ${Math.floor(i / batchSize) + 1}`,
-      { ...context, batchRepos: batch },
-    );
-
-    const results = await Promise.all(
-      batch.map((repoFullName) => {
-        const [owner, repo] = repoFullName.split("/");
-        return fetchRepositoryCommitsWithOctokit(
-          octokit,
-          owner,
-          repo,
-          since,
-          until,
-          githubUsername,
-        );
-      }),
-    );
-    results.forEach((commits) => allCommits.push(...commits));
-  }
-
-  // if we found no commits with that author, try with owner name or no author
-  if (allCommits.length === 0 && author) {
-    logger.info(
-      MODULE_NAME,
-      "No commits found with provided author name; retrying with the repo owner as author",
-      context
-    );
-
-    if (repositories.length > 0) {
-      const [fallbackOwner] = repositories[0].split("/");
-      githubUsername = fallbackOwner;
-      for (let i = 0; i < repositories.length; i += batchSize) {
-        const batch = repositories.slice(i, i + batchSize);
-        const results = await Promise.all(
-          batch.map((repoFullName) => {
-            const [owner, repo] = repoFullName.split("/");
-            return fetchRepositoryCommitsWithOctokit(
-              octokit,
-              owner,
-              repo,
-              since,
-              until,
-              githubUsername,
-            );
-          }),
-        );
-        results.forEach((commits) => allCommits.push(...commits));
-      }
-    }
-  }
-
-  if (allCommits.length === 0 && author) {
-    logger.info(
-      MODULE_NAME,
-      "Still no commits found, retrying without author filter",
-      context
-    );
-    for (let i = 0; i < repositories.length; i += batchSize) {
-      const batch = repositories.slice(i, i + batchSize);
-      const results = await Promise.all(
-        batch.map((repoFullName) => {
-          const [owner, repo] = repoFullName.split("/");
-          return fetchRepositoryCommitsWithOctokit(
-            octokit,
-            owner,
-            repo,
-            since,
-            until,
-            undefined,
-          );
-        }),
-      );
-      results.forEach((commits) => allCommits.push(...commits));
-    }
-  }
-
-  logger.info(MODULE_NAME, "All repository commits fetched", {
-    ...context,
-    totalRepositories: repositories.length,
-    totalCommits: allCommits.length,
-    finalAuthorFilter: githubUsername || "none",
-  });
-
-  return allCommits;
+  return processRepositoriesWithFallback(
+    octokit,
+    repositories,
+    since,
+    until,
+    author,
+    context
+  );
 }
 
 /**
