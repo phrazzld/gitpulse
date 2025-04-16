@@ -269,7 +269,7 @@ export default function ActivityFeed({
       
       return () => clearTimeout(timer);
     }
-    return undefined; // Explicit return for the case where condition is not met
+    // No cleanup needed when condition is not met
   }, [commits.length]);
 
   // Handler for intersection observer callback

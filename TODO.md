@@ -119,11 +119,12 @@
   - **AC Ref:** Core Principles (Simplicity)
   - **Result:** The explicit `return undefined;` statements in both useEffect hooks are unnecessary and can be safely removed. In JavaScript/TypeScript, functions implicitly return `undefined` when no explicit return value is provided. These statements were likely added for code clarity but are not required for functionality. Removing them would reduce code verbosity and align with the Simplicity principle.
 
-- [ ] **T017:** Remove unnecessary explicit `undefined` returns
+- [x] **T017:** Remove unnecessary explicit `undefined` returns
 
   - **Action:** If T016 determines removal is safe and preferable, remove the explicit `return undefined;` statements from the specified `useEffect` hooks.
   - **Depends On:** [T016]
   - **AC Ref:** Core Principles (Simplicity)
+  - **Result:** Successfully removed the unnecessary explicit `return undefined;` statements from both identified useEffect hooks. Replaced them with explanatory comments to maintain clarity about the code's intent. The code is now cleaner and follows the Simplicity principle while preserving the original logic and behavior.
 
 - [ ] **T018:** Replace `let` with `const` where applicable
   - **Action:** Review API route files identified in the code review. Replace `let` declarations with `const` for variables that are never reassigned.

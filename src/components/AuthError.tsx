@@ -42,7 +42,7 @@ export function AuthError({
         });
     }
     
-    return undefined; // Explicit return for the case where neither condition is met
+    // No cleanup needed for this effect
   }, [countdown, signOutRequired]);
   
   return (
