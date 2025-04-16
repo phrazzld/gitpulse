@@ -9,17 +9,8 @@ import {
   GitHubNotFoundError,
   GitHubApiError 
 } from "../errors";
-
-// Consistent error response structure
-export interface ApiErrorResponse {
-  error: string;
-  code: string;
-  details?: string;
-  signOutRequired?: boolean;
-  needsInstallation?: boolean;
-  resetAt?: string;
-  [key: string]: any; // Allow additional properties
-}
+import { ApiErrorResponse, ApiHandlerFunction, ApiCacheOptions } from "@/types/api";
+import { GenericRecord } from "@/types/common";
 
 /**
  * Creates a standardized error response for API routes
@@ -31,7 +22,7 @@ export interface ApiErrorResponse {
  */
 export function createApiErrorResponse(
   error: unknown, 
-  context: Record<string, any> = {},
+  context: GenericRecord = {},
   moduleName: string = "api"
 ): NextResponse {
   // Log the error with provided context
@@ -149,11 +140,11 @@ export function createApiErrorResponse(
  * @param moduleName The module name for logging purposes
  * @returns A wrapped handler with standardized error handling
  */
-export function withErrorHandling<T extends any[]>(
-  handler: (...args: T) => Promise<NextResponse>, 
+export function withErrorHandling<Args extends unknown[]>(
+  handler: ApiHandlerFunction<Args>, 
   moduleName: string
-): (...args: T) => Promise<NextResponse> {
-  return async (...args: T) => {
+): ApiHandlerFunction<Args> {
+  return async (...args: Args) => {
     try {
       return await handler(...args);
     } catch (error) {
@@ -171,7 +162,7 @@ export function withErrorHandling<T extends any[]>(
  * @returns NextResponse with standardized structure
  */
 export function createApiSuccessResponse(
-  data: any,
+  data: unknown,
   status: number = 200,
   cacheOptions?: {
     etag?: string;

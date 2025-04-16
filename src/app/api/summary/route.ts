@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { safelyExtractError } from "@/lib/errors";
 import { 
   fetchAllRepositories, 
   fetchCommitsForRepositories,
@@ -31,7 +32,7 @@ type GroupedResult = {
   repositories: string[];
   dates: string[];
   commits: Commit[];
-  aiSummary?: any;
+  aiSummary?: unknown;
 };
 
 // Valid grouping options

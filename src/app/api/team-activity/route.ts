@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { safelyExtractError } from "@/lib/errors";
+import { SessionInfo } from "@/types/api";
 import { 
   fetchAllRepositories, 
   fetchRepositories,
@@ -158,11 +160,12 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       allRepositories = installationId
         ? await fetchAppRepositories(octokit)
         : await fetchRepositories(octokit);
-    } catch (error: any) {
-      logger.error(MODULE_NAME, "Error fetching repositories", { error });
+    } catch (error: unknown) {
+      const { message, errorInstance } = safelyExtractError(error);
+      logger.error(MODULE_NAME, "Error fetching repositories", { error: errorInstance || message });
       
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching repositories: " + error.message,
+        error: "Error fetching repositories: " + message,
         code: "GITHUB_REPO_ERROR"
       }), {
         status: 500,
@@ -227,11 +230,12 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
         until
         // No author parameter - we want all team members' commits
       );
-    } catch (error: any) {
-      logger.error(MODULE_NAME, "Error fetching commits", { error });
+    } catch (error: unknown) {
+      const { message, errorInstance } = safelyExtractError(error);
+      logger.error(MODULE_NAME, "Error fetching commits", { error: errorInstance || message });
       
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching commits: " + error.message,
+        error: "Error fetching commits: " + message,
         code: "GITHUB_COMMIT_ERROR"
       }), {
         status: 500,
@@ -344,11 +348,12 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       compress: true
     });
     
-  } catch (error: any) {
-    logger.error(MODULE_NAME, "Unexpected error processing request", { error });
+  } catch (error: unknown) {
+    const { message, errorInstance } = safelyExtractError(error);
+    logger.error(MODULE_NAME, "Unexpected error processing request", { error: errorInstance || message });
     
     return await optimizedJsonResponse(request, { 
-      error: "An unexpected error occurred: " + error.message,
+      error: "An unexpected error occurred: " + message,
       code: "UNEXPECTED_ERROR"
     }, 500);
   }

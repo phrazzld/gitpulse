@@ -1,6 +1,19 @@
 import React from 'react';
 import Image from 'next/image';
 
+// Type for technical area with name and count
+type TechnicalArea = {
+  name: string;
+  count: number;
+};
+
+// Type for AI summary results
+type AISummary = {
+  keyThemes: string[];
+  technicalAreas: TechnicalArea[];
+  overallSummary: string;
+};
+
 type GroupedResult = {
   groupKey: string;
   groupName: string;
@@ -8,8 +21,8 @@ type GroupedResult = {
   commitCount: number;
   repositories: string[];
   dates: string[];
-  commits: any[];
-  aiSummary?: any;
+  commits: unknown[];
+  aiSummary?: AISummary;
 };
 
 type GroupedResultsViewProps = {
@@ -188,7 +201,7 @@ export default function GroupedResultsView({
                           TECHNICAL FOCUS
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {group.aiSummary.technicalAreas.slice(0, 5).map((area: any, index: number) => (
+                          {group.aiSummary.technicalAreas.slice(0, 5).map((area: TechnicalArea, index: number) => (
                             <span
                               key={index}
                               className="text-xs px-2 py-1 rounded flex items-center"

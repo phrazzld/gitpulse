@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { safelyExtractError } from "@/lib/errors";
+import { SessionInfo } from "@/types/api";
 import { 
   fetchAllRepositories, 
   fetchRepositories,
@@ -46,7 +48,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     headers: Object.fromEntries(request.headers)
   });
   
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions) as unknown as SessionInfo;
   
   if (!session || !session.user) {
     logger.warn(MODULE_NAME, "Unauthorized request - no valid session", { 
@@ -119,11 +121,12 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       repositories = installationId
         ? await fetchAppRepositories(octokit)
         : await fetchRepositories(octokit);
-    } catch (error: any) {
-      logger.error(MODULE_NAME, "Error fetching repositories", { error });
+    } catch (error: unknown) {
+      const errorObj = error instanceof Error ? error : { message: String(error) };
+      logger.error(MODULE_NAME, "Error fetching repositories", { error: errorObj });
       
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching repositories: " + error.message,
+        error: "Error fetching repositories: " + (error instanceof Error ? error.message : String(error)),
         code: "GITHUB_REPO_ERROR"
       }), {
         status: 500,
@@ -147,11 +150,12 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
         until,
         userLogin // Only fetch commits by the current user
       );
-    } catch (error: any) {
-      logger.error(MODULE_NAME, "Error fetching commits", { error });
+    } catch (error: unknown) {
+      const errorObj = error instanceof Error ? error : { message: String(error) };
+      logger.error(MODULE_NAME, "Error fetching commits", { error: errorObj });
       
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching commits: " + error.message,
+        error: "Error fetching commits: " + (error instanceof Error ? error.message : String(error)),
         code: "GITHUB_COMMIT_ERROR"
       }), {
         status: 500,
@@ -228,11 +232,12 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       compress: true
     });
     
-  } catch (error: any) {
-    logger.error(MODULE_NAME, "Unexpected error processing request", { error });
+  } catch (error: unknown) {
+    const errorObj = error instanceof Error ? error : { message: String(error) };
+    logger.error(MODULE_NAME, "Unexpected error processing request", { error: errorObj });
     
     return await optimizedJsonResponse(request, { 
-      error: "An unexpected error occurred: " + error.message,
+      error: "An unexpected error occurred: " + (error instanceof Error ? error.message : String(error)),
       code: "UNEXPECTED_ERROR"
     }, 500);
   }
@@ -256,7 +261,7 @@ function getDefaultUntil(): string {
 // We now import generateETag from cache.ts
 
 // Helper to extract user login from session
-function getUserLoginFromSession(session: any): string | undefined {
+function getUserLoginFromSession(session: SessionInfo): string | undefined {
   if (session.profile?.login) {
     return session.profile.login;
   }

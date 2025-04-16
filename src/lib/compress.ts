@@ -95,7 +95,7 @@ export async function compressBody(body: string, method: 'gzip' | 'deflate' | 'b
  * @returns NextResponse - The compressed response
  */
 export async function compressedJsonResponse(
-  data: any,
+  data: unknown,
   request: NextRequest,
   status: number = 200,
   headers: Record<string, string> = {}

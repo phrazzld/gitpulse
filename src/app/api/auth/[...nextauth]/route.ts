@@ -8,7 +8,9 @@ import { NextRequest } from "next/server";
 interface ExtendedToken {
   accessToken?: string;
   installationId?: number;
-  [key: string]: any;
+  email?: string | null;
+  name?: string | null;
+  [key: string]: unknown;
 }
 
 // Add type for Extended Session
@@ -193,7 +195,7 @@ async function handleRequest(req: NextRequest) {
 }
 
 // Create the NextAuth handler with a wrapper for our custom logic
-const handler = async (req: NextRequest, ...rest: any[]) => {
+const handler = async (req: NextRequest, ...rest: unknown[]) => {
   // First check if it's an installation callback
   const redirectResponse = await handleRequest(req);
   if (redirectResponse) {

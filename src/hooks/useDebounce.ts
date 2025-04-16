@@ -19,23 +19,30 @@ export function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-// Type for the debounced callback hook
-type DebounceCallbackResult<T extends (...args: any[]) => any> = {
-  callback: (...args: Parameters<T>) => void;
+/**
+ * Type for a generic callback function
+ * This is a more type-safe approach than the previous pattern
+ */
+export type CallbackFunction<TArgs = unknown, TReturn = void> = 
+  (arg: TArgs) => TReturn;
+
+// Type for the debounced callback hook result
+interface DebounceCallbackResult<T> {
+  callback: T;
   pending: boolean;
   flush: () => void;
   cancel: () => void;
-};
+}
 
-// Debounce hook for callbacks
-export function useDebounceCallback<T extends (...args: any[]) => any>(
+// Debounce hook for callbacks that take a single argument
+export function useDebounceCallback<T extends (arg: A) => R, A = unknown, R = void>(
   callback: T,
   delay: number
 ): DebounceCallbackResult<T> {
   const [pending, setPending] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const callbackRef = useRef<T>(callback);
-  const lastArgsRef = useRef<Parameters<T> | null>(null);
+  const lastArgRef = useRef<A | null>(null);
 
   // Update the callback ref when the callback changes
   useEffect(() => {
@@ -52,8 +59,8 @@ export function useDebounceCallback<T extends (...args: any[]) => any>(
   }, []);
 
   // The debounced callback
-  const debouncedCallback = useCallback((...args: Parameters<T>) => {
-    lastArgsRef.current = args;
+  const debouncedCallback = useCallback((arg: A) => {
+    lastArgRef.current = arg;
     setPending(true);
 
     // Clear any pending timeout
@@ -63,19 +70,19 @@ export function useDebounceCallback<T extends (...args: any[]) => any>(
 
     // Set a new timeout
     timeoutRef.current = setTimeout(() => {
-      if (lastArgsRef.current) {
-        callbackRef.current(...lastArgsRef.current);
+      if (lastArgRef.current !== null) {
+        callbackRef.current(lastArgRef.current);
       }
       timeoutRef.current = null;
       setPending(false);
     }, delay);
-  }, [delay]);
+  }, [delay]) as T; // Safe cast since we're preserving the original interface
 
-  // Function to immediately execute the callback with the last args
+  // Function to immediately execute the callback with the last arg
   const flush = useCallback(() => {
-    if (timeoutRef.current && lastArgsRef.current) {
+    if (timeoutRef.current && lastArgRef.current !== null) {
       clearTimeout(timeoutRef.current);
-      callbackRef.current(...lastArgsRef.current);
+      callbackRef.current(lastArgRef.current);
       timeoutRef.current = null;
       setPending(false);
     }

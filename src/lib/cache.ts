@@ -6,6 +6,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { compressedJsonResponse } from './compress';
 import { optimizedJSONStringify } from './optimize';
 import { SERVER_CACHE_TTL } from './constants';
+import { ApiCacheOptions, CacheParams } from '@/types/api';
+import { JsonValue } from '@/types/common';
 
 const MODULE_NAME = 'cache';
 
@@ -14,7 +16,7 @@ const MODULE_NAME = 'cache';
  * @param data The data to generate an ETag for
  * @returns A string ETag value
  */
-export function generateETag(data: any): string {
+export function generateETag(data: unknown): string {
   try {
     const jsonString = JSON.stringify(data);
     // Use MD5 as it's fast and sufficient for ETag purposes
@@ -75,16 +77,9 @@ export function notModifiedResponse(etag: string, cacheControl?: string): NextRe
  * @returns A NextResponse with the data and caching headers
  */
 export function cachedJsonResponse(
-  data: any, 
+  data: unknown, 
   status: number = 200,
-  options: {
-    etag?: string,
-    cacheControl?: string,
-    maxAge?: number,
-    staleWhileRevalidate?: number,
-    isPrivate?: boolean,
-    extraHeaders?: Record<string, string>
-  } = {}
+  options: ApiCacheOptions = {}
 ): NextResponse {
   const etag = options.etag || generateETag(data);
   
@@ -120,17 +115,9 @@ export function cachedJsonResponse(
  */
 export async function optimizedJsonResponse(
   request: NextRequest,
-  data: any, 
+  data: unknown, 
   status: number = 200,
-  options: {
-    etag?: string,
-    cacheControl?: string,
-    maxAge?: number,
-    staleWhileRevalidate?: number,
-    isPrivate?: boolean,
-    compress?: boolean,
-    extraHeaders?: Record<string, string>
-  } = {}
+  options: ApiCacheOptions = {}
 ): Promise<NextResponse> {
   const etag = options.etag || generateETag(data);
   
@@ -171,12 +158,25 @@ export async function optimizedJsonResponse(
 export const CacheTTL = SERVER_CACHE_TTL;
 
 /**
+ * Type for cache key primitive values
+ */
+type CacheKeyPrimitive = string | number | boolean | null | undefined;
+
+/**
+ * Type for cache key values that can be formatted
+ */
+type CacheKeyValue = 
+  | CacheKeyPrimitive
+  | Array<CacheKeyPrimitive> 
+  | Record<string, CacheKeyPrimitive>;
+
+/**
  * Formats a value consistently for use in cache keys
  * 
  * @param value Any value to be formatted for a cache key
  * @returns A string representation of the value
  */
-function formatCacheValue(value: any): string {
+function formatCacheValue(value: unknown): string {
   if (value === null || value === undefined) {
     return 'null';
   }
@@ -185,10 +185,10 @@ function formatCacheValue(value: any): string {
   }
   if (typeof value === 'object') {
     // Sort object keys for consistency
-    const sortedObj = Object.keys(value)
+    const sortedObj = Object.keys(value as Record<string, unknown>)
       .sort()
-      .reduce((result: Record<string, any>, key: string) => {
-        result[key] = value[key];
+      .reduce((result: Record<string, unknown>, key: string) => {
+        result[key] = (value as Record<string, unknown>)[key];
         return result;
       }, {});
     return JSON.stringify(sortedObj);
@@ -204,7 +204,7 @@ function formatCacheValue(value: any): string {
  * @returns A string cache key
  */
 export function generateCacheKey(
-  params: Record<string, any>,
+  params: CacheParams,
   namespace?: string
 ): string {
   try {

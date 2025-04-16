@@ -87,8 +87,8 @@ export default [
       ...typescriptPlugin.configs["recommended"].rules,
 
       // Forbid 'any' type as specified in DEVELOPMENT_PHILOSOPHY.md
-      // Set to warn instead of error initially to avoid breaking existing code
-      "@typescript-eslint/no-explicit-any": "warn",
+      // Changed from warn to error as per task T004
+      "@typescript-eslint/no-explicit-any": "error",
 
       // Prevent suppression directives (from DEVELOPMENT_PHILOSOPHY.md section 6)
       "@typescript-eslint/ban-ts-comment": "warn",
@@ -149,6 +149,7 @@ export default [
     files: ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
     rules: {
       // Relaxed rules for tests to allow for more verbose assertions and mocks
+      // Keep as warn for test files to allow more flexibility in test assertions
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": "warn",
       "max-lines-per-function": "off", // Tests can be longer

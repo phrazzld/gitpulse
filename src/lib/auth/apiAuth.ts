@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { isGitHubTokenValid } from "./tokenValidator";
 import { logger } from "../logger";
+import { safelyExtractError } from "../errors";
 
 const MODULE_NAME = "auth:apiAuth";
 
@@ -11,7 +12,7 @@ const MODULE_NAME = "auth:apiAuth";
  */
 export type ApiRouteHandler = (
   req: NextRequest,
-  session: any
+  session: unknown
 ) => Promise<NextResponse>;
 
 /**
@@ -79,10 +80,11 @@ export function withAuthValidation(handler: ApiRouteHandler) {
     // Token is valid, proceed with the handler
     try {
       return await handler(req, session);
-    } catch (error) {
+    } catch (error: unknown) {
+      const { message, errorInstance } = safelyExtractError(error);
       logger.error(MODULE_NAME, "Error in API route handler", {
         url: req.url,
-        error,
+        error: errorInstance || message,
       });
       
       return NextResponse.json(

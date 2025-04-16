@@ -505,21 +505,21 @@ export interface Commit {
     } | null;
     message: string;
     // Additional properties from the GitHub API
-    [key: string]: any;
+    [key: string]: unknown;
   };
   html_url: string;
   author: {
     login: string;
     avatar_url: string;
     // Additional properties from the GitHub API
-    [key: string]: any;
+    [key: string]: unknown;
   } | null;
   // Custom property added to track source repository
   repository?: {
     full_name: string;
   };
   // Additional properties from the GitHub API
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
@@ -857,9 +857,9 @@ export async function fetchRepositoryCommitsWithOctokit(
       },
     }));
 
-    // Cast to ensure compatibility with our interface
-    return commitsWithRepoInfo as any as Commit[];
-  } catch (error) {
+    // Safe type assertion as we're adding known properties that match the interface
+    return commitsWithRepoInfo as unknown as Commit[];
+  } catch (error: unknown) {
     return handleGitHubError(error, context);
   }
 }

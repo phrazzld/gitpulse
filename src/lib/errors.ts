@@ -208,6 +208,36 @@ function handleAuthError(
 }
 
 /**
+ * Safely extract error information from an unknown error
+ * 
+ * @param error The unknown error object
+ * @returns An object with message and optional error instance
+ */
+export function safelyExtractError(error: unknown): { 
+  message: string; 
+  errorInstance?: Error;
+} {
+  if (error instanceof Error) {
+    return { 
+      message: error.message,
+      errorInstance: error 
+    };
+  }
+  
+  if (typeof error === 'object' && error !== null) {
+    const err = error as Record<string, unknown>;
+    if (typeof err.message === 'string') {
+      return { 
+        message: err.message as string,
+        // We don't cast non-Error objects to Error here
+      };
+    }
+  }
+  
+  return { message: String(error) };
+}
+
+/**
  * Helper function to analyze Octokit/generic errors and throw appropriate GitHubError.
  * 
  * @param error The caught error

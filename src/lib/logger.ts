@@ -1,6 +1,7 @@
 /**
  * Simple logger utility with levels and file output capability
  */
+import { LogData, ErrorLike } from '@/types/common';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -37,14 +38,14 @@ class Logger {
     return levels[level] >= levels[this.logLevel];
   }
   
-  private formatLog(level: LogLevel, module: string, message: string, data?: any): string {
+  private formatLog(level: LogLevel, module: string, message: string, data?: unknown): string {
     const timestamp = this.getTimestamp();
     const logData = data ? ` - ${JSON.stringify(data, this.replacer)}` : '';
     return `[${timestamp}] ${level.toUpperCase()} [${module}] ${message}${logData}`;
   }
   
   // Custom replacer to handle circular references and Function objects
-  private replacer(key: string, value: any): any {
+  private replacer(key: string, value: unknown): unknown {
     if (typeof value === 'function') {
       return '[Function]';
     }
@@ -54,7 +55,7 @@ class Logger {
         name: value.name,
         message: value.message,
         stack: value.stack
-      };
+      } as ErrorLike;
     }
 
     // Handle circular references
@@ -69,28 +70,28 @@ class Logger {
     return value;
   }
   
-  public debug(module: string, message: string, data?: any): void {
+  public debug(module: string, message: string, data?: unknown): void {
     if (this.shouldLog('debug')) {
       const logMessage = this.formatLog('debug', module, message, data);
       console.debug(logMessage);
     }
   }
   
-  public info(module: string, message: string, data?: any): void {
+  public info(module: string, message: string, data?: unknown): void {
     if (this.shouldLog('info')) {
       const logMessage = this.formatLog('info', module, message, data);
       console.info(logMessage);
     }
   }
   
-  public warn(module: string, message: string, data?: any): void {
+  public warn(module: string, message: string, data?: unknown): void {
     if (this.shouldLog('warn')) {
       const logMessage = this.formatLog('warn', module, message, data);
       console.warn(logMessage);
     }
   }
   
-  public error(module: string, message: string, data?: any): void {
+  public error(module: string, message: string, data?: unknown): void {
     if (this.shouldLog('error')) {
       const logMessage = this.formatLog('error', module, message, data);
       console.error(logMessage);
