@@ -29,7 +29,7 @@
     - **Depends On:** [T003, T005]
     - **AC Ref:** Success Criteria 1
 
-- [ ] **T005:** Add lint-staged configuration to package.json
+- [x] **T005:** Add lint-staged configuration to package.json
     - **Action:** Add a `lint-staged` section to `package.json` with the following configuration:
       ```json
       "lint-staged": {
