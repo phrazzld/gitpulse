@@ -58,7 +58,7 @@
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint",
-      "tsc --skipLibCheck --noEmit",
+      "bash -c 'tsc --skipLibCheck --noEmit'",
       "node ./scripts/check-file-size.js"
     ],
     "*.{js,jsx}": [

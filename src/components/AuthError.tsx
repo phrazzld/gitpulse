@@ -26,23 +26,28 @@ export function AuthError({
   const [countdown, setCountdown] = useState(signOutRequired ? 5 : 0);
   
   useEffect(() => {
+    // Default no-op cleanup function
+    let cleanup = () => {};
+    
     // If sign out is required, start a countdown and then sign out
     if (signOutRequired && countdown > 0) {
       const timer = setTimeout(() => {
         setCountdown(countdown - 1);
       }, 1000);
       
-      return () => clearTimeout(timer);
-    }
-    
-    if (signOutRequired && countdown === 0) {
+      // Replace default cleanup with one that clears the timer
+      cleanup = () => clearTimeout(timer);
+    } 
+    else if (signOutRequired && countdown === 0) {
+      // Trigger sign out when countdown reaches zero
       signOut({ redirect: true, callbackUrl: window.location.origin + '/' })
         .catch(error => {
           console.error('Error during sign out:', error);
         });
     }
     
-    // No cleanup needed for this effect
+    // Always return a cleanup function
+    return cleanup;
   }, [countdown, signOutRequired]);
   
   return (
