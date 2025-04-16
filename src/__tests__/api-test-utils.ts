@@ -91,7 +91,7 @@ export const createApiHandlerTestHelper = (
       url: string,
       method: string = 'GET',
       searchParams: Record<string, string> = {},
-      body?: any
+      body?: Record<string, unknown>
     ) => {
       // Create URL with search parameters
       const testUrl = new URL(url, 'https://example.com');
@@ -224,7 +224,7 @@ export const verifyCredentialHandling = (
 // Verify that the Octokit instance was passed to data fetching functions
 export const verifyOctokitPassing = (
   fetchFunction: jest.Mock,
-  ...additionalArgs: any[]
+  ...additionalArgs: unknown[]
 ) => {
   expect(fetchFunction).toHaveBeenCalledWith(
     mockOctokit,
@@ -250,7 +250,7 @@ export const verifyRepositoryFetchingWithOctokit = (
 
 // Helper to verify that error responses match expected patterns
 export const verifyErrorResponse = (
-  response: { status: number; data: any },
+  response: { status: number; data: Record<string, unknown> },
   expectedStatus: number,
   expectedCode: string,
   options?: {

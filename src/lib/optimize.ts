@@ -78,15 +78,35 @@ export function optimizeCommit(commit: Commit): MinimalCommit {
 }
 
 /**
+ * Contributor with flexible properties (used for different API responses)
+ */
+export interface ContributorLike {
+  username?: string;
+  login?: string;
+  displayName?: string;
+  name?: string;
+  avatarUrl?: string;
+  avatar_url?: string;
+  commitCount?: number;
+  commit_count?: number;
+  [key: string]: unknown;
+}
+
+/**
  * Optimize contributor data
  * 
  * @param contributor - Contributor object with potential extra fields
  * @returns - Minimized contributor data
  */
-export function optimizeContributor(contributor: any): MinimalContributor {
+export function optimizeContributor(contributor: ContributorLike): MinimalContributor {
+  // Find the appropriate username
+  const username = contributor.username || contributor.login || 'unknown';
+  // Find the appropriate display name
+  const displayName = contributor.displayName || contributor.name || contributor.username || contributor.login || 'Unknown';
+  
   return {
-    username: contributor.username || contributor.login,
-    display_name: contributor.displayName || contributor.name || contributor.username || contributor.login,
+    username,
+    display_name: displayName,
     avatar_url: contributor.avatarUrl || contributor.avatar_url || null,
     commit_count: contributor.commitCount || contributor.commit_count
   };
@@ -110,13 +130,13 @@ export function optimizeArray<T, R>(items: T[], optimizerFn: (item: T) => R): R[
  * @param obj - Object to clean
  * @returns - Object without null or undefined values
  */
-export function removeNullValues<T extends Record<string, any>>(obj: T): Partial<T> {
-  return Object.entries(obj).reduce((acc: any, [key, value]) => {
+export function removeNullValues<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.entries(obj).reduce((acc: Record<string, unknown>, [key, value]) => {
     if (value !== null && value !== undefined) {
       acc[key] = value;
     }
     return acc;
-  }, {});
+  }, {}) as Partial<T>;
 }
 
 /**
@@ -125,7 +145,7 @@ export function removeNullValues<T extends Record<string, any>>(obj: T): Partial
  * @param data - Data to serialize
  * @returns - Serialized JSON string
  */
-export function optimizedJSONStringify(data: any): string {
+export function optimizedJSONStringify(data: unknown): string {
   // Handle arrays separately for better optimization opportunities
   if (Array.isArray(data)) {
     return `[${data.map(item => 
