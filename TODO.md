@@ -17,7 +17,7 @@
     - **Depends On:** [T001]
     - **AC Ref:** Success Criteria 1
 
-- [ ] **T004:** Create pre-commit hook
+- [x] **T004:** Create pre-commit hook
     - **Action:** Create/update the `.husky/pre-commit` hook with the following script:
       ```sh
       #!/usr/bin/env sh
