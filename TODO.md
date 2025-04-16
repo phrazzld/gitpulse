@@ -97,10 +97,11 @@
   - **AC Ref:** Coding Standards (Consistency)
   - **Result:** Decided on a consistent threshold of 400 lines (excluding blank lines and comments). Created FILE_SIZE_THRESHOLD_DECISION.md to document the decision and rationale. The threshold balances readability with practical needs and will be implemented in both the ESLint config and the check-file-size.js script.
 
-- [ ] **T014:** Align file size checks
+- [x] **T014:** Align file size checks
   - **Action:** Update `scripts/check-file-size.js` and the ESLint configuration (`max-lines` rule) to use the consistent threshold decided in T013. Alternatively, remove the custom script if the ESLint rule is sufficient.
   - **Depends On:** [T013, T002]
   - **AC Ref:** Coding Standards (Consistency)
+  - **Result:** Updated both the ESLint `max-lines` rule and the `check-file-size.js` script to use the 400-line threshold. Enhanced the custom script to exclude blank lines and comments for consistency with ESLint. Kept both tools as they serve different purposes (development-time warnings vs. commit-time checks).
 
 ## Test and Code Cleanup
 

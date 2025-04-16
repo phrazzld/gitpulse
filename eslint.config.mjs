@@ -123,9 +123,10 @@ export default [
       "no-param-reassign": "warn",
 
       // File complexity (inspired by DEVELOPMENT_PHILOSOPHY.md section 1)
+      // Using the consistent threshold of 400 lines as per FILE_SIZE_THRESHOLD_DECISION.md
       "max-lines": [
         "warn",
-        { max: 500, skipBlankLines: true, skipComments: true },
+        { max: 400, skipBlankLines: true, skipComments: true },
       ],
       "max-lines-per-function": [
         "warn",
