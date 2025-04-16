@@ -1,21 +1,48 @@
-import nextPlugin from "eslint-plugin-next";
 import typescriptPlugin from "@typescript-eslint/eslint-plugin";
 import typescriptParser from "@typescript-eslint/parser";
 import eslintCommentsPlugin from "eslint-plugin-eslint-comments";
+import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
+import importPlugin from "eslint-plugin-import";
+import jsxA11yPlugin from "eslint-plugin-jsx-a11y";
+import globals from "globals";
 
 export default [
   {
     // Global configuration
     ignores: ["node_modules/**", ".next/**", "dist/**"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
   },
 
-  // Next.js configuration
+  // React and Next.js configuration
   {
     plugins: {
-      next: nextPlugin,
+      react: reactPlugin,
+      "react-hooks": reactHooksPlugin,
+      import: importPlugin,
+      "jsx-a11y": jsxA11yPlugin,
     },
     rules: {
-      ...nextPlugin.configs["recommended"].rules,
+      // React rules
+      "react/react-in-jsx-scope": "off", // Next.js doesn't require React import
+      "react/prop-types": "off", // We use TypeScript for type checking
+      "react/jsx-no-target-blank": "off", // Next.js handles this for us
+      
+      // Import rules
+      "import/no-anonymous-default-export": "warn",
+      
+      // A11y rules
+      "jsx-a11y/alt-text": ["warn", { elements: ["img"] }],
+      "jsx-a11y/aria-props": "warn",
+      "jsx-a11y/aria-proptypes": "warn",
+      "jsx-a11y/aria-unsupported-elements": "warn",
+      "jsx-a11y/role-has-required-aria-props": "warn",
+      "jsx-a11y/role-supports-aria-props": "warn",
     },
   },
 

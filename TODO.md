@@ -107,7 +107,7 @@
   - **Depends On:** [T004, T007]
   - **AC Ref:** Success Criteria 1
 
-- [ ] **T013:** Test pre-commit hook with lint error
+- [x] **T013:** Test pre-commit hook with lint error
 
   - **Action:** Introduce a linting error in a TypeScript file, stage the changes, and attempt to commit. Verify the pre-commit hook catches the error and prevents the commit.
   - **Depends On:** [T004, T006]
@@ -139,4 +139,5 @@
 
 ## [!] ISSUES TO RESOLVE
 
-- [ ] **ESLint Configuration:** The project is using ESLint v9, which no longer supports .eslintrc.js configuration format. Need to fully migrate to eslint.config.js format based on the new flat configuration format. A basic conversion has been started, but needs to be completed and tested.
+- [x] **ESLint Configuration:** The project is using ESLint v9, which no longer supports .eslintrc.js configuration format. Need to fully migrate to eslint.config.js format based on the new flat configuration format. A basic conversion has been started, but needs to be completed and tested.
+  - **Resolution:** Migrated to the new flat configuration format using eslint.config.mjs. Created a comprehensive configuration that includes TypeScript, React, and Next.js rules. Updated lint-staged configuration to use the new ESLint setup. Verified that pre-commit hooks correctly catch linting errors.
