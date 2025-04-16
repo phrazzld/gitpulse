@@ -5,7 +5,7 @@
     - **Action:** Import `withErrorHandling` from `src/lib/auth/apiErrorHandler.ts` and wrap the main `GET` function in `src/app/api/contributors/route.ts`. Ensure the module name is passed correctly for logging context.
     - **Depends On:** None
     - **AC Ref:** Standardize API Error Handling Plan, Success Criteria 1
-- [ ] **T002:** Wrap `my-activity/route.ts` handler with `withErrorHandling` HOF
+- [x] **T002:** Wrap `my-activity/route.ts` handler with `withErrorHandling` HOF
     - **Action:** Import `withErrorHandling` from `src/lib/auth/apiErrorHandler.ts` and wrap the main `GET` function in `src/app/api/my-activity/route.ts`. Ensure the module name is passed correctly for logging context.
     - **Depends On:** None
     - **AC Ref:** Standardize API Error Handling Plan, Success Criteria 1

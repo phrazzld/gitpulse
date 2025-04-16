@@ -12,6 +12,7 @@ import { createAuthenticatedOctokit, GitHubCredentials, AppInstallation } from "
 import { logger } from "@/lib/logger";
 import { optimizedJsonResponse, generateETag, isCacheValid, notModifiedResponse, CacheTTL, generateCacheKey } from "@/lib/cache";
 import { optimizeCommit, optimizeRepository, MinimalCommit, MinimalRepository } from "@/lib/optimize";
+import { withErrorHandling } from "@/lib/auth/apiErrorHandler";
 
 const MODULE_NAME = "api:my-activity";
 
@@ -36,7 +37,7 @@ type MyActivityResponse = {
   code?: string;
 };
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest): Promise<NextResponse> {
   logger.debug(MODULE_NAME, "GET /api/my-activity request received", { 
     url: request.url,
     searchParams: Object.fromEntries(request.nextUrl.searchParams.entries()),
@@ -231,6 +232,9 @@ export async function GET(request: NextRequest) {
     }, 500);
   }
 }
+
+// Wrap the handler with standardized error handling
+export const GET = withErrorHandling(handleGET, MODULE_NAME);
 
 // Helper function to get a default "since" date (30 days ago)
 function getDefaultSince(): string {
