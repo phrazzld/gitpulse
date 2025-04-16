@@ -5,7 +5,9 @@ const nextConfig = {
     domains: ["avatars.githubusercontent.com"],
   },
   compiler: {
-    // Enable the React new JSX transform
+    // Enable the React new JSX transform for Next.js compilation
+    // This works in conjunction with "jsx": "preserve" in tsconfig.json
+    // Note: Test environment has its own handling through jest and babel config
     jsx: {
       runtime: "automatic",
     },

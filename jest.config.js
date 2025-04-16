@@ -26,8 +26,9 @@ const customJestConfig = {
     "^.+\\.module\\.(css|sass|scss)$",
   ],
   // Enable ES modules for tests when needed (must match transformIgnorePatterns)
+  // Use the .babelrc.js configuration instead of inline config for better JSX transform handling
   transform: {
-    "^.+\\.(js|jsx|ts|tsx|mjs)$": ["babel-jest", { presets: ["next/babel"] }],
+    "^.+\\.(js|jsx|ts|tsx|mjs)$": "babel-jest",
   },
   collectCoverage: true,
   collectCoverageFrom: [

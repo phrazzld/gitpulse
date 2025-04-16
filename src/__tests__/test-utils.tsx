@@ -1,18 +1,25 @@
 import React, { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+import { render as rtlRender, RenderOptions as RTLRenderOptions } from '@testing-library/react';
+
+// Define types specifically to avoid JSX transform issues
+type ProvidersProps = {
+  children: React.ReactNode;
+};
 
 // Add in any providers here if needed
-const Providers = ({ children }: { children: React.ReactNode }) => {
+const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
-    <>{children}</>
+    <React.Fragment>{children}</React.Fragment>
   );
 };
 
 // Custom render that includes providers
 const customRender = (
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>,
-) => render(ui, { wrapper: Providers, ...options });
+  options?: Omit<RTLRenderOptions, 'wrapper'>,
+) => {
+  return rtlRender(ui, { wrapper: Providers, ...options });
+};
 
 // Mock session data
 export const mockSession = {

@@ -39,6 +39,12 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    /*
+     * "jsx": "preserve" is required for Next.js
+     * This causes warnings in tests about outdated JSX transform,
+     * but we can't change it here without breaking Next.js
+     * The warnings are suppressed in jest.setup.js
+     */
     "jsx": "preserve",
     "incremental": true,
     "plugins": [

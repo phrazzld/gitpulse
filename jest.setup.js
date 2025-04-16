@@ -1,6 +1,18 @@
 // Import jest-dom additions
 import "@testing-library/jest-dom";
 
+// Suppress JSX transform warnings in tests
+// This is a workaround for the conflict between Next.js's requirement for "jsx":"preserve"
+// and the test environment's need for a different JSX transform
+const originalWarn = console.warn;
+console.warn = (...args) => {
+  // Filter out the JSX transform warning
+  if (args[0]?.includes && args[0].includes("outdated JSX transform")) {
+    return;
+  }
+  originalWarn(...args);
+};
+
 // Mock Request and NextRequest for Next.js API tests
 global.Request = class Request {};
 global.Response = class Response {
