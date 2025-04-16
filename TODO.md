@@ -199,11 +199,12 @@
   - **AC Ref:** None
   - **Result:** Successfully updated the lint-staged configuration in package.json to use the existing npm typecheck script via bash -c. This approach ensures that TypeScript properly respects the tsconfig.json settings, including the exclusion of node_modules, when type checking during pre-commit hooks. The solution aligns with lint-staged best practices for handling TypeScript checks.
 
-- [ ] **T026:** Test the updated pre-commit hook configuration
+- [x] **T026:** Test the updated pre-commit hook configuration
 
   - **Action:** Stage one or more TypeScript files (`.ts` or `.tsx`) and attempt to commit them. Verify that the `npm run typecheck` command is executed successfully during the pre-commit hook through `bash -c`, does *not* produce errors related to type checking `node_modules`, but *does* correctly identify any legitimate type errors within the staged project files.
   - **Depends On:** [T025]
   - **AC Ref:** None
+  - **Result:** Successfully tested the pre-commit hook by creating a test file with a deliberate type error. The hook correctly executed the TypeScript check via `bash -c 'npm run typecheck'` and identified the type error in our test file. No errors related to node_modules were reported. After fixing the type error, we confirmed that the specific error was no longer reported. The pre-commit hook properly enforces type checking while respecting the exclusion patterns in tsconfig.json.
 
 - [ ] **T027:** Mark T022 (Standardize Naming Conventions) as complete
 
