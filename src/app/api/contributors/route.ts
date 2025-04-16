@@ -16,6 +16,7 @@ import {
 } from "@/lib/auth/githubAuth";
 import { logger } from "@/lib/logger";
 import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl, generateCacheKey } from "@/lib/cache";
+import { withErrorHandling } from "@/lib/auth/apiErrorHandler";
 
 const MODULE_NAME = "api:contributors";
 
@@ -27,7 +28,7 @@ type OptimizedContributor = {
   commitCount?: number;
 };
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest): Promise<NextResponse> {
   logger.debug(MODULE_NAME, "GET /api/contributors request received", { 
     url: request.url,
     headers: Object.fromEntries([...request.headers.entries()])
@@ -306,3 +307,6 @@ export async function GET(request: NextRequest) {
     }, 500);
   }
 }
+
+// Wrap the handler with standardized error handling
+export const GET = withErrorHandling(handleGET, MODULE_NAME);
