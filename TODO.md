@@ -113,7 +113,7 @@
   - **Depends On:** [T004, T006]
   - **AC Ref:** Success Criteria 1
 
-- [ ] **T014:** Push changes to GitHub and verify CI workflow
+- [~] **T014:** Push changes to GitHub and verify CI workflow
 
   - **Action:** Commit all configuration changes and push to GitHub. Create a PR if applicable. Verify the GitHub Actions workflow runs successfully with the push.
   - **Depends On:** [T010, T011, T012, T013]
