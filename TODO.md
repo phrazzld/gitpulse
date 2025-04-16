@@ -112,11 +112,12 @@
   - **AC Ref:** Testing Strategy (Clarity)
   - **Result:** Updated the test assertion to check both `mockFetchRepositories` and `mockFetchAppRepositories` as not called, which aligns with the `verifyRepositoryFetchingWithOctokit` function implementation. This ensures consistent usage of the preferred direct functions rather than the deprecated wrapper functions throughout the tests.
 
-- [ ] **T016:** Review explicit `undefined` returns in `useEffect`
+- [x] **T016:** Review explicit `undefined` returns in `useEffect`
 
   - **Action:** Examine the `useEffect` hooks in `src/components/ActivityFeed.tsx:272` and `src/components/AuthError.tsx:42`. Determine if the explicit `return undefined;` is necessary or can be safely removed.
   - **Depends On:** None
   - **AC Ref:** Core Principles (Simplicity)
+  - **Result:** The explicit `return undefined;` statements in both useEffect hooks are unnecessary and can be safely removed. In JavaScript/TypeScript, functions implicitly return `undefined` when no explicit return value is provided. These statements were likely added for code clarity but are not required for functionality. Removing them would reduce code verbosity and align with the Simplicity principle.
 
 - [ ] **T017:** Remove unnecessary explicit `undefined` returns
 
