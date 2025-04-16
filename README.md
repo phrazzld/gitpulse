@@ -93,34 +93,132 @@ npm run dev:log
 5. Optionally select specific repositories
 6. Click "Generate Summary" to view your commit statistics
 
-### Troubleshooting Authentication
+## Authentication
 
-GitPulse supports two authentication methods:
+GitPulse supports two authentication methods: OAuth and GitHub App. Each has its own advantages and use cases.
+
+### Authentication Methods Overview
 
 #### OAuth Authentication (Default)
-Uses personal GitHub access tokens for authentication.
+Uses personal GitHub access tokens for authentication through the standard GitHub OAuth flow.
+
+**Use Cases:**
+- Individual developers accessing their personal repositories
+- Quick setup for personal or small team projects
+- When you need access to repositories you personally own or collaborate on
+
+**Advantages:**
+- Simpler setup (only requires OAuth App registration)
+- Works immediately with user's existing GitHub permissions
+- No additional installation steps for users
+
+**Configuration Requirements:**
+- `GITHUB_OAUTH_CLIENT_ID`: Your OAuth app's client ID
+- `GITHUB_OAUTH_CLIENT_SECRET`: Your OAuth app's client secret
+- `NEXTAUTH_SECRET`: A random string for NextAuth.js session encryption
+- `NEXTAUTH_URL`: Your application's base URL (e.g., `http://localhost:3000` for local development)
+
+#### GitHub App Authentication (Advanced)
+Uses GitHub App installations with installation tokens, providing more granular and organization-friendly permissions.
+
+**Use Cases:**
+- Organization administrators who need to provide repository access without personal tokens
+- Enterprise environments with strict security requirements
+- When you need fine-grained permissions at the organization level
+- Teams concerned about token expiration or personal token security
+
+**Advantages:**
+- More secure (no personal tokens stored in the session)
+- Repository access managed at the organization level
+- Fine-grained permission control
+- Can be installed across an entire organization
+- Tokens automatically refresh without user intervention
+
+**Configuration Requirements:**
+- `GITHUB_APP_ID`: The numeric ID of your GitHub App
+- `GITHUB_APP_PRIVATE_KEY_PKCS8`: The private key for your GitHub App (in PKCS8 format)
+- `NEXT_PUBLIC_GITHUB_APP_NAME`: The name of your GitHub App (displayed to users)
+- Plus all OAuth configuration (required for initial authentication)
+
+### Setting Up OAuth Authentication
+
+1. Go to your [GitHub Developer Settings](https://github.com/settings/developers)
+2. Navigate to "OAuth Apps" and click "New OAuth App"
+3. Register with the following settings:
+   - **Application name**: GitPulse (or your preferred name)
+   - **Homepage URL**: `http://localhost:3000` (or your deployed URL)
+   - **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github`
+4. After registration, note your Client ID and generate a Client Secret
+5. Add these to your `.env.local` file:
+   ```
+   GITHUB_OAUTH_CLIENT_ID=your_client_id_here
+   GITHUB_OAUTH_CLIENT_SECRET=your_client_secret_here
+   NEXTAUTH_SECRET=random_secret_string_here
+   NEXTAUTH_URL=http://localhost:3000
+   ```
+
+### Setting Up GitHub App Authentication (Optional)
+
+1. Go to your [GitHub Developer Settings](https://github.com/settings/developers)
+2. Navigate to "GitHub Apps" and click "New GitHub App"
+3. Register with the following settings:
+   - **GitHub App name**: GitPulse (or your preferred name)
+   - **Homepage URL**: Your application URL
+   - **Callback URL**: Same as your OAuth callback
+   - **Webhook**: Disable (not required for GitPulse)
+   - **Permissions**:
+     - **Repository permissions**:
+       - Contents: Read-only
+       - Metadata: Read-only
+       - Pull requests: Read-only (if needed)
+     - **Organization permissions**:
+       - Members: Read-only
+   - **Where can this GitHub App be installed?**: Any account
+
+4. After creating the app, note the App ID (found in the app settings)
+5. Generate a private key (will download as a .pem file)
+6. If your key is in PKCS1 format, convert it to PKCS8:
+   ```bash
+   openssl pkcs8 -topk8 -nocrypt -in your-key.pem -out pkcs8-key.pem
+   ```
+7. Add the entire contents of the PKCS8 key (including BEGIN/END lines) to your `.env.local`:
+   ```
+   GITHUB_APP_ID=your_app_id_here
+   GITHUB_APP_PRIVATE_KEY_PKCS8=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----
+   NEXT_PUBLIC_GITHUB_APP_NAME=GitPulse
+   ```
+8. Install the app on your account or organization through GitHub's interface
+
+### Authentication Flow
+
+1. **Initial Login**: The user signs in using GitHub OAuth authentication
+2. **Credential Selection**: 
+   - If only OAuth is configured, the app uses the OAuth token
+   - If GitHub App is configured and installed, the user can choose between OAuth or GitHub App
+3. **Token Management**:
+   - OAuth tokens are refreshed by signing out and back in when they expire
+   - GitHub App tokens are automatically generated and refreshed by the application
+
+### Troubleshooting Authentication
+
+#### OAuth Authentication Issues
 
 If you encounter GitHub OAuth authentication errors:
 
 1. Click the "Sign Out" button in the dashboard header
 2. Sign back in with your GitHub account to refresh your access token
 3. If problems persist, ensure your GitHub OAuth app still has the necessary permissions
+4. Verify your OAuth application settings match the callback URL of your deployment
 
-#### GitHub App Authentication (Optional)
-Uses GitHub App installations, which can provide more granular permissions.
-
-To use GitHub App authentication:
-
-1. Create a GitHub App in your GitHub account settings
-2. Configure the App with the necessary permissions
-3. Install the App to your account/organization
-4. Configure the GitHub App environment variables in `.env.local`
+#### GitHub App Authentication Issues
 
 If you encounter GitHub App authentication errors:
 
 1. Verify your GitHub App installation is active
-2. Check the App permissions match what's needed for repo access
-3. Ensure your environment variables are correctly configured
+2. Check that the App permissions match what's needed for repository access
+3. Ensure all environment variables are correctly configured
+4. Make sure your private key is in the correct PKCS8 format
+5. Check that your GitHub App is installed on the accounts/organizations you need access to
 
 ## Deployment
 
