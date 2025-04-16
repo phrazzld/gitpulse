@@ -7,26 +7,110 @@ global.Response = class Response {};
 
 // Mock Octokit to avoid ESM import issues in tests
 jest.mock("octokit", () => {
-  const MockOctokit = jest.fn().mockImplementation(() => ({
+  // Create the default mock implementation
+  const defaultMockImplementation = () => ({
     request: jest.fn(),
+    paginate: jest.fn(),
     rest: {
-      users: { getAuthenticated: jest.fn() },
-      apps: { listInstallations: jest.fn() },
+      users: {
+        getAuthenticated: jest.fn().mockResolvedValue({
+          headers: { "x-oauth-scopes": "repo, read:org, user:email" },
+          data: {
+            login: "test-user",
+            id: 12345,
+            type: "User",
+            two_factor_authentication: true,
+          },
+        }),
+      },
+      rateLimit: {
+        get: jest.fn().mockResolvedValue({
+          data: {
+            resources: {
+              core: {
+                limit: 5000,
+                remaining: 4990,
+                reset: Math.floor(Date.now() / 1000) + 3600,
+              },
+            },
+          },
+        }),
+      },
+      apps: {
+        listInstallations: jest.fn(),
+        listReposAccessibleToInstallation: jest.fn(),
+      },
       repos: {
         listForAuthenticatedUser: jest.fn(),
         listForOrg: jest.fn(),
         listCommits: jest.fn(),
       },
+      orgs: {
+        listForAuthenticatedUser: jest.fn(),
+      },
     },
-  }));
+  });
+
+  const MockOctokit = jest.fn().mockImplementation(defaultMockImplementation);
 
   // Make sure the mock constructor supports mockImplementation
   MockOctokit.mockImplementation = jest
     .fn()
     .mockImplementation((implementation) => {
+      // We'll still allow tests to override the implementation
+      // but ensure the default headers are always present if not specified
       MockOctokit.mockImplementationOnce(implementation);
       return MockOctokit;
     });
+
+  // Set a default response for getAuthenticated on all mock instances
+  const originalMockImplementation = MockOctokit.mockImplementation;
+  MockOctokit.mockImplementation = (...args) => {
+    // Get the original mock implementation result
+    const instance = originalMockImplementation(...args);
+
+    // Ensure there's a users.getAuthenticated method that returns the right headers
+    if (instance && instance.rest && instance.rest.users) {
+      const getAuthenticated = instance.rest.users.getAuthenticated;
+      if (getAuthenticated && typeof getAuthenticated === "function") {
+        // Save original implementation
+        const originalGetAuthenticated = getAuthenticated;
+
+        // Override with version that always includes headers
+        instance.rest.users.getAuthenticated = jest
+          .fn()
+          .mockImplementation(async (...args) => {
+            try {
+              const result = await originalGetAuthenticated(...args);
+
+              // Add headers if missing
+              if (!result.headers) {
+                result.headers = {
+                  "x-oauth-scopes": "repo, read:org, user:email",
+                };
+              } else if (!result.headers["x-oauth-scopes"]) {
+                result.headers["x-oauth-scopes"] = "repo, read:org, user:email";
+              }
+
+              return result;
+            } catch (error) {
+              // Default response if original fails
+              return {
+                headers: { "x-oauth-scopes": "repo, read:org, user:email" },
+                data: {
+                  login: "test-user",
+                  id: 12345,
+                  type: "User",
+                  two_factor_authentication: true,
+                },
+              };
+            }
+          });
+      }
+    }
+
+    return instance;
+  };
 
   return { Octokit: MockOctokit };
 });

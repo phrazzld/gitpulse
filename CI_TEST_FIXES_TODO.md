@@ -6,11 +6,12 @@ This document outlines specific, atomic tasks to fix the CI test failures in the
 
 ## Octokit Mock Issues
 
-- [ ] **T001: Fix userInfo.headers in Octokit mock**
+- [x] **T001: Fix userInfo.headers in Octokit mock**
 
   - **Issue:** The `userInfo.headers` property is undefined in the Octokit mock, causing errors in `validateTokenScopes`
   - **File:** `jest.setup.js`
   - **Action:** Update the Octokit mock to include proper headers with the `x-oauth-scopes` property in the `getAuthenticated` response:
+
     ```javascript
     // In jest.setup.js, modify the Octokit mock:
     jest.mock("octokit", () => {
@@ -37,6 +38,7 @@ This document outlines specific, atomic tasks to fix the CI test failures in the
       return { Octokit: MockOctokit };
     });
     ```
+
   - **Test:** Run `src/lib/githubData.test.ts` tests to verify they pass by executing:
     ```bash
     export CI=true && npm test -- --testPathPattern=src/lib/githubData.test.ts
