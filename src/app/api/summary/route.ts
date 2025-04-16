@@ -18,6 +18,7 @@ import {
 } from "@/lib/auth/githubAuth";
 import { generateCommitSummary } from "@/lib/gemini";
 import { logger } from "@/lib/logger";
+import { withErrorHandling } from "@/lib/auth/apiErrorHandler";
 
 const MODULE_NAME = "api:summary";
 
@@ -36,7 +37,7 @@ type GroupedResult = {
 // Valid grouping options
 type GroupBy = 'contributor' | 'organization' | 'repository' | 'chronological';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest): Promise<NextResponse> {
   logger.debug(MODULE_NAME, "GET /api/summary request received", { 
     url: request.url,
     searchParams: Object.fromEntries(request.nextUrl.searchParams.entries()),
@@ -602,3 +603,6 @@ function generateBasicStats(commits: Commit[]) {
   
   return stats;
 }
+
+// Wrap the handler with standardized error handling
+export const GET = withErrorHandling(handleGET, MODULE_NAME);
