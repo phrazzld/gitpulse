@@ -130,7 +130,7 @@
     - **Action:** Review `src/types/github.ts` and update any type definitions affected by the refactoring, or add new ones if necessary.
     - **Depends On:** Define GitHubCredentials Type, Verify Data Fetching Auth Independence
     - **AC Ref:** PLAN.md Step 5
-- [ ] **Add TSDoc to Auth Module:**
+- [x] **Add TSDoc to Auth Module:**
     - **Action:** Add comprehensive TSDoc comments to exported functions, types, and interfaces in `src/lib/auth/githubAuth.ts`.
     - **Depends On:** Add Error Handling and Logging to Auth Module
     - **AC Ref:** PLAN.md Step 5

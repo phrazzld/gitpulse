@@ -1,5 +1,19 @@
-// GitHub authentication module
-// This module centralizes GitHub authentication logic for both OAuth and App-based authentication
+/**
+ * GitHub Authentication Module
+ * 
+ * This module centralizes GitHub authentication logic for both OAuth token-based
+ * and GitHub App installation-based authentication. It provides functions to:
+ * 
+ * - Create authenticated Octokit instances
+ * - Manage GitHub App installations
+ * - Check App installation status
+ * - Generate installation management URLs
+ * 
+ * The module abstracts authentication details away from data fetching operations,
+ * allowing for cleaner code separation and easier testing.
+ * 
+ * @module githubAuth
+ */
 
 import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
@@ -20,14 +34,47 @@ const MODULE_NAME = "githubAuth";
 
 /**
  * Discriminated union type representing the different authentication methods for GitHub.
- * This allows for type-safe handling of authentication variants in a single interface.
+ * This type-safe approach allows the application to handle different authentication
+ * mechanisms through a single interface while maintaining strict type checking.
+ * 
+ * @example
+ * // OAuth token credentials
+ * const oauthCredentials: GitHubCredentials = { 
+ *   type: 'oauth', 
+ *   token: 'github_personal_access_token' 
+ * };
+ * 
+ * @example
+ * // GitHub App installation credentials
+ * const appCredentials: GitHubCredentials = {
+ *   type: 'app',
+ *   installationId: 12345678
+ * };
  */
 export type GitHubCredentials =
   | { type: 'oauth'; token: string }
   | { type: 'app'; installationId: number };
 
 /**
- * Installation type for managing multiple GitHub App installations
+ * Represents a GitHub App installation, providing access to repositories
+ * across users or organizations.
+ * 
+ * This interface is used to track installed GitHub Apps and their associated
+ * accounts, allowing the application to display installation information
+ * and manage access to repositories through each installation.
+ * 
+ * The account can be null when the account information is not available
+ * or when the installation is not associated with a specific account.
+ * 
+ * @property id - The unique numeric identifier for the installation
+ * @property account - The GitHub account (user or organization) associated with this installation
+ * @property account.login - The username or organization name
+ * @property account.type - The account type (typically "User" or "Organization")
+ * @property account.avatarUrl - The URL to the account's avatar image
+ * @property appSlug - The URL-friendly name of the GitHub App
+ * @property appId - The unique numeric identifier for the GitHub App
+ * @property repositorySelection - How repositories are selected for this installation ("selected" or "all")
+ * @property targetType - The type of account this installation is associated with ("User" or "Organization")
  */
 export interface AppInstallation {
   id: number;
@@ -44,13 +91,38 @@ export interface AppInstallation {
 
 /**
  * Creates an authenticated Octokit instance based on the provided credentials.
- * Supports both OAuth token and GitHub App installation authentication methods.
+ * 
+ * This function is the central authentication factory for the application, supporting
+ * both OAuth token-based and GitHub App installation-based authentication. It handles
+ * the complexities of authentication methods, environment variable validation, and
+ * token generation, providing a consistent interface for obtaining an authenticated
+ * Octokit client.
+ * 
+ * For OAuth authentication, it directly uses the provided token. For GitHub App
+ * installation authentication, it retrieves the necessary App credentials from
+ * environment variables, generates an installation access token using the GitHub
+ * App authentication flow, and then creates an Octokit instance with that token.
  * 
  * @param credentials - The GitHub credentials to use for authentication
  * @returns A Promise resolving to an authenticated Octokit instance
- * @throws {GitHubAuthError} If the authentication fails or credentials are invalid
- * @throws {GitHubConfigError} If required GitHub App configuration is missing
- * @throws {GitHubError} For other unexpected errors
+ * @throws {GitHubAuthError} If the authentication fails or credentials are invalid (e.g., missing token)
+ * @throws {GitHubConfigError} If required GitHub App configuration is missing (e.g., missing App ID or private key)
+ * @throws {GitHubRateLimitError} If a GitHub API rate limit is exceeded during authentication
+ * @throws {GitHubError} For other unexpected errors during the authentication process
+ * 
+ * @example
+ * // Using OAuth authentication
+ * const octokit = await createAuthenticatedOctokit({
+ *   type: 'oauth',
+ *   token: process.env.GITHUB_TOKEN
+ * });
+ * 
+ * @example
+ * // Using GitHub App installation authentication
+ * const octokit = await createAuthenticatedOctokit({
+ *   type: 'app',
+ *   installationId: 12345678
+ * });
  */
 export async function createAuthenticatedOctokit(
   credentials: GitHubCredentials
@@ -126,11 +198,30 @@ export async function createAuthenticatedOctokit(
 }
 
 /**
- * Generate the URL for managing a GitHub App installation
- * @param installationId The installation ID
- * @param accountLogin The account login (organization or user)
- * @param accountType The account type ('Organization' or 'User')
- * @returns The URL to GitHub's installation management page
+ * Generates the URL for managing a GitHub App installation.
+ * 
+ * This function creates the appropriate GitHub URL for users to manage their App installation,
+ * which varies based on whether the installation is for a personal account or an organization.
+ * The URL can be used for:
+ * - Configuring repository access
+ * - Adjusting permissions
+ * - Uninstalling the App
+ * - Managing other installation settings
+ * 
+ * @param installationId - The numeric identifier for the GitHub App installation
+ * @param accountLogin - The username or organization name for the installation (optional)
+ * @param accountType - The type of account, either 'Organization' or 'User' (optional)
+ * @returns The complete URL to GitHub's installation management page
+ * 
+ * @example
+ * // For a personal account installation
+ * const userUrl = getInstallationManagementUrl(12345678, 'username', 'User');
+ * // Returns: https://github.com/settings/installations/12345678
+ * 
+ * @example
+ * // For an organization installation
+ * const orgUrl = getInstallationManagementUrl(12345678, 'my-org', 'Organization');
+ * // Returns: https://github.com/organizations/my-org/settings/installations/12345678
  */
 export function getInstallationManagementUrl(
   installationId: number,
@@ -147,13 +238,38 @@ export function getInstallationManagementUrl(
 }
 
 /**
- * Get all GitHub App installations for the authenticated user.
- * @param accessToken User's GitHub OAuth access token.
- * @returns A promise resolving to an array of AppInstallation objects.
- * @throws {GitHubAuthError} If the access token is invalid or lacks permissions.
- * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
- * @throws {GitHubApiError} For other GitHub API errors.
- * @throws {GitHubError} For unexpected errors.
+ * Retrieves all GitHub App installations for the authenticated user.
+ * 
+ * This function:
+ * 1. Authenticates to GitHub using the provided OAuth token
+ * 2. Fetches all GitHub App installations associated with the authenticated user
+ * 3. Optionally filters the installations by app name or app ID (if configured in environment)
+ * 4. Transforms the GitHub API response into our standardized AppInstallation format
+ * 
+ * It's used to allow users to see which GitHub App installations they have access to,
+ * and to select a specific installation for GitHub operations that require App-based
+ * authentication.
+ * 
+ * @param accessToken - User's GitHub OAuth access token with appropriate permissions
+ * @returns A promise resolving to an array of AppInstallation objects representing the user's GitHub App installations
+ * @throws {GitHubAuthError} If the access token is invalid, missing, or lacks required permissions
+ * @throws {GitHubRateLimitError} If the GitHub API rate limit is exceeded during the request
+ * @throws {GitHubApiError} For other GitHub API errors during the request
+ * @throws {GitHubError} For unexpected errors or edge cases during processing
+ * 
+ * @example
+ * try {
+ *   const installations = await getAllAppInstallations(session.accessToken);
+ *   if (installations.length > 0) {
+ *     // User has at least one GitHub App installation
+ *     console.log(`Found ${installations.length} GitHub App installations`);
+ *   } else {
+ *     // User needs to install the GitHub App
+ *     console.log('No GitHub App installations found');
+ *   }
+ * } catch (error) {
+ *   console.error('Failed to fetch GitHub App installations:', error);
+ * }
  */
 export async function getAllAppInstallations(
   accessToken: string,
@@ -239,14 +355,40 @@ export async function getAllAppInstallations(
 }
 
 /**
- * Check if the GitHub App is installed for the authenticated user.
- * Returns the ID of the first found installation, or null if none are found.
- * @param accessToken User's GitHub OAuth access token.
- * @returns A promise resolving to the installation ID or null.
- * @throws {GitHubAuthError} If the access token is invalid or lacks permissions.
- * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
- * @throws {GitHubApiError} For other GitHub API errors.
- * @throws {GitHubError} For unexpected errors.
+ * Checks if the GitHub App is installed for the authenticated user and returns the first
+ * installation ID if available.
+ * 
+ * This is a convenience function that:
+ * 1. Calls getAllAppInstallations() to retrieve all GitHub App installations
+ * 2. Returns the ID of the first installation if any exist
+ * 3. Returns null if no installations are found
+ * 
+ * This function is particularly useful for quickly determining if a user has installed
+ * the GitHub App and getting an installation ID for subsequent API calls that require
+ * GitHub App authentication.
+ * 
+ * @param accessToken - User's GitHub OAuth access token with appropriate permissions
+ * @returns A promise resolving to the first installation ID if found, or null if no installations exist
+ * @throws {GitHubAuthError} If the access token is invalid, missing, or lacks required permissions
+ * @throws {GitHubRateLimitError} If the GitHub API rate limit is exceeded during the request
+ * @throws {GitHubApiError} For other GitHub API errors during the request
+ * @throws {GitHubError} For unexpected errors during processing
+ * 
+ * @example
+ * try {
+ *   const installationId = await checkAppInstallation(session.accessToken);
+ *   if (installationId) {
+ *     // User has installed the GitHub App, use the installation ID
+ *     console.log(`Using GitHub App installation: ${installationId}`);
+ *     const credentials = { type: 'app', installationId };
+ *     const octokit = await createAuthenticatedOctokit(credentials);
+ *   } else {
+ *     // User needs to install the GitHub App
+ *     console.log('GitHub App not installed. Please install it first.');
+ *   }
+ * } catch (error) {
+ *   console.error('Failed to check GitHub App installation:', error);
+ * }
  */
 export async function checkAppInstallation(
   accessToken: string,
