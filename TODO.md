@@ -9,11 +9,12 @@
   - **AC Ref:** Core Principles (Simplicity), Coding Standards (Tooling Enforcement)
   - **Result:** Selected the flat config (eslint.config.mjs) format. Decision documented in ESLINT_DECISION.md.
 
-- [ ] **T002:** Consolidate ESLint rules into the chosen configuration file
+- [x] **T002:** Consolidate ESLint rules into the chosen configuration file
 
   - **Action:** Merge all rules from both `.eslintrc.js` and `eslint.config.mjs` into the single configuration file selected in T001. Ensure no rules are lost and resolve any conflicts.
   - **Depends On:** [T001]
   - **AC Ref:** Core Principles (Simplicity), Coding Standards (Tooling Enforcement)
+  - **Result:** Successfully consolidated rules into eslint.config.mjs. See ESLINT_CONFIG_CHANGES.md for details.
 
 - [ ] **T003:** Remove the unused ESLint configuration file
 
