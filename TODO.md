@@ -12,7 +12,7 @@
     - **Depends On:** [T001]
     - **AC Ref:** Success Criteria 1
 
-- [ ] **T003:** Initialize Husky
+- [x] **T003:** Initialize Husky
     - **Action:** Run `npx husky init` to create the `.husky` directory and set up the Git hooks infrastructure.
     - **Depends On:** [T001]
     - **AC Ref:** Success Criteria 1
