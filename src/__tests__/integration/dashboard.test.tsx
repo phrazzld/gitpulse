@@ -9,9 +9,23 @@ import {
   mockActiveFilters 
 } from '../test-utils';
 
-// Mock the github library to avoid the Octokit import issue
-jest.mock('@/lib/github', () => ({
+// Mock the auth library
+jest.mock('@/lib/auth/githubAuth', () => ({
+  createAuthenticatedOctokit: jest.fn(),
   getInstallationManagementUrl: jest.fn().mockReturnValue('https://github.com/settings/installations/123'),
+  getAllAppInstallations: jest.fn().mockResolvedValue([]),
+  checkAppInstallation: jest.fn().mockResolvedValue(123),
+}));
+
+// Mock the github data library
+jest.mock('@/lib/githubData', () => ({
+  fetchRepositories: jest.fn(),
+  fetchAppRepositories: jest.fn(),
+  fetchAllRepositories: jest.fn(),
+  fetchRepositoryCommitsWithOctokit: jest.fn(),
+  fetchRepositoryCommits: jest.fn(),
+  fetchCommitsForRepositoriesWithOctokit: jest.fn(),
+  fetchCommitsForRepositories: jest.fn(),
 }));
 
 // Mock the activity library

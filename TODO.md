@@ -144,7 +144,7 @@
     - **AC Ref:** PLAN.md Step 5
 
 ## Finalization
-- [ ] **Remove Original Functions from `github.ts`:**
+- [x] **Remove Original Functions from `github.ts`:**
     - **Action:** Once all usages are updated and tests pass, remove the original implementations of the moved functions from `src/lib/github.ts`. If all functions are moved, consider removing the file entirely or leaving a clear comment explaining that functionality has been moved.
     - **Depends On:** Update API Route Tests
     - **AC Ref:** PLAN.md Steps 1 & 2

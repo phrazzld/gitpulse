@@ -6,6 +6,8 @@ import {
   fetchAllRepositories,
   fetchRepositoryCommitsWithOctokit,
   fetchRepositoryCommits,
+  fetchCommitsForRepositoriesWithOctokit,
+  fetchCommitsForRepositories,
   Commit
 } from "./githubData";
 
@@ -489,6 +491,325 @@ describe("githubData", () => {
         type: "app",
         installationId
       });
+    });
+  });
+
+  describe("fetchCommitsForRepositoriesWithOctokit", () => {
+    it("should fetch commits for multiple repositories using provided Octokit instance", async () => {
+      // Set up test parameters
+      const repositories = ["owner/repo1", "owner/repo2"];
+      const since = "2025-01-01T00:00:00Z";
+      const until = "2025-01-31T23:59:59Z";
+      
+      // Call the function with our mock Octokit
+      const commits = await fetchCommitsForRepositoriesWithOctokit(
+        mockOctokit as unknown as Octokit,
+        repositories,
+        since,
+        until
+      );
+      
+      // Verify it called fetchRepositoryCommitsWithOctokit for each repository
+      expect(mockOctokit.paginate).toHaveBeenCalledTimes(repositories.length);
+      
+      // Verify it called with the correct parameters for the first repository
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(
+        mockOctokit.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: "owner",
+          repo: "repo1",
+          since,
+          until,
+          per_page: 100
+        })
+      );
+      
+      // Verify it called with the correct parameters for the second repository
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(
+        mockOctokit.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: "owner",
+          repo: "repo2",
+          since,
+          until,
+          per_page: 100
+        })
+      );
+      
+      // Verify it returns the expected combined commits with repository info
+      // Each repository would return mockCommits, so we should have 2 * mockCommits.length
+      expect(commits.length).toBe(repositories.length * mockCommits.length);
+    });
+
+    it("should filter commits by author when provided", async () => {
+      // Set up test parameters
+      const repositories = ["owner/repo1"];
+      const since = "2025-01-01T00:00:00Z";
+      const until = "2025-01-31T23:59:59Z";
+      const author = "testuser";
+      
+      await fetchCommitsForRepositoriesWithOctokit(
+        mockOctokit as unknown as Octokit,
+        repositories,
+        since,
+        until,
+        author
+      );
+      
+      // Verify it included the author parameter in the API call
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(
+        mockOctokit.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: "owner",
+          repo: "repo1",
+          since,
+          until,
+          author,
+          per_page: 100
+        })
+      );
+    });
+
+    it("should handle empty repository list", async () => {
+      // Call with empty repositories array
+      const commits = await fetchCommitsForRepositoriesWithOctokit(
+        mockOctokit as unknown as Octokit,
+        [],
+        "2025-01-01",
+        "2025-01-31"
+      );
+      
+      // Verify no API calls were made
+      expect(mockOctokit.paginate).not.toHaveBeenCalled();
+      
+      // Verify empty array is returned
+      expect(commits).toEqual([]);
+    });
+
+    it("should throw an error if Octokit instance is not provided", async () => {
+      await expect(fetchCommitsForRepositoriesWithOctokit(
+        undefined as unknown as Octokit,
+        ["owner/repo1"],
+        "2025-01-01",
+        "2025-01-31"
+      ))
+        .rejects
+        .toThrow("Octokit instance is required");
+    });
+
+    it("should retry with owner name if no commits found with provided author", async () => {
+      // Setup test parameters
+      const repositories = ["owner/repo1"];
+      const since = "2025-01-01T00:00:00Z";
+      const until = "2025-01-31T23:59:59Z";
+      const author = "nonexistentuser";
+      
+      // Make first call return empty array (no commits found)
+      const noCommitsMock = jest.fn().mockResolvedValueOnce([]);
+      mockOctokit.paginate.mockImplementationOnce(noCommitsMock);
+      
+      // Second call (with owner as author) returns commits
+      mockOctokit.paginate.mockImplementationOnce(() => Promise.resolve(mockCommits));
+      
+      await fetchCommitsForRepositoriesWithOctokit(
+        mockOctokit as unknown as Octokit,
+        repositories,
+        since,
+        until,
+        author
+      );
+      
+      // Verify it first tried with the provided author
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(
+        mockOctokit.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: "owner",
+          repo: "repo1",
+          author: "nonexistentuser"
+        })
+      );
+      
+      // Verify it retried with the owner as the author
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(
+        mockOctokit.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: "owner",
+          repo: "repo1",
+          author: "owner"
+        })
+      );
+    });
+
+    it("should retry without author filter if no commits found with owner as author", async () => {
+      // Setup test parameters
+      const repositories = ["owner/repo1"];
+      const since = "2025-01-01T00:00:00Z";
+      const until = "2025-01-31T23:59:59Z";
+      const author = "nonexistentuser";
+      
+      // First call returns empty array (no commits found with provided author)
+      mockOctokit.paginate.mockImplementationOnce(() => Promise.resolve([]));
+      
+      // Second call returns empty array (no commits found with owner as author)
+      mockOctokit.paginate.mockImplementationOnce(() => Promise.resolve([]));
+      
+      // Third call (without author filter) returns commits
+      mockOctokit.paginate.mockImplementationOnce(() => Promise.resolve(mockCommits));
+      
+      await fetchCommitsForRepositoriesWithOctokit(
+        mockOctokit as unknown as Octokit,
+        repositories,
+        since,
+        until,
+        author
+      );
+      
+      // Verify it first tried with the provided author
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(
+        mockOctokit.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: "owner",
+          repo: "repo1",
+          author: "nonexistentuser"
+        })
+      );
+      
+      // Verify it tried with the owner as the author next
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(
+        mockOctokit.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: "owner",
+          repo: "repo1",
+          author: "owner"
+        })
+      );
+      
+      // Verify it finally tried without any author filter
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(
+        mockOctokit.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: "owner",
+          repo: "repo1",
+          author: undefined
+        })
+      );
+    });
+  });
+
+  describe("fetchCommitsForRepositories (backward-compatible function)", () => {
+    it("should authenticate with OAuth token and fetch commits for repositories", async () => {
+      // Call the backward-compatible function with an access token
+      const accessToken = "test-oauth-token";
+      const repositories = ["owner/repo1", "owner/repo2"];
+      const since = "2025-01-01T00:00:00Z";
+      const until = "2025-01-31T23:59:59Z";
+      
+      const commits = await fetchCommitsForRepositories(
+        accessToken,
+        undefined,
+        repositories,
+        since,
+        until
+      );
+      
+      // Verify it created an authenticated Octokit with the correct credentials
+      expect(createAuthenticatedOctokit).toHaveBeenCalledWith({
+        type: "oauth",
+        token: accessToken
+      });
+      
+      // Verify it called the base function with the authenticated Octokit
+      expect(mockOctokit.paginate).toHaveBeenCalledTimes(repositories.length);
+      
+      // Verify the returned commits
+      expect(commits.length).toBe(repositories.length * mockCommits.length);
+    });
+
+    it("should authenticate with GitHub App and fetch commits for repositories", async () => {
+      // Call the backward-compatible function with an installation ID
+      const installationId = 12345;
+      const repositories = ["owner/repo1"];
+      const since = "2025-01-01T00:00:00Z";
+      const until = "2025-01-31T23:59:59Z";
+      
+      await fetchCommitsForRepositories(
+        undefined,
+        installationId,
+        repositories,
+        since,
+        until
+      );
+      
+      // Verify it created an authenticated Octokit with the App credentials
+      expect(createAuthenticatedOctokit).toHaveBeenCalledWith({
+        type: "app",
+        installationId
+      });
+      
+      // Verify it called the base function with the authenticated Octokit
+      expect(mockOctokit.paginate).toHaveBeenCalled();
+    });
+
+    it("should throw an error when neither accessToken nor installationId is provided", async () => {
+      // Call the function without auth methods
+      await expect(fetchCommitsForRepositories(
+        undefined,
+        undefined,
+        ["owner/repo1"],
+        "2025-01-01",
+        "2025-01-31"
+      ))
+        .rejects
+        .toThrow("No GitHub authentication available. Please sign in again.");
+    });
+
+    it("should prioritize GitHub App auth when both accessToken and installationId are provided", async () => {
+      // Call the function with both auth methods
+      const accessToken = "test-oauth-token";
+      const installationId = 12345;
+      const repositories = ["owner/repo1"];
+      const since = "2025-01-01T00:00:00Z";
+      const until = "2025-01-31T23:59:59Z";
+      
+      await fetchCommitsForRepositories(
+        accessToken,
+        installationId,
+        repositories,
+        since,
+        until
+      );
+      
+      // Verify it created an authenticated Octokit with the App credentials
+      expect(createAuthenticatedOctokit).toHaveBeenCalledWith({
+        type: "app",
+        installationId
+      });
+    });
+
+    it("should pass author parameter correctly when provided", async () => {
+      // Call with author parameter
+      const accessToken = "test-oauth-token";
+      const repositories = ["owner/repo1"];
+      const since = "2025-01-01T00:00:00Z";
+      const until = "2025-01-31T23:59:59Z";
+      const author = "testuser";
+      
+      await fetchCommitsForRepositories(
+        accessToken,
+        undefined,
+        repositories,
+        since,
+        until,
+        author
+      );
+      
+      // Verify it included the author parameter in the API call
+      expect(mockOctokit.paginate).toHaveBeenCalledWith(
+        mockOctokit.rest.repos.listCommits,
+        expect.objectContaining({
+          author
+        })
+      );
     });
   });
 });
