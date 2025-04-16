@@ -83,7 +83,7 @@
   - **Depends On:** [T006, T007]
   - **AC Ref:** Success Criteria 2
 
-- [ ] **T009:** Create GitHub Actions workflow directory
+- [x] **T009:** Create GitHub Actions workflow directory
 
   - **Action:** Create the directory structure `.github/workflows/` if it doesn't exist.
   - **Depends On:** None
