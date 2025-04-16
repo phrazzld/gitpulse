@@ -40,7 +40,7 @@ async function handleGetRepositories(request: NextRequest, session: any) {
   });
   
   // Get installation ID from query parameter if present
-  let requestedInstallationId = request.nextUrl.searchParams.get('installation_id');
+  const requestedInstallationId = request.nextUrl.searchParams.get('installation_id');
   let installationId = requestedInstallationId ? parseInt(requestedInstallationId, 10) : session.installationId;
   
   // Create cache key parameters
@@ -246,7 +246,7 @@ async function handleGetRepositories(request: NextRequest, session: any) {
     let statusCode = 500;
     let signOutRequired = false;
     let errorDetails = "";
-    let needsInstallation = false;
+    const needsInstallation = false;
 
     // Check for specific error types based on our custom error classes
     if (error instanceof GitHubConfigError) {

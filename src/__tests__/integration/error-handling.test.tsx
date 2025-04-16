@@ -198,7 +198,7 @@ function createErrorResponse(error: any) {
   const errorMessage = error.message;
   let status = 500;
   let errorCode = 'UNKNOWN_ERROR';
-  let details = errorMessage;
+  const details = errorMessage;
   let signOutRequired = false;
   let resetAt = undefined;
   
@@ -397,7 +397,9 @@ describe('Error Handling Integration', () => {
     });
     
     // Mock getInstallationManagementUrl to indicate app not configured
-    const mockGithubAuth = require('@/lib/auth/githubAuth');
+    // Using dynamic import for testing purposes
+    const { getInstallationManagementUrl } = await import('@/lib/auth/githubAuth');
+    const mockGithubAuth = { getInstallationManagementUrl };
     mockGithubAuth.getInstallationManagementUrl.mockReturnValue('#github-app-not-configured');
     
     // Render the dashboard with the mock fetch

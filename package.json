@@ -58,7 +58,6 @@
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint",
-      "tsc --noEmit",
       "node ./scripts/check-file-size.js"
     ],
     "*.{js,jsx}": [

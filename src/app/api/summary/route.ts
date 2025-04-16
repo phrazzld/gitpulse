@@ -60,7 +60,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
   }
   
   // Get installation IDs from query parameter if present
-  let requestedInstallationIds = request.nextUrl.searchParams.get('installation_ids');
+  const requestedInstallationIds = request.nextUrl.searchParams.get('installation_ids');
   let installationIds: number[] = [];
   
   if (requestedInstallationIds) {
@@ -482,7 +482,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     
     // Always use chronological view (no grouping)
     // Simplified grouping for chronological view only
-    let groupedResults: GroupedResult[] = [{
+    const groupedResults: GroupedResult[] = [{
       groupKey: 'all',
       groupName: 'All Commits',
       commitCount: filteredCommits.length,
