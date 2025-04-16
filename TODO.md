@@ -90,11 +90,12 @@
   - **AC Ref:** Core Principles (Simplicity)
   - **Result:** The redundant `scripts/typecheck.js` file has been removed. The `typecheck` script in package.json has been updated to explicitly use `tsc --noEmit --project tsconfig.json`. Verified that the type checking still works correctly.
 
-- [ ] **T013:** Decide on a consistent file size threshold
+- [x] **T013:** Decide on a consistent file size threshold
 
   - **Action:** Choose a single line count threshold for file size warnings/errors, considering the current values in `scripts/check-file-size.js` (300 lines) and ESLint config (500 lines). Document the decision.
   - **Depends On:** None
   - **AC Ref:** Coding Standards (Consistency)
+  - **Result:** Decided on a consistent threshold of 400 lines (excluding blank lines and comments). Created FILE_SIZE_THRESHOLD_DECISION.md to document the decision and rationale. The threshold balances readability with practical needs and will be implemented in both the ESLint config and the check-file-size.js script.
 
 - [ ] **T014:** Align file size checks
   - **Action:** Update `scripts/check-file-size.js` and the ESLint configuration (`max-lines` rule) to use the consistent threshold decided in T013. Alternatively, remove the custom script if the ESLint rule is sufficient.
