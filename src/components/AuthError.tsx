@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
 
 export interface AuthErrorProps {
@@ -13,6 +13,7 @@ export interface AuthErrorProps {
 
 /**
  * Component for displaying authentication errors with appropriate actions
+ * @returns JSX element displaying the error and relevant actions
  */
 export function AuthError({ 
   error = 'Authentication Error', 
@@ -20,7 +21,7 @@ export function AuthError({
   code = 'AUTH_ERROR',
   signOutRequired = false,
   onRetry 
-}: AuthErrorProps) {
+}: AuthErrorProps): React.ReactElement {
   
   const [countdown, setCountdown] = useState(signOutRequired ? 5 : 0);
   
@@ -40,6 +41,8 @@ export function AuthError({
           console.error('Error during sign out:', error);
         });
     }
+    
+    return undefined; // Explicit return for the case where neither condition is met
   }, [countdown, signOutRequired]);
   
   return (
