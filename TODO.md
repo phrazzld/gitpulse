@@ -49,7 +49,7 @@
     - **Action:** Edit `README.md`. Enhance the "Authentication" or "Troubleshooting Authentication" section to clearly explain both the OAuth and GitHub App authentication methods, how they are configured, and their use cases.
     - **Depends On:** None
     - **AC Ref:** Improve Authentication Documentation Plan, Success Criteria 3
-- [ ] **T012:** Add authentication flow diagram to README
+- [x] **T012:** Add authentication flow diagram to README
     - **Action:** Create a simple flow diagram (e.g., using MermaidJS) illustrating the authentication process (session check, credential selection, Octokit creation). Embed this diagram in the `README.md` authentication section.
     - **Depends On:** [T011]
     - **AC Ref:** Improve Authentication Documentation Plan, Success Criteria 3

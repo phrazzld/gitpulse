@@ -199,6 +199,56 @@ Uses GitHub App installations with installation tokens, providing more granular 
    - OAuth tokens are refreshed by signing out and back in when they expire
    - GitHub App tokens are automatically generated and refreshed by the application
 
+#### Authentication Flow Diagram
+
+The following diagram illustrates the authentication process in GitPulse:
+
+```mermaid
+flowchart TD
+    Start([User accesses app]) --> HasSession{Has valid\nsession?}
+    
+    HasSession -->|No| GithubOAuth[GitHub OAuth Login]
+    HasSession -->|Yes| ValidateToken{Validate\nGitHub token}
+    
+    GithubOAuth --> NextAuthCallback[NextAuth Callback]
+    NextAuthCallback --> CheckInstallation[Check for GitHub\nApp installations]
+    CheckInstallation --> StoreSession[Store token &\ninstallation ID\nin session]
+    StoreSession --> ValidateToken
+    
+    ValidateToken -->|Valid| ChooseAuthType{Choose auth\nmethod}
+    ValidateToken -->|Invalid| SignOutRedirect[Sign out & redirect\nto login]
+    
+    ChooseAuthType -->|OAuth| CreateOAuthOctokit[Create Octokit with\nOAuth token]
+    ChooseAuthType -->|GitHub App| CreateAppOctokit[Create Octokit with\nApp installation]
+    
+    CreateOAuthOctokit --> FetchGitHubData[Fetch GitHub data\nwith Octokit]
+    CreateAppOctokit --> FetchGitHubData
+    
+    FetchGitHubData --> ErrorCheck{Error\noccurred?}
+    ErrorCheck -->|No| DisplayData[Display data\nto user]
+    ErrorCheck -->|Auth error| SignOutRedirect
+    ErrorCheck -->|Other error| DisplayError[Display error\nmessage]
+    
+    subgraph "App Installation Flow"
+        AppInstallButton[GitHub App\nInstall Button] --> RedirectToGitHub[Redirect to GitHub\nfor installation]
+        RedirectToGitHub --> GitHubInstall[User installs app\non GitHub]
+        GitHubInstall --> RedirectCallback[Redirect back\nto app]
+        RedirectCallback --> RegisterInstallation[Register installation\nwith user]
+    end
+    
+    style Start fill:#d0f0c0
+    style DisplayData fill:#c0d0f0
+    style SignOutRedirect fill:#f0c0c0
+    style DisplayError fill:#f0d0c0
+```
+
+The diagram shows:
+- Initial authentication using GitHub OAuth
+- Session validation and token management
+- Handling of both OAuth and GitHub App authentication methods
+- Error handling and token refresh process
+- GitHub App installation flow
+
 ### Troubleshooting Authentication
 
 #### OAuth Authentication Issues
