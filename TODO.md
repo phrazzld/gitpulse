@@ -71,7 +71,7 @@
     - **Action:** Within the tests created in T015, assert that when specific `GitHubError` types are thrown, the `withErrorHandling` HOF correctly maps them to the appropriate HTTP status code (e.g., 429 for RateLimit, 404 for NotFound, 403 for Auth) and the standardized JSON error response format.
     - **Depends On:** [T015]
     - **AC Ref:** Expand Test Coverage for Error Cases Plan, Success Criteria 4, Success Criteria 5
-- [ ] **T017:** Add integration tests validating the complete error handling flow
+- [x] **T017:** Add integration tests validating the complete error handling flow
     - **Action:** Create integration tests (if not already present, or enhance existing ones) that simulate API requests triggering specific error conditions (e.g., invalid token, rate limit exceeded by mocking underlying Octokit calls). Verify the end-to-end flow produces the correct HTTP response.
     - **Depends On:** [T016]
     - **AC Ref:** Expand Test Coverage for Error Cases Plan, Success Criteria 4, Success Criteria 5
