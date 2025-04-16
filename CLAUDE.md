@@ -25,12 +25,18 @@ This guide outlines our development principles and practices for building robust
 
 ## Project Structure
 - `src/lib` - Core utilities and services
+  - `src/lib/auth` - Authentication related modules (GitHub OAuth and App)
+  - `src/lib/errors` - Error types and handling utilities
 - `src/app` - Next.js app router pages and API routes
 - `src/types` - TypeScript type definitions
 - `scripts` - Utility scripts for development
 
 ## Authentication Flow
-- GitHub OAuth is used for authentication
+- Two authentication methods are supported:
+  - **GitHub OAuth:** Personal access tokens for user authentication
+  - **GitHub App:** Installation-based access for more granular permissions
+- Authentication is handled by the `githubAuth` module, separate from data fetching
+- Data fetching functions accept pre-authenticated Octokit instances
 - Access tokens are stored in NextAuth.js sessions
 - Tokens may expire or be revoked, requiring re-authentication
 - The app handles invalid tokens by showing clear error messages

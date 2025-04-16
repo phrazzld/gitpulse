@@ -17,7 +17,7 @@ import FilterControls from '@/components/dashboard/FilterControls';
 import RepositoryInfoPanel from '@/components/dashboard/RepositoryInfoPanel';
 import ActionButton from '@/components/dashboard/ActionButton';
 import SummaryDisplay from '@/components/dashboard/SummaryDisplay';
-import { getInstallationManagementUrl } from '@/lib/github';
+import { getInstallationManagementUrl } from '@/lib/auth/githubAuth';
 import { createActivityFetcher } from '@/lib/activity';
 import { 
   setCacheItem, 
@@ -240,7 +240,7 @@ export default function Dashboard() {
           }
           return prev;
         });
-        console.log('Current installation:', data.currentInstallation.account.login);
+        console.log('Current installation:', data.currentInstallation?.account?.login || 'unknown');
         
         // Cache current installations
         setCacheItem('currentInstallations', data.currentInstallations || [data.currentInstallation], CLIENT_CACHE_TTL.LONG);
@@ -297,7 +297,7 @@ export default function Dashboard() {
               
               // Add all selected installations' accounts to the organizations filter
               selectedInstallations.forEach(installation => {
-                if (!newOrgs.includes(installation.account.login)) {
+                if (installation.account?.login && !newOrgs.includes(installation.account.login)) {
                   newOrgs.push(installation.account.login);
                 }
               });

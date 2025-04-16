@@ -1,7 +1,7 @@
 /**
  * Utilities for optimizing API response payloads
  */
-import { Repository, Commit } from './github';
+import { Repository, Commit } from '@/types/github';
 
 /**
  * Optimized minimal repository data

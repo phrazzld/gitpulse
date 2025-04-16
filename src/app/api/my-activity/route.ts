@@ -4,13 +4,15 @@ import { authOptions } from "../auth/[...nextauth]/route";
 import { 
   fetchAllRepositories, 
   fetchCommitsForRepositories, 
+  fetchCommitsForRepositoriesWithOctokit, 
   Commit,
-  Repository,
-  AppInstallation 
-} from "@/lib/github";
+  Repository
+} from "@/lib/githubData";
+import { createAuthenticatedOctokit, GitHubCredentials, AppInstallation } from "@/lib/auth/githubAuth";
 import { logger } from "@/lib/logger";
 import { optimizedJsonResponse, generateETag, isCacheValid, notModifiedResponse, CacheTTL, generateCacheKey } from "@/lib/cache";
 import { optimizeCommit, optimizeRepository, MinimalCommit, MinimalRepository } from "@/lib/optimize";
+import { withErrorHandling } from "@/lib/auth/apiErrorHandler";
 
 const MODULE_NAME = "api:my-activity";
 
@@ -35,7 +37,7 @@ type MyActivityResponse = {
   code?: string;
 };
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest): Promise<NextResponse> {
   logger.debug(MODULE_NAME, "GET /api/my-activity request received", { 
     url: request.url,
     searchParams: Object.fromEntries(request.nextUrl.searchParams.entries()),
@@ -99,10 +101,22 @@ export async function GET(request: NextRequest) {
       });
     }
     
+    // Create credentials object for authentication
+    const credentials: GitHubCredentials = installationId
+      ? { type: 'app', installationId }
+      : { type: 'oauth', token: accessToken };
+    
+    // Create an authenticated Octokit instance
+    const octokit = await createAuthenticatedOctokit(credentials);
+    
     // Fetch all repositories accessible to the user
     let repositories: Repository[] = [];
     try {
-      repositories = await fetchAllRepositories(accessToken, installationId);
+      
+      // Fetch repositories based on the authentication method
+      repositories = installationId
+        ? await fetchAppRepositories(octokit)
+        : await fetchRepositories(octokit);
     } catch (error: any) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
       
@@ -123,9 +137,9 @@ export async function GET(request: NextRequest) {
     // Fetch commits for all repositories
     let allCommits: Commit[] = [];
     try {
-      allCommits = await fetchCommitsForRepositories(
-        accessToken,
-        installationId,
+      // Use the new function with the authenticated Octokit instance
+      allCommits = await fetchCommitsForRepositoriesWithOctokit(
+        octokit,
         repoFullNames,
         since,
         until,
@@ -221,6 +235,9 @@ export async function GET(request: NextRequest) {
     }, 500);
   }
 }
+
+// Wrap the handler with standardized error handling
+export const GET = withErrorHandling(handleGET, MODULE_NAME);
 
 // Helper function to get a default "since" date (30 days ago)
 function getDefaultSince(): string {

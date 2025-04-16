@@ -61,13 +61,12 @@ export default function AccountManagementPanel({
             ADD ACCOUNT
           </a>
           
-          {currentInstallations.length > 0 && (
+          {currentInstallations.length > 0 && currentInstallations[0].account && (
             <a
-              href={getInstallationManagementUrl(
-                currentInstallations[0].id, 
-                currentInstallations[0].account.login, 
-                currentInstallations[0].account.type
-              )}
+              // Create the management URL with null-safe access 
+              href={`https://github.com${currentInstallations[0].account.type === 'Organization' ? 
+                `/organizations/${currentInstallations[0].account.login}` : 
+                ''}/settings/installations/${currentInstallations[0].id}`}
               target="_blank" 
               rel="noopener noreferrer"
               className="text-xs px-2 py-1 rounded-md"
@@ -87,19 +86,23 @@ export default function AccountManagementPanel({
         <div className="w-full max-w-xl">
           <div className="text-xs font-bold mb-2" style={{ color: 'var(--neon-green)' }}>ACTIVE ACCOUNTS:</div>
           <AccountSelector
-            accounts={installations.map(installation => ({
-              id: installation.id,
-              login: installation.account.login,
-              type: installation.account.type,
-              avatarUrl: installation.account.avatarUrl
-            }))}
-            selectedAccounts={currentInstallations.map(inst => inst.account.login)}
+            accounts={installations
+              .filter(installation => installation.account !== null)
+              .map(installation => ({
+                id: installation.id,
+                login: installation.account!.login,
+                type: installation.account!.type || 'User', // Default to 'User' if type is undefined
+                avatarUrl: installation.account!.avatarUrl
+              }))}
+            selectedAccounts={currentInstallations
+              .filter(inst => inst.account !== null)
+              .map(inst => inst.account!.login)}
             onSelectionChange={(selected) => {
               if (selected.length > 0) {
                 // Map selected login names to installation IDs
                 const selectedInstallationIds = selected
                   .map(login => {
-                    const inst = installations.find(i => i.account.login === login);
+                    const inst = installations.find(i => i.account && i.account.login === login);
                     return inst ? inst.id : null;
                   })
                   .filter(id => id !== null) as number[];

@@ -1,7 +1,7 @@
 import NextAuth, { Session, User, Account, Profile, type NextAuthOptions } from "next-auth";
 import GitHubProvider, { GithubProfile } from "next-auth/providers/github";
 import { logger } from "@/lib/logger";
-import { checkAppInstallation } from "@/lib/github";
+import { checkAppInstallation } from "@/lib/auth/githubAuth";
 import { NextRequest } from "next/server";
 
 // Add type for JWT token
