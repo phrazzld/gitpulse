@@ -1,18 +1,37 @@
 /**
- * Utilities for optimizing API response payloads
+ * Utilities for transforming API response payloads
+ * 
+ * This module provides functions to transform external API data (using snake_case)
+ * into consistent internal representations (using camelCase), and to optimize
+ * data size for client-side usage.
  */
 import { Repository, Commit } from '@/types/github';
+
+// Use type aliases to distinguish between external and internal types
+type GitHubRepository = Repository;
+type GitHubCommit = Commit;
+
+/**
+ * External GitHub contributor data (using snake_case properties)
+ */
+export interface GitHubContributor {
+  login: string;
+  name?: string;
+  avatar_url?: string;
+  commit_count?: number;
+  [key: string]: unknown;
+}
 
 /**
  * Optimized minimal repository data using camelCase naming convention
  * 
  * @property id - Repository ID
  * @property name - Repository name
- * @property fullName - Repository full name (previously full_name)
- * @property ownerLogin - Repository owner login (previously owner_login)
+ * @property fullName - Repository full name (transformed from full_name)
+ * @property ownerLogin - Repository owner login (transformed from owner.login)
  * @property private - Whether the repository is private
  * @property language - Repository primary language
- * @property htmlUrl - Repository HTML URL (previously html_url)
+ * @property htmlUrl - Repository HTML URL (transformed from html_url)
  */
 export interface MinimalRepository {
   id: number;
@@ -29,12 +48,12 @@ export interface MinimalRepository {
  * 
  * @property sha - Commit SHA
  * @property message - Commit message
- * @property authorName - Author name (previously author_name)
- * @property authorDate - Author date (previously author_date)
- * @property authorLogin - Author login (previously author_login)
- * @property authorAvatar - Author avatar URL (previously author_avatar)
- * @property repoName - Repository name (previously repo_name)
- * @property htmlUrl - Commit HTML URL (previously html_url)
+ * @property authorName - Author name (transformed from commit.author.name)
+ * @property authorDate - Author date (transformed from commit.author.date)
+ * @property authorLogin - Author login (transformed from author.login)
+ * @property authorAvatar - Author avatar URL (transformed from author.avatar_url)
+ * @property repoName - Repository name (transformed from repository.full_name)
+ * @property htmlUrl - Commit HTML URL (transformed from html_url)
  */
 export interface MinimalCommit {
   sha: string;
@@ -50,10 +69,10 @@ export interface MinimalCommit {
 /**
  * Optimized minimal contributor data using camelCase naming convention
  * 
- * @property username - Contributor username
- * @property displayName - Contributor display name (previously display_name)
- * @property avatarUrl - Contributor avatar URL (previously avatar_url)
- * @property commitCount - Number of commits (previously commit_count)
+ * @property username - Contributor username (transformed from login)
+ * @property displayName - Contributor display name (transformed from name or login)
+ * @property avatarUrl - Contributor avatar URL (transformed from avatar_url)
+ * @property commitCount - Number of commits (transformed from commit_count)
  */
 export interface MinimalContributor {
   username: string;
@@ -63,12 +82,12 @@ export interface MinimalContributor {
 }
 
 /**
- * Optimize repository data by removing unnecessary fields and converting to camelCase
+ * Transform GitHub repository data to internal camelCase representation
  * 
- * @param repo - Full repository object from GitHub (using snake_case properties)
- * @returns - Minimized repository data with camelCase properties
+ * @param repo - Full repository object from GitHub API (using snake_case properties)
+ * @returns - Transformed repository data with camelCase properties
  */
-export function optimizeRepository(repo: Repository): MinimalRepository {
+export function transformRepository(repo: GitHubRepository): MinimalRepository {
   return {
     id: repo.id,
     name: repo.name,
@@ -76,17 +95,17 @@ export function optimizeRepository(repo: Repository): MinimalRepository {
     ownerLogin: repo.owner.login,
     private: repo.private,
     language: repo.language || null,
-    htmlUrl: repo.html_url, // Keep URL for clickable references
+    htmlUrl: repo.html_url,
   };
 }
 
 /**
- * Optimize commit data by removing unnecessary fields and converting to camelCase
+ * Transform GitHub commit data to internal camelCase representation
  * 
- * @param commit - Full commit object from GitHub (using snake_case properties)
- * @returns - Minimized commit data with camelCase properties
+ * @param commit - Full commit object from GitHub API (using snake_case properties)
+ * @returns - Transformed commit data with camelCase properties
  */
-export function optimizeCommit(commit: Commit): MinimalCommit {
+export function transformCommit(commit: GitHubCommit): MinimalCommit {
   return {
     sha: commit.sha,
     message: commit.commit.message,
@@ -100,51 +119,105 @@ export function optimizeCommit(commit: Commit): MinimalCommit {
 }
 
 /**
- * Contributor with flexible properties (used for different API responses)
- * Supports both camelCase and snake_case properties for backward compatibility
+ * Contributor with flexible properties to support transition period
+ * 
+ * This interface supports both camelCase and snake_case properties for 
+ * backward compatibility during the transition to consistent naming conventions.
+ * 
+ * @deprecated Use GitHubContributor for external data and MinimalContributor for internal data
  */
 export interface ContributorLike {
+  // camelCase variants
   username?: string;
-  login?: string;
   displayName?: string;
-  name?: string;
   avatarUrl?: string;
-  avatar_url?: string;
   commitCount?: number;
+  
+  // snake_case variants
+  login?: string;
+  name?: string;
+  avatar_url?: string;
   commit_count?: number;
+  
+  // Allow additional properties
   [key: string]: unknown;
 }
 
 /**
- * Optimize contributor data and convert to camelCase naming convention
+ * Transform contributor data to internal camelCase representation
  * 
- * @param contributor - Contributor object with potential extra fields
- * @returns - Minimized contributor data with camelCase properties
+ * @param contributor - Contributor object from GitHub API
+ * @returns - Transformed contributor data with camelCase properties
+ */
+export function transformContributor(contributor: GitHubContributor): MinimalContributor {
+  return {
+    username: contributor.login || 'unknown',
+    displayName: contributor.name || contributor.login || 'Unknown',
+    avatarUrl: contributor.avatar_url || null,
+    commitCount: contributor.commit_count
+  };
+}
+
+/**
+ * LEGACY FUNCTION - For backward compatibility
+ * @deprecated Use transformRepository instead for new code
+ */
+export function optimizeRepository(repo: GitHubRepository): MinimalRepository {
+  return transformRepository(repo);
+}
+
+/**
+ * LEGACY FUNCTION - For backward compatibility
+ * @deprecated Use transformCommit instead for new code
+ */
+export function optimizeCommit(commit: GitHubCommit): MinimalCommit {
+  return transformCommit(commit);
+}
+
+/**
+ * Transform contributor data with support for both naming conventions
+ * 
+ * This function supports the transition period where both naming conventions
+ * might be present in the codebase.
+ * 
+ * @param contributor - Contributor object with flexible property naming
+ * @returns - Transformed contributor data with camelCase properties
  */
 export function optimizeContributor(contributor: ContributorLike): MinimalContributor {
-  // Find the appropriate username
+  // Find the appropriate username and displayName from either naming convention
   const username = contributor.username || contributor.login || 'unknown';
-  // Find the appropriate display name
-  const displayName = contributor.displayName || contributor.name || contributor.username || contributor.login || 'Unknown';
+  const displayName = contributor.displayName || 
+                     contributor.name || 
+                     contributor.username || 
+                     contributor.login || 
+                     'Unknown';
   
   return {
     username,
-    displayName: displayName,
+    displayName,
     avatarUrl: contributor.avatarUrl || contributor.avatar_url || null,
     commitCount: contributor.commitCount || contributor.commit_count
   };
 }
 
 /**
- * Optimize an array of items using a provided optimization function
+ * Transform an array of items using a provided transformation function
  * 
- * @param items - Array of items to optimize
- * @param optimizerFn - Function to apply to each item
- * @returns - Array of optimized items
+ * @param items - Array of items to transform
+ * @param transformFn - Function to apply to each item
+ * @returns - Array of transformed items
+ */
+export function transformArray<T, R>(items: T[], transformFn: (item: T) => R): R[] {
+  if (!Array.isArray(items)) return [];
+  return items.map(transformFn);
+}
+
+/**
+ * LEGACY FUNCTION - For backward compatibility
+ * @deprecated Use transformArray instead for new code
  */
 export function optimizeArray<T, R>(items: T[], optimizerFn: (item: T) => R): R[] {
-  if (!Array.isArray(items)) return [];
-  return items.map(optimizerFn);
+  return transformArray(items, optimizerFn);
 }
 
 /**

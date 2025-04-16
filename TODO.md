@@ -61,11 +61,12 @@
   - **AC Ref:** Coding Standards (Meaningful Naming), Core Principles (Explicitness)
   - **Result:** Created a comprehensive NAMING_CONVENTION_STRATEGY.md document that outlines the approach for handling snake_case to camelCase conversions. The strategy focuses on explicit transformation functions at API boundaries, strong typing, and consistent naming patterns across the application.
 
-- [ ] **T009:** Refactor `src/lib/optimize.ts` for consistent internal camelCase
+- [x] **T009:** Refactor `src/lib/optimize.ts` for consistent internal camelCase
 
   - **Action:** Update the `optimizeRepository`, `optimizeCommit`, and `optimizeContributor` functions to consistently use and return `camelCase` properties internally, applying the strategy defined in T008.
   - **Depends On:** [T008]
   - **AC Ref:** Coding Standards (Meaningful Naming), Core Principles (Explicitness)
+  - **Result:** Refactored `optimize.ts` to align with the naming convention strategy. Added explicit external (GitHub) types, created new `transform*` functions that follow the strategy, maintained backward compatibility with existing `optimize*` functions, and improved documentation. All tests pass and functionality is preserved.
 
 - [ ] **T010:** Refactor `src/lib/activity.ts` for consistent internal camelCase
   - **Action:** Update the `formatActivityCommits` function to handle `snake_case` input and produce `camelCase` internally, aligning with the strategy from T008. Ensure compatibility with `ActivityFeed.tsx`.
