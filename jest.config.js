@@ -20,7 +20,8 @@ const customJestConfig = {
   ],
   transformIgnorePatterns: [
     // Transform ESM modules from node_modules for testing
-    "/node_modules/(?!(octokit|@octokit))",
+    // Include packages that use ESM format which Jest needs to transform
+    "/node_modules/(?!(octokit|@octokit|jose|next-auth|openid-client)/)",
     "^.+\\.module\\.(css|sass|scss)$",
   ],
   // Enable ES modules for tests when needed (must match transformIgnorePatterns)

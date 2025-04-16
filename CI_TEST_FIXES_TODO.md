@@ -52,7 +52,7 @@ This document outlines specific, atomic tasks to fix the CI test failures in the
 
 ## NextAuth and Related Issues
 
-- [ ] **T003: Fix ESM import issues with next-auth dependencies**
+- [x] **T003: Fix ESM import issues with next-auth dependencies**
 
   - **Issue:** Jest is failing to parse ESM imports from the jose package used by next-auth
   - **File:** `jest.config.js`

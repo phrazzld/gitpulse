@@ -3,7 +3,176 @@ import "@testing-library/jest-dom";
 
 // Mock Request and NextRequest for Next.js API tests
 global.Request = class Request {};
-global.Response = class Response {};
+global.Response = class Response {
+  constructor(body, init = {}) {
+    this.body = body;
+    this.status = init.status || 200;
+    this.statusText = init.statusText || "";
+    this.headers = new Map(Object.entries(init.headers || {}));
+  }
+
+  get ok() {
+    return this.status >= 200 && this.status < 300;
+  }
+
+  json() {
+    return Promise.resolve(JSON.parse(this.body));
+  }
+};
+
+// Mock next/server imports
+jest.mock("next/server", () => {
+  const responseHeaders = new Map();
+
+  class MockHeaders {
+    constructor(init) {
+      this.headers = new Map();
+
+      if (init) {
+        Object.entries(init).forEach(([key, value]) => {
+          this.headers.set(key.toLowerCase(), value);
+        });
+      }
+    }
+
+    get(name) {
+      return this.headers.get(name.toLowerCase());
+    }
+
+    set(name, value) {
+      this.headers.set(name.toLowerCase(), value);
+    }
+
+    append(name, value) {
+      this.headers.set(name.toLowerCase(), value);
+    }
+
+    delete(name) {
+      this.headers.delete(name.toLowerCase());
+    }
+
+    has(name) {
+      return this.headers.has(name.toLowerCase());
+    }
+
+    entries() {
+      return this.headers.entries();
+    }
+
+    [Symbol.iterator]() {
+      return this.entries();
+    }
+  }
+
+  class MockCookies {
+    constructor() {
+      this.cookies = new Map();
+    }
+
+    get(name) {
+      return { name, value: this.cookies.get(name) };
+    }
+
+    getAll() {
+      return Array.from(this.cookies.entries()).map(([name, value]) => ({
+        name,
+        value,
+      }));
+    }
+
+    set(name, value) {
+      this.cookies.set(name, value);
+    }
+
+    delete(name) {
+      this.cookies.delete(name);
+    }
+
+    has(name) {
+      return this.cookies.has(name);
+    }
+  }
+
+  class MockNextRequest {
+    constructor(input, init = {}) {
+      this.url = typeof input === "string" ? input : input.url;
+      this.method = init.method || "GET";
+      this.headers = new MockHeaders(init.headers || {});
+      this.cookies = new MockCookies();
+      this.bodyUsed = false;
+      this._body = init.body;
+    }
+
+    json() {
+      this.bodyUsed = true;
+      return Promise.resolve(
+        typeof this._body === "string" ? JSON.parse(this._body) : this._body,
+      );
+    }
+
+    text() {
+      this.bodyUsed = true;
+      return Promise.resolve(this._body);
+    }
+
+    get nextUrl() {
+      const url = new URL(this.url);
+      return {
+        href: url.href,
+        origin: url.origin,
+        protocol: url.protocol,
+        host: url.host,
+        hostname: url.hostname,
+        port: url.port,
+        pathname: url.pathname,
+        search: url.search,
+        searchParams: url.searchParams,
+        hash: url.hash,
+      };
+    }
+  }
+
+  class MockNextResponse {
+    constructor(body, options = {}) {
+      this.body = body;
+      this.status = options.status || 200;
+      this.statusText = options.statusText || "";
+      this.headers = new MockHeaders(options.headers || {});
+      this.cookies = new MockCookies();
+    }
+
+    static json(body, init = {}) {
+      const jsonBody = JSON.stringify(body);
+      const response = new MockNextResponse(jsonBody, init);
+      response.headers.set("content-type", "application/json");
+      return response;
+    }
+
+    json() {
+      try {
+        return Promise.resolve(JSON.parse(this.body));
+      } catch (e) {
+        return Promise.resolve({});
+      }
+    }
+
+    static redirect(url, init = {}) {
+      const response = new MockNextResponse("", { status: 307, ...init });
+      response.headers.set("location", url);
+      return response;
+    }
+
+    static next(options = {}) {
+      const response = new MockNextResponse("", { status: 200 });
+      return response;
+    }
+  }
+
+  return {
+    NextRequest: MockNextRequest,
+    NextResponse: MockNextResponse,
+  };
+});
 
 // Mock Octokit to avoid ESM import issues in tests
 jest.mock("octokit", () => {
@@ -165,3 +334,36 @@ const mockGetComputedStyle = jest.fn().mockImplementation(() => ({
 
 // Assign the mock after definition to avoid the module factory restriction
 global.getComputedStyle = mockGetComputedStyle;
+
+// Mock next-auth to avoid ESM module issues
+jest.mock("next-auth", () => {
+  return {
+    __esModule: true,
+    default: jest.fn(),
+    getServerSession: jest.fn().mockResolvedValue({
+      user: {
+        name: "Test User",
+        email: "test@example.com",
+        image: null,
+      },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      accessToken: "mock-access-token",
+    }),
+  };
+});
+
+// Mock next-auth/next
+jest.mock("next-auth/next", () => {
+  return {
+    __esModule: true,
+    getServerSession: jest.fn().mockResolvedValue({
+      user: {
+        name: "Test User",
+        email: "test@example.com",
+        image: null,
+      },
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      accessToken: "mock-access-token",
+    }),
+  };
+});
