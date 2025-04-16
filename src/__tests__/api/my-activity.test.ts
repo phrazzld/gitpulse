@@ -130,6 +130,7 @@ describe('API: /api/my-activity', () => {
     // Verify no authentication or data fetching was attempted
     expect(mockCreateAuthenticatedOctokit).not.toHaveBeenCalled();
     expect(mockFetchRepositories).not.toHaveBeenCalled();
+    expect(mockFetchAppRepositories).not.toHaveBeenCalled();
     expect(mockFetchCommitsForRepositoriesWithOctokit).not.toHaveBeenCalled();
   });
 

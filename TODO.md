@@ -105,11 +105,12 @@
 
 ## Test and Code Cleanup
 
-- [ ] **T015:** Update test assertion in `my-activity.test.ts`
+- [x] **T015:** Update test assertion in `my-activity.test.ts`
 
   - **Action:** Modify the test at `src/__tests__/api/my-activity.test.ts:130` to correctly use `mockFetchRepositories` instead of `mockFetchAllRepositories` for verifying repository fetching.
   - **Depends On:** None
   - **AC Ref:** Testing Strategy (Clarity)
+  - **Result:** Updated the test assertion to check both `mockFetchRepositories` and `mockFetchAppRepositories` as not called, which aligns with the `verifyRepositoryFetchingWithOctokit` function implementation. This ensures consistent usage of the preferred direct functions rather than the deprecated wrapper functions throughout the tests.
 
 - [ ] **T016:** Review explicit `undefined` returns in `useEffect`
 
