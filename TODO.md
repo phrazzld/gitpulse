@@ -45,7 +45,7 @@
     - **Depends On:** [T001]
     - **AC Ref:** Success Criteria 1, 2
 
-- [ ] **T006:** Review and update ESLint configuration
+- [x] **T006:** Review and update ESLint configuration
     - **Action:** Ensure `.eslintrc.js` is properly configured with TypeScript support. It should extend `next/core-web-vitals`, `plugin:@typescript-eslint/recommended`, and `prettier`. Add the rule `"@typescript-eslint/no-explicit-any": "error"` and identify any additional rules from DEVELOPMENT_PHILOSOPHY.md that should be enforced.
     - **Depends On:** [T001]
     - **AC Ref:** Success Criteria 1, 2
