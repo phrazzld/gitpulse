@@ -153,9 +153,13 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     // Fetch all repositories accessible to the user
     let allRepositories: Repository[] = [];
     try {
-      // We're still using the backward-compatible function for now
-      // This will create its own Octokit instance internally
-      allRepositories = await fetchAllRepositories(accessToken, installationId);
+      // Create an authenticated Octokit instance
+      const octokit = await createAuthenticatedOctokit(credentials);
+      
+      // Fetch repositories based on the authentication method
+      allRepositories = installationId
+        ? await fetchAppRepositories(octokit)
+        : await fetchRepositories(octokit);
     } catch (error: any) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
       

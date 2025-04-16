@@ -112,8 +112,11 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     // Fetch all repositories accessible to the user
     let repositories: Repository[] = [];
     try {
-      // We're still using the backward-compatible function since it's cleaner than duplicating its logic here
-      repositories = await fetchAllRepositories(accessToken, installationId);
+      
+      // Fetch repositories based on the authentication method
+      repositories = installationId
+        ? await fetchAppRepositories(octokit)
+        : await fetchRepositories(octokit);
     } catch (error: any) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
       

@@ -27,7 +27,7 @@
     - **AC Ref:** Standardize API Error Handling Plan, Success Criteria 1, Success Criteria 5
 
 ## 2. Remove Usage of Deprecated Wrapper Functions
-- [ ] **T007:** Replace `fetchAllRepositories` calls in API routes
+- [x] **T007:** Replace `fetchAllRepositories` calls in API routes
     - **Action:** In `src/app/api/contributors/route.ts:108`, `src/app/api/my-activity/route.ts:115`, `src/app/api/my-org-activity/route.ts:151`, and `src/app/api/team-activity/route.ts:150`, replace calls to the deprecated `fetchAllRepositories` wrapper with direct calls to either `fetchAppRepositories(octokit)` or `fetchRepositories(octokit)` using the already authenticated `octokit` instance.
     - **Depends On:** [T001, T002, T003, T005]
     - **AC Ref:** Remove Usage of Deprecated Wrapper Functions Plan, Success Criteria 2

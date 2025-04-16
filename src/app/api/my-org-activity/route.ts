@@ -154,9 +154,10 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       // Create an authenticated Octokit instance
       const octokit = await createAuthenticatedOctokit(credentials);
       
-      // Fetch repositories using the backward-compatible function
-      // Note: We're still using fetchAllRepositories which internally uses the new pattern
-      allRepositories = await fetchAllRepositories(accessToken, installationId);
+      // Fetch repositories based on the authentication method
+      allRepositories = installationId
+        ? await fetchAppRepositories(octokit)
+        : await fetchRepositories(octokit);
     } catch (error: any) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
       
