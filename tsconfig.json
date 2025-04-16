@@ -4,7 +4,35 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
+    /*
+     * TypeScript Strictness Configuration:
+     *
+     * 'strict: true' enables the following flags:
+     * - noImplicitAny: Disallow implicit any type
+     * - noImplicitThis: Error on 'this' expressions with an implied 'any' type
+     * - alwaysStrict: Parse in strict mode
+     * - strictBindCallApply: Check that the arguments for 'bind', 'call', and 'apply' methods match the original function
+     * - strictNullChecks: Enable strict null checking
+     * - strictFunctionTypes: Enable strict checking of function types
+     * - strictPropertyInitialization: Ensure non-undefined class properties are initialized
+     * - useUnknownInCatchVariables: Type catch clause variables as 'unknown' instead of 'any'
+     */
     "strict": true,
+    /*
+     * Additional strictness flags beyond 'strict: true':
+     * These provide extra type safety without major refactoring
+     */
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    /*
+     * Future strictness enhancements:
+     * The following flags would further improve type safety but require codebase modifications:
+     * - noUncheckedIndexedAccess: Add 'undefined' to any unchecked indexed access
+     * - exactOptionalPropertyTypes: Differentiate between optional properties and properties that can be undefined
+     * - noImplicitOverride: Ensure derived classes explicitly override parent methods
+     * - noPropertyAccessFromIndexSignature: Enforce using ['prop'] for index signatures
+     */
+    /* Other compiler options */
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -24,6 +52,12 @@
     },
     "types": ["jest", "node", "@testing-library/jest-dom"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/types/*.d.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/types/*.d.ts"
+  ],
   "exclude": ["node_modules"]
 }

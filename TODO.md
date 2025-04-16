@@ -71,7 +71,7 @@
   - **Depends On:** [T005]
   - **AC Ref:** Success Criteria 1, 2
 
-- [ ] **T007:** Verify TypeScript strict mode
+- [x] **T007:** Verify TypeScript strict mode
 
   - **Action:** Confirm that `tsconfig.json` has `"strict": true` enabled and add other appropriate strictness flags as needed.
   - **Depends On:** [T001]
