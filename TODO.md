@@ -116,17 +116,17 @@
     - **Action:** Update existing unit/integration tests for `fetchRepositoryCommits` to use a mocked `Octokit` instance.
     - **Depends On:** Refactor `fetchRepositoryCommits` Signature
     - **AC Ref:** PLAN.md Step 4
-- [ ] **Update Tests for `fetchCommitsForRepositories`:**
+- [x] **Update Tests for `fetchCommitsForRepositories`:**
     - **Action:** Update existing unit/integration tests for `fetchCommitsForRepositories` to use a mocked `Octokit` instance.
     - **Depends On:** Refactor `fetchCommitsForRepositories` Signature
     - **AC Ref:** PLAN.md Step 4
-- [ ] **Update API Route Tests:**
+- [x] **Update API Route Tests:**
     - **Action:** Update integration tests for all API routes. Mock the `createAuthenticatedOctokit` factory and/or the data fetching functions as appropriate for each test. Verify correct credential handling and client passing.
     - **Depends On:** Refactor all Route Handlers
     - **AC Ref:** PLAN.md Step 4
 
 ## Types and Documentation
-- [ ] **Review and Update GitHub Types:**
+- [x] **Review and Update GitHub Types:**
     - **Action:** Review `src/types/github.ts` and update any type definitions affected by the refactoring, or add new ones if necessary.
     - **Depends On:** Define GitHubCredentials Type, Verify Data Fetching Auth Independence
     - **AC Ref:** PLAN.md Step 5
