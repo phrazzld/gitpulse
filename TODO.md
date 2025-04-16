@@ -120,11 +120,6 @@
   - **AC Ref:** Success Criteria 2, 3
   - **Result:** Successfully pushed changes to GitHub as PR #8. The CI workflow ran and failed due to TypeScript errors, which is the expected behavior given our strict configuration. We've documented the code quality issues that need to be fixed in follow-up tasks.
 
-- [ ] **T015:** Test CI workflow failure
-  - **Action:** Temporarily introduce an error that would pass the pre-commit hooks but fail in CI (e.g., disable the pre-commit hooks with `--no-verify` and push a failing change). Verify the workflow fails as expected.
-  - **Depends On:** [T014]
-  - **AC Ref:** Success Criteria 2, 3
-
 ## Code Quality Issues to Resolve
 
 - [x] **ESLint Configuration:** The project is using ESLint v9, which no longer supports .eslintrc.js configuration format. Need to fully migrate to eslint.config.js format based on the new flat configuration format. A basic conversion has been started, but needs to be completed and tested.
@@ -132,12 +127,13 @@
 
 ### TypeScript Issues
 
-- [ ] **T017:** Fix Type Errors in Test Files
+- [x] **T017:** Fix Type Errors in Test Files
 
   - **Description:** Multiple test files have TypeScript errors including implicit `any` types in component props, mismatched type assertions, and missing type declarations.
   - **Example files:** `AccountManagementPanel.test.tsx`, `SummaryDisplay.test.tsx`, `error-handling.test.tsx`
   - **Priority:** High - These prevent TypeScript from successfully type-checking the codebase
   - **Depends On:** [T014]
+  - **Resolution:** Fixed type errors in test files by adding proper type annotations to mocked components and handling null checks correctly. Applied proper typing to component props in test files and fixed Element vs HTMLElement type mismatches in testing-library assertions. Exported AuthErrorProps interface to fix type errors in error-handling tests.
 
 - [ ] **T018:** Fix Missing Return Types
 

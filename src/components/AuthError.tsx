@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
 
-interface AuthErrorProps {
+export interface AuthErrorProps {
   error?: string;
   message?: string;
   code?: string;

@@ -95,11 +95,14 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 // Mock the AuthError component to capture its props
-const mockAuthErrorProps: Record<string, any> = {};
+const mockAuthErrorProps: Record<string, unknown> = {};
+
+// Import the real AuthError props type
+import type { AuthErrorProps } from '@/components/AuthError';
 
 jest.mock('@/components/AuthError', () => {
   return {
-    AuthError: (props: any) => {
+    AuthError: (props: AuthErrorProps) => {
       mockAuthErrorProps.current = props;
       return (
         <div data-testid="auth-error-component">
@@ -120,11 +123,21 @@ jest.mock('@/components/AuthError', () => {
 });
 
 // Track component props for testing
-const mockComponentProps: Record<string, any> = {};
+const mockComponentProps: Record<string, unknown> = {};
+
+// Define interface for AuthenticationStatusBanner props
+interface AuthStatusBannerProps {
+  error: string | null;
+  authMethod?: string | null;
+  needsInstallation?: boolean;
+  getGitHubAppInstallUrl: () => string;
+  handleAuthError: () => void;
+  signOutCallback?: () => void;
+}
 
 // Mock AuthenticationStatusBanner to capture its props
 jest.mock('@/components/dashboard/AuthenticationStatusBanner', () => {
-  return function MockAuthenticationStatusBanner(props: any) {
+  return function MockAuthenticationStatusBanner(props: AuthStatusBannerProps) {
     mockComponentProps.AuthenticationStatusBanner = props;
     return (
       <div data-testid="auth-banner">
@@ -144,36 +157,80 @@ jest.mock('@/components/dashboard/AuthenticationStatusBanner', () => {
 });
 
 // Simple mocks for other dashboard components to avoid errors
+// Define interfaces for dashboard component props where needed
+interface AccountManagementPanelProps {
+  authMethod: string | null;
+  installations: any[];
+  currentInstallations: any[];
+  loading: boolean;
+  getGitHubAppInstallUrl: () => string;
+  getInstallationManagementUrl: (installationId: number, login: string, type: string) => string;
+  switchInstallations: (installationIds: number[]) => void;
+  session: any;
+}
+
 jest.mock('@/components/dashboard/AccountManagementPanel', () => {
-  return function MockAccountManagementPanel(props: any) {
+  return function MockAccountManagementPanel(props: AccountManagementPanelProps) {
     mockComponentProps.AccountManagementPanel = props;
     return <div data-testid="account-panel"></div>;
   };
 });
 
+interface FilterControlsProps {
+  activityMode: string;
+  dateRange: { since: string; until: string };
+  activeFilters: Record<string, any>;
+  installations: any[];
+  loading: boolean;
+  handleModeChange: (mode: string) => void;
+  handleDateRangeChange: (range: { since: string; until: string }) => void;
+  handleOrganizationChange: (orgs: string[]) => void;
+  session: any;
+}
+
 jest.mock('@/components/dashboard/FilterControls', () => {
-  return function MockFilterControls(props: any) {
+  return function MockFilterControls(props: FilterControlsProps) {
     mockComponentProps.FilterControls = props;
     return <div data-testid="filter-controls"></div>;
   };
 });
 
+interface RepoInfoPanelProps {
+  repositories: any[];
+  showRepoList: boolean;
+  loading: boolean;
+  activeFilters: Record<string, any>;
+  setShowRepoList: (show: boolean) => void;
+}
+
 jest.mock('@/components/dashboard/RepositoryInfoPanel', () => {
-  return function MockRepositoryInfoPanel(props: any) {
+  return function MockRepositoryInfoPanel(props: RepoInfoPanelProps) {
     mockComponentProps.RepositoryInfoPanel = props;
     return <div data-testid="repo-panel"></div>;
   };
 });
 
+interface ActionButtonProps {
+  loading: boolean;
+}
+
 jest.mock('@/components/dashboard/ActionButton', () => {
-  return function MockActionButton(props: any) {
+  return function MockActionButton(props: ActionButtonProps) {
     mockComponentProps.ActionButton = props;
     return <button data-testid="action-button"></button>;
   };
 });
 
+interface SummaryDisplayProps {
+  summary: any | null;
+  activityMode: string;
+  dateRange: { since: string; until: string };
+  activeFilters: Record<string, any>;
+  installationIds: number[];
+}
+
 jest.mock('@/components/dashboard/SummaryDisplay', () => {
-  return function MockSummaryDisplay(props: any) {
+  return function MockSummaryDisplay(props: SummaryDisplayProps) {
     mockComponentProps.SummaryDisplay = props;
     return props.summary ? <div data-testid="summary-display"></div> : null;
   };
@@ -185,8 +242,12 @@ jest.mock('@/components/DashboardLoadingState', () => {
   };
 });
 
+interface DashboardHeaderProps {
+  session: any;
+}
+
 jest.mock('@/components/dashboard/DashboardHeader', () => {
-  return function MockDashboardHeader(props: any) {
+  return function MockDashboardHeader(props: DashboardHeaderProps) {
     mockComponentProps.DashboardHeader = props;
     return <div data-testid="dashboard-header" />;
   };
@@ -397,10 +458,11 @@ describe('Error Handling Integration', () => {
     });
     
     // Mock getInstallationManagementUrl to indicate app not configured
-    // Using dynamic import for testing purposes
-    const { getInstallationManagementUrl } = await import('@/lib/auth/githubAuth');
-    const mockGithubAuth = { getInstallationManagementUrl };
-    mockGithubAuth.getInstallationManagementUrl.mockReturnValue('#github-app-not-configured');
+    // We need to mock the module differently for this specific test
+    jest.mock('@/lib/auth/githubAuth', () => ({
+      ...jest.requireActual('@/lib/auth/githubAuth'),
+      getInstallationManagementUrl: jest.fn().mockReturnValue('#github-app-not-configured')
+    }));
     
     // Render the dashboard with the mock fetch
     render(<DashboardTestWrapper mockFetch={mockFetchFn} />);

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '../../../__tests__/test-utils';
 import AccountManagementPanel from '@/components/dashboard/AccountManagementPanel';
 import { mockSession } from '../../../__tests__/test-utils';
+import type { Account } from '@/components/AccountSelector';
 
 // Mock AccountSelector component to simplify testing
 jest.mock('@/components/AccountSelector', () => {
@@ -15,6 +16,14 @@ jest.mock('@/components/AccountSelector', () => {
       multiSelect,
       showCurrentLabel,
       currentUsername
+    }: {
+      accounts: Account[];
+      selectedAccounts: string[];
+      onSelectionChange: (selectedAccounts: string[]) => void;
+      isLoading?: boolean;
+      multiSelect?: boolean;
+      showCurrentLabel?: boolean;
+      currentUsername?: string;
     }) => (
       <div data-testid="account-selector">
         <span>Selected accounts: {selectedAccounts.join(', ') || 'None'}</span>
