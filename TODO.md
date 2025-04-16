@@ -95,7 +95,7 @@
   - **Depends On:** [T008, T009]
   - **AC Ref:** Success Criteria 2, 3
 
-- [ ] **T011:** Update README with code quality documentation
+- [x] **T011:** Update README with code quality documentation
 
   - **Action:** Add a "Code Quality" section to `README.md` explaining the pre-commit hooks and CI checks as specified in the implementation plan.
   - **Depends On:** [T004, T010]
