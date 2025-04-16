@@ -41,7 +41,7 @@
     - **AC Ref:** Remove Usage of Deprecated Wrapper Functions Plan, Success Criteria 2, Success Criteria 5
 
 ## 3. Improve Authentication Documentation
-- [ ] **T010:** Update `.env.local.example` with GitHub App variable details
+- [x] **T010:** Update `.env.local.example` with GitHub App variable details
     - **Action:** Edit `.env.local.example`. Add descriptive comments for `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_PKCS8`, and `NEXT_PUBLIC_GITHUB_APP_NAME`. Clarify which variables are mandatory for OAuth vs. GitHub App authentication.
     - **Depends On:** None
     - **AC Ref:** Improve Authentication Documentation Plan, Success Criteria 3
