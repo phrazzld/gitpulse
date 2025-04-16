@@ -78,11 +78,9 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
   
   // Get organization parameters
   const organizationsParam = request.nextUrl.searchParams.get('organizations');
-  let organizations: string[] = [];
-  
-  if (organizationsParam) {
-    organizations = organizationsParam.split(',').map(org => org.trim()).filter(Boolean);
-  }
+  const organizations: string[] = organizationsParam 
+    ? organizationsParam.split(',').map(org => org.trim()).filter(Boolean)
+    : [];
   
   // If no organizations specified, return empty results
   if (organizations.length === 0) {

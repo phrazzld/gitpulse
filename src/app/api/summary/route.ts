@@ -562,16 +562,17 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     
     const isAppError = errorMsg.includes('GitHub App credentials not configured');
     
-    let errorMessage = "Failed to generate summary";
-    let errorCode = "API_ERROR";
+    const errorMessage = isAppError 
+      ? "GitHub App not properly configured. Please contact the administrator."
+      : isAuthError 
+        ? "GitHub authentication failed. Your authentication is invalid or expired."
+        : "Failed to generate summary";
     
-    if (isAppError) {
-      errorMessage = "GitHub App not properly configured. Please contact the administrator.";
-      errorCode = "GITHUB_APP_CONFIG_ERROR";
-    } else if (isAuthError) {
-      errorMessage = "GitHub authentication failed. Your authentication is invalid or expired.";
-      errorCode = "GITHUB_AUTH_ERROR";
-    }
+    const errorCode = isAppError 
+      ? "GITHUB_APP_CONFIG_ERROR" 
+      : isAuthError 
+        ? "GITHUB_AUTH_ERROR" 
+        : "API_ERROR";
     
     return new NextResponse(JSON.stringify({ 
       error: errorMessage, 

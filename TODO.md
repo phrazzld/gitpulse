@@ -126,10 +126,11 @@
   - **AC Ref:** Core Principles (Simplicity)
   - **Result:** Successfully removed the unnecessary explicit `return undefined;` statements from both identified useEffect hooks. Replaced them with explanatory comments to maintain clarity about the code's intent. The code is now cleaner and follows the Simplicity principle while preserving the original logic and behavior.
 
-- [ ] **T018:** Replace `let` with `const` where applicable
+- [x] **T018:** Replace `let` with `const` where applicable
   - **Action:** Review API route files identified in the code review. Replace `let` declarations with `const` for variables that are never reassigned.
   - **Depends On:** None
   - **AC Ref:** Coding Standards (Prefer Immutability)
+  - **Result:** Identified and replaced unnecessary `let` declarations with `const` in API route files. Changed 3 instances: (1) `organizations` array in team-activity/route.ts, and (2) `errorMessage` and `errorCode` variables in summary/route.ts. Improved code with ternary expressions to avoid reassignment. These changes promote immutability and clearer code intentions.
 
 ## Verification
 
