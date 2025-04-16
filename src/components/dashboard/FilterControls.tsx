@@ -66,12 +66,14 @@ export default function FilterControls({
             <div className="flex items-center justify-center w-full">
               <div className="w-full max-w-xl">
                 <OrganizationPicker
-                  organizations={installations.map(installation => ({
-                    id: installation.id,
-                    login: installation.account.login,
-                    type: installation.account.type,
-                    avatarUrl: installation.account.avatarUrl
-                  }))}
+                  organizations={installations
+                    .filter(installation => installation.account !== null)
+                    .map(installation => ({
+                      id: installation.id,
+                      login: installation.account!.login,
+                      type: installation.account!.type || 'User', // Provide a default
+                      avatarUrl: installation.account!.avatarUrl
+                    }))}
                   selectedOrganizations={activeFilters.organizations}
                   onSelectionChange={handleOrganizationChange}
                   mode={activityMode}

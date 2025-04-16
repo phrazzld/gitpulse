@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { Commit } from "./github";
+import { Commit } from "@/types/github";
 import { logger } from "./logger";
 import { isGitHubTokenValid } from "./auth/tokenValidator";
 
