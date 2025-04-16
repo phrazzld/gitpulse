@@ -14,6 +14,7 @@ import {
 } from "@/lib/auth/githubAuth";
 import { logger } from "@/lib/logger";
 import { optimizedJsonResponse, isCacheValid, notModifiedResponse, CacheTTL, generateETag, generateCacheKey } from "@/lib/cache";
+import { withErrorHandling } from "@/lib/auth/apiErrorHandler";
 import { optimizeCommit, optimizeRepository, optimizeContributor, MinimalCommit, MinimalRepository, MinimalContributor } from "@/lib/optimize";
 
 const MODULE_NAME = "api:team-activity";
@@ -45,7 +46,7 @@ type TeamActivityResponse = {
   code?: string;
 };
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest): Promise<NextResponse> {
   logger.debug(MODULE_NAME, "GET /api/team-activity request received", { 
     url: request.url,
     searchParams: Object.fromEntries(request.nextUrl.searchParams.entries()),
@@ -398,3 +399,6 @@ function applyPagination(commits: MinimalCommit[], cursor: string | null, limit:
     nextCursor
   };
 }
+
+// Wrap the handler with standardized error handling
+export const GET = withErrorHandling(handleGET, MODULE_NAME);
