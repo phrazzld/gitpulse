@@ -29,11 +29,7 @@ type TeamActivityResponse = {
     repositories: string[];
     dates: string[];
     organizations: string[];
-    contributors: { 
-      username: string;
-      display_name: string;
-      avatar_url: string | null;
-    }[];
+    contributors: MinimalContributor[];
   };
   pagination: {
     hasMore: boolean;
@@ -255,8 +251,8 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
         if (!contributorsMap.has(username)) {
           contributorsMap.set(username, {
             username,
-            display_name: commit.commit.author?.name || username,
-            avatar_url: commit.author.avatar_url
+            displayName: commit.commit.author?.name || username,
+            avatarUrl: commit.author.avatar_url
           });
         }
       }
@@ -271,8 +267,8 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       
       // Add contributor information if available
       if (commit.author && contributorsMap.has(commit.author.login)) {
-        minimalCommit.author_login = commit.author.login;
-        minimalCommit.author_avatar = commit.author.avatar_url;
+        minimalCommit.authorLogin = commit.author.login;
+        minimalCommit.authorAvatar = commit.author.avatar_url;
       }
       
       return minimalCommit;

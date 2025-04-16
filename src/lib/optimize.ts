@@ -4,81 +4,104 @@
 import { Repository, Commit } from '@/types/github';
 
 /**
- * Optimized minimal repository data
+ * Optimized minimal repository data using camelCase naming convention
+ * 
+ * @property id - Repository ID
+ * @property name - Repository name
+ * @property fullName - Repository full name (previously full_name)
+ * @property ownerLogin - Repository owner login (previously owner_login)
+ * @property private - Whether the repository is private
+ * @property language - Repository primary language
+ * @property htmlUrl - Repository HTML URL (previously html_url)
  */
 export interface MinimalRepository {
   id: number;
   name: string;
-  full_name: string;
-  owner_login: string;
+  fullName: string;
+  ownerLogin: string;
   private: boolean;
   language: string | null;
-  html_url?: string;
+  htmlUrl?: string;
 }
 
 /**
- * Optimized minimal commit data
+ * Optimized minimal commit data using camelCase naming convention
+ * 
+ * @property sha - Commit SHA
+ * @property message - Commit message
+ * @property authorName - Author name (previously author_name)
+ * @property authorDate - Author date (previously author_date)
+ * @property authorLogin - Author login (previously author_login)
+ * @property authorAvatar - Author avatar URL (previously author_avatar)
+ * @property repoName - Repository name (previously repo_name)
+ * @property htmlUrl - Commit HTML URL (previously html_url)
  */
 export interface MinimalCommit {
   sha: string;
   message: string;
-  author_name: string;
-  author_date: string;
-  author_login?: string;
-  author_avatar?: string;
-  repo_name?: string;
-  html_url?: string;
+  authorName: string;
+  authorDate: string;
+  authorLogin?: string;
+  authorAvatar?: string;
+  repoName?: string;
+  htmlUrl?: string;
 }
 
 /**
- * Optimized minimal contributor data
+ * Optimized minimal contributor data using camelCase naming convention
+ * 
+ * @property username - Contributor username
+ * @property displayName - Contributor display name (previously display_name)
+ * @property avatarUrl - Contributor avatar URL (previously avatar_url)
+ * @property commitCount - Number of commits (previously commit_count)
  */
 export interface MinimalContributor {
   username: string;
-  display_name: string;
-  avatar_url: string | null;
-  commit_count?: number;
+  displayName: string;
+  avatarUrl: string | null;
+  commitCount?: number;
 }
 
 /**
- * Optimize repository data by removing unnecessary fields
+ * Optimize repository data by removing unnecessary fields and converting to camelCase
  * 
- * @param repo - Full repository object from GitHub
- * @returns - Minimized repository data
+ * @param repo - Full repository object from GitHub (using snake_case properties)
+ * @returns - Minimized repository data with camelCase properties
  */
 export function optimizeRepository(repo: Repository): MinimalRepository {
   return {
     id: repo.id,
     name: repo.name,
-    full_name: repo.full_name,
-    owner_login: repo.owner.login,
+    fullName: repo.full_name,
+    ownerLogin: repo.owner.login,
     private: repo.private,
     language: repo.language || null,
-    html_url: repo.html_url, // Keep URL for clickable references
+    htmlUrl: repo.html_url, // Keep URL for clickable references
   };
 }
 
 /**
- * Optimize commit data by removing unnecessary fields
+ * Optimize commit data by removing unnecessary fields and converting to camelCase
  * 
- * @param commit - Full commit object from GitHub
- * @returns - Minimized commit data
+ * @param commit - Full commit object from GitHub (using snake_case properties)
+ * @returns - Minimized commit data with camelCase properties
  */
 export function optimizeCommit(commit: Commit): MinimalCommit {
   return {
     sha: commit.sha,
     message: commit.commit.message,
-    author_name: commit.commit.author?.name || 'Unknown',
-    author_date: commit.commit.author?.date || new Date().toISOString(),
-    author_login: commit.author?.login,
-    author_avatar: commit.author?.avatar_url,
-    repo_name: commit.repository?.full_name,
-    html_url: commit.html_url,
+    authorName: commit.commit.author?.name || 'Unknown',
+    authorDate: commit.commit.author?.date || new Date().toISOString(),
+    authorLogin: commit.author?.login,
+    authorAvatar: commit.author?.avatar_url,
+    repoName: commit.repository?.full_name,
+    htmlUrl: commit.html_url,
   };
 }
 
 /**
  * Contributor with flexible properties (used for different API responses)
+ * Supports both camelCase and snake_case properties for backward compatibility
  */
 export interface ContributorLike {
   username?: string;
@@ -93,10 +116,10 @@ export interface ContributorLike {
 }
 
 /**
- * Optimize contributor data
+ * Optimize contributor data and convert to camelCase naming convention
  * 
  * @param contributor - Contributor object with potential extra fields
- * @returns - Minimized contributor data
+ * @returns - Minimized contributor data with camelCase properties
  */
 export function optimizeContributor(contributor: ContributorLike): MinimalContributor {
   // Find the appropriate username
@@ -106,9 +129,9 @@ export function optimizeContributor(contributor: ContributorLike): MinimalContri
   
   return {
     username,
-    display_name: displayName,
-    avatar_url: contributor.avatarUrl || contributor.avatar_url || null,
-    commit_count: contributor.commitCount || contributor.commit_count
+    displayName: displayName,
+    avatarUrl: contributor.avatarUrl || contributor.avatar_url || null,
+    commitCount: contributor.commitCount || contributor.commit_count
   };
 }
 

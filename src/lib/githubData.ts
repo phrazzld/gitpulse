@@ -848,11 +848,12 @@ export async function fetchRepositoryCommitsWithOctokit(
       lastCommitSha: commits.length > 0 ? commits[commits.length - 1].sha : null,
     });
 
-    // attach repository info
+    // attach repository info using camelCase property names
     const commitsWithRepoInfo = commits.map((commit) => ({
       ...commit,
       repository: {
-        full_name: `${owner}/${repo}`,
+        fullName: `${owner}/${repo}`, // Use camelCase for internally added property
+        full_name: `${owner}/${repo}`, // Keep snake_case for backward compatibility
       },
     }));
 

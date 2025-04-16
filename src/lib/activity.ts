@@ -1,9 +1,11 @@
 import { ActivityCommit } from '@/components/ActivityFeed';
 
 /**
- * Formats commit data from API response into a format compatible with ActivityFeed
+ * Formats commit data from API response into a format compatible with ActivityFeed.
+ * Preserves the snake_case naming convention for properties in ActivityCommit as expected by ActivityFeed,
+ * while supporting camelCase properties in the input.
  * 
- * @param commits - Raw commits from API
+ * @param commits - Raw commits from API, with either snake_case or camelCase property names
  * @returns - Formatted commit data for ActivityFeed
  */
 export function formatActivityCommits(commits: any[]): ActivityCommit[] {
@@ -13,7 +15,7 @@ export function formatActivityCommits(commits: any[]): ActivityCommit[] {
 
   return commits.map(commit => ({
     sha: commit.sha,
-    html_url: commit.html_url,
+    html_url: commit.htmlUrl || commit.html_url, // Support both naming conventions
     commit: {
       message: commit.commit.message,
       author: {
@@ -23,13 +25,13 @@ export function formatActivityCommits(commits: any[]): ActivityCommit[] {
     },
     repository: commit.repository ? {
       name: commit.repository.name,
-      full_name: commit.repository.full_name,
-      html_url: commit.repository.html_url
+      full_name: commit.repository.fullName || commit.repository.full_name, // Support both naming conventions
+      html_url: commit.repository.htmlUrl || commit.repository.html_url // Support both naming conventions
     } : undefined,
     contributor: commit.contributor ? {
       username: commit.contributor.username,
-      displayName: commit.contributor.displayName,
-      avatarUrl: commit.contributor.avatarUrl
+      displayName: commit.contributor.displayName, // Already uses camelCase
+      avatarUrl: commit.contributor.avatarUrl // Already uses camelCase
     } : undefined
   }));
 }
@@ -67,8 +69,9 @@ export function createActivityFetcher(baseUrl: string, params: Record<string, st
     // Return formatted data with pagination info
     return {
       data: formatActivityCommits(data.commits || []),
-      nextCursor: data.pagination?.nextCursor || null,
-      hasMore: data.pagination?.hasMore || false
+      // Support both camelCase and snake_case property names in pagination info
+      nextCursor: data.pagination?.nextCursor || data.pagination?.next_cursor || null,
+      hasMore: data.pagination?.hasMore || data.pagination?.has_more || false
     };
   };
 }
