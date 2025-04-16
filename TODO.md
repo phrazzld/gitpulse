@@ -101,7 +101,7 @@
   - **Depends On:** [T004, T010]
   - **AC Ref:** Success Criteria 4
 
-- [ ] **T012:** Test pre-commit hook with type error
+- [x] **T012:** Test pre-commit hook with type error
 
   - **Action:** Introduce a type error in a TypeScript file, stage the changes, and attempt to commit. Verify the pre-commit hook catches the error and prevents the commit.
   - **Depends On:** [T004, T007]
@@ -136,3 +136,7 @@
 
 - [ ] **Assumption:** The primary branch is named either `main` or `master`.
   - **Context:** The GitHub Actions workflow is configured to trigger on both names. This may need adjustment based on actual repository configuration.
+
+## [!] ISSUES TO RESOLVE
+
+- [ ] **ESLint Configuration:** The project is using ESLint v9, which no longer supports .eslintrc.js configuration format. Need to fully migrate to eslint.config.js format based on the new flat configuration format. A basic conversion has been started, but needs to be completed and tested.
