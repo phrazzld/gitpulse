@@ -13,6 +13,22 @@ console.warn = (...args) => {
   originalWarn(...args);
 };
 
+// Mock the global fetch function for tests
+// This prevents "fetch is not defined" errors in the tokenValidator
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({}),
+    headers: new Map([
+      ["x-ratelimit-limit", "5000"],
+      ["x-ratelimit-remaining", "4999"],
+      ["x-ratelimit-reset", String(Math.floor(Date.now() / 1000) + 3600)],
+      ["x-oauth-scopes", "repo, read:org, user:email"],
+    ]),
+  }),
+);
+
 // Mock Request and NextRequest for Next.js API tests
 global.Request = class Request {};
 global.Response = class Response {
