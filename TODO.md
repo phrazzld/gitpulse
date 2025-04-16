@@ -143,11 +143,12 @@
   - **Depends On:** [T014]
   - **Resolution:** Added explicit return types to React components and utility functions. Fixed missing return paths in useEffect hooks and other functions. Used ReactElement instead of JSX.Element for React components. Added proper return types for callbacks and other functions. Added explicit undefined returns for code paths without returns.
 
-- [ ] **T019:** Fix Function/Module Reference Errors
+- [x] **T019:** Fix Function/Module Reference Errors
   - **Description:** Incorrect function references in API route files
   - **Example files:** `src/app/api/my-activity/route.ts`, `src/app/api/my-org-activity/route.ts`, `src/app/api/team-activity/route.ts`
   - **Priority:** High - These cause build failures and runtime errors
   - **Depends On:** [T014]
+  - **Resolution:** Added missing imports for `fetchRepositories` and `fetchAppRepositories` functions from `@/lib/githubData` in all three route files. This fixed the TypeScript errors related to function references while maintaining the existing code logic that uses different functions based on authentication method.
 
 ### ESLint Issues
 
