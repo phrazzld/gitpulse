@@ -77,7 +77,7 @@
     - **AC Ref:** Expand Test Coverage for Error Cases Plan, Success Criteria 4, Success Criteria 5
 
 ## 5. Development Environment Improvements
-- [ ] **T018:** Fix Jest TypeScript type definitions
+- [x] **T018:** Fix Jest TypeScript type definitions
     - **Action:** Install Jest type definitions for TypeScript by running `npm install --save-dev @types/jest`. Update `tsconfig.json` if needed to include these types. This will resolve the numerous "Cannot find name 'jest'", "Cannot find name 'describe'", etc. TypeScript errors when running `npm run typecheck`.
     - **Depends On:** None
     - **AC Ref:** Maintainability (DEVELOPMENT_PHILOSOPHY.md, Core Principles #4)
