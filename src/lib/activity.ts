@@ -1,13 +1,19 @@
+/**
+ * Activity data transformation utilities
+ * 
+ * This module provides functions to transform GitHub activity data from external
+ * API formats (snake_case) to internal formats (camelCase) and into a format
+ * compatible with the ActivityFeed component.
+ */
 import { ActivityCommit } from '@/components/ActivityFeed';
 import { MinimalCommit } from './optimize';
 
 /**
- * Represents a commit object with flexible property naming
- * to support both snake_case and camelCase formats
+ * External GitHub API commit data (using snake_case properties)
+ * This represents the data as it might come from the GitHub API
  */
-interface FlexibleCommit {
+export interface GitHubActivityCommit {
   sha: string;
-  htmlUrl?: string;
   html_url?: string;
   commit: {
     message: string;
@@ -18,9 +24,7 @@ interface FlexibleCommit {
   };
   repository?: {
     name?: string;
-    fullName?: string;
     full_name?: string;
-    htmlUrl?: string;
     html_url?: string;
   };
   contributor?: {
@@ -28,10 +32,38 @@ interface FlexibleCommit {
     displayName?: string;
     avatarUrl?: string | null;
   };
+  [key: string]: unknown;
+}
+
+/**
+ * Internal activity commit representation using camelCase properties
+ * This is the format used for internal processing within the application
+ */
+export interface InternalActivityCommit {
+  sha: string;
+  htmlUrl?: string;
+  commit: {
+    message: string;
+    author: {
+      name: string;
+      date: string;
+    };
+  };
+  repository?: {
+    name: string;
+    fullName: string;
+    htmlUrl?: string;
+  };
+  contributor?: {
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+  };
 }
 
 /**
  * API response interface with pagination
+ * Supports both snake_case and camelCase property names for backward compatibility
  */
 interface ApiResponse {
   commits?: unknown[];
@@ -44,11 +76,81 @@ interface ApiResponse {
 }
 
 /**
- * Formats commit data from API response into a format compatible with ActivityFeed.
- * Preserves the snake_case naming convention for properties in ActivityCommit as expected by ActivityFeed,
- * while supporting camelCase properties in the input.
+ * ActivityFeed fetcher result interface
+ */
+interface ActivityFetcherResult {
+  data: ActivityCommit[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+/**
+ * Transforms a commit from external API format to internal camelCase format
  * 
- * @param commits - Raw commits from API, with either snake_case or camelCase property names
+ * @param commit - Raw commit data from API with potentially snake_case properties
+ * @returns - Internal representation with consistent camelCase properties
+ */
+export function transformApiCommit(commit: unknown): InternalActivityCommit {
+  // Cast to a more specific type to allow property access
+  const rawCommit = commit as Record<string, unknown>;
+  
+  // Safely extract commit data with null/undefined checks
+  const commitData = rawCommit.commit as Record<string, unknown> | undefined;
+  const repoData = rawCommit.repository as Record<string, unknown> | undefined;
+  const contributorData = rawCommit.contributor as Record<string, unknown> | undefined;
+  
+  // Create standardized internal representation with camelCase properties
+  return {
+    sha: String(rawCommit.sha || ''),
+    htmlUrl: rawCommit.htmlUrl as string || rawCommit.html_url as string,
+    commit: {
+      message: commitData?.message as string || '',
+      author: {
+        name: (commitData?.author as Record<string, unknown> | null)?.name as string || 'Unknown',
+        date: (commitData?.author as Record<string, unknown> | null)?.date as string || new Date().toISOString()
+      }
+    },
+    repository: repoData ? {
+      name: repoData.name as string || '',
+      fullName: repoData.fullName as string || repoData.full_name as string || '',
+      htmlUrl: repoData.htmlUrl as string || repoData.html_url as string
+    } : undefined,
+    contributor: contributorData ? {
+      username: contributorData.username as string || '',
+      displayName: contributorData.displayName as string || '',
+      avatarUrl: contributorData.avatarUrl as string || null
+    } : undefined
+  };
+}
+
+/**
+ * Prepares an internal activity commit for the ActivityFeed component
+ * Maps camelCase properties to the expected ActivityCommit format (which uses some snake_case)
+ * 
+ * @param internalCommit - Internal commit with camelCase properties
+ * @returns - ActivityCommit format as expected by ActivityFeed component
+ */
+export function prepareActivityCommit(internalCommit: InternalActivityCommit): ActivityCommit {
+  return {
+    sha: internalCommit.sha,
+    html_url: internalCommit.htmlUrl, // Map camelCase to snake_case for ActivityFeed
+    commit: internalCommit.commit,
+    repository: internalCommit.repository ? {
+      name: internalCommit.repository.name,
+      full_name: internalCommit.repository.fullName, // Map camelCase to snake_case for ActivityFeed
+      html_url: internalCommit.repository.htmlUrl // Map camelCase to snake_case for ActivityFeed
+    } : undefined,
+    contributor: internalCommit.contributor
+  };
+}
+
+/**
+ * Formats commit data from API response into a format compatible with ActivityFeed
+ * 
+ * Internally processes data using camelCase properties, but returns in the format
+ * expected by ActivityFeed (with some snake_case properties) for backward compatibility.
+ * 
+ * @param commits - Raw commits from API with potentially mixed property naming
  * @returns - Formatted commit data for ActivityFeed
  */
 export function formatActivityCommits(commits: unknown[]): ActivityCommit[] {
@@ -57,40 +159,12 @@ export function formatActivityCommits(commits: unknown[]): ActivityCommit[] {
   }
 
   return commits.map(rawCommit => {
-    // Cast to a flexible commit interface to handle both naming conventions
-    const commit = rawCommit as FlexibleCommit;
+    // Transform to internal camelCase format
+    const internalCommit = transformApiCommit(rawCommit);
     
-    return {
-      sha: commit.sha,
-      html_url: commit.htmlUrl || commit.html_url, // Support both naming conventions
-      commit: {
-        message: commit.commit.message,
-        author: {
-          name: commit.commit.author?.name || 'Unknown',
-          date: commit.commit.author?.date || new Date().toISOString()
-        }
-      },
-      repository: commit.repository ? {
-        name: commit.repository.name || '',
-        full_name: commit.repository.fullName || commit.repository.full_name || '', // Support both naming conventions
-        html_url: commit.repository.htmlUrl || commit.repository.html_url // Support both naming conventions
-      } : undefined,
-      contributor: commit.contributor ? {
-        username: commit.contributor.username || '',
-        displayName: commit.contributor.displayName || '', // Already uses camelCase
-        avatarUrl: commit.contributor.avatarUrl || null // Ensure non-undefined
-      } : undefined
-    };
+    // Transform back to ActivityFeed-compatible format
+    return prepareActivityCommit(internalCommit);
   });
-}
-
-/**
- * ActivityFeed fetcher result interface
- */
-interface ActivityFetcherResult {
-  data: ActivityCommit[];
-  nextCursor: string | null;
-  hasMore: boolean;
 }
 
 /**
@@ -123,12 +197,16 @@ export function createActivityFetcher(baseUrl: string, params: Record<string, st
     
     const data = await response.json() as ApiResponse;
     
-    // Return formatted data with pagination info
+    // Convert pagination data to internal camelCase format
+    const paginationData = data.pagination as Record<string, unknown> | undefined;
+    const hasMore = paginationData?.hasMore as boolean || paginationData?.has_more as boolean || false;
+    const nextCursor = paginationData?.nextCursor as string || paginationData?.next_cursor as string || null;
+    
+    // Return formatted data with camelCase pagination info
     return {
       data: formatActivityCommits(data.commits || []),
-      // Support both camelCase and snake_case property names in pagination info
-      nextCursor: data.pagination?.nextCursor || data.pagination?.next_cursor || null,
-      hasMore: data.pagination?.hasMore || data.pagination?.has_more || false
+      nextCursor,
+      hasMore
     };
   };
 }
