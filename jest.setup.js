@@ -5,6 +5,29 @@ import "@testing-library/jest-dom";
 global.Request = class Request {};
 global.Response = class Response {};
 
+// Mock Octokit to avoid ESM import issues in tests
+jest.mock("octokit", () => ({
+  Octokit: class MockOctokit {
+    constructor() {
+      this.request = jest.fn();
+      this.rest = {
+        users: { getAuthenticated: jest.fn() },
+        apps: { listInstallations: jest.fn() },
+        repos: {
+          listForAuthenticatedUser: jest.fn(),
+          listForOrg: jest.fn(),
+          listCommits: jest.fn(),
+        },
+      };
+    }
+  },
+}));
+
+// Mock @octokit/auth-app
+jest.mock("@octokit/auth-app", () => ({
+  createAppAuth: jest.fn(),
+}));
+
 // Mock Next.js router
 jest.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -18,11 +41,15 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
-// Mock next/image
+// Mock next/image - using a proper function mock that doesn't rely on JSX
 jest.mock("next/image", () => ({
   __esModule: true,
-  // Use a string representation to avoid JSX parsing in ESLint
-  default: '(props) => { return createElement("img", props); }',
+  default: function Image(props) {
+    // Create an actual img element
+    const img = document.createElement("img");
+    Object.assign(img, props);
+    return img;
+  },
 }));
 
 // Mock CSS Variables for styling with var(--variable)
