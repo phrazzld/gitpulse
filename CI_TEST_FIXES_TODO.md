@@ -44,7 +44,7 @@ This document outlines specific, atomic tasks to fix the CI test failures in the
     export CI=true && npm test -- --testPathPattern=src/lib/githubData.test.ts
     ```
 
-- [ ] **T002: Fix repository commits mock structure**
+- [x] **T002: Fix repository commits mock structure**
   - **Issue:** The repository commits test is failing because the mock data has a mismatched structure
   - **File:** `src/lib/githubData.test.ts` or related test utils
   - **Action:** Fix the expected commit structure to match the actual returned structure, particularly the extra `fullName` property
