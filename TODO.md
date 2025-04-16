@@ -35,7 +35,7 @@
     - **Action:** In `src/app/api/contributors/route.ts` (lines 122 and 170), replace calls to the deprecated `fetchCommitsForRepositories` wrapper with direct calls to `fetchCommitsForRepositoriesWithOctokit(octokit, ...)` using the already authenticated `octokit` instance.
     - **Depends On:** [T001]
     - **AC Ref:** Remove Usage of Deprecated Wrapper Functions Plan, Success Criteria 2
-- [ ] **T009:** Update tests to reflect deprecated wrapper removal
+- [x] **T009:** Update tests to reflect deprecated wrapper removal
     - **Action:** Review and update unit/integration tests for the API routes modified in T007 and T008. Ensure tests now mock the new direct function calls (`fetchAppRepositories`, `fetchRepositories`, `fetchCommitsForRepositoriesWithOctokit`) instead of the deprecated wrappers. Verify test coverage remains adequate.
     - **Depends On:** [T007, T008]
     - **AC Ref:** Remove Usage of Deprecated Wrapper Functions Plan, Success Criteria 2, Success Criteria 5

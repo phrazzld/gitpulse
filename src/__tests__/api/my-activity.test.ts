@@ -3,11 +3,13 @@ import { GET } from '@/app/api/my-activity/route';
 import { 
   mockCreateAuthenticatedOctokit,
   mockOctokit,
-  mockFetchAllRepositories,
+  mockFetchRepositories,
+  mockFetchAppRepositories,
   mockFetchCommitsForRepositoriesWithOctokit,
   createApiHandlerTestHelper,
   verifyCredentialHandling,
   verifyOctokitPassing,
+  verifyRepositoryFetchingWithOctokit,
   mockGetServerSession,
 } from '../api-test-utils';
 import { mockRepositories, mockActivityCommits, mockInstallation, mockSession } from '../test-utils';
@@ -21,7 +23,8 @@ describe('API: /api/my-activity', () => {
     jest.clearAllMocks();
     
     // Set up default mock implementations
-    mockFetchAllRepositories.mockResolvedValue(mockRepositories);
+    mockFetchRepositories.mockResolvedValue(mockRepositories);
+    mockFetchAppRepositories.mockResolvedValue(mockRepositories);
     mockFetchCommitsForRepositoriesWithOctokit.mockResolvedValue(mockActivityCommits);
     mockGetServerSession.mockResolvedValue({
       ...mockSession,
@@ -46,8 +49,8 @@ describe('API: /api/my-activity', () => {
     // Verify authentication flow
     verifyCredentialHandling('oauth', mockSession.accessToken);
     
-    // Verify repositories were fetched
-    expect(mockFetchAllRepositories).toHaveBeenCalled();
+    // Verify repositories were fetched using the direct function with octokit
+    verifyRepositoryFetchingWithOctokit('oauth');
     
     // Verify commits were fetched with the authenticated Octokit instance
     // using the repo names from the fetched repositories
@@ -85,11 +88,18 @@ describe('API: /api/my-activity', () => {
     // Verify authentication flow
     verifyCredentialHandling('app', undefined, mockInstallation.id);
     
-    // Verify repositories were fetched
-    expect(mockFetchAllRepositories).toHaveBeenCalled();
+    // Verify repositories were fetched using the App authentication direct function
+    verifyRepositoryFetchingWithOctokit('app');
     
     // Verify commits were fetched with the authenticated Octokit instance
-    expect(mockFetchCommitsForRepositoriesWithOctokit).toHaveBeenCalled();
+    const repoNames = mockRepositories.map(repo => repo.full_name);
+    expect(mockFetchCommitsForRepositoriesWithOctokit).toHaveBeenCalledWith(
+      mockOctokit,
+      repoNames,
+      expect.any(String),
+      expect.any(String),
+      'testuser'
+    );
   });
 
   it('should handle pagination parameters', async () => {
@@ -143,9 +153,10 @@ describe('API: /api/my-activity', () => {
   });
 
   it('should handle repository fetch errors correctly', async () => {
-    // Mock an error during repository fetching
+    // Mock an error during repository fetching for both OAuth and App methods
     const apiError = new Error('Repository API Error');
-    mockFetchAllRepositories.mockRejectedValueOnce(apiError);
+    mockFetchRepositories.mockRejectedValueOnce(apiError);
+    mockFetchAppRepositories.mockRejectedValueOnce(apiError);
     
     // Call the handler
     const response = await myActivityTestHelper.callHandler('/api/my-activity', 'GET', {
@@ -157,6 +168,9 @@ describe('API: /api/my-activity', () => {
     expect(response.status).toBe(500);
     expect(response.data.error).toContain('Error fetching repositories');
     expect(response.data.code).toBe('GITHUB_REPO_ERROR');
+    
+    // Verify one of the direct functions was called
+    expect(mockFetchRepositories).toHaveBeenCalledTimes(1);
   });
 
   it('should handle commit fetch errors correctly', async () => {

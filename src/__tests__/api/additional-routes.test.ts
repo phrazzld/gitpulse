@@ -7,11 +7,11 @@ import {
   mockOctokit,
   mockFetchRepositories,
   mockFetchAppRepositories,
-  mockFetchAllRepositories,
   mockFetchCommitsForRepositoriesWithOctokit,
   createApiHandlerTestHelper,
   verifyCredentialHandling,
   verifyOctokitPassing,
+  verifyRepositoryFetchingWithOctokit,
   mockGetServerSession,
 } from '../api-test-utils';
 import { mockRepositories, mockActivityCommits, mockInstallation, mockSession } from '../test-utils';
@@ -29,7 +29,6 @@ describe('Additional API Routes Tests', () => {
     // Set up default mock implementations
     mockFetchRepositories.mockResolvedValue(mockRepositories);
     mockFetchAppRepositories.mockResolvedValue(mockRepositories);
-    mockFetchAllRepositories.mockResolvedValue(mockRepositories);
     mockFetchCommitsForRepositoriesWithOctokit.mockResolvedValue(mockActivityCommits);
     mockGetServerSession.mockResolvedValue({
       ...mockSession,
@@ -93,9 +92,16 @@ describe('Additional API Routes Tests', () => {
       // Verify authentication flow
       verifyCredentialHandling('app', undefined, mockInstallation.id);
       
-      // Verify repositories and commits were fetched
-      expect(mockFetchAllRepositories).toHaveBeenCalled();
-      expect(mockFetchCommitsForRepositoriesWithOctokit).toHaveBeenCalled();
+      // Verify the correct repository fetching function was used
+      verifyRepositoryFetchingWithOctokit('app');
+      
+      // Verify commits were fetched with the octokit instance
+      verifyOctokitPassing(mockFetchCommitsForRepositoriesWithOctokit, 
+        expect.any(Array),
+        expect.any(String),
+        expect.any(String),
+        expect.anything()
+      );
     });
 
     it('should return 400 when required parameters are missing', async () => {
@@ -139,9 +145,15 @@ describe('Additional API Routes Tests', () => {
       // Verify authentication flow
       verifyCredentialHandling('app', undefined, mockInstallation.id);
       
-      // Verify commits were fetched
-      expect(mockCreateAuthenticatedOctokit).toHaveBeenCalled();
-      expect(mockFetchCommitsForRepositoriesWithOctokit).toHaveBeenCalled();
+      // Verify the correct repository fetching function was used
+      verifyRepositoryFetchingWithOctokit('app');
+      
+      // Verify commits were fetched with the authenticated Octokit instance
+      verifyOctokitPassing(mockFetchCommitsForRepositoriesWithOctokit, 
+        expect.any(Array),
+        expect.any(String),
+        expect.any(String)
+      );
     });
 
     it('should return 400 when required parameters are missing', async () => {
