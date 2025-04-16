@@ -138,7 +138,7 @@
     - **Action:** Add comprehensive TSDoc comments to exported functions in `src/lib/githubData.ts`.
     - **Depends On:** Verify Error Handling in Data Fetching Module
     - **AC Ref:** PLAN.md Step 5
-- [ ] **Update Project Documentation:**
+- [x] **Update Project Documentation:**
     - **Action:** Review project README or other relevant documentation and update sections describing the GitHub interaction or authentication flow if necessary.
     - **Depends On:** Add TSDoc to Auth Module, Add TSDoc to Data Fetching Module
     - **AC Ref:** PLAN.md Step 5

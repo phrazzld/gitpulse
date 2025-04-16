@@ -16,11 +16,11 @@ GitPulse is a web application that generates summaries of GitHub commits for ind
 ## Tech Stack
 
 - **Framework**: Next.js (v15+) with TypeScript
-- **Authentication**: next-auth with GitHub OAuth
-- **GitHub API Client**: octokit for interacting with the GitHub API
+- **Authentication**: next-auth with GitHub OAuth and GitHub App support
+- **GitHub API Client**: octokit with modular authentication and data fetching architecture
 - **AI Analysis**: Google's Gemini AI for commit analysis
 - **Styling**: TailwindCSS for responsive design
-- **Logging**: Custom logging system with rotation
+- **Logging**: Structured JSON logging system with rotation
 - **Deployment**: Vercel (recommended)
 
 ## Getting Started
@@ -56,9 +56,14 @@ npm install
 
 3. Create a `.env.local` file in the project root (use `.env.local.example` as a template):
 ```
-# GitHub OAuth
+# GitHub OAuth (required for personal auth)
 GITHUB_OAUTH_CLIENT_ID=your_github_client_id
 GITHUB_OAUTH_CLIENT_SECRET=your_github_client_secret
+
+# GitHub App (optional - only needed for GitHub App authentication)
+GITHUB_APP_ID=your_github_app_id
+GITHUB_APP_PRIVATE_KEY_PKCS8=your_github_app_private_key
+NEXT_PUBLIC_GITHUB_APP_NAME=your_github_app_name
 
 # NextAuth.js
 NEXTAUTH_URL=http://localhost:3000
@@ -90,11 +95,32 @@ npm run dev:log
 
 ### Troubleshooting Authentication
 
-If you encounter GitHub authentication errors:
+GitPulse supports two authentication methods:
+
+#### OAuth Authentication (Default)
+Uses personal GitHub access tokens for authentication.
+
+If you encounter GitHub OAuth authentication errors:
 
 1. Click the "Sign Out" button in the dashboard header
 2. Sign back in with your GitHub account to refresh your access token
 3. If problems persist, ensure your GitHub OAuth app still has the necessary permissions
+
+#### GitHub App Authentication (Optional)
+Uses GitHub App installations, which can provide more granular permissions.
+
+To use GitHub App authentication:
+
+1. Create a GitHub App in your GitHub account settings
+2. Configure the App with the necessary permissions
+3. Install the App to your account/organization
+4. Configure the GitHub App environment variables in `.env.local`
+
+If you encounter GitHub App authentication errors:
+
+1. Verify your GitHub App installation is active
+2. Check the App permissions match what's needed for repo access
+3. Ensure your environment variables are correctly configured
 
 ## Deployment
 
