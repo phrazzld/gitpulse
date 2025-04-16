@@ -21,7 +21,7 @@
     - **Action:** Import `withErrorHandling` from `src/lib/auth/apiErrorHandler.ts` and wrap the main `GET` function in `src/app/api/team-activity/route.ts`. Ensure the module name is passed correctly for logging context.
     - **Depends On:** None
     - **AC Ref:** Standardize API Error Handling Plan, Success Criteria 1
-- [ ] **T006:** Add tests for consistent API error handling
+- [x] **T006:** Add tests for consistent API error handling
     - **Action:** Create or update tests for each API route (`contributors`, `my-activity`, `my-org-activity`, `summary`, `team-activity`) to specifically verify that common errors (e.g., authentication failure, rate limiting, resource not found) result in consistent, standardized error responses as defined by `apiErrorHandler.ts`.
     - **Depends On:** [T001, T002, T003, T004, T005]
     - **AC Ref:** Standardize API Error Handling Plan, Success Criteria 1, Success Criteria 5
