@@ -124,20 +124,66 @@
   - **Depends On:** [T014]
   - **AC Ref:** Success Criteria 2, 3
 
-## [!] CLARIFICATIONS NEEDED / ASSUMPTIONS
-
-- [ ] **Assumption:** The project already has basic ESLint, Prettier, and TypeScript setup that we're enhancing.
-
-  - **Context:** Implementation Steps 4 assumes `.eslintrc.js` and `tsconfig.json` exist.
-
-- [ ] **Assumption:** The project has a functional test suite that can be run with `npm run test`.
-
-  - **Context:** The CI workflow includes a test job that assumes this script exists and works.
-
-- [ ] **Assumption:** The primary branch is named either `main` or `master`.
-  - **Context:** The GitHub Actions workflow is configured to trigger on both names. This may need adjustment based on actual repository configuration.
-
-## [!] ISSUES TO RESOLVE
+## Code Quality Issues to Resolve
 
 - [x] **ESLint Configuration:** The project is using ESLint v9, which no longer supports .eslintrc.js configuration format. Need to fully migrate to eslint.config.js format based on the new flat configuration format. A basic conversion has been started, but needs to be completed and tested.
   - **Resolution:** Migrated to the new flat configuration format using eslint.config.mjs. Created a comprehensive configuration that includes TypeScript, React, and Next.js rules. Updated lint-staged configuration to use the new ESLint setup. Verified that pre-commit hooks correctly catch linting errors.
+
+### TypeScript Issues
+
+- [ ] **T017:** Fix Type Errors in Test Files
+
+  - **Description:** Multiple test files have TypeScript errors including implicit `any` types in component props, mismatched type assertions, and missing type declarations.
+  - **Example files:** `AccountManagementPanel.test.tsx`, `SummaryDisplay.test.tsx`, `error-handling.test.tsx`
+  - **Priority:** High - These prevent TypeScript from successfully type-checking the codebase
+  - **Depends On:** [T014]
+
+- [ ] **T018:** Fix Missing Return Types
+
+  - **Description:** Several components and functions don't explicitly specify return types or have code paths that don't return values.
+  - **Example files:** `src/components/ActivityFeed.tsx`, `src/components/AuthError.tsx`, `src/lib/auth/tokenValidator.ts`
+  - **Priority:** High - These cause TypeScript to report "Not all code paths return a value" errors
+  - **Depends On:** [T014]
+
+- [ ] **T019:** Fix Function/Module Reference Errors
+  - **Description:** Incorrect function references in API route files
+  - **Example files:** `src/app/api/my-activity/route.ts`, `src/app/api/my-org-activity/route.ts`, `src/app/api/team-activity/route.ts`
+  - **Priority:** High - These cause build failures and runtime errors
+  - **Depends On:** [T014]
+
+### ESLint Issues
+
+- [ ] **T020:** Remove Explicit `any` Types
+
+  - **Description:** Widespread use of `any` type throughout the codebase violates TypeScript best practices
+  - **Example files:** Almost all files in `src/lib/` and many test files
+  - **Priority:** Medium - These decrease type safety but don't cause immediate failures
+  - **Depends On:** [T014]
+
+- [ ] **T021:** Refactor Complex Functions
+
+  - **Description:** Many functions exceed the maximum allowed complexity (10) or line count (100)
+  - **Example files:** `src/lib/errors.ts`, `src/lib/githubData.ts`, `src/lib/gemini.ts`
+  - **Priority:** Medium - These impact code maintainability but don't cause failures
+  - **Depends On:** [T014]
+
+- [ ] **T022:** Standardize Naming Conventions
+
+  - **Description:** Non-camelCase identifiers (using snake_case) throughout the codebase
+  - **Example files:** `src/lib/githubData.ts`, `src/lib/optimize.ts`, `src/lib/activity.ts`
+  - **Priority:** Medium - These violate coding standards but don't cause failures
+  - **Depends On:** [T014]
+
+- [ ] **T023:** Remove Unused Variables and Imports
+  - **Description:** Several files contain unused variables, functions, and imports
+  - **Widespread across the codebase**
+  - **Priority:** Low - These don't affect functionality but make the code less clean
+  - **Depends On:** [T014]
+
+### Build Issues
+
+- [ ] **T024:** Configure ESLint to Ignore Generated Code
+  - **Description:** The `.next/` directory contains generated code with linting errors
+  - **Action:** Add `.next/` to `.eslintignore` to exclude it from linting
+  - **Priority:** Low - This doesn't affect functionality but causes noise in linting output
+  - **Depends On:** [T014]

@@ -1,0 +1,15 @@
+# Generated code
+.next/
+dist/
+coverage/
+node_modules/
+
+# Build outputs
+out/
+build/
+
+# Public assets
+public/
+
+# Config files
+*.config.js
