@@ -77,7 +77,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** Success Criteria 1, 2
 
-- [ ] **T008:** Verify/create npm scripts for CI
+- [x] **T008:** Verify/create npm scripts for CI
 
   - **Action:** Ensure `package.json` contains the necessary scripts referenced in the CI workflow: `lint`, `typecheck`, and `test`. Create or update them if needed.
   - **Depends On:** [T006, T007]
