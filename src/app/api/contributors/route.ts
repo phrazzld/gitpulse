@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { 
   fetchAllRepositories, 
-  fetchCommitsForRepositories,
   fetchCommitsForRepositoriesWithOctokit,
   fetchRepositories,
   fetchAppRepositories,

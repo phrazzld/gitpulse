@@ -31,7 +31,7 @@
     - **Action:** In `src/app/api/contributors/route.ts:108`, `src/app/api/my-activity/route.ts:115`, `src/app/api/my-org-activity/route.ts:151`, and `src/app/api/team-activity/route.ts:150`, replace calls to the deprecated `fetchAllRepositories` wrapper with direct calls to either `fetchAppRepositories(octokit)` or `fetchRepositories(octokit)` using the already authenticated `octokit` instance.
     - **Depends On:** [T001, T002, T003, T005]
     - **AC Ref:** Remove Usage of Deprecated Wrapper Functions Plan, Success Criteria 2
-- [ ] **T008:** Replace `fetchCommitsForRepositories` calls in `contributors/route.ts`
+- [x] **T008:** Replace `fetchCommitsForRepositories` calls in `contributors/route.ts`
     - **Action:** In `src/app/api/contributors/route.ts` (lines 122 and 170), replace calls to the deprecated `fetchCommitsForRepositories` wrapper with direct calls to `fetchCommitsForRepositoriesWithOctokit(octokit, ...)` using the already authenticated `octokit` instance.
     - **Depends On:** [T001]
     - **AC Ref:** Remove Usage of Deprecated Wrapper Functions Plan, Success Criteria 2
