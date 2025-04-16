@@ -83,11 +83,12 @@
   - **AC Ref:** Core Principles (Simplicity)
   - **Result:** The script is redundant. It runs `tsc --noEmit --project tsconfig.json` with minimal error handling and console output. The package.json script uses `tsc --noEmit`, which is functionally equivalent since tsc automatically looks for tsconfig.json in the current directory. The custom script provides no significant benefits over the direct command.
 
-- [ ] **T012:** Remove `scripts/typecheck.js` if redundant
+- [x] **T012:** Remove `scripts/typecheck.js` if redundant
 
   - **Action:** If T011 concludes the script is redundant, remove `scripts/typecheck.js` and update the `typecheck` script in `package.json` to use `tsc --noEmit --project tsconfig.json` directly.
   - **Depends On:** [T011]
   - **AC Ref:** Core Principles (Simplicity)
+  - **Result:** The redundant `scripts/typecheck.js` file has been removed. The `typecheck` script in package.json has been updated to explicitly use `tsc --noEmit --project tsconfig.json`. Verified that the type checking still works correctly.
 
 - [ ] **T013:** Decide on a consistent file size threshold
 
