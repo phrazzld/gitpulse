@@ -1,5 +1,25 @@
-// GitHub data fetching module
-// This module centralizes GitHub data fetching logic, separated from authentication concerns
+/**
+ * GitHub Data Fetching Module
+ * 
+ * This module centralizes GitHub data fetching operations, completely separated from authentication
+ * concerns. It provides functions to:
+ * 
+ * - Fetch repositories (for both OAuth and GitHub App authentication)
+ * - Fetch commits from specific repositories
+ * - Fetch commits across multiple repositories
+ * 
+ * The module follows a clean separation of concerns design where all functions accept
+ * a pre-authenticated Octokit instance. This approach:
+ * 
+ * 1. Decouples authentication from data fetching
+ * 2. Simplifies testing through dependency injection
+ * 3. Makes the API more flexible and composable
+ * 
+ * For backward compatibility, this module also provides deprecated wrapper functions
+ * that handle authentication internally, but these should be avoided in new code.
+ * 
+ * @module githubData
+ */
 
 import { Octokit } from "octokit";
 import { logger } from "./logger";
@@ -19,23 +39,62 @@ import { createAuthenticatedOctokit, GitHubCredentials } from "./auth/githubAuth
 // Module name for consistent logging
 const MODULE_NAME = "githubData";
 
-// Export types from the original github.ts file that are needed for data operations
+/**
+ * Represents a GitHub repository with essential metadata.
+ * 
+ * This interface captures the core properties needed to work with GitHub repositories
+ * in the application. It maps to the GitHub API repository response, but only includes
+ * the subset of fields actually used by our application.
+ * 
+ * @property id - The unique numeric identifier of the repository
+ * @property name - The repository name without owner (e.g., "repo-name")
+ * @property full_name - The repository name with owner (e.g., "owner/repo-name")
+ * @property owner - Object containing basic information about the repository owner
+ * @property owner.login - The username or organization name that owns the repository
+ * @property private - Whether the repository is private (true) or public (false)
+ * @property html_url - The browser URL for the repository
+ * @property description - The repository description or null if not set
+ * @property updated_at - ISO timestamp of when the repository was last updated
+ * @property language - The primary programming language used in the repository
+ */
 export interface Repository {
   id: number;
   name: string;
   full_name: string;
   owner: {
     login: string;
-    // you could add node_id?: string; avatar_url?: string; etc. if you need them
+    // Additional properties can be added as needed, e.g.:
+    // node_id?: string;
+    // avatar_url?: string;
   };
   private: boolean;
   html_url: string;
   description: string | null;
   updated_at?: string | null;
   language?: string | null;
-  // optionally: license?: License|null;
+  // Additional properties can be added as needed, e.g.:
+  // license?: License|null;
 }
 
+/**
+ * Represents a GitHub commit with essential metadata.
+ * 
+ * This interface maps to the GitHub API commit response and includes properties
+ * needed to display commit information in the application. We extend it with a
+ * repository property to help associate commits with their source repositories
+ * when working with commits from multiple repositories.
+ * 
+ * @property sha - The unique SHA-1 hash identifier for the commit
+ * @property commit - Object containing core commit data (message, author, dates)
+ * @property commit.author - Git author information (name, email, date)
+ * @property commit.committer - Git committer information (name, email, date)
+ * @property commit.message - The commit message
+ * @property html_url - The browser URL for viewing this commit on GitHub
+ * @property author - GitHub user information for the commit author (if available)
+ * @property author.login - GitHub username of the commit author
+ * @property author.avatar_url - URL to the author's GitHub avatar image
+ * @property repository - Additional property added by us to track source repository
+ */
 export interface Commit {
   sha: string;
   commit: {
@@ -50,31 +109,53 @@ export interface Commit {
       date?: string;
     } | null;
     message: string;
-    // Add other properties that might exist
+    // Additional properties from the GitHub API
     [key: string]: any;
   };
   html_url: string;
   author: {
     login: string;
     avatar_url: string;
-    // Add other properties that might exist
+    // Additional properties from the GitHub API
     [key: string]: any;
   } | null;
+  // Custom property added to track source repository
   repository?: {
     full_name: string;
   };
-  // Allow other properties from the GitHub API
+  // Additional properties from the GitHub API
   [key: string]: any;
 }
 
 /**
- * Fetch repositories using an authenticated Octokit instance.
- * @param octokit An authenticated Octokit instance.
- * @returns A promise resolving to an array of Repository objects.
- * @throws {GitHubAuthError} If authentication fails or lacks required permissions.
- * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
- * @throws {GitHubApiError} For other GitHub API errors.
- * @throws {GitHubError} For unexpected errors.
+ * Fetches all accessible repositories for the authenticated user across personal and organization accounts.
+ * 
+ * This comprehensive function:
+ * 1. Checks current GitHub API rate limits to avoid unexpected throttling
+ * 2. Validates OAuth token scopes to ensure sufficient permissions
+ * 3. Fetches repositories the user has access to via all affiliations
+ * 4. Fetches repositories from all organizations the user belongs to
+ * 5. Deduplicates repositories to provide a clean, unified list
+ * 
+ * The function implements a thorough approach to fetch the maximum possible set of
+ * repositories the user has access to. It handles both personal repos and repos across
+ * multiple organizations, with appropriate error handling for each step.
+ * 
+ * @param octokit - An authenticated Octokit instance (OAuth token-based auth)
+ * @returns A promise resolving to an array of Repository objects the user can access
+ * @throws {GitHubError} If the Octokit instance is not provided
+ * @throws {GitHubAuthError} If authentication fails or token lacks required permissions ('repo' scope)
+ * @throws {GitHubRateLimitError} If the GitHub API rate limit is exceeded
+ * @throws {GitHubApiError} For other GitHub API errors
+ * 
+ * @example
+ * // Using with OAuth authentication
+ * const octokit = await createAuthenticatedOctokit({
+ *   type: 'oauth',
+ *   token: 'github_personal_access_token'
+ * });
+ * const repositories = await fetchRepositories(octokit);
+ * console.log(`Found ${repositories.length} repositories`);
  */
 export async function fetchRepositories(
   octokit: Octokit
@@ -266,13 +347,36 @@ export async function fetchRepositories(
 }
 
 /**
- * Fetch repositories accessible to a GitHub App installation.
- * @param octokit An authenticated Octokit instance with App installation auth.
- * @returns A promise resolving to an array of Repository objects.
- * @throws {GitHubAuthError} If authentication fails.
- * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
- * @throws {GitHubApiError} For other GitHub API errors.
- * @throws {GitHubError} For unexpected errors.
+ * Fetches repositories accessible to a GitHub App installation.
+ * 
+ * This function retrieves all repositories that a GitHub App installation has access to.
+ * Unlike the fetchRepositories function which is intended for OAuth authentication, this
+ * function is specifically designed for GitHub App installations and uses a different
+ * GitHub API endpoint.
+ * 
+ * The function:
+ * 1. Checks current GitHub API rate limits (App-specific)
+ * 2. Uses the GitHub Apps API to list all repositories the installation can access
+ * 3. Properly paginates through results to get all accessible repositories
+ * 
+ * This is useful when the user is interacting with GitHub via an App installation
+ * rather than direct OAuth authentication.
+ * 
+ * @param octokit - An authenticated Octokit instance with GitHub App installation authentication
+ * @returns A promise resolving to an array of Repository objects accessible to the installation
+ * @throws {GitHubError} If the Octokit instance is not provided
+ * @throws {GitHubAuthError} If authentication fails or the installation token is invalid
+ * @throws {GitHubRateLimitError} If the GitHub API rate limit is exceeded
+ * @throws {GitHubApiError} For other GitHub API errors
+ * 
+ * @example
+ * // Using with GitHub App installation authentication
+ * const octokit = await createAuthenticatedOctokit({
+ *   type: 'app',
+ *   installationId: 12345678
+ * });
+ * const repositories = await fetchAppRepositories(octokit);
+ * console.log(`App installation can access ${repositories.length} repositories`);
  */
 export async function fetchAppRepositories(
   octokit: Octokit
@@ -408,18 +512,51 @@ export async function fetchAllRepositories(
 }
 
 /**
- * Fetch repository commits using an authenticated Octokit instance.
- * @param octokit An authenticated Octokit instance.
- * @param owner Repository owner (user or organization).
- * @param repo Repository name.
- * @param since Start date for commit range (ISO string).
- * @param until End date for commit range (ISO string).
- * @param author Optional author filter.
- * @returns A promise resolving to an array of Commit objects.
- * @throws {GitHubNotFoundError} If the repository is not found.
- * @throws {GitHubRateLimitError} If the API rate limit is exceeded.
- * @throws {GitHubApiError} For other GitHub API errors.
- * @throws {GitHubError} For unexpected errors.
+ * Fetches commits for a specific repository within a date range.
+ * 
+ * This is the core function for fetching commits from a single repository and provides
+ * the foundation for the other commit fetching functions. It supports filtering commits
+ * by date range and author, and enhances the GitHub API response with additional
+ * repository context.
+ * 
+ * The function:
+ * 1. Fetches commits using the GitHub API, with support for pagination
+ * 2. Filters by date range (since/until) and optionally by author
+ * 3. Adds repository information to each commit for better context
+ * 4. Handles proper error cases with appropriate error types
+ * 
+ * @param octokit - An authenticated Octokit instance (supports both OAuth and App auth)
+ * @param owner - Repository owner (username or organization name)
+ * @param repo - Repository name
+ * @param since - ISO 8601 formatted date string for the earliest commits to include
+ * @param until - ISO 8601 formatted date string for the latest commits to include
+ * @param author - Optional GitHub username to filter commits by author
+ * @returns A promise resolving to an array of Commit objects from the repository
+ * @throws {GitHubError} If the Octokit instance is not provided
+ * @throws {GitHubNotFoundError} If the repository doesn't exist or isn't accessible
+ * @throws {GitHubRateLimitError} If the GitHub API rate limit is exceeded
+ * @throws {GitHubApiError} For other GitHub API errors
+ * 
+ * @example
+ * // Fetch commits from a repository for a specific date range
+ * const commits = await fetchRepositoryCommitsWithOctokit(
+ *   octokit,
+ *   'username',
+ *   'repo-name',
+ *   '2023-01-01T00:00:00Z',
+ *   '2023-01-31T23:59:59Z'
+ * );
+ * 
+ * @example
+ * // Fetch commits from a repository for a specific author
+ * const userCommits = await fetchRepositoryCommitsWithOctokit(
+ *   octokit,
+ *   'organization',
+ *   'repo-name',
+ *   '2023-01-01T00:00:00Z',
+ *   '2023-01-31T23:59:59Z',
+ *   'username'
+ * );
  */
 export async function fetchRepositoryCommitsWithOctokit(
   octokit: Octokit,
@@ -684,14 +821,38 @@ export async function fetchRepositoryCommits(
 }
 
 /**
- * Fetch commits for multiple repositories using an authenticated Octokit instance.
- * @param octokit An authenticated Octokit instance.
- * @param repositories List of repositories in the format "owner/repo".
- * @param since Start date for commit range (ISO string).
- * @param until End date for commit range (ISO string).
- * @param author Optional author filter.
- * @returns A promise resolving to an array of Commit objects.
- * @throws {GitHubError} For unexpected errors.
+ * Fetches commits across multiple repositories with smart author detection.
+ * 
+ * This high-level function is a key component for generating activity reports across
+ * multiple repositories. It implements a sophisticated approach to commit retrieval
+ * with automatic fallback strategies for author detection:
+ * 
+ * 1. First tries to fetch commits with the exact author name provided
+ * 2. If no commits are found, falls back to using the repository owner's name
+ * 3. If still no commits are found, removes the author filter entirely
+ * 
+ * The function processes repositories in batches to avoid overwhelming the GitHub API
+ * and combines the results into a single unified array of commits.
+ * 
+ * @param octokit - An authenticated Octokit instance (supports both OAuth and App auth)
+ * @param repositories - Array of repository identifiers in "owner/repo" format
+ * @param since - ISO 8601 formatted date string for the earliest commits to include
+ * @param until - ISO 8601 formatted date string for the latest commits to include
+ * @param author - Optional GitHub username to filter commits by author
+ * @returns A promise resolving to an array of Commit objects from all specified repositories
+ * @throws {GitHubError} If the Octokit instance is not provided or for other unexpected errors
+ * 
+ * @example
+ * // Fetch commits from multiple repositories
+ * const repositories = ['org/repo1', 'org/repo2', 'username/personal-repo'];
+ * const commits = await fetchCommitsForRepositoriesWithOctokit(
+ *   octokit,
+ *   repositories,
+ *   '2023-01-01T00:00:00Z',
+ *   '2023-01-31T23:59:59Z',
+ *   'username'
+ * );
+ * console.log(`Found ${commits.length} commits across ${repositories.length} repositories`);
  */
 export async function fetchCommitsForRepositoriesWithOctokit(
   octokit: Octokit,

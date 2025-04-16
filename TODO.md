@@ -134,7 +134,7 @@
     - **Action:** Add comprehensive TSDoc comments to exported functions, types, and interfaces in `src/lib/auth/githubAuth.ts`.
     - **Depends On:** Add Error Handling and Logging to Auth Module
     - **AC Ref:** PLAN.md Step 5
-- [ ] **Add TSDoc to Data Fetching Module:**
+- [x] **Add TSDoc to Data Fetching Module:**
     - **Action:** Add comprehensive TSDoc comments to exported functions in `src/lib/githubData.ts`.
     - **Depends On:** Verify Error Handling in Data Fetching Module
     - **AC Ref:** PLAN.md Step 5
