@@ -57,7 +57,7 @@
     - **Action:** Edit `README.md`. Add a subsection within the "Authentication" or "Troubleshooting" section detailing common authentication issues (e.g., invalid token, missing scopes, App not installed, incorrect env vars) and their resolution steps for both OAuth and GitHub App methods.
     - **Depends On:** [T011]
     - **AC Ref:** Improve Authentication Documentation Plan, Success Criteria 3
-- [ ] **T014:** Update BACKLOG.md
+- [x] **T014:** Update BACKLOG.md
     - **Action:** Edit `BACKLOG.md`. Remove references to the now-completed "GitHub Library Restructuring". Review other tasks mentioned in the backlog and update their statuses if they were addressed by the refactoring or these improvement tasks.
     - **Depends On:** [T006, T009]
     - **AC Ref:** Improve Authentication Documentation Plan, Success Criteria 3
