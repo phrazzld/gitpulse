@@ -18,7 +18,35 @@ import {
 
 // Mock Octokit instance for testing
 export const mockOctokit = {
-  paginate: jest.fn(),
+  paginate: jest.fn().mockImplementation((method) => {
+    // When paginating through repositories accessible to an installation
+    if (method === mockOctokit.rest.apps.listReposAccessibleToInstallation) {
+      return Promise.resolve(mockRepositories);
+    }
+    
+    // When paginating through repos for authenticated user
+    if (method === mockOctokit.rest.repos.listForAuthenticatedUser) {
+      return Promise.resolve(mockRepositories);
+    }
+    
+    // When paginating through orgs
+    if (method === mockOctokit.rest.orgs.listForAuthenticatedUser) {
+      return Promise.resolve([{ login: 'testorg' }]);
+    }
+    
+    // When paginating through repos for an org
+    if (method === mockOctokit.rest.repos.listForOrg) {
+      return Promise.resolve(mockRepositories.filter(r => r.owner.login === 'testorg'));
+    }
+    
+    // When paginating through commits
+    if (method === mockOctokit.rest.repos.listCommits) {
+      return Promise.resolve(mockActivityCommits);
+    }
+    
+    // Default: return empty array
+    return Promise.resolve([]);
+  }),
   rest: {
     rateLimit: {
       get: jest.fn().mockResolvedValue({
@@ -71,16 +99,81 @@ export const mockCreateAuthenticatedOctokit = jest.fn().mockResolvedValue(mockOc
 
 // Mock data fetching functions for testing
 // Direct functions (preferred, use these in new tests)
-export const mockFetchRepositories = jest.fn().mockResolvedValue(mockRepositories);
-export const mockFetchAppRepositories = jest.fn().mockResolvedValue(mockRepositories);
-export const mockFetchRepositoryCommitsWithOctokit = jest.fn().mockResolvedValue(mockActivityCommits);
-export const mockFetchCommitsForRepositoriesWithOctokit = jest.fn().mockResolvedValue(mockActivityCommits);
+export const mockFetchRepositories = jest.fn().mockImplementation((octokit) => {
+  if (!octokit) {
+    return Promise.reject(new Error("Octokit instance is required"));
+  }
+  return Promise.resolve(mockRepositories);
+});
+
+export const mockFetchAppRepositories = jest.fn().mockImplementation((octokit) => {
+  // Validate that an Octokit instance was provided
+  if (!octokit) {
+    return Promise.reject(new Error("Octokit instance is required"));
+  }
+  
+  // Call the paginate method to simulate the real function behavior
+  return octokit.paginate(octokit.rest.apps.listReposAccessibleToInstallation, {
+    per_page: 100
+  });
+});
+
+export const mockFetchRepositoryCommitsWithOctokit = jest.fn().mockImplementation((octokit, owner, repo, since, until, author) => {
+  if (!octokit) {
+    return Promise.reject(new Error("Octokit instance is required"));
+  }
+  
+  // Return commits with repository information attached
+  return Promise.resolve(mockActivityCommits.map(commit => ({
+    ...commit,
+    repository: {
+      full_name: `${owner}/${repo}`,
+      fullName: `${owner}/${repo}`
+    }
+  })));
+});
+
+export const mockFetchCommitsForRepositoriesWithOctokit = jest.fn().mockImplementation((octokit, repositories, since, until, author) => {
+  if (!octokit) {
+    return Promise.reject(new Error("Octokit instance is required"));
+  }
+  return Promise.resolve(mockActivityCommits);
+});
 
 // Deprecated wrapper functions (maintained for backward compatibility with existing tests)
 // These should be gradually phased out as tests are updated
-export const mockFetchAllRepositories = jest.fn().mockResolvedValue(mockRepositories);
-export const mockFetchRepositoryCommits = jest.fn().mockResolvedValue(mockActivityCommits);
-export const mockFetchCommitsForRepositories = jest.fn().mockResolvedValue(mockActivityCommits);
+export const mockFetchAllRepositories = jest.fn().mockImplementation((accessToken, installationId) => {
+  // Validate at least one authentication method is provided
+  if (!accessToken && !installationId) {
+    return Promise.reject(new Error("No GitHub authentication available. Please sign in again."));
+  }
+  
+  return Promise.resolve(mockRepositories);
+});
+
+export const mockFetchRepositoryCommits = jest.fn().mockImplementation((accessToken, installationId, owner, repo, since, until, author) => {
+  // Validate at least one authentication method is provided
+  if (!accessToken && !installationId) {
+    return Promise.reject(new Error("No GitHub authentication available. Please sign in again."));
+  }
+  
+  return Promise.resolve(mockActivityCommits.map(commit => ({
+    ...commit,
+    repository: {
+      full_name: `${owner}/${repo}`,
+      fullName: `${owner}/${repo}`
+    }
+  })));
+});
+
+export const mockFetchCommitsForRepositories = jest.fn().mockImplementation((accessToken, installationId, repositories, since, until, author) => {
+  // Validate at least one authentication method is provided
+  if (!accessToken && !installationId) {
+    return Promise.reject(new Error("No GitHub authentication available. Please sign in again."));
+  }
+  
+  return Promise.resolve(mockActivityCommits);
+});
 
 // Helper for creating API route handler tests
 export const createApiHandlerTestHelper = (
@@ -109,19 +202,31 @@ export const createApiHandlerTestHelper = (
       });
       
       // Call handler and return response
-      const response = await handler(req);
-      return {
-        status: response.status,
-        statusText: response.statusText,
-        data: await response.json(),
-        headers: Object.fromEntries(response.headers.entries()),
-      };
+      try {
+        const response = await handler(req);
+        
+        return {
+          status: response.status,
+          statusText: response.statusText,
+          data: await response.json(),
+          headers: Object.fromEntries(response.headers.entries()),
+        };
+      } catch (error) {
+        console.error("Error calling handler:", error);
+        throw error;
+      }
     }
   };
 };
 
-// Mock getServerSession for testing API routes
-export const mockGetServerSession = jest.fn().mockResolvedValue(mockSession);
+// Import nextAuth to use its getServerSession mock
+import { getServerSession } from "next-auth";
+// Export the mocked getServerSession function
+// Add TypeScript type assertion to include the mock methods
+export const mockGetServerSession = getServerSession as jest.Mock & {
+  mockResolvedValue: (value: any) => jest.Mock;
+  mockResolvedValueOnce: (value: any) => jest.Mock;
+};
 
 // Set up jest mocks for the modules
 jest.mock('@/lib/auth/githubAuth', () => ({
@@ -130,6 +235,29 @@ jest.mock('@/lib/auth/githubAuth', () => ({
   checkAppInstallation: jest.fn().mockResolvedValue(mockInstallation.id),
   getInstallationManagementUrl: jest.fn().mockReturnValue('https://github.com/settings/installations/123'),
 }));
+
+// Mock tokenValidator to prevent fetch errors in tests
+jest.mock('@/lib/auth/tokenValidator', () => ({
+  isGitHubTokenValid: jest.fn().mockResolvedValue(true),
+  validateAuthState: jest.fn().mockResolvedValue(true),
+  useAuthValidator: jest.fn().mockReturnValue({ isValidating: false, isValid: true }),
+}));
+
+// Create a mock implementation of the apiAuth middleware
+jest.mock('@/lib/auth/apiAuth', () => {
+  // A helper to create a wrapper that mimics the middleware
+  const withAuthValidation = (handler: any) => {
+    return async (req: any) => {
+      // Pass-through to the original handler with the mock session
+      return handler(req, mockSession);
+    };
+  };
+  
+  return {
+    withAuthValidation,
+    ApiRouteHandler: jest.fn(),
+  };
+});
 
 jest.mock('@/lib/githubData', () => ({
   // Direct function implementations (preferred)
@@ -142,10 +270,6 @@ jest.mock('@/lib/githubData', () => ({
   fetchAllRepositories: mockFetchAllRepositories,
   fetchRepositoryCommits: mockFetchRepositoryCommits,
   fetchCommitsForRepositories: mockFetchCommitsForRepositories,
-}));
-
-jest.mock('next-auth/next', () => ({
-  getServerSession: mockGetServerSession
 }));
 
 // Reset all mocks before each test
@@ -279,3 +403,16 @@ export const verifyErrorResponse = (
     expect(response.data.needsInstallation).toBe(true);
   }
 };
+
+// Add a simple test to ensure Jest recognizes this as a valid test file
+describe("api-test-utils", () => {
+  it("exports utility functions for API testing", () => {
+    // Verify some key exports exist
+    expect(mockOctokit).toBeDefined();
+    expect(createApiHandlerTestHelper).toBeDefined();
+    expect(mockCreateAuthenticatedOctokit).toBeDefined();
+    expect(mockErrors).toBeDefined();
+    expect(verifyCredentialHandling).toBeDefined();
+    expect(verifyOctokitPassing).toBeDefined();
+  });
+});

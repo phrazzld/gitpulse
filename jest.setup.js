@@ -335,20 +335,55 @@ const mockGetComputedStyle = jest.fn().mockImplementation(() => ({
 // Assign the mock after definition to avoid the module factory restriction
 global.getComputedStyle = mockGetComputedStyle;
 
+// Import the mock session from test-utils to ensure consistency
+const { mockSession } = require("./src/__tests__/test-utils");
+
+// Create complete mock auth options for next-auth
+const mockAuthOptions = {
+  providers: [
+    {
+      id: "github",
+      name: "GitHub",
+      type: "oauth",
+      clientId: "mock-client-id",
+      clientSecret: "mock-client-secret",
+    },
+  ],
+  callbacks: {
+    jwt: jest.fn().mockResolvedValue({}),
+    session: jest.fn().mockResolvedValue(mockSession),
+  },
+  secret: "mock-secret",
+};
+
+// Create a mock callback function that returns the mockSession
+const mockGetServerSession = jest.fn().mockImplementation(() => {
+  return Promise.resolve(mockSession);
+});
+
+// Add Jest mock methods to the function to make TypeScript happy
+mockGetServerSession.mockResolvedValue = jest
+  .fn()
+  .mockImplementation((value) => {
+    return mockGetServerSession.mockImplementation(() =>
+      Promise.resolve(value),
+    );
+  });
+
+mockGetServerSession.mockResolvedValueOnce = jest
+  .fn()
+  .mockImplementation((value) => {
+    return mockGetServerSession.mockImplementationOnce(() =>
+      Promise.resolve(value),
+    );
+  });
+
 // Mock next-auth to avoid ESM module issues
 jest.mock("next-auth", () => {
   return {
     __esModule: true,
     default: jest.fn(),
-    getServerSession: jest.fn().mockResolvedValue({
-      user: {
-        name: "Test User",
-        email: "test@example.com",
-        image: null,
-      },
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      accessToken: "mock-access-token",
-    }),
+    getServerSession: mockGetServerSession,
   };
 });
 
@@ -356,14 +391,17 @@ jest.mock("next-auth", () => {
 jest.mock("next-auth/next", () => {
   return {
     __esModule: true,
-    getServerSession: jest.fn().mockResolvedValue({
-      user: {
-        name: "Test User",
-        email: "test@example.com",
-        image: null,
-      },
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      accessToken: "mock-access-token",
-    }),
+    getServerSession: mockGetServerSession,
+  };
+});
+
+// Set up proper mock implementation for auth options
+jest.mock("@/app/api/auth/[...nextauth]/route", () => {
+  return {
+    __esModule: true,
+    authOptions: mockAuthOptions,
+    GET: jest.fn(),
+    POST: jest.fn(),
+    handler: jest.fn(),
   };
 });

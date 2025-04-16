@@ -37,6 +37,12 @@ export default [
       import: importPlugin,
       "jsx-a11y": jsxA11yPlugin,
     },
+    settings: {
+      react: {
+        version: "detect",
+        runtime: "automatic" // Add this setting for new JSX transform
+      }
+    },
     rules: {
       // React rules
       "react/react-in-jsx-scope": "off", // Next.js doesn't require React import

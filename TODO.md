@@ -70,7 +70,7 @@ This document outlines specific, atomic tasks to fix the CI test failures in the
     export CI=true && npm test -- --testPathPattern=src/__tests__/api/my-activity.test.ts
     ```
 
-- [ ] **T004: Mock next-auth getServerSession correctly**
+- [x] **T004: Mock next-auth getServerSession correctly**
   - **Issue:** The tests are trying to import the actual next-auth which is causing ESM issues
   - **File:** `jest.setup.js`
   - **Action:** Create proper mocks for next-auth's getServerSession function
@@ -78,7 +78,7 @@ This document outlines specific, atomic tasks to fix the CI test failures in the
 
 ## Utility Test Files
 
-- [ ] **T005: Fix empty test suite in error-handling-test-utils.ts**
+- [x] **T005: Fix empty test suite in error-handling-test-utils.ts**
 
   - **Issue:** The test file doesn't contain any actual tests, which Jest reports as an error
   - **File:** `src/__tests__/error-handling-test-utils.ts`
@@ -108,7 +108,7 @@ This document outlines specific, atomic tasks to fix the CI test failures in the
     npm test -- src/__tests__/error-handling-test-utils.ts
     ```
 
-- [ ] **T006: Fix empty test suite in api-test-utils.ts**
+- [x] **T006: Fix empty test suite in api-test-utils.ts**
   - **Issue:** The test file doesn't contain any actual tests, which Jest reports as an error
   - **File:** `src/__tests__/api-test-utils.ts`
   - **Action:** Either add at least one test or modify Jest configuration to ignore this file
@@ -116,28 +116,28 @@ This document outlines specific, atomic tasks to fix the CI test failures in the
 
 ## Additional Fixes
 
-- [ ] **T007: Fix imports in integration tests**
+- [x] **T007: Fix imports in integration tests**
 
   - **Issue:** The integration tests are failing due to import issues with Octokit
   - **Files:** `src/__tests__/integration/DashboardTestWrapper.tsx` and related files
   - **Action:** Update the mocks to handle integration tests' Octokit imports
   - **Test:** Run the integration tests to verify they pass
 
-- [ ] **T008: Fix Response undefined error in summary.test.ts**
+- [x] **T008: Fix Response undefined error in summary.test.ts**
 
   - **Issue:** Tests are failing due to missing Response global
   - **File:** `jest.setup.js` or relevant test file
   - **Action:** Ensure Response is properly mocked or defined in the test environment
   - **Test:** Run the summary.test.ts file to verify it no longer fails on Response
 
-- [ ] **T009: Fix fetchAppRepositories mock implementation**
+- [x] **T009: Fix fetchAppRepositories mock implementation**
 
   - **Issue:** The GitHub App functionality tests are failing
   - **Files:** Review test utilities and mock implementations
   - **Action:** Update the mocks to correctly handle GitHub App authentication flow
   - **Test:** Run tests involving GitHub App authentication to verify they pass
 
-- [ ] **T010: Address outdated JSX transform warnings**
+- [~] **T010: Address outdated JSX transform warnings**
   - **Issue:** React is warning about outdated JSX transform
   - **File:** Review project configuration files
   - **Action:** Update the React/Next.js configuration to use the new JSX transform
@@ -145,7 +145,7 @@ This document outlines specific, atomic tasks to fix the CI test failures in the
 
 ## Meta Task
 
-- [ ] **T011: Create CI-specific test script**
+- [x] **T011: Create CI-specific test script**
   - **Issue:** CI might need a different test command than local development
   - **File:** `package.json`
   - **Action:** Create a `test:ci` script that uses CI-appropriate flags

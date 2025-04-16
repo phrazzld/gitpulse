@@ -17,6 +17,7 @@ const customJestConfig = {
     "<rootDir>/node_modules/",
     "<rootDir>/.next/",
     "<rootDir>/src/__tests__/test-utils.tsx",
+    "<rootDir>/src/__tests__/integration/DashboardTestWrapper.tsx",
   ],
   transformIgnorePatterns: [
     // Transform ESM modules from node_modules for testing
