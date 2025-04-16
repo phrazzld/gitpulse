@@ -33,13 +33,17 @@ describe('githubAuth', () => {
     
     // Mock createAppAuth
     (createAppAuth as jest.MockedFunction<typeof createAppAuth>).mockImplementation(() => {
-      return async () => {
+      const auth: any = async () => {
         return {
           type: 'token',
           token: 'mock-installation-token',
           expiresAt: '2099-01-01T00:00:00Z'
         };
       };
+      
+      // Add the missing hook property required by AuthInterface
+      auth.hook = jest.fn();
+      return auth;
     });
     
     // Set up environment variables for GitHub App auth
@@ -121,9 +125,13 @@ describe('githubAuth', () => {
       // Arrange
       const authError = new Error('Authentication failed');
       (createAppAuth as jest.MockedFunction<typeof createAppAuth>).mockImplementation(() => {
-        return async () => {
+        const auth: any = async () => {
           throw authError;
         };
+        
+        // Add the missing hook property required by AuthInterface
+        auth.hook = jest.fn();
+        return auth;
       });
       
       const credentials: GitHubCredentials = {
