@@ -163,7 +163,7 @@
 
 ## Testing and Finalization
 
-- [ ] **T022:** Update integration tests
+- [x] **T022:** Update integration tests
 
   - **Action:** Review and update integration tests to reflect the simplified application flow:
     - Focus on individual user scenarios

@@ -118,18 +118,12 @@ jest.mock('@/components/dashboard/AccountManagementPanel', () => {
   };
 });
 
-// Mock FilterControls
+// Mock FilterControls (updated for individual-focused MVP)
 jest.mock('@/components/dashboard/FilterControls', () => {
   return function MockFilterControls(props: any) {
     mockComponentProps.FilterControls = props;
     return (
       <div data-testid="filter-controls">
-        <button 
-          data-testid="change-mode-btn"
-          onClick={() => props.handleModeChange('team-activity')}
-        >
-          Change Mode
-        </button>
         <button 
           data-testid="change-date-btn"
           onClick={() => props.handleDateRangeChange({
@@ -138,12 +132,6 @@ jest.mock('@/components/dashboard/FilterControls', () => {
           })}
         >
           Change Date
-        </button>
-        <button 
-          data-testid="change-org-btn"
-          onClick={() => props.handleOrganizationChange(['new-org'])}
-        >
-          Change Org
         </button>
       </div>
     );
@@ -295,7 +283,7 @@ describe('Dashboard Integration', () => {
     // Verify FilterControls received correct props
     expect(mockComponentProps.FilterControls).toBeDefined();
     expect(mockComponentProps.FilterControls.activityMode).toBe('my-activity');
-    expect(mockComponentProps.FilterControls.handleModeChange).toBeDefined();
+    // handleModeChange removed in individual-focused MVP
     expect(mockComponentProps.FilterControls.handleDateRangeChange).toBeDefined();
     
     // Verify RepositoryInfoPanel received repositories
@@ -303,24 +291,7 @@ describe('Dashboard Integration', () => {
     expect(mockComponentProps.RepositoryInfoPanel.repositories).toEqual(mockRepositories);
   });
 
-  it('updates state when activity mode is changed', async () => {
-    render(<Dashboard />);
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('filter-controls')).toBeInTheDocument();
-    });
-    
-    // Change activity mode
-    fireEvent.click(screen.getByTestId('change-mode-btn'));
-    
-    // Verify mode was updated
-    await waitFor(() => {
-      expect(mockComponentProps.FilterControls.activityMode).toBe('team-activity');
-    });
-    
-    // Verify activeFilters were updated
-    expect(mockComponentProps.FilterControls.activeFilters.contributors).toEqual([]);
-  });
+  // Test for activity mode change removed (team-activity mode no longer supported in individual-focused MVP)
 
   it('updates state when date range is changed', async () => {
     render(<Dashboard />);
@@ -345,21 +316,7 @@ describe('Dashboard Integration', () => {
     });
   });
 
-  it('updates state when organization filter is changed', async () => {
-    render(<Dashboard />);
-    
-    await waitFor(() => {
-      expect(screen.getByTestId('filter-controls')).toBeInTheDocument();
-    });
-    
-    // Change organization filter
-    fireEvent.click(screen.getByTestId('change-org-btn'));
-    
-    // Verify organization filter was updated
-    await waitFor(() => {
-      expect(mockComponentProps.FilterControls.activeFilters.organizations).toEqual(['new-org']);
-    });
-  });
+  // Test for organization filter change removed (organizations no longer supported in individual-focused MVP)
 
   it('toggles repository list visibility', async () => {
     render(<Dashboard />);

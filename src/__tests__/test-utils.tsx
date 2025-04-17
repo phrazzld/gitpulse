@@ -42,38 +42,38 @@ export const mockSession = {
   accessToken: 'test-access-token',
 };
 
-// Mock Installation data
+// Mock Installation data (updated for individual-focused MVP)
 export const mockInstallation = {
   id: 123,
   account: {
-    login: 'test-org',
-    type: 'Organization',
-    avatarUrl: 'https://example.com/org-avatar.jpg',
+    login: 'testuser',
+    type: 'User',
+    avatarUrl: 'https://example.com/user-avatar.jpg',
   },
   appSlug: 'test-app',
   appId: 456,
   repositorySelection: 'all',
-  targetType: 'Organization',
+  targetType: 'User',
 };
 
-// Mock Repository data
+// Mock Repository data (updated for individual-focused MVP)
 export const mockRepositories = [
   {
     id: 1,
-    full_name: 'test-org/repo-1',
+    full_name: 'testuser/repo-1',
     name: 'repo-1',
     owner: {
-      login: 'test-org',
+      login: 'testuser',
     },
     private: false,
     language: 'TypeScript',
   },
   {
     id: 2,
-    full_name: 'test-org/repo-2',
+    full_name: 'testuser/repo-2',
     name: 'repo-2',
     owner: {
-      login: 'test-org',
+      login: 'testuser',
     },
     private: true,
     language: 'JavaScript',
@@ -86,7 +86,7 @@ export const mockSummary = {
   commits: [
     {
       sha: 'abc123',
-      html_url: 'https://github.com/test-org/repo-1/commit/abc123',
+      html_url: 'https://github.com/testuser/repo-1/commit/abc123',
       commit: {
         message: 'feat: add new feature',
         author: {
@@ -96,14 +96,14 @@ export const mockSummary = {
       },
       repository: {
         name: 'repo-1',
-        full_name: 'test-org/repo-1',
-        html_url: 'https://github.com/test-org/repo-1',
+        full_name: 'testuser/repo-1',
+        html_url: 'https://github.com/testuser/repo-1',
       },
     },
   ],
   stats: {
     totalCommits: 10,
-    repositories: ['test-org/repo-1', 'test-org/repo-2'],
+    repositories: ['testuser/repo-1', 'testuser/repo-2'],
     dates: ['2025-01-01', '2025-01-02', '2025-01-03'],
   },
   aiSummary: {
@@ -134,11 +134,11 @@ export const mockSummary = {
   installationId: 123,
 };
 
-// Mock ActivityCommit data
+// Mock ActivityCommit data (updated for individual-focused MVP)
 export const mockActivityCommits = [
   {
     sha: 'abc123',
-    html_url: 'https://github.com/test-org/repo-1/commit/abc123',
+    html_url: 'https://github.com/testuser/repo-1/commit/abc123',
     commit: {
       message: 'feat: add new feature',
       author: {
@@ -148,9 +148,10 @@ export const mockActivityCommits = [
     },
     repository: {
       name: 'repo-1',
-      full_name: 'test-org/repo-1',
-      html_url: 'https://github.com/test-org/repo-1',
+      full_name: 'testuser/repo-1',
+      html_url: 'https://github.com/testuser/repo-1',
     },
+    // contributor field deprecated but kept for backward compatibility
     contributor: {
       username: 'testuser',
       displayName: 'Test User',
@@ -159,7 +160,7 @@ export const mockActivityCommits = [
   },
   {
     sha: 'def456',
-    html_url: 'https://github.com/test-org/repo-2/commit/def456',
+    html_url: 'https://github.com/testuser/repo-2/commit/def456',
     commit: {
       message: 'fix: resolve authentication issue',
       author: {
@@ -169,9 +170,10 @@ export const mockActivityCommits = [
     },
     repository: {
       name: 'repo-2',
-      full_name: 'test-org/repo-2',
-      html_url: 'https://github.com/test-org/repo-2',
+      full_name: 'testuser/repo-2',
+      html_url: 'https://github.com/testuser/repo-2',
     },
+    // contributor field deprecated but kept for backward compatibility
     contributor: {
       username: 'testuser',
       displayName: 'Test User',
@@ -180,10 +182,11 @@ export const mockActivityCommits = [
   },
 ];
 
-// Mock common props
+// Mock common props (updated for individual-focused MVP)
 export const mockActiveFilters = {
+  // contributors and organizations fields deprecated but kept for backward compatibility
   contributors: [],
-  organizations: ['test-org'],
+  organizations: [],
   repositories: [],
 };
 
