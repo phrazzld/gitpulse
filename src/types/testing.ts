@@ -62,10 +62,18 @@ export interface ApiTestResponse {
  * Type for mock components props in tests
  * Use this instead of props: any
  */
-export interface MockComponentProps {
+export interface MockComponentProps extends Record<string, unknown> {
   className?: string;
   children?: React.ReactNode;
-  [key: string]: unknown;
+  repositories?: { length: number }[];
+  error?: string;
+  loading?: boolean;
+  needsInstallation?: boolean;
+  summary?: { user: string };
+  activityMode?: string;
+  switchInstallations?: () => void;
+  handleDateRangeChange?: () => void;
+  setShowRepoList?: () => void;
 }
 
 /**

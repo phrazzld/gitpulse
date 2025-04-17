@@ -76,19 +76,19 @@
   - **Depends On:** [T011]
   - **AC Ref:** Medium Priority Issue #3
 
-- [ ] **T013:** Replace 'any' types with specific ones
+- [x] **T013:** Replace 'any' types with specific ones
 
   - **Action:** Replace each `any` type with the appropriate specific type defined in T012, updating code as needed
   - **Depends On:** [T012]
   - **AC Ref:** Medium Priority Issue #3
 
-- [ ] **T014:** Re-enable strict type checking in tests
+- [~] **T014:** Re-enable strict type checking in tests
 
   - **Action:** Remove any type checking suppressions in test files, ensuring all tests use proper typing
   - **Depends On:** [T013]
   - **AC Ref:** Medium Priority Issue #3
 
-- [ ] **T015:** Verify typechecking passes without errors
+- [~] **T015:** Verify typechecking passes without errors
   - **Action:** Run `npm run typecheck` to ensure no type errors exist after the changes
   - **Depends On:** [T013, T014]
   - **AC Ref:** Medium Priority Issue #3

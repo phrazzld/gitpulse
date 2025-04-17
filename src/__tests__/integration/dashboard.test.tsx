@@ -1,24 +1,32 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { 
-  mockSession, 
-  mockInstallation, 
-  mockRepositories, 
+import React from "react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
+import {
+  mockSession,
+  mockInstallation,
+  mockRepositories,
   mockSummary,
   mockDateRange,
-  mockActiveFilters 
-} from '../test-utils';
+  mockActiveFilters,
+} from "../test-utils";
 
 // Mock the auth library
-jest.mock('@/lib/auth/githubAuth', () => ({
+jest.mock("@/lib/auth/githubAuth", () => ({
   createAuthenticatedOctokit: jest.fn(),
-  getInstallationManagementUrl: jest.fn().mockReturnValue('https://github.com/settings/installations/123'),
+  getInstallationManagementUrl: jest
+    .fn()
+    .mockReturnValue("https://github.com/settings/installations/123"),
   getAllAppInstallations: jest.fn().mockResolvedValue([]),
   checkAppInstallation: jest.fn().mockResolvedValue(123),
 }));
 
 // Mock the github data library
-jest.mock('@/lib/githubData', () => ({
+jest.mock("@/lib/githubData", () => ({
   fetchRepositories: jest.fn(),
   fetchAppRepositories: jest.fn(),
   fetchAllRepositories: jest.fn(),
@@ -29,15 +37,17 @@ jest.mock('@/lib/githubData', () => ({
 }));
 
 // Mock the activity library
-jest.mock('@/lib/activity', () => ({
-  createActivityFetcher: jest.fn().mockReturnValue(() => Promise.resolve({
-    data: [],
-    hasMore: false
-  })),
+jest.mock("@/lib/activity", () => ({
+  createActivityFetcher: jest.fn().mockReturnValue(() =>
+    Promise.resolve({
+      data: [],
+      hasMore: false,
+    }),
+  ),
 }));
 
 // Mock localStorageCache
-jest.mock('@/lib/localStorageCache', () => ({
+jest.mock("@/lib/localStorageCache", () => ({
   setCacheItem: jest.fn(),
   getCacheItem: jest.fn(),
   getStaleItem: jest.fn().mockReturnValue({ data: null, isStale: true }),
@@ -45,19 +55,19 @@ jest.mock('@/lib/localStorageCache', () => ({
 }));
 
 // Import Dashboard after mocking dependencies
-import Dashboard from '@/app/dashboard/page';
+import Dashboard from "@/app/dashboard/page";
 
 // Mock next-auth
-jest.mock('next-auth/react', () => ({
+jest.mock("next-auth/react", () => ({
   useSession: jest.fn(() => ({
     data: mockSession,
-    status: 'authenticated',
+    status: "authenticated",
   })),
   signOut: jest.fn(),
 }));
 
 // Mock next navigation
-jest.mock('next/navigation', () => ({
+jest.mock("next/navigation", () => ({
   useRouter: () => ({
     push: jest.fn(),
     refresh: jest.fn(),
@@ -81,35 +91,46 @@ const mockLocalStorage = (() => {
   };
 })();
 
-Object.defineProperty(window, 'localStorage', {
+Object.defineProperty(window, "localStorage", {
   value: mockLocalStorage,
 });
 
 // Mock child components to verify props passing and integration
-const mockComponentProps: Record<string, any> = {};
+const mockComponentProps: Record<
+  string,
+  import("@/types/testing").MockComponentProps
+> = {};
 
 // Mock AuthenticationStatusBanner
-jest.mock('@/components/dashboard/AuthenticationStatusBanner', () => {
-  return function MockAuthenticationStatusBanner(props: any) {
+jest.mock("@/components/dashboard/AuthenticationStatusBanner", () => {
+  return function MockAuthenticationStatusBanner(
+    props: import("@/types/testing").MockComponentProps,
+  ) {
     mockComponentProps.AuthenticationStatusBanner = props;
     return (
       <div data-testid="auth-banner">
         {props.error && <div data-testid="error-message">{props.error}</div>}
-        {props.needsInstallation && <div data-testid="needs-installation">Installation needed</div>}
+        {props.needsInstallation && (
+          <div data-testid="needs-installation">Installation needed</div>
+        )}
       </div>
     );
   };
 });
 
 // Mock AccountManagementPanel
-jest.mock('@/components/dashboard/AccountManagementPanel', () => {
-  return function MockAccountManagementPanel(props: any) {
+jest.mock("@/components/dashboard/AccountManagementPanel", () => {
+  return function MockAccountManagementPanel(
+    props: import("@/types/testing").MockComponentProps,
+  ) {
     mockComponentProps.AccountManagementPanel = props;
     return (
       <div data-testid="account-panel">
-        <button 
+        <button
           data-testid="switch-installation-btn"
-          onClick={() => props.switchInstallations([456])}
+          onClick={() =>
+            props.switchInstallations && props.switchInstallations()
+          }
         >
           Switch Installation
         </button>
@@ -119,17 +140,18 @@ jest.mock('@/components/dashboard/AccountManagementPanel', () => {
 });
 
 // Mock FilterControls (updated for individual-focused MVP)
-jest.mock('@/components/dashboard/FilterControls', () => {
-  return function MockFilterControls(props: any) {
+jest.mock("@/components/dashboard/FilterControls", () => {
+  return function MockFilterControls(
+    props: import("@/types/testing").MockComponentProps,
+  ) {
     mockComponentProps.FilterControls = props;
     return (
       <div data-testid="filter-controls">
-        <button 
+        <button
           data-testid="change-date-btn"
-          onClick={() => props.handleDateRangeChange({
-            since: '2025-02-01',
-            until: '2025-02-28'
-          })}
+          onClick={() =>
+            props.handleDateRangeChange && props.handleDateRangeChange()
+          }
         >
           Change Date
         </button>
@@ -139,15 +161,17 @@ jest.mock('@/components/dashboard/FilterControls', () => {
 });
 
 // Mock RepositoryInfoPanel
-jest.mock('@/components/dashboard/RepositoryInfoPanel', () => {
-  return function MockRepositoryInfoPanel(props: any) {
+jest.mock("@/components/dashboard/RepositoryInfoPanel", () => {
+  return function MockRepositoryInfoPanel(
+    props: import("@/types/testing").MockComponentProps,
+  ) {
     mockComponentProps.RepositoryInfoPanel = props;
     return (
       <div data-testid="repo-panel">
-        <span data-testid="repo-count">{props.repositories.length}</span>
-        <button 
+        <span data-testid="repo-count">{props.repositories?.length || 0}</span>
+        <button
           data-testid="toggle-repo-list"
-          onClick={() => props.setShowRepoList(!props.showRepoList)}
+          onClick={() => props.setShowRepoList && props.setShowRepoList()}
         >
           Toggle Repo List
         </button>
@@ -157,23 +181,24 @@ jest.mock('@/components/dashboard/RepositoryInfoPanel', () => {
 });
 
 // Mock ActionButton
-jest.mock('@/components/dashboard/ActionButton', () => {
-  return function MockActionButton(props: any) {
+jest.mock("@/components/dashboard/ActionButton", () => {
+  return function MockActionButton(
+    props: import("@/types/testing").MockComponentProps,
+  ) {
     mockComponentProps.ActionButton = props;
     return (
-      <button 
-        data-testid="action-button"
-        disabled={props.loading}
-      >
-        {props.loading ? 'Loading...' : 'Analyze'}
+      <button data-testid="action-button" disabled={props.loading}>
+        {props.loading ? "Loading..." : "Analyze"}
       </button>
     );
   };
 });
 
 // Mock SummaryDisplay
-jest.mock('@/components/dashboard/SummaryDisplay', () => {
-  return function MockSummaryDisplay(props: any) {
+jest.mock("@/components/dashboard/SummaryDisplay", () => {
+  return function MockSummaryDisplay(
+    props: import("@/types/testing").MockComponentProps,
+  ) {
     mockComponentProps.SummaryDisplay = props;
     return props.summary ? (
       <div data-testid="summary-display">
@@ -185,63 +210,74 @@ jest.mock('@/components/dashboard/SummaryDisplay', () => {
 });
 
 // Mock DashboardLoadingState
-jest.mock('@/components/DashboardLoadingState', () => {
+jest.mock("@/components/DashboardLoadingState", () => {
   return function MockDashboardLoadingState() {
     return <div data-testid="loading-state">Loading...</div>;
   };
 });
 
 // Mock Header
-jest.mock('@/components/dashboard/DashboardHeader', () => {
-  return function MockDashboardHeader(props: any) {
+jest.mock("@/components/dashboard/DashboardHeader", () => {
+  return function MockDashboardHeader(
+    props: import("@/types/testing").MockComponentProps,
+  ) {
     mockComponentProps.DashboardHeader = props;
     return <div data-testid="dashboard-header" />;
   };
 });
 
 // Mock fetch for API responses
-const mockFetchResponse = (response: any) => {
+const mockFetchResponse = (
+  response: import("@/types/testing").MockResponseData,
+) => {
   return Promise.resolve({
     ok: true,
     json: () => Promise.resolve(response),
   });
 };
 
-describe('Dashboard Integration', () => {
+describe("Dashboard Integration", () => {
   let originalFetch: typeof global.fetch;
 
   beforeEach(() => {
     // Save original fetch
     originalFetch = global.fetch;
-    
+
     // Mock fetch implementation
     global.fetch = jest.fn().mockImplementation((url: string) => {
-      if (url.includes('/api/repos')) {
+      if (url.includes("/api/repos")) {
         return mockFetchResponse({
           repositories: mockRepositories,
-          authMethod: 'github_app',
+          authMethod: "github_app",
           installations: [mockInstallation],
           currentInstallations: [mockInstallation],
         });
       }
-      
-      if (url.includes('/api/summary')) {
+
+      if (url.includes("/api/summary")) {
         return mockFetchResponse(mockSummary);
       }
-      
+
       return Promise.reject(new Error(`Unhandled route: ${url}`));
     });
-    
+
     // Clear all mock data between tests
     jest.clearAllMocks();
-    mockComponentProps.AuthenticationStatusBanner = undefined;
-    mockComponentProps.AccountManagementPanel = undefined;
-    mockComponentProps.FilterControls = undefined;
-    mockComponentProps.RepositoryInfoPanel = undefined;
-    mockComponentProps.ActionButton = undefined;
-    mockComponentProps.SummaryDisplay = undefined;
-    mockComponentProps.DashboardHeader = undefined;
-    
+    mockComponentProps.AuthenticationStatusBanner =
+      {} as import("@/types/testing").MockComponentProps;
+    mockComponentProps.AccountManagementPanel =
+      {} as import("@/types/testing").MockComponentProps;
+    mockComponentProps.FilterControls =
+      {} as import("@/types/testing").MockComponentProps;
+    mockComponentProps.RepositoryInfoPanel =
+      {} as import("@/types/testing").MockComponentProps;
+    mockComponentProps.ActionButton =
+      {} as import("@/types/testing").MockComponentProps;
+    mockComponentProps.SummaryDisplay =
+      {} as import("@/types/testing").MockComponentProps;
+    mockComponentProps.DashboardHeader =
+      {} as import("@/types/testing").MockComponentProps;
+
     // Reset localStorage
     mockLocalStorage.clear();
   });
@@ -251,122 +287,131 @@ describe('Dashboard Integration', () => {
     global.fetch = originalFetch;
   });
 
-  it('renders loading state initially and then dashboard components', async () => {
+  it("renders loading state initially and then dashboard components", async () => {
     render(<Dashboard />);
-    
+
     // Should show loading state initially
-    expect(screen.getByTestId('loading-state')).toBeInTheDocument();
-    
+    expect(screen.getByTestId("loading-state")).toBeInTheDocument();
+
     // After data loads, should render dashboard components
     await waitFor(() => {
-      expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
-      expect(screen.getByTestId('filter-controls')).toBeInTheDocument();
-      expect(screen.getByTestId('repo-panel')).toBeInTheDocument();
-      expect(screen.getByTestId('action-button')).toBeInTheDocument();
+      expect(screen.getByTestId("dashboard-header")).toBeInTheDocument();
+      expect(screen.getByTestId("filter-controls")).toBeInTheDocument();
+      expect(screen.getByTestId("repo-panel")).toBeInTheDocument();
+      expect(screen.getByTestId("action-button")).toBeInTheDocument();
     });
-    
+
     // Verify API was called to fetch repos
-    expect(global.fetch).toHaveBeenCalledWith('/api/repos');
+    expect(global.fetch).toHaveBeenCalledWith("/api/repos");
   });
 
-  it('passes correct props to child components', async () => {
+  it("passes correct props to child components", async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
-      expect(screen.getByTestId('dashboard-header')).toBeInTheDocument();
+      expect(screen.getByTestId("dashboard-header")).toBeInTheDocument();
     });
-    
+
     // Verify DashboardHeader received session
     expect(mockComponentProps.DashboardHeader).toBeDefined();
     expect(mockComponentProps.DashboardHeader.session).toEqual(mockSession);
-    
+
     // Verify FilterControls received correct props
     expect(mockComponentProps.FilterControls).toBeDefined();
-    expect(mockComponentProps.FilterControls.activityMode).toBe('my-activity');
+    expect(mockComponentProps.FilterControls.activityMode).toBe("my-activity");
     // handleModeChange removed in individual-focused MVP
-    expect(mockComponentProps.FilterControls.handleDateRangeChange).toBeDefined();
-    
+    expect(
+      mockComponentProps.FilterControls.handleDateRangeChange,
+    ).toBeDefined();
+
     // Verify RepositoryInfoPanel received repositories
     expect(mockComponentProps.RepositoryInfoPanel).toBeDefined();
-    expect(mockComponentProps.RepositoryInfoPanel.repositories).toEqual(mockRepositories);
+    expect(mockComponentProps.RepositoryInfoPanel.repositories).toEqual(
+      mockRepositories,
+    );
   });
 
   // Test for activity mode change removed (team-activity mode no longer supported in individual-focused MVP)
 
-  it('updates state when date range is changed', async () => {
+  it("updates state when date range is changed", async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
-      expect(screen.getByTestId('filter-controls')).toBeInTheDocument();
+      expect(screen.getByTestId("filter-controls")).toBeInTheDocument();
     });
-    
+
     // Initial date range
     const initialDateRange = mockComponentProps.FilterControls.dateRange;
-    
+
     // Change date range
-    fireEvent.click(screen.getByTestId('change-date-btn'));
-    
+    fireEvent.click(screen.getByTestId("change-date-btn"));
+
     // Verify date range was updated
     await waitFor(() => {
-      expect(mockComponentProps.FilterControls.dateRange).not.toEqual(initialDateRange);
+      expect(mockComponentProps.FilterControls.dateRange).not.toEqual(
+        initialDateRange,
+      );
       expect(mockComponentProps.FilterControls.dateRange).toEqual({
-        since: '2025-02-01',
-        until: '2025-02-28'
+        since: "2025-02-01",
+        until: "2025-02-28",
       });
     });
   });
 
   // Test for organization filter change removed (organizations no longer supported in individual-focused MVP)
 
-  it('toggles repository list visibility', async () => {
+  it("toggles repository list visibility", async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
-      expect(screen.getByTestId('repo-panel')).toBeInTheDocument();
+      expect(screen.getByTestId("repo-panel")).toBeInTheDocument();
     });
-    
+
     // Initial state
-    const initialShowRepoList = mockComponentProps.RepositoryInfoPanel.showRepoList;
-    
+    const initialShowRepoList =
+      mockComponentProps.RepositoryInfoPanel.showRepoList;
+
     // Toggle repository list
-    fireEvent.click(screen.getByTestId('toggle-repo-list'));
-    
+    fireEvent.click(screen.getByTestId("toggle-repo-list"));
+
     // Verify showRepoList was toggled
     await waitFor(() => {
-      expect(mockComponentProps.RepositoryInfoPanel.showRepoList).toBe(!initialShowRepoList);
+      expect(mockComponentProps.RepositoryInfoPanel.showRepoList).toBe(
+        !initialShowRepoList,
+      );
     });
   });
 
-  it('handles form submission and displays summary', async () => {
+  it("handles form submission and displays summary", async () => {
     render(<Dashboard />);
-    
+
     await waitFor(() => {
-      expect(screen.getByTestId('action-button')).toBeInTheDocument();
+      expect(screen.getByTestId("action-button")).toBeInTheDocument();
     });
-    
+
     // Submit form
-    fireEvent.click(screen.getByTestId('action-button'));
-    
+    fireEvent.click(screen.getByTestId("action-button"));
+
     // Verify loading state during submission
     await waitFor(() => {
       expect(mockComponentProps.ActionButton.loading).toBe(true);
     });
-    
+
     // After loading completes, summary should be displayed
     await waitFor(() => {
       expect(mockComponentProps.SummaryDisplay).toBeDefined();
       expect(mockComponentProps.SummaryDisplay.summary).toEqual(mockSummary);
     });
-    
+
     // Verify form makes API call with correct params
-    const lastFetchCall = (global.fetch as jest.Mock).mock.calls.find(
-      call => call[0].includes('/api/summary')
+    const lastFetchCall = (global.fetch as jest.Mock).mock.calls.find((call) =>
+      call[0].includes("/api/summary"),
     );
     expect(lastFetchCall).toBeDefined();
-    
+
     // Verify summary is displayed
-    expect(screen.getByTestId('summary-display')).toBeInTheDocument();
-    expect(screen.getByTestId('summary-user')).toHaveTextContent('Test User');
+    expect(screen.getByTestId("summary-display")).toBeInTheDocument();
+    expect(screen.getByTestId("summary-user")).toHaveTextContent("Test User");
   });
 
   // Note: Error handling tests have been removed due to complexity in testing.
