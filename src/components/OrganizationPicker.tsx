@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { ActivityMode } from './ModeSelector';
+import { ActivityMode } from '@/types/common';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 
 export type Organization = {

@@ -11,20 +11,6 @@ import FilterControls from '@/components/dashboard/FilterControls';
 import { mockSession, mockDateRange, mockActiveFilters } from '../../../__tests__/test-utils';
 import { Installation } from '@/types/github';
 
-// Mock ModeSelector, DateRangePicker, and OrganizationPicker components
-jest.mock('@/components/ModeSelector', () => {
-  return {
-    __esModule: true,
-    default: ({ selectedMode, onChange }: { selectedMode: string; onChange: (mode: string) => void }) => (
-      <div data-testid="mode-selector">
-        <span>Current mode: {selectedMode}</span>
-        <button onClick={() => onChange('my-activity')}>Mode 1</button>
-        <button onClick={() => onChange('team-activity')}>Mode 2</button>
-      </div>
-    )
-  };
-});
-
 jest.mock('@/components/DateRangePicker', () => {
   return {
     __esModule: true,
@@ -69,7 +55,6 @@ describe('FilterControls', () => {
     },
   ];
 
-  const mockHandleModeChange = jest.fn();
   const mockHandleDateRangeChange = jest.fn();
   const mockHandleOrganizationChange = jest.fn();
 
@@ -85,16 +70,14 @@ describe('FilterControls', () => {
         activeFilters={mockActiveFilters}
         installations={mockInstallations}
         loading={false}
-        handleModeChange={mockHandleModeChange}
         handleDateRangeChange={mockHandleDateRangeChange}
         handleOrganizationChange={mockHandleOrganizationChange}
         session={mockSession}
       />
     );
     
-    // Should display mode selector
-    expect(screen.getByTestId('mode-selector')).toBeInTheDocument();
-    expect(screen.getByText(`Current mode: my-activity`)).toBeInTheDocument();
+    // Should display MY ACTIVITY mode
+    expect(screen.getByText('MY ACTIVITY')).toBeInTheDocument();
     
     // Should display date range picker
     expect(screen.getByTestId('date-range-picker')).toBeInTheDocument();
@@ -112,16 +95,14 @@ describe('FilterControls', () => {
         activeFilters={mockActiveFilters}
         installations={mockInstallations}
         loading={false}
-        handleModeChange={mockHandleModeChange}
         handleDateRangeChange={mockHandleDateRangeChange}
         handleOrganizationChange={mockHandleOrganizationChange}
         session={mockSession}
       />
     );
     
-    // Should display mode selector
-    expect(screen.getByTestId('mode-selector')).toBeInTheDocument();
-    expect(screen.getByText(`Current mode: team-activity`)).toBeInTheDocument();
+    // Should display activity mode
+    expect(screen.getByText('ACTIVITY MODE')).toBeInTheDocument();
     
     // Should display date range picker
     expect(screen.getByTestId('date-range-picker')).toBeInTheDocument();
@@ -131,28 +112,6 @@ describe('FilterControls', () => {
     expect(screen.getByText(`Selected orgs: ${mockActiveFilters.organizations.join(', ') || 'None'}`)).toBeInTheDocument();
   });
 
-  conditionalTest('calls handleModeChange when mode is changed', () => {
-    render(
-      <FilterControls
-        activityMode="my-activity"
-        dateRange={mockDateRange}
-        activeFilters={mockActiveFilters}
-        installations={mockInstallations}
-        loading={false}
-        handleModeChange={mockHandleModeChange}
-        handleDateRangeChange={mockHandleDateRangeChange}
-        handleOrganizationChange={mockHandleOrganizationChange}
-        session={mockSession}
-      />
-    );
-    
-    // Click mode button
-    fireEvent.click(screen.getByText('Mode 2'));
-    
-    // Should call handleModeChange with 'team-activity'
-    expect(mockHandleModeChange).toHaveBeenCalledTimes(1);
-    expect(mockHandleModeChange).toHaveBeenCalledWith('team-activity');
-  });
 
   conditionalTest('calls handleDateRangeChange when date range is changed', () => {
     render(
@@ -162,7 +121,6 @@ describe('FilterControls', () => {
         activeFilters={mockActiveFilters}
         installations={mockInstallations}
         loading={false}
-        handleModeChange={mockHandleModeChange}
         handleDateRangeChange={mockHandleDateRangeChange}
         handleOrganizationChange={mockHandleOrganizationChange}
         session={mockSession}
@@ -188,7 +146,6 @@ describe('FilterControls', () => {
         activeFilters={mockActiveFilters}
         installations={mockInstallations}
         loading={false}
-        handleModeChange={mockHandleModeChange}
         handleDateRangeChange={mockHandleDateRangeChange}
         handleOrganizationChange={mockHandleOrganizationChange}
         session={mockSession}
@@ -211,7 +168,6 @@ describe('FilterControls', () => {
         activeFilters={{ ...mockActiveFilters, organizations: ['test-org'] }}
         installations={mockInstallations}
         loading={false}
-        handleModeChange={mockHandleModeChange}
         handleDateRangeChange={mockHandleDateRangeChange}
         handleOrganizationChange={mockHandleOrganizationChange}
         session={mockSession}

@@ -87,3 +87,9 @@ export type CacheData<T = unknown> = T;
  * Use this for functions that generate cache keys or ETags
  */
 export type CacheParams = Record<string, unknown>;
+
+/**
+ * Type for activity mode selection
+ * Defines the available modes for viewing GitHub activity
+ */
+export type ActivityMode = 'my-activity' | 'my-work-activity' | 'team-activity';

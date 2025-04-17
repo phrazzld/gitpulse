@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import ModeSelector, { ActivityMode } from '@/components/ModeSelector';
+import { ActivityMode } from '@/types/common';
 import DateRangePicker, { DateRange } from '@/components/DateRangePicker';
 import OrganizationPicker from '@/components/OrganizationPicker';
 import AccountSelector from '@/components/AccountSelector';
@@ -106,8 +106,8 @@ export default function Dashboard() {
   const [installations, setInstallations] = useState<Installation[]>([]);
   const [currentInstallations, setCurrentInstallations] = useState<Installation[]>([]);
   
-  // Activity mode state
-  const [activityMode, setActivityMode] = useState<ActivityMode>('my-activity');
+  // Activity mode is hardcoded to 'my-activity' as we no longer support team/org views
+  const activityMode: ActivityMode = 'my-activity';
   
   // New state for filters (removed groupBy, standardized on chronological view)
   const [activeFilters, setActiveFilters] = useState<FilterState>({
@@ -430,28 +430,13 @@ export default function Dashboard() {
     }
   }, [session, fetchRepositories]);
 
-  // Function to handle mode changes
-  const handleModeChange = useCallback((mode: ActivityMode) => {
-    setActivityMode(mode);
-    
-    // Update the filter state based on the selected mode
-    setActiveFilters(prev => {
-      const newFilters = { ...prev };
-      
-      // Clear contributors when switching modes
-      if (mode === 'my-activity') {
-        newFilters.contributors = ['me']; // Set to current user only
-        newFilters.organizations = []; // Clear organization filter
-      } else if (mode === 'my-work-activity') {
-        newFilters.contributors = ['me']; // Set to current user only
-      } else if (mode === 'team-activity') {
-        newFilters.contributors = []; // Clear contributor filter to show all team members
-      }
-      
-      return newFilters;
-    });
-    
-    console.log('Activity mode updated:', mode);
+  // Set contributors filter to current user only for 'my-activity' mode
+  useEffect(() => {
+    setActiveFilters(prev => ({
+      ...prev,
+      contributors: ['me'], // Set to current user only
+      organizations: [] // Clear organization filter
+    }));
   }, []);
   
   // Function to handle date range changes
@@ -643,7 +628,6 @@ export default function Dashboard() {
               activeFilters={activeFilters}
               installations={installations}
               loading={loading}
-              handleModeChange={handleModeChange}
               handleDateRangeChange={handleDateRangeChange}
               handleOrganizationChange={handleOrganizationChange}
               session={session}

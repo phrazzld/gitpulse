@@ -1,10 +1,10 @@
 import React from 'react';
-import ModeSelector, { ActivityMode } from '@/components/ModeSelector';
 import DateRangePicker, { DateRange } from '@/components/DateRangePicker';
 import OrganizationPicker from '@/components/OrganizationPicker';
 import { FilterState } from '@/app/dashboard/page';
 import { Installation } from '@/types/github';
 import { Session } from 'next-auth';
+import { ActivityMode } from '@/types/common';
 
 interface Props {
   activityMode: ActivityMode;
@@ -12,7 +12,6 @@ interface Props {
   activeFilters: FilterState;
   installations: Installation[];
   loading: boolean;
-  handleModeChange: (mode: ActivityMode) => void;
   handleDateRangeChange: (newDateRange: DateRange) => void;
   handleOrganizationChange: (selectedOrgs: string[]) => void;
   session: Session | null;
@@ -24,7 +23,6 @@ export default function FilterControls({
   activeFilters,
   installations,
   loading,
-  handleModeChange,
   handleDateRangeChange,
   handleOrganizationChange,
   session
@@ -53,37 +51,46 @@ export default function FilterControls({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left column - Mode and Organizations (when visible) */}
+        {/* Left column */}
         <div className="space-y-6">
-          <ModeSelector
-            selectedMode={activityMode}
-            onChange={handleModeChange}
-            disabled={loading}
-          />
-          
-          {/* OrganizationPicker conditionally shown based on mode */}
-          {(activityMode === 'my-work-activity' || activityMode === 'team-activity') && (
-            <div className="flex items-center justify-center w-full">
-              <div className="w-full max-w-xl">
-                <OrganizationPicker
-                  organizations={installations
-                    .filter(installation => installation.account !== null)
-                    .map(installation => ({
-                      id: installation.id,
-                      login: installation.account!.login,
-                      type: installation.account!.type || 'User', // Provide a default
-                      avatarUrl: installation.account!.avatarUrl
-                    }))}
-                  selectedOrganizations={activeFilters.organizations}
-                  onSelectionChange={handleOrganizationChange}
-                  mode={activityMode}
-                  disabled={loading}
-                  isLoading={loading}
-                  currentUsername={session?.user?.name || undefined}
-                />
+          {/* Activity mode info panel */}
+          <div className="rounded-lg border" style={{ 
+            backgroundColor: 'rgba(27, 43, 52, 0.7)',
+            backdropFilter: 'blur(5px)',
+            borderColor: 'var(--neon-green)',
+          }}>
+            <div className="p-3 border-b" style={{ borderColor: 'var(--neon-green)' }}>
+              <div className="flex items-center">
+                <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--neon-green)' }}></div>
+                <h3 className="text-sm uppercase" style={{ color: 'var(--neon-green)' }}>
+                  ACTIVITY MODE
+                </h3>
               </div>
             </div>
-          )}
+            <div className="p-4">
+              <div className="p-3 rounded-md" style={{ 
+                backgroundColor: 'rgba(0, 255, 135, 0.1)',
+                borderLeft: '3px solid var(--neon-green)',
+              }}>
+                <div className="flex items-center">
+                  <div 
+                    className="w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center"
+                    style={{ borderColor: 'var(--neon-green)' }}
+                  >
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--neon-green)' }}/>
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                      MY ACTIVITY
+                    </div>
+                    <div className="text-xs mt-1" style={{ color: 'var(--electric-blue)' }}>
+                      View your commits across all repositories
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Right column - Date and Analysis Info */}

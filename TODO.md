@@ -33,7 +33,7 @@
 
 ## UI Component Removal
 
-- [ ] **T006:** Delete ModeSelector UI component
+- [x] **T006:** Delete ModeSelector UI component
 
   - **Action:** Remove the `src/components/ModeSelector.tsx` component. This component is used for switching between individual and team views.
   - **Depends On:** [T001]
