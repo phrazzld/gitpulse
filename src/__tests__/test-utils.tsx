@@ -6,15 +6,15 @@ type ProvidersProps = {
   children: React.ReactNode;
 };
 
-// Custom render that includes providers
-// Use a direct function wrapper instead of a separate component to avoid JSX transform issues
+// Custom render function that properly handles React 19 JSX transform
+// Avoid using JSX in the wrapper to prevent version conflicts
 const customRender = (
   ui: ReactElement,
   options?: Omit<RTLRenderOptions, 'wrapper'>,
 ) => {
-  const Wrapper = ({ children }: ProvidersProps) => (
-    <React.Fragment>{children}</React.Fragment>
-  );
+  // Use React.createElement directly instead of JSX to avoid transform issues
+  const Wrapper = ({ children }: ProvidersProps) => 
+    React.createElement(React.Fragment, null, children);
   
   return rtlRender(ui, { wrapper: Wrapper, ...options });
 };

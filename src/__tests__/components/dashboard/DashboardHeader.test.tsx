@@ -1,12 +1,23 @@
 import React from 'react';
-import { render, screen, fireEvent, it } from '../../../__tests__/test-utils';
+// Import testing-library functions directly instead of from test-utils
+import { render, screen, fireEvent } from '@testing-library/react';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
+// Still import the mock session
 import { mockSession } from '../../../__tests__/test-utils';
 import { signOut } from 'next-auth/react';
 
 // Mock next-auth's signOut function
 jest.mock('next-auth/react', () => ({
   signOut: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock next/image since it uses client-side features not available in tests
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props: any) => {
+    // eslint-disable-next-line jsx-a11y/alt-text
+    return <img {...props} />;
+  },
 }));
 
 describe('DashboardHeader', () => {
