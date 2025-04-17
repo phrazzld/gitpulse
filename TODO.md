@@ -20,7 +20,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** Plan Phase 1, Step 2
 
-- [ ] **T004:** Delete contributors API route directory
+- [x] **T004:** Delete contributors API route directory
 
   - **Action:** Remove the `src/app/api/contributors/` directory and all its contents. This removes the API endpoint for fetching contributor data.
   - **Depends On:** [T001]
