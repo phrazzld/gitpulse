@@ -6,12 +6,10 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ActivityMode } from '@/types/common';
 import DateRangePicker, { DateRange } from '@/components/DateRangePicker';
-import AccountSelector from '@/components/AccountSelector';
 import ActivityFeed from '@/components/ActivityFeed';
 import DashboardLoadingState from '@/components/DashboardLoadingState';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import AuthenticationStatusBanner from '@/components/dashboard/AuthenticationStatusBanner';
-import AccountManagementPanel from '@/components/dashboard/AccountManagementPanel';
 import FilterControls from '@/components/dashboard/FilterControls';
 import RepositoryInfoPanel from '@/components/dashboard/RepositoryInfoPanel';
 import ActionButton from '@/components/dashboard/ActionButton';
@@ -100,6 +98,7 @@ export default function Dashboard() {
   const [showRepoList, setShowRepoList] = useState<boolean>(true);
   const [authMethod, setAuthMethod] = useState<string | null>(null);
   const [needsInstallation, setNeedsInstallation] = useState<boolean>(false);
+  // Keep these for backward compatibility but they're not actively used anymore
   const [installationIds, setInstallationIds] = useState<InstallationId[]>([]);
   const [installations, setInstallations] = useState<Installation[]>([]);
   const [currentInstallations, setCurrentInstallations] = useState<Installation[]>([]);
@@ -257,64 +256,7 @@ export default function Dashboard() {
     }
   }, [handleAuthError, handleAppInstallationNeeded, setRepositories, setError, setLoading, setAuthMethod, setInstallationIds, setInstallations, setCurrentInstallations, session]);
   
-  // Function to handle switching installations
-  const switchInstallations = useCallback((installationIds: InstallationId[]) => {
-    // Check if the installation selection has changed
-    const currentIds = currentInstallations.map(inst => inst.id);
-    const hasSelectionChanged = 
-      installationIds.length !== currentIds.length || 
-      installationIds.some(id => !currentIds.includes(id));
-    
-    if (hasSelectionChanged) {
-      console.log('Switching to installation IDs:', installationIds);
-      
-      // Get the selected installations' account logins
-      const selectedInstallations = installations.filter(inst => installationIds.includes(inst.id));
-      
-      // If no installations are selected, don't fetch anything
-      if (installationIds.length === 0) {
-        return;
-      }
-      
-      // For now, we'll use the first selected installation ID for fetching
-      // This will need to be updated in the API to support multiple installation IDs
-      const primaryInstallationId = installationIds[0];
-      
-      fetchRepositories(primaryInstallationId).then(success => {
-        // If we successfully switched, update the cache timestamp and organization filter
-        if (success) {
-          // Update last refresh timestamp
-          localStorage.setItem('lastRepositoryRefresh', Date.now().toString());
-          
-          // Update the organization filter to include all selected installations' accounts
-          if (selectedInstallations.length > 0) {
-            // Update the activeFilters to include all newly selected installations' accounts
-            setActiveFilters(prev => {
-              const newOrgs = [...prev.organizations];
-              
-              // Add all selected installations' accounts to the organizations filter
-              selectedInstallations.forEach(installation => {
-                if (installation.account?.login && !newOrgs.includes(installation.account.login)) {
-                  newOrgs.push(installation.account.login);
-                }
-              });
-              
-              return {
-                ...prev,
-                organizations: newOrgs
-              };
-            });
-          }
-          
-          // Update the current installations
-          setCurrentInstallations(selectedInstallations);
-          
-          // Update the installation IDs state
-          setInstallationIds(installationIds);
-        }
-      });
-    }
-  }, [currentInstallations, fetchRepositories, installations, setActiveFilters]);
+  // Installation switching functionality removed as part of MVP individual focus
   
   // Function to check whether repositories need to be refreshed
   const shouldRefreshRepositories = useCallback(() => {
@@ -351,28 +293,16 @@ export default function Dashboard() {
     return true;
   }, [session, repositories.length]);
   
-  // Function to check for installation changes when focus returns to the window
-  // This helps refresh the UI when a user uninstalls the app via the GitHub settings page
+  // Function to check for repository updates when focus returns to the window
   useEffect(() => {
     const handleFocus = () => {
       // Only refresh if needed
       if (shouldRefreshRepositories()) {
         console.log('Window focused, refreshing repositories (due to cache expiration)');
-        // Save current selections
-        const currentOrgSelections = activeFilters.organizations;
-        // After fetching, we'll sync the filter state with current selections
         fetchRepositories().then((success) => {
           // Update the last refresh time
           if (success) {
             localStorage.setItem('lastRepositoryRefresh', Date.now().toString());
-            
-            // If we had organizations selected in filters, preserve those selections
-            if (currentOrgSelections.length > 0) {
-              setActiveFilters(prev => ({
-                ...prev,
-                organizations: currentOrgSelections
-              }));
-            }
           }
         });
       } else {
@@ -385,7 +315,7 @@ export default function Dashboard() {
     return () => {
       window.removeEventListener('focus', handleFocus);
     };
-  }, [session, fetchRepositories, activeFilters.organizations, setActiveFilters, shouldRefreshRepositories]);
+  }, [session, fetchRepositories, shouldRefreshRepositories]);
   
   // No need for redirect here - the layout handles authentication protection
 
@@ -427,14 +357,6 @@ export default function Dashboard() {
     }
   }, [session, fetchRepositories]);
 
-  // Clear organization filter on initial load
-  useEffect(() => {
-    setActiveFilters(prev => ({
-      ...prev,
-      organizations: [] // Clear organization filter
-    }));
-  }, []);
-  
   // Function to handle date range changes
   const handleDateRangeChange = useCallback((newDateRange: DateRange) => {
     setDateRange(newDateRange);
@@ -592,20 +514,6 @@ export default function Dashboard() {
               handleAuthError={handleAuthError}
               signOutCallback={signOut}
             />
-            
-            {/* Consolidated Account Selection Panel */}
-            {authMethod === AUTH_METHODS.GITHUB_APP && installations.length > 0 && (
-              <AccountManagementPanel
-                authMethod={authMethod}
-                installations={installations}
-                currentInstallations={currentInstallations}
-                loading={loading}
-                getGitHubAppInstallUrl={getGitHubAppInstallUrl}
-                getInstallationManagementUrl={getInstallationManagementUrl}
-                switchInstallations={switchInstallations}
-                session={session}
-              />
-            )}
             
             {/* Improved Filters Container */}
             <FilterControls

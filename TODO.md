@@ -51,7 +51,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** Plan Phase 2, Step 4
 
-- [ ] **T009:** Refactor dashboard page: Remove organization features
+- [x] **T009:** Refactor dashboard page: Remove organization features
 
   - **Action:** In `src/app/dashboard/page.tsx`:
     - Remove the `AccountManagementPanel` component if it is only used for GitHub App/org selection
