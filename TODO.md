@@ -8,7 +8,7 @@
   - **Depends On:** None
   - **AC Ref:** High Priority Issue #1
 
-- [ ] **T002:** Fix Babel configuration for JSX transformations
+- [x] **T002:** Fix Babel configuration for JSX transformations
 
   - **Action:** Update `babel.config.jest.js` with the correct configuration for JSX transformations, ensuring proper preset options for React/JSX
   - **Depends On:** [T001]
