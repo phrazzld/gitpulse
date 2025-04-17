@@ -9,9 +9,6 @@ import { NextRequest } from 'next/server';
 import { GET as getRepos } from '@/app/api/repos/route';
 import { GET as getMyActivity } from '@/app/api/my-activity/route';
 import { GET as getSummary } from '@/app/api/summary/route';
-import { GET as getContributors } from '@/app/api/contributors/route';
-import { GET as getMyOrgActivity } from '@/app/api/my-org-activity/route';
-import { GET as getTeamActivity } from '@/app/api/team-activity/route';
 
 import { 
   mockCreateAuthenticatedOctokit,
@@ -93,9 +90,6 @@ const verifyStandardizedErrorResponse = (
 const reposTestHelper = createApiHandlerTestHelper(getRepos as (req: NextRequest) => any);
 const myActivityTestHelper = createApiHandlerTestHelper(getMyActivity as (req: NextRequest) => any);
 const summaryTestHelper = createApiHandlerTestHelper(getSummary as (req: NextRequest) => any);
-const contributorsTestHelper = createApiHandlerTestHelper(getContributors as (req: NextRequest) => any);
-const myOrgActivityTestHelper = createApiHandlerTestHelper(getMyOrgActivity as (req: NextRequest) => any);
-const teamActivityTestHelper = createApiHandlerTestHelper(getTeamActivity as (req: NextRequest) => any);
 
 describe('API Routes: GitHub Error Type Handling', () => {
   beforeEach(() => {
@@ -166,64 +160,6 @@ describe('API Routes: GitHub Error Type Handling', () => {
       // Verify authentication was attempted
       expect(mockCreateAuthenticatedOctokit).toHaveBeenCalled();
     });
-
-    it('handles rate limit errors in /api/contributors', async () => {
-      // Mock the fetchCommitsForRepositoriesWithOctokit function to throw a rate limit error
-      mockFetchCommitsForRepositoriesWithOctokit.mockRejectedValueOnce(rateLimitError);
-      
-      // Call the handler with required parameters
-      const response = await contributorsTestHelper.callHandler('/api/contributors', 'GET', {
-        repo: 'test-org/repo-1'
-      });
-      
-      // Verify the error response
-      verifyErrorResponse(response, 429, 'GITHUB_RATE_LIMIT_ERROR', { 
-        shouldHaveResetAt: true 
-      });
-      
-      // Verify authentication was attempted
-      expect(mockCreateAuthenticatedOctokit).toHaveBeenCalled();
-    });
-
-    it('handles rate limit errors in /api/my-org-activity', async () => {
-      // Mock the fetchAppRepositories function to throw a rate limit error
-      mockFetchAppRepositories.mockRejectedValueOnce(rateLimitError);
-      
-      // Call the handler with required parameters
-      const response = await myOrgActivityTestHelper.callHandler('/api/my-org-activity', 'GET', {
-        since: '2025-01-01',
-        until: '2025-01-31',
-        organization: 'test-org'
-      });
-      
-      // Verify the error response
-      verifyErrorResponse(response, 429, 'GITHUB_RATE_LIMIT_ERROR', { 
-        shouldHaveResetAt: true 
-      });
-      
-      // Verify authentication was attempted
-      expect(mockCreateAuthenticatedOctokit).toHaveBeenCalled();
-    });
-
-    it('handles rate limit errors in /api/team-activity', async () => {
-      // Mock the fetchAppRepositories function to throw a rate limit error
-      mockFetchAppRepositories.mockRejectedValueOnce(rateLimitError);
-      
-      // Call the handler with required parameters
-      const response = await teamActivityTestHelper.callHandler('/api/team-activity', 'GET', {
-        since: '2025-01-01',
-        until: '2025-01-31',
-        repository: 'test-org/repo-1'
-      });
-      
-      // Verify the error response
-      verifyErrorResponse(response, 429, 'GITHUB_RATE_LIMIT_ERROR', { 
-        shouldHaveResetAt: true 
-      });
-      
-      // Verify authentication was attempted
-      expect(mockCreateAuthenticatedOctokit).toHaveBeenCalled();
-    });
   });
 
   describe('Authentication Errors', () => {
@@ -264,55 +200,6 @@ describe('API Routes: GitHub Error Type Handling', () => {
       
       // Call the handler
       const response = await summaryTestHelper.callHandler('/api/summary');
-      
-      // Verify the error response
-      verifyErrorResponse(response, 403, 'GITHUB_AUTH_ERROR', { 
-        shouldHaveSignOutRequired: true 
-      });
-    });
-
-    it('handles authentication errors in /api/contributors', async () => {
-      // Mock the createAuthenticatedOctokit function to throw an auth error
-      mockCreateAuthenticatedOctokit.mockRejectedValueOnce(authError);
-      
-      // Call the handler with required parameters
-      const response = await contributorsTestHelper.callHandler('/api/contributors', 'GET', {
-        repo: 'test-org/repo-1'
-      });
-      
-      // Verify the error response
-      verifyErrorResponse(response, 403, 'GITHUB_AUTH_ERROR', { 
-        shouldHaveSignOutRequired: true 
-      });
-    });
-
-    it('handles authentication errors in /api/my-org-activity', async () => {
-      // Mock the createAuthenticatedOctokit function to throw an auth error
-      mockCreateAuthenticatedOctokit.mockRejectedValueOnce(authError);
-      
-      // Call the handler with required parameters
-      const response = await myOrgActivityTestHelper.callHandler('/api/my-org-activity', 'GET', {
-        since: '2025-01-01',
-        until: '2025-01-31',
-        organization: 'test-org'
-      });
-      
-      // Verify the error response
-      verifyErrorResponse(response, 403, 'GITHUB_AUTH_ERROR', { 
-        shouldHaveSignOutRequired: true 
-      });
-    });
-
-    it('handles authentication errors in /api/team-activity', async () => {
-      // Mock the createAuthenticatedOctokit function to throw an auth error
-      mockCreateAuthenticatedOctokit.mockRejectedValueOnce(authError);
-      
-      // Call the handler with required parameters
-      const response = await teamActivityTestHelper.callHandler('/api/team-activity', 'GET', {
-        since: '2025-01-01',
-        until: '2025-01-31',
-        repository: 'test-org/repo-1'
-      });
       
       // Verify the error response
       verifyErrorResponse(response, 403, 'GITHUB_AUTH_ERROR', { 
@@ -361,58 +248,6 @@ describe('API Routes: GitHub Error Type Handling', () => {
       
       // Call the handler
       const response = await summaryTestHelper.callHandler('/api/summary');
-      
-      // Verify the error response
-      verifyErrorResponse(response, 404, 'GITHUB_NOT_FOUND_ERROR');
-      
-      // Verify authentication was attempted
-      expect(mockCreateAuthenticatedOctokit).toHaveBeenCalled();
-    });
-
-    it('handles not found errors in /api/contributors', async () => {
-      // Mock the fetchCommitsForRepositoriesWithOctokit function to throw a not found error
-      mockFetchCommitsForRepositoriesWithOctokit.mockRejectedValueOnce(notFoundError);
-      
-      // Call the handler with required parameters
-      const response = await contributorsTestHelper.callHandler('/api/contributors', 'GET', {
-        repo: 'test-org/repo-1'
-      });
-      
-      // Verify the error response
-      verifyErrorResponse(response, 404, 'GITHUB_NOT_FOUND_ERROR');
-      
-      // Verify authentication was attempted
-      expect(mockCreateAuthenticatedOctokit).toHaveBeenCalled();
-    });
-
-    it('handles not found errors in /api/my-org-activity', async () => {
-      // Mock the fetchAppRepositories function to throw a not found error
-      mockFetchAppRepositories.mockRejectedValueOnce(notFoundError);
-      
-      // Call the handler with required parameters
-      const response = await myOrgActivityTestHelper.callHandler('/api/my-org-activity', 'GET', {
-        since: '2025-01-01',
-        until: '2025-01-31',
-        organization: 'test-org'
-      });
-      
-      // Verify the error response
-      verifyErrorResponse(response, 404, 'GITHUB_NOT_FOUND_ERROR');
-      
-      // Verify authentication was attempted
-      expect(mockCreateAuthenticatedOctokit).toHaveBeenCalled();
-    });
-
-    it('handles not found errors in /api/team-activity', async () => {
-      // Mock the fetchAppRepositories function to throw a not found error
-      mockFetchAppRepositories.mockRejectedValueOnce(notFoundError);
-      
-      // Call the handler with required parameters
-      const response = await teamActivityTestHelper.callHandler('/api/team-activity', 'GET', {
-        since: '2025-01-01',
-        until: '2025-01-31',
-        repository: 'test-org/repo-1'
-      });
       
       // Verify the error response
       verifyErrorResponse(response, 404, 'GITHUB_NOT_FOUND_ERROR');

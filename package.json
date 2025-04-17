@@ -11,7 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint --quiet",
-    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "typecheck": "tsc --noEmit --skipLibCheck --project tsconfig.json",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

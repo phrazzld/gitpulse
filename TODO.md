@@ -26,7 +26,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** Plan Phase 1, Step 2
 
-- [ ] **T005:** Remove API tests for deleted endpoints
+- [x] **T005:** Remove API tests for deleted endpoints
   - **Action:** Delete `src/__tests__/api/additional-routes.test.ts` if it exists and only tests the deleted endpoints. If it contains tests for other APIs, refactor it to remove only tests for deleted endpoints. Delete any other test files specifically for the deleted API routes.
   - **Depends On:** [T002, T003, T004]
   - **AC Ref:** Plan Phase 1, Step 3
