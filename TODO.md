@@ -131,7 +131,7 @@
   - **Depends On:** [T012]
   - **AC Ref:** Plan Phase 4, Step 10
 
-- [ ] **T018:** Verify GitHub App environment variables
+- [x] **T018:** Verify GitHub App environment variables
   - **Action:** Check `.env.local.example` and ensure environment variables related to GitHub App (`GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_PKCS8`, `NEXT_PUBLIC_GITHUB_APP_NAME`) are preserved.
   - **Depends On:** [T001]
   - **AC Ref:** Plan Phase 4, Step 10
