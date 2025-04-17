@@ -138,7 +138,7 @@
 
 ## Documentation Updates
 
-- [ ] **T019:** Update README.md
+- [x] **T019:** Update README.md
 
   - **Action:** Edit `README.md`:
     - Remove mentions of team/org features but retain GitHub App authentication sections

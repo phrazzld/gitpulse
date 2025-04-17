@@ -1,11 +1,10 @@
 # GitPulse - GitHub Commit Summary
 
-GitPulse is a web application that generates summaries of GitHub commits for individuals and teams. Built with Next.js and TypeScript, GitPulse provides easy visualization of coding activity across repositories.
+GitPulse is a web application that generates summaries of GitHub commits for individuals. Built with Next.js and TypeScript, GitPulse provides easy visualization of your coding activity across repositories.
 
 ## Features
 
 - **Individual Summaries**: Track your own GitHub activity across all accessible repositories
-- **Team Summaries**: Aggregate commit data for multiple team members
 - **Repository Selection**: Choose specific repositories or include all accessible repos
 - **Configurable Time Frames**: Set custom date ranges for your summary
 - **AI-Powered Analysis**: Gemini AI generates insights from your commit history
@@ -91,11 +90,9 @@ npm run dev:log
 ## Usage
 
 1. Sign in with your GitHub account
-2. Select whether you want an individual or team summary
-3. For team summaries, enter comma-separated GitHub usernames
-4. Select a date range for your summary
-5. Optionally select specific repositories
-6. Click "Generate Summary" to view your commit statistics
+2. Select a date range for your summary
+3. Optionally select specific repositories
+4. Click "Generate Summary" to view your commit statistics
 
 ## Authentication
 
@@ -110,7 +107,7 @@ Uses personal GitHub access tokens for authentication through the standard GitHu
 **Use Cases:**
 
 - Individual developers accessing their personal repositories
-- Quick setup for personal or small team projects
+- Quick setup for personal projects
 - When you need access to repositories you personally own or collaborate on
 
 **Advantages:**
@@ -132,17 +129,16 @@ Uses GitHub App installations with installation tokens, providing more granular 
 
 **Use Cases:**
 
-- Organization administrators who need to provide repository access without personal tokens
+- Individuals who need fine-grained repository access without personal tokens
 - Enterprise environments with strict security requirements
-- When you need fine-grained permissions at the organization level
-- Teams concerned about token expiration or personal token security
+- When you need fine-grained permissions for your repositories
+- Users concerned about token expiration or personal token security
 
 **Advantages:**
 
 - More secure (no personal tokens stored in the session)
-- Repository access managed at the organization level
+- Repository access managed at the user level
 - Fine-grained permission control
-- Can be installed across an entire organization
 - Tokens automatically refresh without user intervention
 
 **Configuration Requirements:**
@@ -184,8 +180,6 @@ Uses GitHub App installations with installation tokens, providing more granular 
        - Contents: Read-only
        - Metadata: Read-only
        - Pull requests: Read-only (if needed)
-     - **Organization permissions**:
-       - Members: Read-only
    - **Where can this GitHub App be installed?**: Any account
 
 4. After creating the app, note the App ID (found in the app settings)
@@ -234,17 +228,17 @@ flowchart TD
     ChooseAuthType -->|OAuth| CreateOAuthOctokit[Create Octokit with\nOAuth token]
     ChooseAuthType -->|GitHub App| CreateAppOctokit[Create Octokit with\nApp installation]
 
-    CreateOAuthOctokit --> FetchGitHubData[Fetch GitHub data\nwith Octokit]
-    CreateAppOctokit --> FetchGitHubData
+    CreateOAuthOctokit --> FetchUserData[Fetch individual\nuser activity data]
+    CreateAppOctokit --> FetchUserData
 
-    FetchGitHubData --> ErrorCheck{Error\noccurred?}
+    FetchUserData --> ErrorCheck{Error\noccurred?}
     ErrorCheck -->|No| DisplayData[Display data\nto user]
     ErrorCheck -->|Auth error| SignOutRedirect
     ErrorCheck -->|Other error| DisplayError[Display error\nmessage]
 
     subgraph "App Installation Flow"
         AppInstallButton[GitHub App\nInstall Button] --> RedirectToGitHub[Redirect to GitHub\nfor installation]
-        RedirectToGitHub --> GitHubInstall[User installs app\non GitHub]
+        RedirectToGitHub --> GitHubInstall[User installs app\non personal account]
         GitHubInstall --> RedirectCallback[Redirect back\nto app]
         RedirectCallback --> RegisterInstallation[Register installation\nwith user]
     end
@@ -259,9 +253,9 @@ The diagram shows:
 
 - Initial authentication using GitHub OAuth
 - Session validation and token management
-- Handling of both OAuth and GitHub App authentication methods
+- Handling of both OAuth and GitHub App authentication methods for individual access
 - Error handling and token refresh process
-- GitHub App installation flow
+- GitHub App installation flow for personal accounts
 
 ### Troubleshooting Authentication
 
@@ -318,7 +312,7 @@ If you encounter GitHub App authentication issues:
 
    - Symptom: "No installations found" or cannot select GitHub App authentication
    - Solution:
-     - Verify your GitHub App is installed on your account/organization
+     - Verify your GitHub App is installed on your personal account
      - Check the installation at: `https://github.com/settings/installations`
      - Install or reinstall the app if needed
 
@@ -357,7 +351,7 @@ If you encounter GitHub App authentication issues:
      - Click "Configure" next to your app
      - Under "Repository access", ensure the repositories you need are either:
        - Included in "Select repositories" if you chose specific access
-       - Or that "All repositories" is selected for full access
+       - Or that "All repositories" is selected for full access to your personal repositories
 
 #### Checking Error Responses
 
