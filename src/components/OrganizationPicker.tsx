@@ -48,7 +48,10 @@ export default function OrganizationPicker({
   }, [selectedOrganizations]);
 
   // Create debounced selection change handler (500ms delay)
-  const { callback: debouncedOnSelectionChange, pending: isDebouncing } = useDebounceCallback(
+  const { callback: debouncedOnSelectionChange, pending: isDebouncing } = useDebounceCallback<
+    (selectedOrgs: string[]) => void, 
+    string[]
+  >(
     onSelectionChange,
     ORG_DEBOUNCE_DELAY
   );

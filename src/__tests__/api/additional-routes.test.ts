@@ -17,9 +17,11 @@ import {
 import { mockRepositories, mockActivityCommits, mockInstallation, mockSession } from '../test-utils';
 
 // Create test helpers for each API route
-const contributorsTestHelper = createApiHandlerTestHelper(getContributors as (req: NextRequest) => any);
-const myOrgActivityTestHelper = createApiHandlerTestHelper(getMyOrgActivity as (req: NextRequest) => any);
-const teamActivityTestHelper = createApiHandlerTestHelper(getTeamActivity as (req: NextRequest) => any);
+import { NextResponse } from 'next/server';
+
+const contributorsTestHelper = createApiHandlerTestHelper(getContributors as (req: NextRequest) => Promise<NextResponse>);
+const myOrgActivityTestHelper = createApiHandlerTestHelper(getMyOrgActivity as (req: NextRequest) => Promise<NextResponse>);
+const teamActivityTestHelper = createApiHandlerTestHelper(getTeamActivity as (req: NextRequest) => Promise<NextResponse>);
 
 describe('Additional API Routes Tests', () => {
   beforeEach(() => {

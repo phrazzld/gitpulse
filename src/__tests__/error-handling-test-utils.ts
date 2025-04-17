@@ -132,3 +132,13 @@ export const mockErrors = {
   // Regular JS error (status 500)
   createJsError: () => new Error("Standard JavaScript error")
 };
+
+// Add a simple test to ensure Jest recognizes this as a valid test file
+describe("error-handling-test-utils", () => {
+  it("exists and exports utility functions", () => {
+    // This test simply verifies the module can be loaded
+    expect(mockErrors).toBeDefined();
+    expect(MockNextResponse).toBeDefined();
+    expect(MockGitHubError).toBeDefined();
+  });
+});

@@ -36,7 +36,7 @@ export function mockCreateApiErrorResponse(
   let statusCode = 500;
   let errorDetails = "";
   let signOutRequired = false;
-  let needsInstallation = false;
+  const needsInstallation = false;
   let resetAt: string | undefined = undefined;
   
   // Handle based on error type

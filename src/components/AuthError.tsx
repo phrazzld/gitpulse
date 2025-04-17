@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
 
-interface AuthErrorProps {
+export interface AuthErrorProps {
   error?: string;
   message?: string;
   code?: string;
@@ -13,6 +13,7 @@ interface AuthErrorProps {
 
 /**
  * Component for displaying authentication errors with appropriate actions
+ * @returns JSX element displaying the error and relevant actions
  */
 export function AuthError({ 
   error = 'Authentication Error', 
@@ -20,26 +21,33 @@ export function AuthError({
   code = 'AUTH_ERROR',
   signOutRequired = false,
   onRetry 
-}: AuthErrorProps) {
+}: AuthErrorProps): React.ReactElement {
   
   const [countdown, setCountdown] = useState(signOutRequired ? 5 : 0);
   
   useEffect(() => {
+    // Default no-op cleanup function
+    let cleanup = () => {};
+    
     // If sign out is required, start a countdown and then sign out
     if (signOutRequired && countdown > 0) {
       const timer = setTimeout(() => {
         setCountdown(countdown - 1);
       }, 1000);
       
-      return () => clearTimeout(timer);
-    }
-    
-    if (signOutRequired && countdown === 0) {
+      // Replace default cleanup with one that clears the timer
+      cleanup = () => clearTimeout(timer);
+    } 
+    else if (signOutRequired && countdown === 0) {
+      // Trigger sign out when countdown reaches zero
       signOut({ redirect: true, callbackUrl: window.location.origin + '/' })
         .catch(error => {
           console.error('Error during sign out:', error);
         });
     }
+    
+    // Always return a cleanup function
+    return cleanup;
   }, [countdown, signOutRequired]);
   
   return (

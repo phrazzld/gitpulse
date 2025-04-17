@@ -45,3 +45,11 @@ AESTHETIC_*.jpeg
 CONTEXT.md
 PLAN.md
 DEV-REF.md
+*-PLAN.md
+*-TASK.md
+
+# architect outputs
+/architect_output
+/architect_output_tasks
+# temp files
+.temp/

@@ -15,7 +15,30 @@ import { mockRepositories, mockActivityCommits, mockInstallation, mockSession, m
 
 // Mock the Gemini API for generating summaries
 jest.mock('@/lib/gemini', () => ({
-  generateCommitSummary: jest.fn().mockResolvedValue(mockSummary.aiSummary)
+  generateCommitSummary: jest.fn().mockResolvedValue({
+    keyThemes: ['Feature Development', 'Bug Fixes', 'Documentation'],
+    technicalAreas: [
+      { name: 'Frontend', count: 5 },
+      { name: 'API', count: 3 },
+      { name: 'Documentation', count: 2 },
+    ],
+    accomplishments: [
+      'Implemented new user dashboard',
+      'Fixed critical authentication bug',
+      'Updated API documentation',
+    ],
+    commitsByType: [
+      { type: 'Feature', count: 5, description: 'New functionality added to the application' },
+      { type: 'Bug Fix', count: 3, description: 'Fixes for existing functionality' },
+      { type: 'Documentation', count: 2, description: 'Documentation updates and improvements' },
+    ],
+    timelineHighlights: [
+      { date: '2025-01-01', description: 'Started work on new dashboard' },
+      { date: '2025-01-02', description: 'Completed dashboard implementation' },
+      { date: '2025-01-03', description: 'Fixed critical bugs and updated documentation' },
+    ],
+    overallSummary: 'During this period, the developer focused on implementing a new user dashboard, fixing critical bugs in the authentication system, and improving API documentation.',
+  })
 }));
 
 // Set Gemini API key in environment

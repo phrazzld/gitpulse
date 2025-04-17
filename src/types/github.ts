@@ -42,7 +42,7 @@ export type Repository = {
     // Additional owner properties that might be used
     avatar_url?: string;
     type?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   private: boolean;
   html_url?: string;
@@ -50,7 +50,7 @@ export type Repository = {
   updated_at?: string | null;
   language?: string | null;
   // Allow additional properties that might come from the GitHub API
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 /**
@@ -71,18 +71,18 @@ export type Commit = {
     } | null;
     message: string;
     // Additional properties that might exist
-    [key: string]: any;
+    [key: string]: unknown;
   };
   html_url: string;
   author: {
     login: string;
     avatar_url: string;
     // Additional properties that might exist
-    [key: string]: any;
+    [key: string]: unknown;
   } | null;
   repository?: {
     full_name: string;
   };
   // Allow additional properties from the GitHub API
-  [key: string]: any;
+  [key: string]: unknown;
 };

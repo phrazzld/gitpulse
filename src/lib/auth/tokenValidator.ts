@@ -2,6 +2,11 @@ import { logger } from "../logger";
 import { Session } from "next-auth";
 import { signOut } from "next-auth/react";
 
+// Extend Session type to include accessToken
+interface GitHubSession extends Session {
+  accessToken?: string;
+}
+
 const MODULE_NAME = "auth:tokenValidator";
 
 /**
@@ -56,7 +61,7 @@ export async function isGitHubTokenValid(accessToken: string): Promise<boolean> 
  * @returns {Promise<boolean>} True if the session is valid, false otherwise
  */
 export async function validateAuthState(
-  session: Session | null, 
+  session: GitHubSession | null, 
   options: { 
     forceSignOut?: boolean;
     callback?: (isValid: boolean) => void;
@@ -102,8 +107,9 @@ export async function validateAuthState(
 /**
  * A React hook for client components to verify authentication status on mount
  * This can be used in layout.tsx or individual pages
+ * @returns An object containing the validation state
  */
-export function useAuthValidator() {
+export function useAuthValidator(): { isValidating: boolean; isValid: boolean } {
   if (typeof window === "undefined") {
     return { isValidating: false, isValid: false };
   }
@@ -111,4 +117,5 @@ export function useAuthValidator() {
   // This would be implemented with React hooks
   // using useState and useEffect to validate auth on component mount
   // Implementation details omitted as this is a TypeScript-only file
+  return { isValidating: false, isValid: false };
 }

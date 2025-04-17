@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { safelyExtractError } from "@/lib/errors";
 import { 
   fetchAllRepositories, 
   fetchCommitsForRepositories,
@@ -31,7 +32,7 @@ type GroupedResult = {
   repositories: string[];
   dates: string[];
   commits: Commit[];
-  aiSummary?: any;
+  aiSummary?: unknown;
 };
 
 // Valid grouping options
@@ -60,7 +61,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
   }
   
   // Get installation IDs from query parameter if present
-  let requestedInstallationIds = request.nextUrl.searchParams.get('installation_ids');
+  const requestedInstallationIds = request.nextUrl.searchParams.get('installation_ids');
   let installationIds: number[] = [];
   
   if (requestedInstallationIds) {
@@ -482,7 +483,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     
     // Always use chronological view (no grouping)
     // Simplified grouping for chronological view only
-    let groupedResults: GroupedResult[] = [{
+    const groupedResults: GroupedResult[] = [{
       groupKey: 'all',
       groupName: 'All Commits',
       commitCount: filteredCommits.length,
@@ -561,16 +562,17 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     
     const isAppError = errorMsg.includes('GitHub App credentials not configured');
     
-    let errorMessage = "Failed to generate summary";
-    let errorCode = "API_ERROR";
+    const errorMessage = isAppError 
+      ? "GitHub App not properly configured. Please contact the administrator."
+      : isAuthError 
+        ? "GitHub authentication failed. Your authentication is invalid or expired."
+        : "Failed to generate summary";
     
-    if (isAppError) {
-      errorMessage = "GitHub App not properly configured. Please contact the administrator.";
-      errorCode = "GITHUB_APP_CONFIG_ERROR";
-    } else if (isAuthError) {
-      errorMessage = "GitHub authentication failed. Your authentication is invalid or expired.";
-      errorCode = "GITHUB_AUTH_ERROR";
-    }
+    const errorCode = isAppError 
+      ? "GITHUB_APP_CONFIG_ERROR" 
+      : isAuthError 
+        ? "GITHUB_AUTH_ERROR" 
+        : "API_ERROR";
     
     return new NextResponse(JSON.stringify({ 
       error: errorMessage, 

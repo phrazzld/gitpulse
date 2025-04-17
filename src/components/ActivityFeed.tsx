@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, ReactElement } from 'react';
 import Image from 'next/image';
 import { useProgressiveLoading } from '@/hooks/useProgressiveLoading';
 import { FixedSizeList as List } from 'react-window';
@@ -60,8 +60,8 @@ const CommitItem = React.memo(({
   showContributor: boolean;
   style?: React.CSSProperties;
   isNew?: boolean;
-}) => {
-  const formatDate = (dateString: string) => {
+}): ReactElement => {
+  const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -200,7 +200,7 @@ export default function ActivityFeed({
   showContributor = true,
   itemHeight = 120, // Default item height
   maxHeight = '70vh' // Default max height for the list
-}: ActivityFeedProps) {
+}: ActivityFeedProps): ReactElement {
   // Set up progressive loading with our custom hook
   const {
     items: commits,
@@ -258,6 +258,10 @@ export default function ActivityFeed({
   
   // Track new items for animations
   useEffect(() => {
+    // Default no-op cleanup function
+    let cleanup = () => {};
+    
+    // Only update counters and set up timer if we have new commits
     if (commits.length > prevCommitsLength.current) {
       setNewItemsCount(commits.length - prevCommitsLength.current);
       prevCommitsLength.current = commits.length;
@@ -267,12 +271,16 @@ export default function ActivityFeed({
         setNewItemsCount(0);
       }, 1000);
       
-      return () => clearTimeout(timer);
+      // Replace the default cleanup with one that clears the timer
+      cleanup = () => clearTimeout(timer);
     }
+    
+    // Always return a cleanup function
+    return cleanup;
   }, [commits.length]);
 
   // Handler for intersection observer callback
-  const handleIntersect = useCallback(() => {
+  const handleIntersect = useCallback((): void => {
     if (canTriggerInfiniteScroll && hasMore && !loading) {
       setCanTriggerInfiniteScroll(false);
       loadMore().finally(() => {
@@ -290,7 +298,7 @@ export default function ActivityFeed({
   }, [reset]);
   
   // Calculate appropriate list height
-  const calculateListHeight = () => {
+  const calculateListHeight = (): number | string => {
     if (typeof maxHeight === 'number') {
       return Math.min(maxHeight, commits.length * itemHeight);
     }

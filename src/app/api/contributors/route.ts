@@ -49,8 +49,8 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
   }
   
   // Get installation ID from query parameter if present
-  let requestedInstallationId = request.nextUrl.searchParams.get('installation_id');
-  let installationId = requestedInstallationId ? parseInt(requestedInstallationId, 10) : session.installationId;
+  const requestedInstallationId = request.nextUrl.searchParams.get('installation_id');
+  const installationId = requestedInstallationId ? parseInt(requestedInstallationId, 10) : session.installationId;
 
   // Get organization filters if present
   const organizationsParam = request.nextUrl.searchParams.get('organizations');

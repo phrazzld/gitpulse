@@ -3,7 +3,9 @@ import { fetchRepositories, fetchAppRepositories, Repository } from "@/lib/githu
 import { getAllAppInstallations, AppInstallation, createAuthenticatedOctokit, GitHubCredentials } from "@/lib/auth/githubAuth";
 import { logger } from "@/lib/logger";
 import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl, generateCacheKey } from "@/lib/cache";
-import { withAuthValidation } from "@/lib/auth/apiAuth";
+import { withAuthValidation, ApiRouteHandler } from "@/lib/auth/apiAuth";
+import { SessionInfo } from "@/types/api";
+import { safelyExtractError } from "@/lib/errors";
 
 const MODULE_NAME = "api:repos";
 
@@ -33,14 +35,14 @@ function optimizeRepositoryData(repo: Repository): OptimizedRepository {
   };
 }
 
-async function handleGetRepositories(request: NextRequest, session: any) {
+async function handleGetRepositories(request: NextRequest, session: SessionInfo) {
   logger.debug(MODULE_NAME, "GET /api/repos request received", { 
     url: request.url,
     headers: Object.fromEntries([...request.headers.entries()])
   });
   
   // Get installation ID from query parameter if present
-  let requestedInstallationId = request.nextUrl.searchParams.get('installation_id');
+  const requestedInstallationId = request.nextUrl.searchParams.get('installation_id');
   let installationId = requestedInstallationId ? parseInt(requestedInstallationId, 10) : session.installationId;
   
   // Create cache key parameters
@@ -142,7 +144,7 @@ async function handleGetRepositories(request: NextRequest, session: any) {
     // Create credentials object for authentication
     const credentials: GitHubCredentials = installationId
       ? { type: 'app', installationId }
-      : { type: 'oauth', token: session.accessToken };
+      : { type: 'oauth', token: session.accessToken ?? '' };
     
     // Log authentication method being used
     if (installationId) {
@@ -246,7 +248,7 @@ async function handleGetRepositories(request: NextRequest, session: any) {
     let statusCode = 500;
     let signOutRequired = false;
     let errorDetails = "";
-    let needsInstallation = false;
+    const needsInstallation = false;
 
     // Check for specific error types based on our custom error classes
     if (error instanceof GitHubConfigError) {
@@ -304,4 +306,5 @@ async function handleGetRepositories(request: NextRequest, session: any) {
 }
 
 // Export the authenticated handler
-export const GET = withAuthValidation(handleGetRepositories);
+// Type cast the handler to match the expected function signature
+export const GET = withAuthValidation(handleGetRepositories as ApiRouteHandler);

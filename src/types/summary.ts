@@ -1,4 +1,29 @@
 // Common types related to commit summaries and analysis
+import { MinimalCommit } from '@/lib/optimize';
+import { Commit } from '@/types/github';
+
+// Test commit format used in test files
+export interface TestCommit {
+  sha: string;
+  html_url: string;
+  commit: {
+    message: string;
+    author: {
+      name: string;
+      date: string;
+    };
+  };
+  repository?: {
+    name: string;
+    full_name: string;
+    html_url: string;
+  };
+  contributor?: {
+    username: string;
+    displayName: string;
+    avatarUrl: string;
+  };
+}
 
 export interface TechnicalArea {
   name: string;
@@ -27,7 +52,7 @@ export interface AISummary {
 
 export interface CommitSummary {
   user?: string;
-  commits: any[]; // TODO: Consider creating a more specific type for commits
+  commits: MinimalCommit[] | Commit[] | TestCommit[]; // Allow optimized, raw, and test formats
   stats: {
     totalCommits: number;
     repositories: string[];

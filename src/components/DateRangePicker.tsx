@@ -34,7 +34,10 @@ export default function DateRangePicker({
   }, [dateRange]);
   
   // Create debounced onChange handler (300ms delay)
-  const { callback: debouncedOnChange, pending: isDebouncing } = useDebounceCallback(
+  const { callback: debouncedOnChange, pending: isDebouncing } = useDebounceCallback<
+    (newDateRange: DateRange) => void, 
+    DateRange
+  >(
     onChange,
     DATE_DEBOUNCE_DELAY
   );

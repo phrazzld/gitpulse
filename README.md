@@ -44,17 +44,20 @@ GitPulse is a web application that generates summaries of GitHub commits for ind
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/phrazzld/gitpulse.git
 cd gitpulse
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Create a `.env.local` file in the project root (use `.env.local.example` as a template):
+
 ```
 # GitHub OAuth (required for personal auth)
 GITHUB_OAUTH_CLIENT_ID=your_github_client_id
@@ -74,6 +77,7 @@ GEMINI_API_KEY=your_gemini_api_key
 ```
 
 4. Run the development server:
+
 ```bash
 # Standard development server
 npm run dev
@@ -100,34 +104,41 @@ GitPulse supports two authentication methods: OAuth and GitHub App. Each has its
 ### Authentication Methods Overview
 
 #### OAuth Authentication (Default)
+
 Uses personal GitHub access tokens for authentication through the standard GitHub OAuth flow.
 
 **Use Cases:**
+
 - Individual developers accessing their personal repositories
 - Quick setup for personal or small team projects
 - When you need access to repositories you personally own or collaborate on
 
 **Advantages:**
+
 - Simpler setup (only requires OAuth App registration)
 - Works immediately with user's existing GitHub permissions
 - No additional installation steps for users
 
 **Configuration Requirements:**
+
 - `GITHUB_OAUTH_CLIENT_ID`: Your OAuth app's client ID
 - `GITHUB_OAUTH_CLIENT_SECRET`: Your OAuth app's client secret
 - `NEXTAUTH_SECRET`: A random string for NextAuth.js session encryption
 - `NEXTAUTH_URL`: Your application's base URL (e.g., `http://localhost:3000` for local development)
 
 #### GitHub App Authentication (Advanced)
+
 Uses GitHub App installations with installation tokens, providing more granular and organization-friendly permissions.
 
 **Use Cases:**
+
 - Organization administrators who need to provide repository access without personal tokens
 - Enterprise environments with strict security requirements
 - When you need fine-grained permissions at the organization level
 - Teams concerned about token expiration or personal token security
 
 **Advantages:**
+
 - More secure (no personal tokens stored in the session)
 - Repository access managed at the organization level
 - Fine-grained permission control
@@ -135,6 +146,7 @@ Uses GitHub App installations with installation tokens, providing more granular 
 - Tokens automatically refresh without user intervention
 
 **Configuration Requirements:**
+
 - `GITHUB_APP_ID`: The numeric ID of your GitHub App
 - `GITHUB_APP_PRIVATE_KEY_PKCS8`: The private key for your GitHub App (in PKCS8 format)
 - `NEXT_PUBLIC_GITHUB_APP_NAME`: The name of your GitHub App (displayed to users)
@@ -162,6 +174,7 @@ Uses GitHub App installations with installation tokens, providing more granular 
 1. Go to your [GitHub Developer Settings](https://github.com/settings/developers)
 2. Navigate to "GitHub Apps" and click "New GitHub App"
 3. Register with the following settings:
+
    - **GitHub App name**: GitPulse (or your preferred name)
    - **Homepage URL**: Your application URL
    - **Callback URL**: Same as your OAuth callback
@@ -192,7 +205,7 @@ Uses GitHub App installations with installation tokens, providing more granular 
 ### Authentication Flow
 
 1. **Initial Login**: The user signs in using GitHub OAuth authentication
-2. **Credential Selection**: 
+2. **Credential Selection**:
    - If only OAuth is configured, the app uses the OAuth token
    - If GitHub App is configured and installed, the user can choose between OAuth or GitHub App
 3. **Token Management**:
@@ -206,36 +219,36 @@ The following diagram illustrates the authentication process in GitPulse:
 ```mermaid
 flowchart TD
     Start([User accesses app]) --> HasSession{Has valid\nsession?}
-    
+
     HasSession -->|No| GithubOAuth[GitHub OAuth Login]
     HasSession -->|Yes| ValidateToken{Validate\nGitHub token}
-    
+
     GithubOAuth --> NextAuthCallback[NextAuth Callback]
     NextAuthCallback --> CheckInstallation[Check for GitHub\nApp installations]
     CheckInstallation --> StoreSession[Store token &\ninstallation ID\nin session]
     StoreSession --> ValidateToken
-    
+
     ValidateToken -->|Valid| ChooseAuthType{Choose auth\nmethod}
     ValidateToken -->|Invalid| SignOutRedirect[Sign out & redirect\nto login]
-    
+
     ChooseAuthType -->|OAuth| CreateOAuthOctokit[Create Octokit with\nOAuth token]
     ChooseAuthType -->|GitHub App| CreateAppOctokit[Create Octokit with\nApp installation]
-    
+
     CreateOAuthOctokit --> FetchGitHubData[Fetch GitHub data\nwith Octokit]
     CreateAppOctokit --> FetchGitHubData
-    
+
     FetchGitHubData --> ErrorCheck{Error\noccurred?}
     ErrorCheck -->|No| DisplayData[Display data\nto user]
     ErrorCheck -->|Auth error| SignOutRedirect
     ErrorCheck -->|Other error| DisplayError[Display error\nmessage]
-    
+
     subgraph "App Installation Flow"
         AppInstallButton[GitHub App\nInstall Button] --> RedirectToGitHub[Redirect to GitHub\nfor installation]
         RedirectToGitHub --> GitHubInstall[User installs app\non GitHub]
         GitHubInstall --> RedirectCallback[Redirect back\nto app]
         RedirectCallback --> RegisterInstallation[Register installation\nwith user]
     end
-    
+
     style Start fill:#d0f0c0
     style DisplayData fill:#c0d0f0
     style SignOutRedirect fill:#f0c0c0
@@ -243,6 +256,7 @@ flowchart TD
 ```
 
 The diagram shows:
+
 - Initial authentication using GitHub OAuth
 - Session validation and token management
 - Handling of both OAuth and GitHub App authentication methods
@@ -255,31 +269,34 @@ GitPulse provides detailed error messages to help diagnose authentication issues
 
 #### Common Error Messages
 
-| Error Code | Message | Meaning | Solution |
-|------------|---------|---------|----------|
-| `GITHUB_AUTH_ERROR` | "GitHub authentication failed" | General authentication failure | Sign out and sign back in |
-| `GITHUB_TOKEN_ERROR` | "GitHub token is invalid or expired" | OAuth token has expired or been revoked | Sign out and sign back in to get a new token |
-| `GITHUB_SCOPE_ERROR` | "GitHub token is missing required permissions" | Your OAuth token doesn't have the necessary permission scopes | Review and update OAuth app permissions |
-| `GITHUB_APP_CONFIG_ERROR` | "GitHub App not properly configured" | Missing or invalid GitHub App configuration | Check environment variables |
-| `GITHUB_RATE_LIMIT_ERROR` | "GitHub API rate limit exceeded" | You've hit GitHub's API rate limits | Wait for the rate limit to reset (time provided in error) |
-| `GITHUB_NOT_FOUND_ERROR` | "GitHub resource not found" | Repository or resource doesn't exist or you lack access | Verify the resource exists and you have permission |
+| Error Code                | Message                                        | Meaning                                                       | Solution                                                  |
+| ------------------------- | ---------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------- |
+| `GITHUB_AUTH_ERROR`       | "GitHub authentication failed"                 | General authentication failure                                | Sign out and sign back in                                 |
+| `GITHUB_TOKEN_ERROR`      | "GitHub token is invalid or expired"           | OAuth token has expired or been revoked                       | Sign out and sign back in to get a new token              |
+| `GITHUB_SCOPE_ERROR`      | "GitHub token is missing required permissions" | Your OAuth token doesn't have the necessary permission scopes | Review and update OAuth app permissions                   |
+| `GITHUB_APP_CONFIG_ERROR` | "GitHub App not properly configured"           | Missing or invalid GitHub App configuration                   | Check environment variables                               |
+| `GITHUB_RATE_LIMIT_ERROR` | "GitHub API rate limit exceeded"               | You've hit GitHub's API rate limits                           | Wait for the rate limit to reset (time provided in error) |
+| `GITHUB_NOT_FOUND_ERROR`  | "GitHub resource not found"                    | Repository or resource doesn't exist or you lack access       | Verify the resource exists and you have permission        |
 
 #### OAuth Authentication Issues
 
 If you encounter GitHub OAuth authentication errors:
 
-1. **Token Expiration**: 
+1. **Token Expiration**:
+
    - Symptom: "GitHub token is invalid or expired" error
    - Solution: Click the "Sign Out" button in the dashboard header and sign back in to refresh your token
 
 2. **Missing Permission Scopes**:
+
    - Symptom: "GitHub token is missing required permissions" error
-   - Solution: 
+   - Solution:
      - Go to your [GitHub OAuth App settings](https://github.com/settings/applications)
      - Find the GitPulse application and click "Revoke access"
      - Sign back into GitPulse to reauthorize with the correct scopes
 
 3. **Incorrect OAuth Application Configuration**:
+
    - Symptom: Redirect errors during login or "callback URL mismatch" errors
    - Solution:
      - Verify that the OAuth application's callback URL in GitHub matches your deployment URL
@@ -298,6 +315,7 @@ If you encounter GitHub OAuth authentication errors:
 If you encounter GitHub App authentication issues:
 
 1. **Installation Problems**:
+
    - Symptom: "No installations found" or cannot select GitHub App authentication
    - Solution:
      - Verify your GitHub App is installed on your account/organization
@@ -305,14 +323,16 @@ If you encounter GitHub App authentication issues:
      - Install or reinstall the app if needed
 
 2. **Permission Configuration**:
+
    - Symptom: "Resource not accessible by integration" or similar errors
    - Solution:
      - Go to [GitHub App settings](https://github.com/settings/apps)
-     - Select your app and check "Repository permissions" 
+     - Select your app and check "Repository permissions"
      - Ensure "Contents", "Metadata", and potentially "Pull requests" have at least Read-only access
      - If you update permissions, you'll need to accept the new permissions in your installation
 
 3. **Environment Variable Issues**:
+
    - Symptom: "GitHub App not properly configured" errors
    - Solution:
      - Verify the following variables are correctly set in `.env.local`:
@@ -322,6 +342,7 @@ If you encounter GitHub App authentication issues:
      - Check for typos and formatting issues, especially in the private key
 
 4. **Private Key Format Problems**:
+
    - Symptom: "Invalid private key" or signing errors
    - Solution:
      - Ensure your key is in PKCS8 format (convert if needed using OpenSSL)
@@ -361,6 +382,94 @@ The easiest way to deploy GitPulse is using Vercel:
 2. Import your repository on [Vercel](https://vercel.com/new)
 3. Set the environment variables in the Vercel project settings
 4. Deploy the application
+
+## Code Quality
+
+GitPulse maintains high code quality standards through automated checks at different stages of the development workflow.
+
+### Pre-commit Hooks
+
+We use [Husky](https://typicode.github.io/husky/) and [lint-staged](https://github.com/okonet/lint-staged) to run automated checks before each commit:
+
+```bash
+# Automatically installed when you run npm install
+npm install
+```
+
+Our pre-commit hooks perform the following checks on staged files:
+
+- **TypeScript files (.ts, .tsx):**
+
+  - ESLint with automatic fixing of minor issues
+  - TypeScript type checking
+  - File size check (warns if files exceed 300 lines)
+
+- **JavaScript files (.js, .jsx):**
+
+  - Prettier formatting
+  - File size check (warns if files exceed 300 lines)
+
+- **Other files (.json, .md, .css):**
+  - Prettier formatting
+
+The file size checker helps maintain code modularity by encouraging smaller, focused files. It provides warnings but doesn't block commits, allowing developers to make informed decisions about when refactoring is necessary.
+
+### TypeScript Configuration
+
+GitPulse uses TypeScript with strict type checking enabled:
+
+- **Strict Mode:** Enables comprehensive type checking including `noImplicitAny`, `strictNullChecks`, and other strict flags
+- **Additional Strictness:** Also enables `noImplicitReturns` and `noFallthroughCasesInSwitch` for extra type safety
+
+### ESLint Rules
+
+Our ESLint configuration enforces best practices aligned with our development philosophy:
+
+- **Type Safety:** Warns against using `any` types and type suppression directives
+- **Immutability:** Enforces `const` over `let` when variables aren't reassigned
+- **Code Complexity:** Limits function size (100 lines), file size (500 lines), cyclomatic complexity (10), and nesting depth (3)
+- **Naming Conventions:** Enforces consistent camelCase naming
+- **Function Purity:** Warns against parameter reassignment
+
+### Continuous Integration
+
+GitPulse uses GitHub Actions for continuous integration checks on every push and pull request:
+
+```mermaid
+flowchart TD
+    Push[Push to master/PR] --> CI[GitHub Actions CI]
+    CI --> Quality[Code Quality Checks]
+    Quality --> Lint[ESLint]
+    Quality --> TypeCheck[TypeScript Check]
+    Quality --> Test[Jest Tests]
+    Quality --> Build[Next.js Build]
+    Lint & TypeCheck & Test --> Success{All Checks Pass?}
+    Success -->|Yes| MergePR[Ready to Merge]
+    Success -->|No| FixIssues[Fix Issues]
+```
+
+The CI workflow includes these jobs:
+
+1. **Code Quality:** Runs linting, type checking, and tests
+2. **Build:** Verifies the application builds correctly
+
+### Running Quality Checks Locally
+
+You can run the same quality checks locally using these npm scripts:
+
+```bash
+# Run ESLint
+npm run lint
+
+# Run TypeScript type checking
+npm run typecheck
+
+# Run tests
+npm run test
+
+# Run all checks (lint, typecheck, test) in sequence
+npm run ci
+```
 
 ## Contributing
 

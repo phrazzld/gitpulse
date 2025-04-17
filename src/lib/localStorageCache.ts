@@ -113,7 +113,7 @@ export function isCacheValid(key: string): boolean {
     if (!serialized) return false;
     
     // Parse the entry
-    const entry = JSON.parse(serialized) as CacheEntry<any>;
+    const entry = JSON.parse(serialized) as CacheEntry<unknown>;
     const now = Date.now();
     
     // Check if the entry is still valid

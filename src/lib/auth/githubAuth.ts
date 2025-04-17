@@ -190,7 +190,7 @@ export async function createAuthenticatedOctokit(
     
     // This should never happen due to TypeScript's exhaustive checking,
     // but we include it for runtime safety
-    throw new GitHubError(`Unsupported authentication type: ${(credentials as any).type}`, { context });
+    throw new GitHubError(`Unsupported authentication type: ${(credentials as { type: string }).type}`, { context });
   } catch (error) {
     // Use existing error handling utility
     return handleGitHubError(error, context);
@@ -323,7 +323,7 @@ export async function getAllAppInstallations(
       
       // Handle both user and organization accounts
       // Safe assertion - we already checked inst.account is not null
-      const account = inst.account as any;
+      const account = inst.account as { login: string; type?: string; avatar_url: string };
       
       return {
         id: inst.id,

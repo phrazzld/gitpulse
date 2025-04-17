@@ -1,6 +1,7 @@
 'use client';
 
 import { signOut } from 'next-auth/react';
+import { safelyExtractError } from '../errors';
 
 /**
  * Type for API error responses
@@ -19,10 +20,11 @@ interface ApiErrorResponse {
  * @returns A standardized error object
  */
 export async function handleApiFetchError(
-  error: any,
+  error: unknown,
   response?: Response
 ): Promise<ApiErrorResponse> {
-  console.error('API Error:', error);
+  const { message, errorInstance } = safelyExtractError(error);
+  console.error('API Error:', errorInstance || message);
   
   let errorData: ApiErrorResponse = {
     error: 'Unknown error occurred',
@@ -34,8 +36,9 @@ export async function handleApiFetchError(
     try {
       // Try to parse the error response as JSON
       errorData = await response.json();
-    } catch (parseError) {
-      console.error('Error parsing error response:', parseError);
+    } catch (parseError: unknown) {
+      const { message: parseErrorMessage } = safelyExtractError(parseError);
+      console.error('Error parsing error response:', parseErrorMessage);
       errorData = {
         error: `Error ${response.status}: ${response.statusText}`,
         code: 'RESPONSE_PARSE_ERROR'
@@ -64,7 +67,8 @@ export async function handleApiFetchError(
     setTimeout(() => {
       signOut({ redirect: true, callbackUrl: window.location.origin + '/' })
         .catch(signOutError => {
-          console.error('Error during sign out:', signOutError);
+          const { message: signOutErrorMessage } = safelyExtractError(signOutError);
+          console.error('Error during sign out:', signOutErrorMessage);
         });
     }, 1500);
     
@@ -81,7 +85,7 @@ export async function handleApiFetchError(
  * @param options Fetch options
  * @returns A promise that resolves to the response data or throws an error
  */
-export async function authenticatedFetch<T = any>(
+export async function authenticatedFetch<T = unknown>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
@@ -94,7 +98,7 @@ export async function authenticatedFetch<T = any>(
     }
     
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     // If it's already been processed by handleApiFetchError, just rethrow
     if (error && typeof error === 'object' && 'code' in error) {
       throw error;
