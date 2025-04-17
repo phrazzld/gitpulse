@@ -63,15 +63,16 @@
     "*.{ts,tsx}": [
       "eslint",
       "bash -c 'tsc --skipLibCheck --noEmit'",
+      "prettier --write --end-of-line lf",
       "node ./scripts/check-file-size.js"
     ],
     "*.{js,jsx}": [
       "eslint",
-      "prettier --write",
+      "prettier --write --end-of-line lf",
       "node ./scripts/check-file-size.js"
     ],
     "*.{json,md,css}": [
-      "prettier --write"
+      "prettier --write --end-of-line lf"
     ]
   }
 }
