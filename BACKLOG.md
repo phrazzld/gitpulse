@@ -1,6 +1,5 @@
 # BACKLOG
 
-- Add GitHub Actions and pre-commit hooks for strict typing and linting
 - Redesign to something more modern and clean and professional
   - Raw Tailwind, or shadcn
 - Add proper landing page as unauthenticated home page
