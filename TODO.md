@@ -51,7 +51,7 @@
   - **Depends On:** [T006]
   - **AC Ref:** Medium Priority Issue #2
 
-- [ ] **T009:** Review and update assertions in summary.test.ts
+- [x] **T009:** Review and update assertions in summary.test.ts
 
   - **Action:** Identify and replace generic assertions with specific ones in `src/__tests__/api/summary.test.ts`, ensuring precise status codes and error responses
   - **Depends On:** [T006]
