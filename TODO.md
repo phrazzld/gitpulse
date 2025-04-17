@@ -14,7 +14,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** High Priority Issue #1
 
-- [ ] **T003:** Update Jest configuration for JSX files
+- [x] **T003:** Update Jest configuration for JSX files
 
   - **Action:** Verify and fix Jest configuration in `jest.config.js` to properly handle JSX files, including transform settings and moduleNameMapper
   - **Depends On:** [T001]
