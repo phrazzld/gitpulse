@@ -113,7 +113,7 @@ export default function RepositoryInfoPanel({
 
               {/* Repository stats summary */}
               {repositories.length > 0 && (
-                <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
+                <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
                   <div
                     className="border rounded px-2 py-1 flex flex-col items-center justify-center"
                     style={{ borderColor: "rgba(59, 142, 234, 0.3)" }}
@@ -134,26 +134,6 @@ export default function RepositoryInfoPanel({
                       className="font-bold"
                       style={{ color: "var(--electric-blue)" }}
                     >
-                      ORGS
-                    </div>
-                    <div>
-                      {
-                        new Set(
-                          repositories.map(
-                            (repo) => repo.full_name.split("/")[0],
-                          ),
-                        ).size
-                      }
-                    </div>
-                  </div>
-                  <div
-                    className="border rounded px-2 py-1 flex flex-col items-center justify-center"
-                    style={{ borderColor: "rgba(59, 142, 234, 0.3)" }}
-                  >
-                    <div
-                      className="font-bold"
-                      style={{ color: "var(--electric-blue)" }}
-                    >
                       PRIVATE
                     </div>
                     <div>
@@ -164,100 +144,71 @@ export default function RepositoryInfoPanel({
               )}
             </div>
 
-            {/* Repository list with organization grouping */}
+            {/* Repository list (alphabetically sorted) */}
             {showRepoList && (
               <div
                 className="max-h-60 overflow-y-auto"
                 style={{ color: "var(--foreground)" }}
               >
                 {repositories.length > 0 ? (
-                  (() => {
-                    // Group repositories by organization/owner
-                    const reposByOrg = repositories.reduce(
-                      (groups, repo) => {
-                        const orgName = repo.full_name.split("/")[0];
-                        if (!groups[orgName]) {
-                          groups[orgName] = [];
-                        }
-                        groups[orgName].push(repo);
-                        return groups;
-                      },
-                      {} as Record<string, Repository[]>,
-                    );
-
-                    // Sort organizations by repo count (descending)
-                    const sortedOrgs = Object.entries(reposByOrg).sort(
-                      ([, reposA], [, reposB]) => reposB.length - reposA.length,
-                    );
-
-                    return sortedOrgs.map(([org, repos]) => (
-                      <div key={org} className="mb-3">
-                        <div
-                          className="flex items-center px-2 py-1 mb-1"
-                          style={{
-                            backgroundColor: "rgba(59, 142, 234, 0.1)",
-                            color: "var(--electric-blue)",
-                          }}
-                        >
-                          <span className="font-bold">{org}</span>
-                          <span
-                            className="ml-2 text-xs px-1 rounded"
-                            style={{
-                              backgroundColor: "rgba(0, 0, 0, 0.3)",
-                            }}
+                  <div>
+                    <div
+                      className="px-2 py-1 mb-2"
+                      style={{
+                        backgroundColor: "rgba(0, 255, 135, 0.1)",
+                        color: "var(--neon-green)",
+                      }}
+                    >
+                      <span className="text-xs">ALL REPOSITORIES</span>
+                    </div>
+                    <ul className="pl-1">
+                      {/* Sort repositories alphabetically by full name */}
+                      {[...repositories]
+                        .sort((a, b) => a.full_name.localeCompare(b.full_name))
+                        .map((repo) => (
+                          <li
+                            key={repo.id}
+                            className="text-xs py-1 flex items-center justify-between"
                           >
-                            {repos.length}
-                          </span>
-                        </div>
-
-                        <ul className="pl-3">
-                          {repos.map((repo) => (
-                            <li
-                              key={repo.id}
-                              className="text-xs py-1 flex items-center justify-between"
-                            >
-                              <div className="flex items-center">
+                            <div className="flex items-center">
+                              <span
+                                className="inline-block w-2 h-2 mr-2"
+                                style={{
+                                  backgroundColor: repo.private
+                                    ? "var(--crimson-red)"
+                                    : "var(--neon-green)",
+                                }}
+                              ></span>
+                              <span>{repo.full_name}</span>
+                            </div>
+                            <div className="flex items-center">
+                              {repo.private && (
                                 <span
-                                  className="inline-block w-2 h-2 mr-2"
+                                  className="ml-2 text-xs px-1 rounded"
                                   style={{
-                                    backgroundColor: repo.private
-                                      ? "var(--crimson-red)"
-                                      : "var(--neon-green)",
+                                    color: "var(--crimson-red)",
+                                    backgroundColor: "rgba(255, 59, 48, 0.1)",
                                   }}
-                                ></span>
-                                <span>{repo.name}</span>
-                              </div>
-                              <div className="flex items-center">
-                                {repo.private && (
-                                  <span
-                                    className="ml-2 text-xs px-1 rounded"
-                                    style={{
-                                      color: "var(--crimson-red)",
-                                      backgroundColor: "rgba(255, 59, 48, 0.1)",
-                                    }}
-                                  >
-                                    PRIVATE
-                                  </span>
-                                )}
-                                {repo.language && (
-                                  <span
-                                    className="ml-2 text-xs px-1 rounded"
-                                    style={{
-                                      color: "var(--luminous-yellow)",
-                                      backgroundColor:
-                                        "rgba(255, 200, 87, 0.1)",
-                                    }}
-                                  >
-                                    {repo.language}
-                                  </span>
-                                )}
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ));
-                  })()
+                                >
+                                  PRIVATE
+                                </span>
+                              )}
+                              {repo.language && (
+                                <span
+                                  className="ml-2 text-xs px-1 rounded"
+                                  style={{
+                                    color: "var(--luminous-yellow)",
+                                    backgroundColor: "rgba(255, 200, 87, 0.1)",
+                                  }}
+                                >
+                                  {repo.language}
+                                </span>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
                 ) : repositories.length === 0 && !loading ? (
                   <div
                     className="p-3 text-center"

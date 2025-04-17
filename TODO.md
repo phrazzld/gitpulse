@@ -101,7 +101,7 @@
   - **Depends On:** None
   - **AC Ref:** Low Priority Issue #4
 
-- [ ] **T017:** Remove organization filter logic from RepositoryInfoPanel
+- [x] **T017:** Remove organization filter logic from RepositoryInfoPanel
 
   - **Action:** Identify and remove organization-related logic in `src/components/dashboard/RepositoryInfoPanel.tsx`, simplifying the component
   - **Depends On:** [T016]
