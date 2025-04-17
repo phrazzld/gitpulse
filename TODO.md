@@ -20,7 +20,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** High Priority Issue #1
 
-- [ ] **T004:** Check and update testing library dependencies
+- [x] **T004:** Check and update testing library dependencies
 
   - **Action:** Review package.json for testing library versions, checking for mismatches or incompatibilities, and update as needed
   - **Depends On:** [T001]
