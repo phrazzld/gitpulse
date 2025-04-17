@@ -1,12 +1,5 @@
 import React from 'react';
-import { render, screen, within, conditionalTest } from '../../../__tests__/test-utils';
-
-/**
- * Using conditionalTest instead of it to skip tests in CI environment
- * This is a temporary workaround for the React JSX transform error:
- * "A React Element from an older version of React was rendered"
- * See: CI-FIXES-TODO.md task CI002
- */
+import { render, screen, within, it } from '../../../__tests__/test-utils';
 import SummaryDisplay from '@/components/dashboard/SummaryDisplay';
 import { mockSummary, mockActivityCommits, mockDateRange, mockActiveFilters } from '../../../__tests__/test-utils';
 import type { ActivityCommit } from '@/components/ActivityFeed';
@@ -84,7 +77,7 @@ describe('SummaryDisplay', () => {
     jest.clearAllMocks();
   });
 
-  conditionalTest('returns null when summary is null', () => {
+  it('returns null when summary is null', () => {
     const { container } = render(
       <SummaryDisplay
         summary={null}
@@ -96,7 +89,7 @@ describe('SummaryDisplay', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  conditionalTest('renders with minimal summary data (without AI summary)', () => {
+  it('renders with minimal summary data (without AI summary)', () => {
     const minimalSummary = {
       user: 'Test User',
       commits: mockActivityCommits,
@@ -149,7 +142,7 @@ describe('SummaryDisplay', () => {
     expect(screen.queryByText('COMPREHENSIVE ANALYSIS')).not.toBeInTheDocument();
   });
 
-  conditionalTest('renders with full summary data including AI summary', () => {
+  it('renders with full summary data including AI summary', () => {
     render(
       <SummaryDisplay
         summary={mockSummary}
@@ -231,7 +224,7 @@ describe('SummaryDisplay', () => {
     expect(within(analysisSection as HTMLElement).getByText(mockSummary.aiSummary.overallSummary)).toBeInTheDocument();
   });
 
-  conditionalTest('configures ActivityFeed correctly', () => {
+  it('configures ActivityFeed correctly', () => {
     render(
       <SummaryDisplay
         summary={mockSummary}
@@ -255,7 +248,7 @@ describe('SummaryDisplay', () => {
 
   // Test for team-activity mode removed as it's no longer supported
 
-  conditionalTest('handles organization filter parameters when provided', () => {
+  it('handles organization filter parameters when provided', () => {
     render(
       <SummaryDisplay
         summary={mockSummary}
@@ -277,7 +270,7 @@ describe('SummaryDisplay', () => {
     // but in real usage, it would pass the organizations filter
   });
 
-  conditionalTest('renders timeline highlights correctly', () => {
+  it('renders timeline highlights correctly', () => {
     render(
       <SummaryDisplay
         summary={mockSummary}

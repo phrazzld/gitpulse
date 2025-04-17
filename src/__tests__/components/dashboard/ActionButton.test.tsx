@@ -1,16 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, conditionalTest } from '../../../__tests__/test-utils';
-
-/**
- * Using conditionalTest instead of it to skip tests in CI environment
- * This is a temporary workaround for the React JSX transform error:
- * "A React Element from an older version of React was rendered"
- * See: CI-FIXES-TODO.md task CI002
- */
+import { render, screen, fireEvent, it } from '../../../__tests__/test-utils';
 import ActionButton from '@/components/dashboard/ActionButton';
 
 describe('ActionButton', () => {
-  conditionalTest('renders correctly in normal state', () => {
+  it('renders correctly in normal state', () => {
     render(<ActionButton loading={false} />);
     
     // Check that the button is rendered with the correct text
@@ -24,7 +17,7 @@ describe('ActionButton', () => {
     expect(button.querySelectorAll('svg')).toHaveLength(2);
   });
 
-  conditionalTest('renders correctly in loading state', () => {
+  it('renders correctly in loading state', () => {
     render(<ActionButton loading={true} />);
     
     // Check that the button is rendered with the loading text
@@ -39,7 +32,7 @@ describe('ActionButton', () => {
     expect(spinner).toBeInTheDocument();
   });
 
-  conditionalTest('has correct styling in normal and loading states', () => {
+  it('has correct styling in normal and loading states', () => {
     const { rerender } = render(<ActionButton loading={false} />);
     
     // Normal state button should have neon-green text

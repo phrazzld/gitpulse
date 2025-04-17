@@ -1,12 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, conditionalTest } from '../../../__tests__/test-utils';
-
-/**
- * Using conditionalTest instead of it to skip tests in CI environment
- * This is a temporary workaround for the React JSX transform error:
- * "A React Element from an older version of React was rendered"
- * See: CI-FIXES-TODO.md task CI002
- */
+import { render, screen, fireEvent, it } from '../../../__tests__/test-utils';
 import RepositoryInfoPanel from '@/components/dashboard/RepositoryInfoPanel';
 import { mockRepositories, mockActiveFilters } from '../../../__tests__/test-utils';
 
@@ -17,7 +10,7 @@ describe('RepositoryInfoPanel', () => {
     jest.clearAllMocks();
   });
 
-  conditionalTest('renders repository count correctly', () => {
+  it('renders repository count correctly', () => {
     render(
       <RepositoryInfoPanel
         repositories={mockRepositories}
@@ -32,7 +25,7 @@ describe('RepositoryInfoPanel', () => {
     expect(screen.getByText(`DETECTED: ${mockRepositories.length}`)).toBeInTheDocument();
   });
 
-  conditionalTest('toggles repository list visibility when button is clicked', () => {
+  it('toggles repository list visibility when button is clicked', () => {
     const { rerender } = render(
       <RepositoryInfoPanel
         repositories={mockRepositories}
@@ -77,7 +70,7 @@ describe('RepositoryInfoPanel', () => {
     expect(mockSetShowRepoList).toHaveBeenCalledWith(true);
   });
 
-  conditionalTest('shows loading state correctly', () => {
+  it('shows loading state correctly', () => {
     render(
       <RepositoryInfoPanel
         repositories={[]}
@@ -92,7 +85,7 @@ describe('RepositoryInfoPanel', () => {
     expect(screen.getByText('SCANNING REPOSITORIES...')).toBeInTheDocument();
   });
 
-  conditionalTest('shows empty state when no repositories are found', () => {
+  it('shows empty state when no repositories are found', () => {
     render(
       <RepositoryInfoPanel
         repositories={[]}
@@ -107,7 +100,7 @@ describe('RepositoryInfoPanel', () => {
     expect(screen.getByText('NO REPOSITORIES DETECTED')).toBeInTheDocument();
   });
 
-  conditionalTest('displays repository list when showRepoList is true', () => {
+  it('displays repository list when showRepoList is true', () => {
     render(
       <RepositoryInfoPanel
         repositories={mockRepositories}
@@ -128,7 +121,7 @@ describe('RepositoryInfoPanel', () => {
     expect(screen.getByText(orgName)).toBeInTheDocument();
   });
 
-  conditionalTest('displays active filters when present', () => {
+  it('displays active filters when present', () => {
     const filtersWithData = {
       ...mockActiveFilters,
       contributors: ['me'],

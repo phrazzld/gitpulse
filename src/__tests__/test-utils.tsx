@@ -6,30 +6,33 @@ type ProvidersProps = {
   children: React.ReactNode;
 };
 
-// Add in any providers here if needed
-const Providers: React.FC<ProvidersProps> = ({ children }) => {
-  return (
-    <React.Fragment>{children}</React.Fragment>
-  );
-};
-
 // Custom render that includes providers
+// Use a direct function wrapper instead of a separate component to avoid JSX transform issues
 const customRender = (
   ui: ReactElement,
   options?: Omit<RTLRenderOptions, 'wrapper'>,
 ) => {
-  return rtlRender(ui, { wrapper: Providers, ...options });
+  const Wrapper = ({ children }: ProvidersProps) => (
+    <React.Fragment>{children}</React.Fragment>
+  );
+  
+  return rtlRender(ui, { wrapper: Wrapper, ...options });
 };
 
 /**
- * Returns either it or it.skip based on the CI environment
- * This is a temporary workaround for the React JSX transform error in CI:
- * "A React Element from an older version of React was rendered"
+ * DEPRECATED: conditionalTest was removed as part of T005
+ * It was previously used as a workaround for React JSX transform errors in CI
+ * ("A React Element from an older version of React was rendered")
  * 
- * This allows tests to run locally but be skipped in CI until a more permanent
- * solution is implemented (CI002)
+ * These issues have been resolved by:
+ * - Updated Babel configuration for React 19 (T002)
+ * - Updated Jest configuration for JSX files (T003)
+ * - Updated testing library dependencies (T004)
+ * 
+ * All tests now use the standard Jest 'it' function directly.
  */
-export const conditionalTest = process.env.CI === 'true' ? it.skip : it;
+// Export it directly to make refactoring easier
+export const it = global.it;
 
 // Mock session data
 export const mockSession = {

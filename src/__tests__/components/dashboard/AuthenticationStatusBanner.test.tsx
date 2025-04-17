@@ -1,12 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, conditionalTest } from '../../../__tests__/test-utils';
-
-/**
- * Using conditionalTest instead of it to skip tests in CI environment
- * This is a temporary workaround for the React JSX transform error:
- * "A React Element from an older version of React was rendered"
- * See: CI-FIXES-TODO.md task CI002
- */
+import { render, screen, fireEvent, it } from '../../../__tests__/test-utils';
 import AuthenticationStatusBanner from '@/components/dashboard/AuthenticationStatusBanner';
 
 describe('AuthenticationStatusBanner', () => {
@@ -19,7 +12,7 @@ describe('AuthenticationStatusBanner', () => {
     jest.clearAllMocks();
   });
 
-  conditionalTest('renders nothing when no error or auth method is provided', () => {
+  it('renders nothing when no error or auth method is provided', () => {
     const { container } = render(
       <AuthenticationStatusBanner
         error={null}
@@ -35,7 +28,7 @@ describe('AuthenticationStatusBanner', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  conditionalTest('renders error message correctly', () => {
+  it('renders error message correctly', () => {
     const errorMsg = 'Test error message';
     render(
       <AuthenticationStatusBanner
@@ -52,7 +45,7 @@ describe('AuthenticationStatusBanner', () => {
     expect(screen.getByText('SYSTEM ALERT: ' + errorMsg)).toBeInTheDocument();
   });
 
-  conditionalTest('renders install button when needsInstallation is true', () => {
+  it('renders install button when needsInstallation is true', () => {
     render(
       <AuthenticationStatusBanner
         error={'GitHub App installation required'}
@@ -72,7 +65,7 @@ describe('AuthenticationStatusBanner', () => {
     expect(installButton).toHaveAttribute('href', 'https://github.com/apps/test-app/installations/new');
   });
 
-  conditionalTest('renders "APP NOT CONFIGURED" message when GitHub App is not configured', () => {
+  it('renders "APP NOT CONFIGURED" message when GitHub App is not configured', () => {
     const mockGetUnconfiguredUrl = jest.fn().mockReturnValue('#github-app-not-configured');
     
     render(
@@ -90,7 +83,7 @@ describe('AuthenticationStatusBanner', () => {
     expect(screen.getByText('APP NOT CONFIGURED')).toBeInTheDocument();
   });
 
-  conditionalTest('renders reinitialize button for authentication errors', () => {
+  it('renders reinitialize button for authentication errors', () => {
     const authError = 'GitHub authentication issue detected';
     
     render(
@@ -116,7 +109,7 @@ describe('AuthenticationStatusBanner', () => {
     expect(mockSignOutCallback).toHaveBeenCalledWith({ callbackUrl: '/' });
   });
 
-  conditionalTest('renders GitHub App authentication banner', () => {
+  it('renders GitHub App authentication banner', () => {
     render(
       <AuthenticationStatusBanner
         error={null}
@@ -132,7 +125,7 @@ describe('AuthenticationStatusBanner', () => {
     expect(screen.getByText('GITHUB APP INTEGRATION ACTIVE')).toBeInTheDocument();
   });
 
-  conditionalTest('renders OAuth authentication banner with upgrade button', () => {
+  it('renders OAuth authentication banner with upgrade button', () => {
     render(
       <AuthenticationStatusBanner
         error={null}

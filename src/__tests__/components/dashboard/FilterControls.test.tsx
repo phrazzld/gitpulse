@@ -1,12 +1,5 @@
 import React from 'react';
-import { render, screen, conditionalTest } from '../../../__tests__/test-utils';
-
-/**
- * Using conditionalTest instead of it to skip tests in CI environment
- * This is a temporary workaround for the React JSX transform error:
- * "A React Element from an older version of React was rendered"
- * See: CI-FIXES-TODO.md task CI002
- */
+import { render, screen, it } from '../../../__tests__/test-utils';
 import FilterControls from '@/components/dashboard/FilterControls';
 import { mockSession, mockDateRange, mockActiveFilters } from '../../../__tests__/test-utils';
 import { Installation } from '@/types/github';
@@ -51,7 +44,7 @@ describe('FilterControls', () => {
     jest.clearAllMocks();
   });
 
-  conditionalTest('renders with my-activity mode correctly', () => {
+  it('renders with my-activity mode correctly', () => {
     render(
       <FilterControls
         activityMode="my-activity"
@@ -77,7 +70,7 @@ describe('FilterControls', () => {
   // Test for team-activity mode removed as it's no longer supported
 
 
-  conditionalTest('calls handleDateRangeChange when date range is changed', () => {
+  it('calls handleDateRangeChange when date range is changed', () => {
     render(
       <FilterControls
         activityMode="my-activity"
@@ -103,7 +96,7 @@ describe('FilterControls', () => {
 
   // Test for OrganizationPicker removed as component has been deleted
 
-  conditionalTest('displays parameters panel with correct information', () => {
+  it('displays parameters panel with correct information', () => {
     render(
       <FilterControls
         activityMode="my-activity"

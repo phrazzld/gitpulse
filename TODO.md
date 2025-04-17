@@ -26,7 +26,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** High Priority Issue #1
 
-- [ ] **T005:** Remove conditionalTest mechanism
+- [x] **T005:** Remove conditionalTest mechanism
 
   - **Action:** Remove all instances of `conditionalTest` that are used to skip tests in CI, ensuring tests run unconditionally
   - **Depends On:** [T002, T003, T004]
