@@ -86,7 +86,7 @@
   - **Depends On:** [T005, T009, T010, T011]
   - **AC Ref:** Plan Phase 3, Step 6
 
-- [ ] **T013:** Preserve authentication in githubAuth.ts
+- [x] **T013:** Preserve authentication in githubAuth.ts
 
   - **Action:** In `src/lib/auth/githubAuth.ts`:
     - Maintain both OAuth and GitHub App authentication mechanisms
