@@ -115,7 +115,7 @@
   - **Depends On:** [T012]
   - **AC Ref:** Plan Phase 4, Step 9
 
-- [ ] **T016:** Update summary types
+- [x] **T016:** Update summary types
 
   - **Action:** Review and update types in `src/types/summary.ts`:
     - Modify types specific to organizations and teams

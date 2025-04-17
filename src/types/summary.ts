@@ -1,4 +1,9 @@
-// Common types related to commit summaries and analysis
+/**
+ * Common types related to commit summaries and analysis
+ * 
+ * This file defines types for commit summaries and analyses, with a focus on individual activity.
+ * Some legacy types for team/org features are maintained but marked as deprecated.
+ */
 import { MinimalCommit } from '@/lib/optimize';
 import { Commit } from '@/types/github';
 
@@ -18,6 +23,9 @@ export interface TestCommit {
     full_name: string;
     html_url: string;
   };
+  /**
+   * @deprecated Contributor information is no longer supported in the individual-focused MVP
+   */
   contributor?: {
     username: string;
     displayName: string;
@@ -62,7 +70,13 @@ export interface CommitSummary {
   authMethod?: string;
   installationId?: number | null;
   filterInfo?: {
+    /**
+     * @deprecated Contributors filtering is no longer supported in the individual-focused MVP
+     */
     contributors: string[] | null;
+    /**
+     * @deprecated Organizations filtering is no longer supported in the individual-focused MVP
+     */
     organizations: string[] | null;
     repositories: string[] | null;
     dateRange: { since: string, until: string };
