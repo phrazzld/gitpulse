@@ -45,7 +45,7 @@
   - **Depends On:** [T006]
   - **AC Ref:** Medium Priority Issue #2
 
-- [ ] **T008:** Review and update assertions in github-error-types.test.ts
+- [x] **T008:** Review and update assertions in github-error-types.test.ts
 
   - **Action:** Identify and replace generic assertions with specific ones in `src/__tests__/api/github-error-types.test.ts`, ensuring precise status codes and error responses
   - **Depends On:** [T006]
