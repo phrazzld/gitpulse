@@ -231,7 +231,7 @@ describe('SummaryDisplay', () => {
     expect(within(analysisSection as HTMLElement).getByText(mockSummary.aiSummary.overallSummary)).toBeInTheDocument();
   });
 
-  conditionalTest('configures ActivityFeed correctly for my-activity mode', () => {
+  conditionalTest('configures ActivityFeed correctly', () => {
     render(
       <SummaryDisplay
         summary={mockSummary}
@@ -248,35 +248,18 @@ describe('SummaryDisplay', () => {
     expect(screen.getByText('Show Repository: true')).toBeInTheDocument();
     expect(screen.getByText('Show Contributor: false')).toBeInTheDocument();
 
-    // Check for the specific empty message format using the specific test ID
+    // Check for the generic empty message
     const emptyMessageElement = screen.getByTestId('empty-message');
-    expect(emptyMessageElement.textContent).toContain('No my activity data found for the selected filters.');
+    expect(emptyMessageElement.textContent).toContain('No activity data found for the selected filters.');
   });
 
-  conditionalTest('configures ActivityFeed correctly for team-activity mode', () => {
+  // Test for team-activity mode removed as it's no longer supported
+
+  conditionalTest('handles organization filter parameters when provided', () => {
     render(
       <SummaryDisplay
         summary={mockSummary}
-        activityMode="team-activity"
-        dateRange={mockDateRange}
-        activeFilters={mockActiveFilters}
-        installationIds={[123]}
-      />
-    );
-    
-    // Check ActivityFeed configuration for team-activity mode
-    expect(screen.getByText('Show Contributor: true')).toBeInTheDocument();
-    
-    // Check for the specific empty message format using the specific test ID
-    const emptyMessageElement = screen.getByTestId('empty-message');
-    expect(emptyMessageElement.textContent).toContain('No team activity data found for the selected filters.');
-  });
-
-  conditionalTest('renders organization filter parameters when provided', () => {
-    render(
-      <SummaryDisplay
-        summary={mockSummary}
-        activityMode="team-activity"
+        activityMode="my-activity"
         dateRange={mockDateRange}
         activeFilters={{ 
           ...mockActiveFilters,
@@ -286,7 +269,7 @@ describe('SummaryDisplay', () => {
       />
     );
     
-    // Activity feed params should include organizations
+    // Activity feed params should include organizations for backward compatibility
     const fetchButton = screen.getByTestId('fetch-commits-button');
     fetchButton.click();
     

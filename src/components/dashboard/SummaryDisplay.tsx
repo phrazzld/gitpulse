@@ -60,13 +60,13 @@ export default function SummaryDisplay({
           
           <ActivityFeed
             loadCommits={(cursor, limit) => {
-              // Build appropriate parameters based on current mode
+              // Build parameters for API request
               const params: Record<string, string> = {
                 since: dateRange.since,
                 until: dateRange.until
               };
               
-              // Add organization filter if applicable
+              // Add organization filter if applicable (kept for backward compatibility)
               if (activeFilters.organizations.length > 0) {
                 params.organizations = activeFilters.organizations.join(',');
               }
@@ -76,7 +76,7 @@ export default function SummaryDisplay({
                 params.installation_ids = installationIds.join(',');
               }
               
-              // Only using my-activity endpoint for individual focus
+              // Always use my-activity endpoint
               const apiEndpoint = '/api/my-activity';
               
               // Create and return the fetcher

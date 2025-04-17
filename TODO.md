@@ -69,7 +69,7 @@
   - **Depends On:** [T007, T008]
   - **AC Ref:** Plan Phase 2, Step 5
 
-- [ ] **T011:** Refactor SummaryDisplay component
+- [x] **T011:** Refactor SummaryDisplay component
   - **Action:** In `src/components/dashboard/SummaryDisplay.tsx`, remove any conditional rendering logic that displays team or organization-specific data. Ensure it correctly displays summaries based only on individual activity data.
   - **Depends On:** [T009]
   - **AC Ref:** Plan Phase 2, Step 5
