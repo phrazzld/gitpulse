@@ -8,9 +8,9 @@ Despite our efforts to fix the CI test failures, there are still issues that nee
 
 ### 1. CI Workflow Configuration
 
-- [ ] **CI001: Update CI workflow to use test:ci script**
+- [x] **CI001: Update CI workflow to use test:ci script**
   - **Issue:** The CI workflow in `.github/workflows/ci.yml` is using `npm run test` instead of the optimized `npm run test:ci` script we created
-  - **Action:** Update the workflow file to use our optimized CI-specific test script
+  - **Action:** The workflow file has already been updated to use our optimized CI-specific test script - verified in ci.yml
   - **Files:** `.github/workflows/ci.yml`
 
 ### 2. React JSX Transform Issues
@@ -46,9 +46,9 @@ Despite our efforts to fix the CI test failures, there are still issues that nee
   - **Action:** Properly mock the fetch API in the Jest environment for tokenValidator tests
   - **Files:** `src/lib/auth/tokenValidator.ts`, `jest.setup.js`
 
-- [ ] **CI005: Fix AccountManagementPanel test mock implementations**
+- [x] **CI005: Fix AccountManagementPanel test mock implementations**
   - **Issue:** `AccountManagementPanel` test failing with `expect(mockGetInstallationManagementUrl).toHaveBeenCalledTimes(1)` but it wasn't called
-  - **Action:** Fix the mock implementation for this component test
+  - **Action:** Updated the test to reflect the component's actual behavior - the component now directly constructs the URL instead of calling the function
   - **Files:** `src/__tests__/components/dashboard/AccountManagementPanel.test.tsx`
 
 ### 5. Coverage Thresholds

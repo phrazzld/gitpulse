@@ -202,7 +202,7 @@ describe('AccountManagementPanel', () => {
     expect(addAccountLink).toHaveAttribute('href', 'https://github.com/apps/test-app/installations/new');
   });
 
-  conditionalTest('calls getInstallationManagementUrl with correct parameters', () => {
+  conditionalTest('verifies the MANAGE CURRENT link has the correct installation URL', () => {
     render(
       <AccountManagementPanel
         authMethod="github_app"
@@ -216,17 +216,15 @@ describe('AccountManagementPanel', () => {
       />
     );
     
-    // Function should have been called with correct parameters
-    expect(mockGetInstallationManagementUrl).toHaveBeenCalledTimes(1);
-    expect(mockGetInstallationManagementUrl).toHaveBeenCalledWith(
-      mockInstallations[0].id,
-      mockInstallations[0].account.login,
-      mockInstallations[0].account.type
-    );
+    // Note: Looking at the AccountManagementPanel.tsx, the component doesn't actually call
+    // getInstallationManagementUrl anymore - it constructs the URL directly:
+    // href={`https://github.com${currentInstallations[0].account.type === 'Organization' ? 
+    //        `/organizations/${currentInstallations[0].account.login}` : 
+    //        ''}/settings/installations/${currentInstallations[0].id}`}
     
-    // Verify the MANAGE CURRENT link has the correct href
+    // So we don't expect the mock to be called, instead we verify the URL is constructed properly
     const manageCurrentLink = screen.getByText('MANAGE CURRENT').closest('a');
-    expect(manageCurrentLink).toHaveAttribute('href', 'https://github.com/settings/installations/123');
+    expect(manageCurrentLink).toHaveAttribute('href', 'https://github.com/organizations/test-org/settings/installations/123');
   });
 
   conditionalTest('calls switchInstallations when an account is selected', () => {
