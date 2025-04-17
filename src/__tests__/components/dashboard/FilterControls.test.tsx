@@ -64,8 +64,8 @@ describe('FilterControls', () => {
       />
     );
     
-    // Should display MY ACTIVITY mode
-    expect(screen.getByText('MY ACTIVITY')).toBeInTheDocument();
+    // Should display MY ACTIVITY mode (use query to handle multiple elements with same text)
+    expect(screen.queryAllByText('MY ACTIVITY').length).toBeGreaterThan(0);
     
     // Should display date range picker
     expect(screen.getByTestId('date-range-picker')).toBeInTheDocument();
@@ -119,8 +119,8 @@ describe('FilterControls', () => {
     // Should display analysis parameters section
     expect(screen.getByText('ANALYSIS PARAMETERS')).toBeInTheDocument();
     
-    // Should display mode
-    expect(screen.getByText('MY ACTIVITY')).toBeInTheDocument();
+    // Should display mode (use query to handle multiple elements with same text)
+    expect(screen.queryAllByText('MY ACTIVITY').length).toBeGreaterThan(0);
     
     // Should display date range
     expect(screen.getByText(`${mockDateRange.since} to ${mockDateRange.until}`)).toBeInTheDocument();
