@@ -186,11 +186,12 @@
   - **AC Ref:** Plan Phase 6, Step 13
   - **Note:** Verified that TypeScript type checking passes without any errors after the individual-focused MVP refactoring.
 
-- [ ] **T025:** Run linting
+- [x] **T025:** Run linting
 
   - **Action:** Run linting using `npm run lint`. Fix any reported issues.
   - **Depends On:** [T017]
   - **AC Ref:** Plan Phase 6, Step 13
+  - **Note:** Verified that linting passes without any errors or warnings after the individual-focused MVP refactoring.
 
 - [ ] **T026:** Perform manual testing
 
