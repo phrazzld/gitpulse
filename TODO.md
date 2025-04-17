@@ -106,7 +106,7 @@
 
 ## Type and Helper Cleanup
 
-- [ ] **T015:** Update API and GitHub types
+- [x] **T015:** Update API and GitHub types
 
   - **Action:** Review and update types in `src/types/api.ts` and `src/types/github.ts`:
     - Modify types specific to organizations and teams where needed

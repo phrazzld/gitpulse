@@ -20,6 +20,10 @@ export type InstallationAccount = {
 
 /**
  * GitHub App installation information
+ * 
+ * Note: While the targetType can be 'User' or 'Organization', in the individual-focused MVP
+ * we primarily work with User installations, though Organization installations are still supported
+ * for backward compatibility.
  */
 export type Installation = {
   id: number;

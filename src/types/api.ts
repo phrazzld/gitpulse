@@ -61,6 +61,9 @@ export interface DateRangeParams {
 export interface FilterParams {
   repositories?: string[];
   users?: string[];
+  /**
+   * @deprecated Organizations filtering is no longer supported in the individual-focused MVP
+   */
   organizations?: string[];
   dateRange?: DateRangeParams;
 }
