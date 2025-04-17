@@ -121,14 +121,7 @@ async function validateTokenScopes(
       );
     }
 
-    if (!scopes.includes("read:org")) {
-      logger.warn(
-        MODULE_NAME,
-        "GitHub token is missing 'read:org' scope. This may limit access to organization data.",
-        context,
-      );
-      // Note: We're not throwing an error for missing read:org, just warning
-    }
+    // 'read:org' scope check removed as part of T012 (individual activity focus)
     
     return userInfo.data;
   } catch (userInfoError) {
@@ -179,76 +172,10 @@ async function fetchUserRepositories(
   return combinedRepos;
 }
 
-/**
- * Fetches repositories from organizations the user belongs to.
- * 
- * @param octokit Authenticated Octokit instance
- * @param context Logging context information
- * @returns Promise that resolves to array of repositories
+/* 
+ * Organization repository fetching removed as part of T012 (refactor GitHub data fetching)
+ * to support individual activity focus.
  */
-async function fetchOrganizationRepositories(
-  octokit: Octokit, 
-  context: Record<string, unknown>
-): Promise<Repository[]> {
-  let orgRepositories: Repository[] = [];
-  
-  try {
-    const orgs = await octokit.paginate(
-      octokit.rest.orgs.listForAuthenticatedUser,
-      {
-        per_page: 100,
-      },
-    );
-    
-    logger.info(MODULE_NAME, "Fetched user organizations", {
-      ...context,
-      count: orgs.length,
-      orgs: orgs.map((o) => o.login),
-    });
-
-    for (const org of orgs) {
-      try {
-        const orgRepos = await octokit.paginate(
-          octokit.rest.repos.listForOrg,
-          {
-            org: org.login,
-            per_page: 100,
-            sort: "updated",
-            type: "all", // private + public + forks, etc. as long as your token can see them
-          },
-        );
-        
-        logger.info(MODULE_NAME, `Fetched repos for org: ${org.login}`, {
-          ...context,
-          count: orgRepos.length,
-        });
-        
-        // Make sure we're creating a proper array of repositories
-        if (Array.isArray(orgRepos)) {
-          orgRepositories = [...orgRepositories, ...orgRepos];
-        } else if (orgRepos) {
-          // If it's a single repo, add it to the array
-          orgRepositories.push(orgRepos as Repository);
-        }
-      } catch (orgError) {
-        // Non-fatal error, just log and continue
-        logger.warn(
-          MODULE_NAME,
-          `Error fetching repos for org: ${org.login}`,
-          { ...context, error: orgError },
-        );
-      }
-    }
-  } catch (orgListError) {
-    // Non-fatal error, just log and continue
-    logger.warn(MODULE_NAME, "Failed to list user orgs", {
-      ...context,
-      error: orgListError,
-    });
-  }
-  
-  return orgRepositories;
-}
 
 /**
  * Deduplicates repositories by full_name.
@@ -553,14 +480,13 @@ export interface Commit {
  * console.log(`Found ${repositories.length} repositories`);
  */
 /**
- * Fetches all accessible repositories for the authenticated user across personal and organization accounts.
+ * Fetches all accessible repositories for the authenticated user.
  * 
  * This comprehensive function:
  * 1. Checks current GitHub API rate limits to avoid unexpected throttling
  * 2. Validates OAuth token scopes to ensure sufficient permissions
  * 3. Fetches repositories the user has access to via all affiliations
- * 4. Fetches repositories from all organizations the user belongs to
- * 5. Deduplicates repositories to provide a clean, unified list
+ * 4. Focuses on individual user's repositories (organization repositories fetching removed)
  * 
  * @param octokit - An authenticated Octokit instance (OAuth token-based auth)
  * @returns A promise resolving to an array of Repository objects the user can access
@@ -586,15 +512,12 @@ export async function fetchRepositories(
     // Validate token scopes (throws if required scopes are missing)
     await validateTokenScopes(octokit, context);
     
-    // Step 1: Get repositories through the combined affiliations approach
+    // Get repositories through the combined affiliations approach
+    // Note: Organization repositories fetching was removed as part of T012 (individual activity focus)
     const userRepos = await fetchUserRepositories(octokit, context);
     
-    // Step 2: Get repositories from organizations the user belongs to
-    const orgRepos = await fetchOrganizationRepositories(octokit, context);
-    
-    // Step 3: Combine and deduplicate repositories
-    const allRepos = [...userRepos, ...orgRepos];
-    return deduplicateRepositories(allRepos, context);
+    // Return repositories (no need to deduplicate as we're only using one source)
+    return userRepos;
   } catch (error) {
     return handleGitHubError(error, context);
   }

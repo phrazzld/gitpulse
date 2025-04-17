@@ -76,7 +76,7 @@
 
 ## Backend Logic Refactoring
 
-- [ ] **T012:** Refactor GitHub data fetching
+- [x] **T012:** Refactor GitHub data fetching
 
   - **Action:** In `src/lib/githubData.ts`:
     - Remove functions solely for organization or team activity (e.g., `fetchOrgActivity`, `fetchTeamActivity`)
