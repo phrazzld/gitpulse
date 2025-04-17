@@ -74,27 +74,7 @@ describe('FilterControls', () => {
     // Organization picker has been removed from the application
   });
 
-  conditionalTest('renders with team-activity mode correctly (with organization picker)', () => {
-    render(
-      <FilterControls
-        activityMode="team-activity"
-        dateRange={mockDateRange}
-        activeFilters={mockActiveFilters}
-        installations={mockInstallations}
-        loading={false}
-        handleDateRangeChange={mockHandleDateRangeChange}
-        session={mockSession}
-      />
-    );
-    
-    // Should display activity mode
-    expect(screen.getByText('ACTIVITY MODE')).toBeInTheDocument();
-    
-    // Should display date range picker
-    expect(screen.getByTestId('date-range-picker')).toBeInTheDocument();
-    
-    // Organization picker has been removed from the application
-  });
+  // Test for team-activity mode removed as it's no longer supported
 
 
   conditionalTest('calls handleDateRangeChange when date range is changed', () => {
@@ -128,7 +108,7 @@ describe('FilterControls', () => {
       <FilterControls
         activityMode="my-activity"
         dateRange={mockDateRange}
-        activeFilters={{ ...mockActiveFilters, organizations: ['test-org'] }}
+        activeFilters={mockActiveFilters}
         installations={mockInstallations}
         loading={false}
         handleDateRangeChange={mockHandleDateRangeChange}
@@ -145,8 +125,7 @@ describe('FilterControls', () => {
     // Should display date range
     expect(screen.getByText(`${mockDateRange.since} to ${mockDateRange.until}`)).toBeInTheDocument();
     
-    // Should display organizations count
-    expect(screen.getByText('1 SELECTED')).toBeInTheDocument();
+    // No organizations display as it's been removed
   });
 });
 

@@ -60,7 +60,7 @@
   - **Depends On:** [T006, T007, T008]
   - **AC Ref:** Plan Phase 2, Step 5
 
-- [ ] **T010:** Refactor FilterControls component
+- [x] **T010:** Refactor FilterControls component
 
   - **Action:** In `src/components/dashboard/FilterControls.tsx`:
     - Remove organization filter controls

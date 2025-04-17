@@ -118,9 +118,7 @@ export default function FilterControls({
                   backgroundColor: 'rgba(0, 255, 135, 0.1)',
                   color: 'var(--neon-green)'
                 }}>
-                  {activityMode === 'my-activity' ? 'MY ACTIVITY' : 
-                   activityMode === 'my-work-activity' ? 'MY WORK ACTIVITY' : 
-                   'TEAM ACTIVITY'}
+                  MY ACTIVITY
                 </span>
               </div>
               
@@ -133,18 +131,6 @@ export default function FilterControls({
                   {dateRange.since} to {dateRange.until}
                 </span>
               </div>
-              
-              {activeFilters.organizations.length > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-xs" style={{ color: 'var(--electric-blue)' }}>ORGANIZATIONS</span>
-                  <span className="text-xs px-2 py-1 rounded" style={{ 
-                    backgroundColor: 'rgba(59, 142, 234, 0.1)',
-                    color: 'var(--electric-blue)'
-                  }}>
-                    {activeFilters.organizations.length} SELECTED
-                  </span>
-                </div>
-              )}
               
               <div className="mt-3 pt-3 border-t" style={{ borderColor: 'rgba(0, 255, 135, 0.2)' }}>
                 <div className="text-xs" style={{ color: 'var(--foreground)' }}>
