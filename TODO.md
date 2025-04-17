@@ -95,7 +95,7 @@
 
 ## Organization Filter Logic Removal
 
-- [ ] **T016:** Remove 'organizations' field from FilterState type
+- [x] **T016:** Remove 'organizations' field from FilterState type
 
   - **Action:** Update the FilterState interface in appropriate files to remove the organizations field
   - **Depends On:** None
