@@ -14,7 +14,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** Plan Phase 1, Step 2
 
-- [ ] **T003:** Delete my-org-activity API route directory
+- [x] **T003:** Delete my-org-activity API route directory
 
   - **Action:** Remove the `src/app/api/my-org-activity/` directory and all its contents. This removes the API endpoint for fetching organization activity data.
   - **Depends On:** [T001]
