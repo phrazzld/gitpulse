@@ -1,6 +1,5 @@
 import React from 'react';
 import DateRangePicker, { DateRange } from '@/components/DateRangePicker';
-import OrganizationPicker from '@/components/OrganizationPicker';
 import { FilterState } from '@/app/dashboard/page';
 import { Installation } from '@/types/github';
 import { Session } from 'next-auth';
@@ -13,7 +12,6 @@ interface Props {
   installations: Installation[];
   loading: boolean;
   handleDateRangeChange: (newDateRange: DateRange) => void;
-  handleOrganizationChange: (selectedOrgs: string[]) => void;
   session: Session | null;
 }
 
@@ -24,7 +22,6 @@ export default function FilterControls({
   installations,
   loading,
   handleDateRangeChange,
-  handleOrganizationChange,
   session
 }: Props) {
   return (

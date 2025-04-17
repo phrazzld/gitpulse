@@ -23,17 +23,7 @@ jest.mock('@/components/DateRangePicker', () => {
   };
 });
 
-jest.mock('@/components/OrganizationPicker', () => {
-  return {
-    __esModule: true,
-    default: ({ selectedOrganizations, onSelectionChange }: { selectedOrganizations: string[]; onSelectionChange: (orgs: string[]) => void }) => (
-      <div data-testid="organization-picker">
-        <span>Selected orgs: {selectedOrganizations.join(', ') || 'None'}</span>
-        <button onClick={() => onSelectionChange(['org1', 'org2'])}>Select Orgs</button>
-      </div>
-    )
-  };
-});
+// OrganizationPicker component removed for individual-only focus
 
 describe('FilterControls', () => {
   const mockInstallations: Installation[] = [
@@ -56,7 +46,6 @@ describe('FilterControls', () => {
   ];
 
   const mockHandleDateRangeChange = jest.fn();
-  const mockHandleOrganizationChange = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -71,7 +60,6 @@ describe('FilterControls', () => {
         installations={mockInstallations}
         loading={false}
         handleDateRangeChange={mockHandleDateRangeChange}
-        handleOrganizationChange={mockHandleOrganizationChange}
         session={mockSession}
       />
     );
@@ -83,8 +71,7 @@ describe('FilterControls', () => {
     expect(screen.getByTestId('date-range-picker')).toBeInTheDocument();
     expect(screen.getByText(`Date range: ${mockDateRange.since} to ${mockDateRange.until}`)).toBeInTheDocument();
     
-    // Organization picker should not be displayed in my-activity mode
-    expect(screen.queryByTestId('organization-picker')).not.toBeInTheDocument();
+    // Organization picker has been removed from the application
   });
 
   conditionalTest('renders with team-activity mode correctly (with organization picker)', () => {
@@ -96,7 +83,6 @@ describe('FilterControls', () => {
         installations={mockInstallations}
         loading={false}
         handleDateRangeChange={mockHandleDateRangeChange}
-        handleOrganizationChange={mockHandleOrganizationChange}
         session={mockSession}
       />
     );
@@ -107,9 +93,7 @@ describe('FilterControls', () => {
     // Should display date range picker
     expect(screen.getByTestId('date-range-picker')).toBeInTheDocument();
     
-    // Organization picker should be displayed in team-activity mode
-    expect(screen.getByTestId('organization-picker')).toBeInTheDocument();
-    expect(screen.getByText(`Selected orgs: ${mockActiveFilters.organizations.join(', ') || 'None'}`)).toBeInTheDocument();
+    // Organization picker has been removed from the application
   });
 
 
@@ -122,7 +106,6 @@ describe('FilterControls', () => {
         installations={mockInstallations}
         loading={false}
         handleDateRangeChange={mockHandleDateRangeChange}
-        handleOrganizationChange={mockHandleOrganizationChange}
         session={mockSession}
       />
     );
@@ -138,27 +121,7 @@ describe('FilterControls', () => {
     });
   });
 
-  conditionalTest('calls handleOrganizationChange when organizations are changed', () => {
-    render(
-      <FilterControls
-        activityMode="team-activity"
-        dateRange={mockDateRange}
-        activeFilters={mockActiveFilters}
-        installations={mockInstallations}
-        loading={false}
-        handleDateRangeChange={mockHandleDateRangeChange}
-        handleOrganizationChange={mockHandleOrganizationChange}
-        session={mockSession}
-      />
-    );
-    
-    // Click select orgs button
-    fireEvent.click(screen.getByText('Select Orgs'));
-    
-    // Should call handleOrganizationChange with new orgs
-    expect(mockHandleOrganizationChange).toHaveBeenCalledTimes(1);
-    expect(mockHandleOrganizationChange).toHaveBeenCalledWith(['org1', 'org2']);
-  });
+  // Test for OrganizationPicker removed as component has been deleted
 
   conditionalTest('displays parameters panel with correct information', () => {
     render(
@@ -169,7 +132,6 @@ describe('FilterControls', () => {
         installations={mockInstallations}
         loading={false}
         handleDateRangeChange={mockHandleDateRangeChange}
-        handleOrganizationChange={mockHandleOrganizationChange}
         session={mockSession}
       />
     );

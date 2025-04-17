@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ActivityMode } from '@/types/common';
 import DateRangePicker, { DateRange } from '@/components/DateRangePicker';
-import OrganizationPicker from '@/components/OrganizationPicker';
 import AccountSelector from '@/components/AccountSelector';
 import ActivityFeed from '@/components/ActivityFeed';
 import DashboardLoadingState from '@/components/DashboardLoadingState';
@@ -444,13 +443,7 @@ export default function Dashboard() {
     setDateRange(newDateRange);
   }, []);
   
-  // Function to handle organization selection changes
-  const handleOrganizationChange = useCallback((selectedOrgs: string[]) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      organizations: selectedOrgs
-    }));
-  }, []);
+  // Organization selection handling removed as part of MVP focus
   
   // Function to handle legacy filter changes (for backward compatibility)
   const handleFilterChange = useCallback((newFilters: FilterState) => {
@@ -629,7 +622,6 @@ export default function Dashboard() {
               installations={installations}
               loading={loading}
               handleDateRangeChange={handleDateRangeChange}
-              handleOrganizationChange={handleOrganizationChange}
               session={session}
             />
 

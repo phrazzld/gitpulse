@@ -39,7 +39,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** Plan Phase 2, Step 4
 
-- [ ] **T007:** Delete OrganizationPicker UI component
+- [x] **T007:** Delete OrganizationPicker UI component
 
   - **Action:** Remove the `src/components/OrganizationPicker.tsx` component. This component is used for selecting organizations.
   - **Depends On:** [T001]
