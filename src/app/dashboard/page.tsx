@@ -27,12 +27,11 @@ import { CLIENT_CACHE_TTL, AUTH_METHODS, GITHUB_API, STORAGE_REFRESH } from '@/l
 import { CommitSummary } from '@/types/summary';
 import { Repository, Installation } from '@/types/github';
 
-// Preserve the FilterState type from the removed FilterPanel
+// FilterState type - simplified for individual focus
 export type FilterState = {
-  contributors: string[];
   organizations: string[];
   repositories: string[];
-  // Removed groupBy, standardized on chronological view
+  // No contributors array needed for individual focus
 };
 
 type ReposResponse = {
@@ -108,9 +107,8 @@ export default function Dashboard() {
   // Activity mode is hardcoded to 'my-activity' as we no longer support team/org views
   const activityMode: ActivityMode = 'my-activity';
   
-  // New state for filters (removed groupBy, standardized on chronological view)
+  // State for filters - simplified for individual focus
   const [activeFilters, setActiveFilters] = useState<FilterState>({
-    contributors: [],
     organizations: [],
     repositories: []
   });
@@ -429,11 +427,10 @@ export default function Dashboard() {
     }
   }, [session, fetchRepositories]);
 
-  // Set contributors filter to current user only for 'my-activity' mode
+  // Clear organization filter on initial load
   useEffect(() => {
     setActiveFilters(prev => ({
       ...prev,
-      contributors: ['me'], // Set to current user only
       organizations: [] // Clear organization filter
     }));
   }, []);
@@ -472,10 +469,6 @@ export default function Dashboard() {
       }
       
       // Add filter parameters
-      if (activeFilters.contributors.length > 0) {
-        params.append('contributors', activeFilters.contributors.join(','));
-      }
-      
       if (activeFilters.organizations.length > 0) {
         params.append('organizations', activeFilters.organizations.join(','));
       }

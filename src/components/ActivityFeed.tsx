@@ -21,11 +21,7 @@ export type ActivityCommit = {
     full_name: string;
     html_url?: string;
   };
-  contributor?: {
-    username: string;
-    displayName: string;
-    avatarUrl: string | null;
-  };
+  // contributor field removed for individual-only focus
 };
 
 // Props for the activity feed component
@@ -42,7 +38,6 @@ interface ActivityFeedProps {
   initialLimit?: number;
   additionalItemsPerPage?: number;
   showRepository?: boolean;
-  showContributor?: boolean;
   itemHeight?: number;
   maxHeight?: number | string;
 }
@@ -51,13 +46,11 @@ interface ActivityFeedProps {
 const CommitItem = React.memo(({ 
   commit, 
   showRepository, 
-  showContributor,
   style,
   isNew = false
 }: { 
   commit: ActivityCommit; 
   showRepository: boolean; 
-  showContributor: boolean;
   style?: React.CSSProperties;
   isNew?: boolean;
 }): ReactElement => {
@@ -107,38 +100,11 @@ const CommitItem = React.memo(({
         {/* Commit header with author and date */}
         <div className="flex justify-between items-start mb-2 flex-wrap">
           <div className="flex items-center mr-2">
-            {showContributor && commit.contributor && (
-              <div className="flex items-center">
-                {commit.contributor.avatarUrl ? (
-                  <Image 
-                    src={commit.contributor.avatarUrl}
-                    alt={commit.contributor.displayName}
-                    width={20}
-                    height={20}
-                    className="rounded-full mr-2"
-                  />
-                ) : (
-                  <div className="w-5 h-5 rounded-full mr-2 flex items-center justify-center" style={{ 
-                    backgroundColor: 'var(--electric-blue)',
-                    color: 'var(--dark-slate)',
-                    fontSize: '0.75rem'
-                  }}>
-                    {commit.contributor.displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="font-bold text-sm truncate max-w-48" style={{ color: 'var(--electric-blue)' }}>
-                  {commit.contributor.displayName}
-                </span>
-              </div>
-            )}
-            
-            {!showContributor && (
-              <div className="flex items-center">
-                <span className="font-bold text-sm truncate max-w-48" style={{ color: 'var(--electric-blue)' }}>
-                  {commit.commit.author.name}
-                </span>
-              </div>
-            )}
+            <div className="flex items-center">
+              <span className="font-bold text-sm truncate max-w-48" style={{ color: 'var(--electric-blue)' }}>
+                {commit.commit.author.name}
+              </span>
+            </div>
           </div>
           
           <div className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
@@ -197,7 +163,6 @@ export default function ActivityFeed({
   initialLimit = 25,
   additionalItemsPerPage = 25,
   showRepository = true,
-  showContributor = true,
   itemHeight = 120, // Default item height
   maxHeight = '70vh' // Default max height for the list
 }: ActivityFeedProps): ReactElement {
@@ -407,7 +372,6 @@ export default function ActivityFeed({
                     key={commits[index].sha}
                     commit={commits[index]}
                     showRepository={showRepository}
-                    showContributor={showContributor}
                     style={style}
                     isNew={index >= commits.length - newItemsCount}
                   />

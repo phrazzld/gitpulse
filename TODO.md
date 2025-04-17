@@ -45,7 +45,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** Plan Phase 2, Step 4
 
-- [ ] **T008:** Delete contributor selection/display UI components
+- [x] **T008:** Delete contributor selection/display UI components
 
   - **Action:** Remove any UI components specifically for contributor selection or display. Identify these components by searching for files related to "contributor" or "team member" selection/display in the `src/components/` directory.
   - **Depends On:** [T001]

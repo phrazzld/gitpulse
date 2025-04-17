@@ -70,8 +70,7 @@ export default function RepositoryInfoPanel({
               </div>
               
               {/* Display filter information if applied */}
-              {(activeFilters.contributors.length > 0 || 
-                activeFilters.organizations.length > 0 || 
+              {(activeFilters.organizations.length > 0 || 
                 activeFilters.repositories.length > 0) && (
                 <div className="mt-2 p-2 border rounded" style={{ 
                   borderColor: 'rgba(0, 255, 135, 0.2)',
@@ -81,14 +80,6 @@ export default function RepositoryInfoPanel({
                     ACTIVE FILTERS
                   </div>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {activeFilters.contributors.length > 0 && (
-                      <span className="text-xs px-2 py-0.5 rounded" style={{ 
-                        backgroundColor: 'rgba(0, 255, 135, 0.1)',
-                        color: 'var(--foreground)'
-                      }}>
-                        Contributors: {activeFilters.contributors.includes('me') ? 'Only Me' : activeFilters.contributors.join(', ')}
-                      </span>
-                    )}
                     {activeFilters.organizations.length > 0 && (
                       <span className="text-xs px-2 py-0.5 rounded" style={{ 
                         backgroundColor: 'rgba(59, 142, 234, 0.1)',

@@ -27,11 +27,7 @@ export interface GitHubActivityCommit {
     full_name?: string;
     html_url?: string;
   };
-  contributor?: {
-    username?: string;
-    displayName?: string;
-    avatarUrl?: string | null;
-  };
+  // contributor field removed for individual-only focus
   [key: string]: unknown;
 }
 
@@ -54,11 +50,7 @@ export interface InternalActivityCommit {
     fullName: string;
     htmlUrl?: string;
   };
-  contributor?: {
-    username: string;
-    displayName: string;
-    avatarUrl: string | null;
-  };
+  // contributor field removed for individual-only focus
 }
 
 /**
@@ -97,7 +89,7 @@ export function transformApiCommit(commit: unknown): InternalActivityCommit {
   // Safely extract commit data with null/undefined checks
   const commitData = rawCommit.commit as Record<string, unknown> | undefined;
   const repoData = rawCommit.repository as Record<string, unknown> | undefined;
-  const contributorData = rawCommit.contributor as Record<string, unknown> | undefined;
+  // Contributor data removed for individual-only focus
   
   // Create standardized internal representation with camelCase properties
   return {
@@ -114,12 +106,8 @@ export function transformApiCommit(commit: unknown): InternalActivityCommit {
       name: repoData.name as string || '',
       fullName: repoData.fullName as string || repoData.full_name as string || '',
       htmlUrl: repoData.htmlUrl as string || repoData.html_url as string
-    } : undefined,
-    contributor: contributorData ? {
-      username: contributorData.username as string || '',
-      displayName: contributorData.displayName as string || '',
-      avatarUrl: contributorData.avatarUrl as string || null
     } : undefined
+    // contributor field removed for individual-only focus
   };
 }
 
@@ -139,8 +127,8 @@ export function prepareActivityCommit(internalCommit: InternalActivityCommit): A
       name: internalCommit.repository.name,
       full_name: internalCommit.repository.fullName, // Map camelCase to snake_case for ActivityFeed
       html_url: internalCommit.repository.htmlUrl // Map camelCase to snake_case for ActivityFeed
-    } : undefined,
-    contributor: internalCommit.contributor
+    } : undefined
+    // contributor field removed for individual-only focus
   };
 }
 

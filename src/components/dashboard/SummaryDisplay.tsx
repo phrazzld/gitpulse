@@ -76,14 +76,8 @@ export default function SummaryDisplay({
                 params.installation_ids = installationIds.join(',');
               }
               
-              // Determine which API endpoint to use based on the current mode
-              let apiEndpoint = '/api/my-activity';
-              
-              if (activityMode === 'my-work-activity') {
-                apiEndpoint = '/api/my-org-activity';
-              } else if (activityMode === 'team-activity') {
-                apiEndpoint = '/api/team-activity';
-              }
+              // Only using my-activity endpoint for individual focus
+              const apiEndpoint = '/api/my-activity';
               
               // Create and return the fetcher
               return createActivityFetcher(apiEndpoint, params)(cursor, limit);
@@ -92,8 +86,7 @@ export default function SummaryDisplay({
             initialLimit={30}
             additionalItemsPerPage={20}
             showRepository={true}
-            showContributor={activityMode === 'team-activity'}
-            emptyMessage={`No ${activityMode.replace('-', ' ')} data found for the selected filters.`}
+            emptyMessage="No activity data found for the selected filters."
           />
         </div>
       )}
