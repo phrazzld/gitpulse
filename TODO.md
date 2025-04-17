@@ -123,7 +123,7 @@
   - **Depends On:** [T012]
   - **AC Ref:** Plan Phase 4, Step 9
 
-- [ ] **T017:** Clean up utility functions
+- [x] **T017:** Clean up utility functions
 
   - **Action:** Review other files in `src/lib/` (excluding auth/ and githubData.ts):
     - Remove any helper functions or utilities used solely for team/org features
