@@ -39,7 +39,7 @@
 
 ## Test Suite Assertion Improvement
 
-- [ ] **T007:** Review and update assertions in api-test-utils.ts
+- [x] **T007:** Review and update assertions in api-test-utils.ts
 
   - **Action:** Identify and replace generic assertions with specific ones in `src/__tests__/api-test-utils.ts`, ensuring precise status codes and error responses
   - **Depends On:** [T006]

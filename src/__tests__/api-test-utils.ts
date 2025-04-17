@@ -331,17 +331,36 @@ export const verifyCredentialHandling = (
   accessToken?: string,
   installationId?: number
 ) => {
+  // Check that createAuthenticatedOctokit was called exactly once
+  expect(mockCreateAuthenticatedOctokit).toHaveBeenCalledTimes(1);
+  
   // Check that createAuthenticatedOctokit was called with correct credentials
   if (type === 'oauth') {
     expect(mockCreateAuthenticatedOctokit).toHaveBeenCalledWith({
       type: 'oauth',
       token: accessToken
     });
+    
+    // Ensure we didn't accidentally use both auth methods
+    expect(mockCreateAuthenticatedOctokit).not.toHaveBeenCalledWith(
+      expect.objectContaining({ 
+        type: 'app',
+        installationId: expect.any(Number)
+      })
+    );
   } else {
     expect(mockCreateAuthenticatedOctokit).toHaveBeenCalledWith({
       type: 'app',
       installationId
     });
+    
+    // Ensure we didn't accidentally use both auth methods
+    expect(mockCreateAuthenticatedOctokit).not.toHaveBeenCalledWith(
+      expect.objectContaining({ 
+        type: 'oauth',
+        token: expect.any(String)
+      })
+    );
   }
 };
 
@@ -350,25 +369,63 @@ export const verifyOctokitPassing = (
   fetchFunction: jest.Mock,
   ...additionalArgs: unknown[]
 ) => {
+  // Verify the function was called at least once
+  expect(fetchFunction).toHaveBeenCalled();
+  
+  // Verify the function was called with the correct Octokit instance as first argument
   expect(fetchFunction).toHaveBeenCalledWith(
     mockOctokit,
     ...additionalArgs
   );
+  
+  // Get the actual call arguments for additional checking
+  const callArgs = fetchFunction.mock.calls[0];
+  
+  // Verify that the first argument was exactly the mockOctokit instance
+  expect(callArgs[0]).toBe(mockOctokit);
+  
+  // If additionalArgs were provided, check they match exactly
+  if (additionalArgs.length > 0) {
+    for (let i = 0; i < additionalArgs.length; i++) {
+      if (additionalArgs[i] !== undefined) {
+        expect(callArgs[i + 1]).toEqual(additionalArgs[i]);
+      }
+    }
+  }
 };
 
 // Verify the correct repository fetching function was used based on auth type
 export const verifyRepositoryFetchingWithOctokit = (
-  type: 'oauth' | 'app'
+  type: 'oauth' | 'app',
+  additionalParams?: Record<string, unknown>
 ) => {
   if (type === 'oauth') {
-    expect(mockFetchRepositories).toHaveBeenCalledWith(mockOctokit);
+    // For OAuth, we should call fetchRepositories exactly once
+    expect(mockFetchRepositories).toHaveBeenCalledTimes(1);
+    
+    // With the correct Octokit instance
+    expect(mockFetchRepositories).toHaveBeenCalledWith(
+      mockOctokit,
+      ...(additionalParams ? [additionalParams] : [])
+    );
+    
+    // And should NOT call the App repositories function
     expect(mockFetchAppRepositories).not.toHaveBeenCalled();
   } else {
-    expect(mockFetchAppRepositories).toHaveBeenCalledWith(mockOctokit);
+    // For App auth, we should call fetchAppRepositories exactly once
+    expect(mockFetchAppRepositories).toHaveBeenCalledTimes(1);
+    
+    // With the correct Octokit instance
+    expect(mockFetchAppRepositories).toHaveBeenCalledWith(
+      mockOctokit,
+      ...(additionalParams ? [additionalParams] : [])
+    );
+    
+    // And should NOT call the OAuth repositories function
     expect(mockFetchRepositories).not.toHaveBeenCalled();
   }
   
-  // Verify deprecated function wasn't called
+  // Verify deprecated functions weren't called at all
   expect(mockFetchAllRepositories).not.toHaveBeenCalled();
 };
 
@@ -383,44 +440,48 @@ export const verifyErrorResponse = (
     shouldHaveNeedsInstallation?: boolean;
   }
 ) => {
-  // Verify status code - some tests might be expecting 403 but getting 500
-  // We're more flexible here because the error mapping might have changed
-  expect(response.status).toBeGreaterThanOrEqual(400);
+  // Verify status code with exact matching
+  expect(response.status).toBe(expectedStatus);
   
-  // Verify response contains expected fields
+  // Verify response contains expected fields with the correct content
   expect(response.data.error).toBeDefined();
+  expect(typeof response.data.error).toBe('string');
+  expect((response.data.error as string).length).toBeGreaterThan(0);
   
-  // For code checking, we'll be more flexible since the exact codes
-  // might have changed in the individual-focused MVP
-  if (response.data.code) {
-    // If a code exists, check if it's what we expect
-    // If not, it should at least be a valid error code format (contains ERROR)
-    const isExpectedCode = response.data.code === expectedCode;
-    const isValidErrorCode = typeof response.data.code === 'string' && 
-                            ((response.data.code as string).includes('ERROR') || 
-                             (response.data.code as string).includes('_ERROR'));
-    
-    expect(isExpectedCode || isValidErrorCode).toBe(true);
+  // Verify error code is exactly as expected
+  if (expectedCode) {
+    expect(response.data.code).toBe(expectedCode);
   }
   
-  // Verify optional fields - being more flexible for MVP focus
+  // Verify optional fields with precise assertions
   if (options?.shouldHaveSignOutRequired) {
-    // In individual-focused MVP, signOutRequired might not be set the same way
-    // We'll check if it exists, but not fail if it doesn't
-    if (response.data.signOutRequired !== undefined) {
-      expect(response.data.signOutRequired).toBe(true);
-    }
+    expect(response.data.signOutRequired).toBe(true);
+  } else if (response.data.signOutRequired !== undefined) {
+    expect(response.data.signOutRequired).toBe(false);
   }
   
-  // ResetAt checking not critical for the individual-focused MVP
-  // We'll skip this check
+  if (options?.shouldHaveResetAt) {
+    expect(response.data.resetAt).toBeDefined();
+    expect(typeof response.data.resetAt).toBe('string');
+    // Verify resetAt is a valid timestamp string
+    expect(Date.parse(response.data.resetAt as string)).not.toBeNaN();
+  }
   
   if (options?.shouldHaveNeedsInstallation) {
     expect(response.data.needsInstallation).toBe(true);
+  } else if (response.data.needsInstallation !== undefined) {
+    expect(response.data.needsInstallation).toBe(false);
+  }
+  
+  // Also check for details field when appropriate (all errors should have details)
+  expect(response.data.details).toBeDefined();
+  if (response.data.details) {
+    expect(typeof response.data.details).toBe('string');
+    expect((response.data.details as string).length).toBeGreaterThan(0);
   }
 };
 
-// Add a simple test to ensure Jest recognizes this as a valid test file
+// Add tests to ensure Jest recognizes this as a valid test file and verify our utility functions
 describe("api-test-utils", () => {
   it("exports utility functions for API testing", () => {
     // Verify some key exports exist
@@ -430,5 +491,36 @@ describe("api-test-utils", () => {
     expect(mockErrors).toBeDefined();
     expect(verifyCredentialHandling).toBeDefined();
     expect(verifyOctokitPassing).toBeDefined();
+    expect(verifyRepositoryFetchingWithOctokit).toBeDefined();
+    expect(verifyErrorResponse).toBeDefined();
+  });
+  
+  describe("verifyErrorResponse", () => {
+    it("should validate error responses with correct assertions", () => {
+      // Create a mock error response to test our verification function
+      const mockResponse = {
+        status: 404,
+        data: {
+          error: "Resource not found",
+          code: "GITHUB_NOT_FOUND_ERROR",
+          details: "The requested repository does not exist"
+        }
+      };
+      
+      // This should pass with correct assertions
+      expect(() => {
+        verifyErrorResponse(mockResponse, 404, "GITHUB_NOT_FOUND_ERROR");
+      }).not.toThrow();
+      
+      // This should fail with incorrect status code
+      expect(() => {
+        verifyErrorResponse(mockResponse, 403, "GITHUB_NOT_FOUND_ERROR");
+      }).toThrow();
+      
+      // This should fail with incorrect error code
+      expect(() => {
+        verifyErrorResponse(mockResponse, 404, "GITHUB_AUTH_ERROR");
+      }).toThrow();
+    });
   });
 });
