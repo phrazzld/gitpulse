@@ -96,7 +96,7 @@
   - **Depends On:** [T001]
   - **AC Ref:** Plan Phase 3, Step 7
 
-- [ ] **T014:** Verify NextAuth configuration
+- [x] **T014:** Verify NextAuth configuration
   - **Action:** In `src/app/api/auth/[...nextauth]/route.ts`:
     - Verify both GitHub App and OAuth configurations are maintained
     - Ensure `installationId` handling in JWT and session callbacks is preserved
