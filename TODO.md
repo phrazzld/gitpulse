@@ -179,11 +179,12 @@
   - **AC Ref:** Plan Phase 6, Step 12
   - **Note:** Made significant improvements to test compatibility with the individual-focused MVP. Tests are now passing with 149 of 160 tests passing (93%). Remaining failures are related to React version issues (noted as CI002 in codebase) and some API response expectations that would require more extensive refactoring.
 
-- [ ] **T024:** Run type checking
+- [x] **T024:** Run type checking
 
   - **Action:** Run type checking using `npm run typecheck`. Fix any reported issues.
   - **Depends On:** [T015, T016]
   - **AC Ref:** Plan Phase 6, Step 13
+  - **Note:** Verified that TypeScript type checking passes without any errors after the individual-focused MVP refactoring.
 
 - [ ] **T025:** Run linting
 
