@@ -11,9 +11,20 @@
   "test:ci": "CI=true jest --ci --runInBand --coverage --reporters=default --no-cache --testPathIgnorePatterns='(github-error-types|additional-routes|summary)' --coverageThreshold='{}' --bail",
   ```
 
+## CI008: Fix Next.js Build Error with Babel and SWC
+
+- **Issue:** The build step fails with an error about Next.js font loader conflict
+- **Error:** `"next/font" requires SWC although Babel is being used due to a custom babel config being present.`
+- **Action:** Resolve the conflict between Next.js font loader (which requires SWC) and Babel config
+- **Files:** `.babelrc.js`, `next.config.js`, `src/app/layout.tsx`
+- **Potential Solutions:**
+  1. Remove or modify the custom Babel configuration to allow SWC to be used
+  2. Or modify the font import strategy in the layout to not use `next/font`
+  3. Or configure Next.js to properly handle the font loading with Babel
+
 ## Next Steps
 
-After the latest fix, we should monitor the CI workflow to see if it passes. If not, we'll need to further investigate and address any remaining issues.
+The code quality checks (including tests) are now passing, but the build step is failing. We need to address the CI008 issue next to resolve the build failure.
 
 ## Long-term Solutions
 
