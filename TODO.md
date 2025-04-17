@@ -8,17 +8,20 @@ This document consolidates all the pending tasks, issues, and future enhancement
 
 ### CI/Build Issues
 
-- [ ] **CI008: Fix Next.js Build Error with Babel and SWC**
-  - **Issue:** The build step fails with an error about Next.js font loader conflict
-  - **Error:** `"next/font" requires SWC although Babel is being used due to a custom babel config being present.`
-  - **Action:** Resolve the conflict between Next.js font loader (which requires SWC) and Babel config
-  - **Files:** `.babelrc.js`, `next.config.js`, `src/app/layout.tsx`
-  - **Potential Solutions:**
-    1. Remove or modify the custom Babel configuration to allow SWC to be used
-    2. Or modify the font import strategy in the layout to not use `next/font`
-    3. Or configure Next.js to properly handle the font loading with Babel
+_No CI/Build issues currently in progress_
 
 ## Recently Completed
+
+- [x] **CI008: Fix Next.js Build Error with Babel and SWC**
+
+  - **Issue:** The build step fails with an error about Next.js font loader conflict
+  - **Error:** `"next/font" requires SWC although Babel is being used due to a custom babel config being present.`
+  - **Action:** Renamed Babel config to be Jest-specific and removed compiler JSX config from Next.js config
+  - **Files:** Renamed `.babelrc.js` to `babel.config.jest.js`, updated `jest.config.js`, fixed `next.config.js`
+  - **Solution Implemented:**
+    1. Made Babel configuration Jest-specific by renaming the file
+    2. Updated Jest config to explicitly reference the renamed Babel config
+    3. Removed outdated JSX configuration from next.config.js and enabled SWC minification
 
 - [x] **CI001: Update CI workflow to use test:ci script**
 

@@ -4,14 +4,8 @@ const nextConfig = {
   images: {
     domains: ["avatars.githubusercontent.com"],
   },
-  compiler: {
-    // Enable the React new JSX transform for Next.js compilation
-    // This works in conjunction with "jsx": "preserve" in tsconfig.json
-    // Note: Test environment has its own handling through jest and babel config
-    jsx: {
-      runtime: "automatic",
-    },
-  },
+  // Use swcMinify for production builds and configure other options as needed
+  swcMinify: true,
 };
 
 module.exports = nextConfig;
