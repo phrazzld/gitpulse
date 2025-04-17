@@ -70,7 +70,7 @@
   - **Depends On:** None
   - **AC Ref:** Medium Priority Issue #3
 
-- [ ] **T012:** Define proper types to replace 'any'
+- [x] **T012:** Define proper types to replace 'any'
 
   - **Action:** Create appropriate interfaces or type definitions to replace `any` types found in the codebase
   - **Depends On:** [T011]
