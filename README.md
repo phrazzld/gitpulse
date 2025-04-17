@@ -125,7 +125,7 @@ Uses personal GitHub access tokens for authentication through the standard GitHu
 
 #### GitHub App Authentication (Advanced)
 
-Uses GitHub App installations with installation tokens, providing more granular and organization-friendly permissions.
+Uses GitHub App installations with installation tokens, providing more granular permissions for your personal repositories.
 
 **Use Cases:**
 
@@ -194,7 +194,7 @@ Uses GitHub App installations with installation tokens, providing more granular 
    GITHUB_APP_PRIVATE_KEY_PKCS8=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----
    NEXT_PUBLIC_GITHUB_APP_NAME=GitPulse
    ```
-8. Install the app on your account or organization through GitHub's interface
+8. Install the app on your personal account through GitHub's interface
 
 ### Authentication Flow
 

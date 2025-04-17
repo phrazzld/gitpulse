@@ -147,7 +147,7 @@
   - **Depends On:** [T012, T013, T014]
   - **AC Ref:** Plan Phase 5, Step 11
 
-- [ ] **T020:** Update Authentication Flow diagram
+- [x] **T020:** Update Authentication Flow diagram
 
   - **Action:** Locate and update the Authentication Flow diagram in `README.md` (lines 215-256):
     - Focus the diagram on individual user flow
