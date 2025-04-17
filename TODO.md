@@ -107,7 +107,7 @@
   - **Depends On:** [T016]
   - **AC Ref:** Low Priority Issue #4
 
-- [ ] **T018:** Remove organization parameter from API calls in SummaryDisplay
+- [x] **T018:** Remove organization parameter from API calls in SummaryDisplay
 
   - **Action:** Update `src/components/dashboard/SummaryDisplay.tsx` to remove organizations from API calls
   - **Depends On:** [T016]

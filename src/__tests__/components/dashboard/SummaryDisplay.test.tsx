@@ -317,7 +317,7 @@ describe("SummaryDisplay", () => {
     fetchButton.click();
 
     // The test doesn't actually verify the params passed to the API call,
-    // but in real usage, it would pass the organizations filter
+    // but in real usage, it would pass the repositories filter parameters
   });
 
   it("renders timeline highlights correctly", () => {

@@ -7,3 +7,4 @@
 - Redesign to something more modern and clean and professional
   - Raw Tailwind, or shadcn
 - Add proper landing page as unauthenticated home page
+- run `glance` on precommit hook
