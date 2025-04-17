@@ -150,7 +150,11 @@ jest.mock("@/components/dashboard/FilterControls", () => {
         <button
           data-testid="change-date-btn"
           onClick={() =>
-            props.handleDateRangeChange && props.handleDateRangeChange()
+            props.handleDateRangeChange &&
+            props.handleDateRangeChange({
+              since: "2025-02-01",
+              until: "2025-02-28",
+            })
           }
         >
           Change Date
@@ -171,7 +175,9 @@ jest.mock("@/components/dashboard/RepositoryInfoPanel", () => {
         <span data-testid="repo-count">{props.repositories?.length || 0}</span>
         <button
           data-testid="toggle-repo-list"
-          onClick={() => props.setShowRepoList && props.setShowRepoList()}
+          onClick={() =>
+            props.setShowRepoList && props.setShowRepoList(!props.showRepoList)
+          }
         >
           Toggle Repo List
         </button>

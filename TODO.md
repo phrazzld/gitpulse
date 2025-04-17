@@ -113,7 +113,7 @@
   - **Depends On:** [T016]
   - **AC Ref:** Low Priority Issue #4
 
-- [ ] **T019:** Remove organizations array from activeFilters in dashboard page
+- [x] **T019:** Remove organizations array from activeFilters in dashboard page
 
   - **Action:** Update `src/app/dashboard/page.tsx` to remove the organizations array from the activeFilters state
   - **Depends On:** [T016]

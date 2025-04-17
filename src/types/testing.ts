@@ -72,8 +72,9 @@ export interface MockComponentProps extends Record<string, unknown> {
   summary?: { user: string };
   activityMode?: string;
   switchInstallations?: () => void;
-  handleDateRangeChange?: () => void;
-  setShowRepoList?: () => void;
+  handleDateRangeChange?: (dateRange: { since: string; until: string }) => void;
+  setShowRepoList?: (show: boolean) => void;
+  showRepoList?: boolean;
 }
 
 /**

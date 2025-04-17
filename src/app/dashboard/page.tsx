@@ -426,7 +426,7 @@ export default function Dashboard() {
 
   // Organization selection handling removed as part of MVP focus
 
-  // Function to handle legacy filter changes (for backward compatibility)
+  // Function to handle repository filter changes
   const handleFilterChange = useCallback((newFilters: FilterState) => {
     setActiveFilters(newFilters);
     console.log("Filters updated:", newFilters);
