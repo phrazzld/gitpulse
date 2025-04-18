@@ -134,7 +134,7 @@
     2. No console errors related to styling
   - **depends-on:** [T009, T010, T011, T013]
 
-- [ ] **T015 · test · p1: run test suite to verify no regressions**
+- [x] **T015 · test · p1: run test suite to verify no regressions**
 
   - **context:** Initial UI Framework Setup → Test & Verify
   - **action:**
