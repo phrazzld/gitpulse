@@ -170,7 +170,7 @@
   - **Depends On:** [T026]
   - **AC Ref:** Low Priority Issue #7
 
-- [ ] **T028:** Update imports for ActivityMode
+- [x] **T028:** Update imports for ActivityMode
 
   - **Action:** Find all files importing ActivityMode from common.ts and update them to import from activity.ts
   - **Depends On:** [T027]
