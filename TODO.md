@@ -142,7 +142,7 @@
     2. All props and interfaces are documented
   - **depends‑on:** [T004, T007, T009]
 
-- [ ] **T012 · chore · p2: create barrel file for component exports**
+- [x] **T012 · chore · p2: create barrel file for component exports**
 
   - **context:** Detailed Build Steps #6
   - **action:**
