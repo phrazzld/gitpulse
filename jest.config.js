@@ -56,6 +56,7 @@ const customJestConfig = {
   collectCoverage: true,
   collectCoverageFrom: [
     "src/components/dashboard/**/*.{js,jsx,ts,tsx}",
+    "src/components/library/**/*.{js,jsx,ts,tsx}",
     "!**/*.d.ts",
     "!**/node_modules/**",
     "!**/test-utils.tsx",
@@ -81,6 +82,12 @@ const customJestConfig = {
             functions: 70, // Currently at 72.5%
             lines: 70, // Currently at 71.11%
             statements: 70, // Currently at 71.73%
+          },
+          "src/components/library/": {
+            branches: 90, // Currently at 100%
+            functions: 90, // Currently at 100%
+            lines: 90, // Currently at 100%
+            statements: 90, // Currently at 100%
           },
         },
 };

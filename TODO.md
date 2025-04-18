@@ -188,7 +188,7 @@
     2. Link to component docs works correctly
   - **depends‑on:** [T014]
 
-- [ ] **T016 · chore · p2: configure CI for component testing**
+- [x] **T016 · chore · p2: configure CI for component testing**
   - **context:** Detailed Build Steps #9
   - **action:**
     1. Ensure linting and type checking covers component files

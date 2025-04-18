@@ -1,57 +1,23 @@
-@import "../styles/tokens.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Legacy root variables - these will be migrated to tokens.css in a future task */
-:root {
-  /* Cybernetic Command Interface Color Palette */
-  --dark-slate: #1b2b34;
-  --neon-green: #00ff87;
-  --electric-blue: #3b8eea;
-  --luminous-yellow: #ffc857;
-  --crimson-red: #ff3b30;
+/* These legacy variables are now fully migrated to tokens.css */
 
-  /* Default theme variables */
-  --background: var(--dark-slate);
-  --background-secondary: #121212;
-  --foreground: #ffffff;
-  --accent-primary: var(--neon-green);
-  --accent-secondary: var(--electric-blue);
-  --warning: var(--luminous-yellow);
-  --error: var(--crimson-red);
-
-  /* Shadows and effects */
-  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --glow-effect: 0 0 10px rgba(0, 255, 135, 0.5);
-  --gradient-bg: linear-gradient(180deg, var(--dark-slate) 0%, #121212 100%);
-
-  /* Spacing */
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-
-  /* Border radius */
-  --border-radius: 6px;
-
-  /* Transitions */
-  --transition-speed: 200ms;
-  --transition-timing: ease-in-out;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-roboto-mono), monospace;
-  --font-mono: var(--font-roboto-mono), monospace;
+@layer base {
+  :root {
+    --color-background: hsl(var(--background));
+    --color-foreground: hsl(var(--foreground));
+    --font-sans: var(--font-roboto-mono), monospace;
+    --font-mono: var(--font-roboto-mono), monospace;
+  }
 }
 
 body {
   background: linear-gradient(
     180deg,
-    hsl(var(--gradient-start)) 0%,
-    hsl(var(--gradient-end)) 100%
+    hsl(var(--dark-slate)) 0%,
+    hsl(var(--slate-dark)) 100%
   );
   color: hsl(var(--foreground));
   font-family: var(--font-family-mono);

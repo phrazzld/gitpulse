@@ -15,7 +15,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "CI=true jest --ci --runInBand --coverage --reporters=default --no-cache --testPathIgnorePatterns='(test-utils.tsx|DashboardTestWrapper.tsx)' --coverageThreshold='{}' --bail",
+    "test:components": "jest 'src/components/library' --coverage",
+    "test:ci": "CI=true jest --ci --runInBand --coverage --reporters=default --no-cache --testPathIgnorePatterns='(test-utils.tsx|DashboardTestWrapper.tsx)' --coverageThreshold='{}' --collectCoverageFrom='src/components/**/*.{js,jsx,ts,tsx}' --bail",
     "test:no-skips": "node ./scripts/check-skipped-tests.js",
     "prepare": "husky",
     "ci": "npm run lint && npm run typecheck && npm run test:ci && npm run test:no-skips"
