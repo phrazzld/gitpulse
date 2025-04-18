@@ -213,7 +213,7 @@
   - **Depends On:** [T006]
   - **AC Ref:** Related Consideration #3
 
-- [ ] **T035:** Conduct thorough code review for vestigial team/organization code
+- [x] **T035:** Conduct thorough code review for vestigial team/organization code
   - **Action:** Review the entire codebase to identify and remove any remaining team/organization code that was missed in the initial refactoring
   - **Depends On:** [T020]
   - **AC Ref:** Related Consideration #4

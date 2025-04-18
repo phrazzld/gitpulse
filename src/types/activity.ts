@@ -8,8 +8,18 @@
 /**
  * Type for activity mode selection
  * Defines the available modes for viewing GitHub activity
+ *
+ * Note: In the individual-focused MVP, only "my-activity" and "my-work-activity"
+ * modes are actively used. The "team-activity" mode is maintained in the type for
+ * backward compatibility but is no longer supported in the UI.
  */
-export type ActivityMode = "my-activity" | "my-work-activity" | "team-activity";
+export type ActivityMode =
+  | "my-activity"
+  | "my-work-activity"
+  /**
+   * @deprecated Team activity mode is no longer supported in the individual-focused MVP
+   */
+  | "team-activity";
 
 /**
  * External GitHub API commit data (using snake_case properties)
