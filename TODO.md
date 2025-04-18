@@ -126,7 +126,7 @@
 
 ## TypeScript skipLibCheck Documentation
 
-- [ ] **T021:** Investigate the reason for skipLibCheck flag
+- [x] **T021:** Investigate the reason for skipLibCheck flag
 
   - **Action:** Research package.json and codebase history to determine why the --skipLibCheck flag was added to the typecheck script
   - **Depends On:** None
