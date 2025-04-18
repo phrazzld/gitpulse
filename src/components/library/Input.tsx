@@ -3,22 +3,46 @@ import { cn } from "./utils/cn";
 
 /**
  * Input component props interface
+ *
+ * This interface extends the standard HTML input attributes (excluding size)
+ * and adds properties specific to our design system.
+ *
+ * The omission of the HTML "size" attribute is to avoid a naming conflict
+ * with our custom size prop. Instead, we provide the htmlSize prop to
+ * access the HTML size attribute when needed.
  */
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
-  /** Input value */
+  /**
+   * Current value of the input field.
+   * This can be controlled by the parent component.
+   */
   value?: string;
 
-  /** Input change handler */
+  /**
+   * Handler function called when the input value changes.
+   * Receives a React.ChangeEvent object containing the new value.
+   */
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
 
-  /** Placeholder text */
+  /**
+   * Placeholder text displayed when the input is empty.
+   * Should provide a hint about the expected input format.
+   */
   placeholder?: string;
 
-  /** Disables the input when true */
+  /**
+   * Disables the input when true.
+   * Disabled inputs don't accept focus or input and have a visual indicator.
+   * @default false
+   */
   disabled?: boolean;
 
-  /** Input type (text, password, email, etc.) */
+  /**
+   * Input type that determines the data format and validation.
+   * Supports common HTML input types like text, password, email, etc.
+   * @default "text"
+   */
   type?:
     | "text"
     | "password"
@@ -29,37 +53,99 @@ export interface InputProps
     | "search"
     | "date";
 
-  /** Error message or error state */
+  /**
+   * Indicates that input has an error.
+   * Can be a boolean or a string (for backward compatibility).
+   * Use errorMessage prop for displaying the error message.
+   */
   error?: string | boolean;
 
-  /** Optional aria-label for accessibility */
+  /**
+   * ARIA label for accessibility when no visible label is present.
+   * Provides a text alternative for screen readers.
+   */
   ariaLabel?: string;
 
-  /** Size variant for visual styling */
+  /**
+   * Size variant for visual styling.
+   * Controls the input's padding, font size, and border radius.
+   * @default "md"
+   */
   size?: "sm" | "md" | "lg";
 
-  /** HTML size attribute (number of characters) */
+  /**
+   * HTML size attribute (number of characters).
+   * This replaces the standard HTML size attribute since we
+   * use "size" for our custom size variants.
+   */
   htmlSize?: number;
 
-  /** Visual style variant */
+  /**
+   * Visual style variant of the input.
+   * - outlined: Input with border (default)
+   * - filled: Input with background fill
+   * @default "outlined"
+   */
   variant?: "outlined" | "filled";
 
-  /** Error message text to display */
+  /**
+   * Error message text to display below the input.
+   * Only displayed when error prop is true or a string.
+   */
   errorMessage?: string;
 
-  /** ID of element that describes this input */
+  /**
+   * ID of element that describes this input.
+   * Used for accessibility to associate descriptive text with the input.
+   */
   ariaDescribedby?: string;
 
-  /** Whether the input is in read-only mode */
+  /**
+   * Whether the input is in read-only mode.
+   * Read-only inputs can't be modified but are still focusable.
+   * @default false
+   */
   readOnly?: boolean;
 }
 
 /**
  * Input component for form fields
  *
- * Uses Tailwind CSS classes for styling with CSS variables from tokens.css
+ * A flexible input component that adapts to different use cases through
+ * variants, sizes, and states. Supports all standard HTML input attributes
+ * plus custom styling options and accessibility features.
+ *
+ * Uses Tailwind CSS classes for styling with CSS variables from tokens.css.
+ *
+ * @example
+ * // Basic usage
+ * <Input value={value} onChange={handleChange} placeholder="Enter text" />
+ *
+ * @example
+ * // Input with error state
+ * <Input
+ *   value={email}
+ *   onChange={handleEmailChange}
+ *   type="email"
+ *   error={!isValidEmail}
+ *   errorMessage="Please enter a valid email address"
+ * />
+ *
+ * @example
+ * // Filled variant with large size
+ * <Input variant="filled" size="lg" placeholder="Search..." type="search" />
  */
-// Base input classes for all variants
+
+/**
+ * Base Tailwind CSS classes applied to all input variants
+ *
+ * These classes handle the common styling aspects that apply
+ * regardless of variant or state:
+ * - Width and layout
+ * - Transition effects
+ * - Focus state
+ * - Disabled state styling
+ */
 const baseClasses = cn(
   "w-full",
   "transition-colors duration-normal",
@@ -67,7 +153,15 @@ const baseClasses = cn(
   "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
 );
 
-// Get variant-specific classes
+/**
+ * Gets Tailwind CSS classes specific to the input variant
+ *
+ * Handles different visual styles including background color,
+ * border styles, and interactive state changes.
+ *
+ * @param variant - The input variant ("outlined" or "filled")
+ * @returns A string of Tailwind CSS classes
+ */
 const getVariantClasses = (variant: InputProps["variant"]) => {
   switch (variant) {
     case "filled":
@@ -86,7 +180,15 @@ const getVariantClasses = (variant: InputProps["variant"]) => {
   }
 };
 
-// Get size-specific classes
+/**
+ * Gets Tailwind CSS classes specific to the input size
+ *
+ * Controls text size, padding, and border radius based on the
+ * selected size variant.
+ *
+ * @param size - The input size ("sm", "md", or "lg")
+ * @returns A string of Tailwind CSS classes
+ */
 const getSizeClasses = (size: InputProps["size"]) => {
   switch (size) {
     case "sm":
@@ -99,7 +201,15 @@ const getSizeClasses = (size: InputProps["size"]) => {
   }
 };
 
-// Get error state classes
+/**
+ * Gets Tailwind CSS classes for the error state
+ *
+ * Applies error-specific styling like red border and text
+ * when the input has an error.
+ *
+ * @param error - The error state (boolean or string)
+ * @returns A string of Tailwind CSS classes or empty string if no error
+ */
 const getErrorClasses = (error?: string | boolean) => {
   return error
     ? cn(
@@ -109,12 +219,28 @@ const getErrorClasses = (error?: string | boolean) => {
     : "";
 };
 
-// Get read-only state classes
+/**
+ * Gets Tailwind CSS classes for read-only state
+ *
+ * Applies styling specific to inputs that can't be modified
+ * but remain focusable.
+ *
+ * @param readOnly - The read-only state
+ * @returns A string of Tailwind CSS classes or empty string if not read-only
+ */
 const getReadOnlyClasses = (readOnly?: boolean) => {
   return readOnly ? "bg-dark-slate/5 cursor-default" : "";
 };
 
-// Get type-specific classes
+/**
+ * Gets Tailwind CSS classes specific to the input type
+ *
+ * Applies type-specific styling like monospace fonts for numeric inputs
+ * or special layout adjustments for certain types.
+ *
+ * @param type - The input type
+ * @returns A string of Tailwind CSS classes based on the input type
+ */
 const getTypeClasses = (type?: InputProps["type"]) => {
   switch (type) {
     case "password":
@@ -130,6 +256,20 @@ const getTypeClasses = (type?: InputProps["type"]) => {
   }
 };
 
+/**
+ * Input component implementation using React.forwardRef
+ *
+ * The component accepts a ref that will be forwarded to the underlying
+ * HTML input element, allowing parent components to interact with the
+ * DOM node directly when needed.
+ *
+ * The component includes accessibility features like ARIA attributes
+ * and error message display for form validation.
+ *
+ * @param props - Input component props
+ * @param ref - Forwarded ref to the underlying HTML input element
+ * @returns A styled input component with optional error message
+ */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {

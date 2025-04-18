@@ -130,7 +130,7 @@
 
 ## documentation and integration
 
-- [ ] **T011 · feature · p2: add TSDoc comments to all components**
+- [x] **T011 · feature · p2: add TSDoc comments to all components**
 
   - **context:** Detailed Build Steps #8, Documentation
   - **action:**
