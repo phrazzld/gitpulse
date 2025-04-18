@@ -30,7 +30,7 @@
     1. `tailwind.config.js` content paths match the project structure
   - **depends-on:** [T002]
 
-- [ ] **T004 · chore · p2: configure postcss to load tailwind plugin**
+- [x] **T004 · chore · p2: configure postcss to load tailwind plugin**
 
   - **context:** Initial UI Framework Setup → Install & Configure Tailwind CSS
   - **action:**
