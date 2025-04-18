@@ -158,7 +158,7 @@
 
 ## Type Definition Reorganization
 
-- [ ] **T026:** Create src/types/activity.ts file
+- [x] **T026:** Create src/types/activity.ts file
 
   - **Action:** Create a new file `src/types/activity.ts` as a domain-specific location for activity-related types
   - **Depends On:** None
