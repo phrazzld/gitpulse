@@ -18,7 +18,7 @@ GitPulse is a web application that generates summaries of GitHub commits for ind
 - **Authentication**: next-auth with GitHub OAuth and GitHub App support
 - **GitHub API Client**: octokit with modular authentication and data fetching architecture
 - **AI Analysis**: Google's Gemini AI for commit analysis
-- **Styling**: TailwindCSS for responsive design
+- **Styling**: TailwindCSS with CSS Variables design token system
 - **Logging**: Structured JSON logging system with rotation
 - **Deployment**: Vercel (recommended)
 
@@ -481,6 +481,81 @@ npm run test:no-skips
 # Run all checks (lint, typecheck, test, skipped test check) in sequence
 npm run ci
 ```
+
+## Styling System
+
+GitPulse uses a modern styling approach that combines TailwindCSS with CSS Variables for a flexible and maintainable design system.
+
+### Design Token System
+
+The styling is built on a design token system implemented with CSS Variables (Custom Properties). This approach provides several benefits:
+
+- **Centralized Design Control**: All design values are defined in one place
+- **Theme Consistency**: Ensures consistent usage of colors, spacing, and typography
+- **Easy Maintenance**: Modify styles across the application by changing token values
+- **Developer Experience**: IntelliSense support and straightforward syntax
+
+### Key Components
+
+1. **Token Definition**: All design tokens are defined in `/src/styles/tokens.css`
+
+   - Base color tokens using HSL format
+   - Semantic color tokens for UI elements
+   - Spacing, typography, and effect variables
+
+2. **Tailwind Integration**: CSS variables are referenced in `tailwind.config.js`
+
+   - Custom colors mapped to semantic tokens
+   - Custom spacing, typography, and border radius settings
+   - Extensible theme configuration
+
+3. **Usage in Components**: Use Tailwind utility classes that reference our token system
+
+### Using the Design System
+
+#### Colors
+
+Colors are defined in HSL format and organized in two levels:
+
+1. **Base Colors**: Raw color values (`--dark-slate`, `--neon-green`, etc.)
+2. **Semantic Colors**: Functional meaning (`--primary`, `--background`, `--error`, etc.)
+
+```jsx
+// Using colors in components via Tailwind classes
+<button className="bg-primary text-background hover:bg-secondary">
+  Click Me
+</button>
+```
+
+#### Spacing
+
+Consistent spacing values (`--spacing-xs` through `--spacing-3xl`):
+
+```jsx
+// Using spacing in components
+<div className="p-md mb-lg">Content with standardized padding and margin</div>
+```
+
+#### Typography
+
+Typography tokens for font family, size, weight, and line height:
+
+```jsx
+// Using typography tokens
+<h2 className="text-2xl font-bold text-primary">
+  Heading with standardized styles
+</h2>
+```
+
+### Modifying the Design System
+
+To update the design system:
+
+1. **Add or modify tokens in `/src/styles/tokens.css`**
+2. **Extend the Tailwind configuration in `tailwind.config.js` if needed**
+3. **Use the tokens via Tailwind utility classes in your components**
+
+For major theme changes, focus on updating the semantic tokens rather than changing individual component styles.
 
 ## Contributing
 
