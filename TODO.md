@@ -176,7 +176,7 @@
   - **Depends On:** [T027]
   - **AC Ref:** Low Priority Issue #7
 
-- [ ] **T029:** Verify typechecking and tests pass after type relocation
+- [x] **T029:** Verify typechecking and tests pass after type relocation
   - **Action:** Run typechecking and tests to ensure no issues after moving the type definition
   - **Depends On:** [T028]
   - **AC Ref:** Low Priority Issue #7
