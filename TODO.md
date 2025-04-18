@@ -164,7 +164,7 @@
   - **Depends On:** None
   - **AC Ref:** Low Priority Issue #7
 
-- [ ] **T027:** Move ActivityMode type to activity.ts
+- [x] **T027:** Move ActivityMode type to activity.ts
 
   - **Action:** Move the ActivityMode type definition from `src/types/common.ts` to `src/types/activity.ts`
   - **Depends On:** [T026]

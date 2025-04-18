@@ -1,6 +1,6 @@
 import React from "react";
 import ActivityFeed from "@/components/ActivityFeed";
-import { ActivityMode } from "@/types/common";
+import { ActivityMode } from "@/types/activity";
 import { DateRange } from "@/components/DateRangePicker";
 import { FilterState } from "@/app/dashboard/page";
 import { createActivityFetcher } from "@/lib/activity";

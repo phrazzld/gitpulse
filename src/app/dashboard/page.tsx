@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ActivityMode } from "@/types/common";
+import { ActivityMode } from "@/types/activity";
 import DateRangePicker, { DateRange } from "@/components/DateRangePicker";
 import ActivityFeed from "@/components/ActivityFeed";
 import DashboardLoadingState from "@/components/DashboardLoadingState";

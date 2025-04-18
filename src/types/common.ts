@@ -89,12 +89,6 @@ export type CacheData<T = unknown> = T;
 export type CacheParams = Record<string, unknown>;
 
 /**
- * Type for activity mode selection
- * Defines the available modes for viewing GitHub activity
- */
-export type ActivityMode = "my-activity" | "my-work-activity" | "team-activity";
-
-/**
  * Type-safe generic function with specific parameter and return types
  * Use this instead of (...args: any[]) => any
  */
