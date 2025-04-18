@@ -177,7 +177,7 @@
     2. Examples show how to use each component
   - **depends‑on:** [T011]
 
-- [ ] **T015 · docs · p2: update README with component library reference**
+- [x] **T015 · docs · p2: update README with component library reference**
 
   - **context:** Detailed Build Steps #8, Documentation
   - **action:**
@@ -197,25 +197,3 @@
     1. CI successfully runs component tests
     2. Linting and type checking pass for component files
   - **depends‑on:** [T013]
-
-### clarifications & assumptions
-
-- [x] **issue:** confirm location of CSS variables used for styling
-
-  - **context:** Data Flow Diagram (refers to tokens.css)
-  - **blocking?:** yes
-  - **resolution:** Found CSS variables in `/src/styles/tokens.css` with comprehensive design tokens
-
-- [ ] **issue:** decide whether to add more complex components in this iteration
-
-  - **context:** Open Questions
-  - **blocking?:** no
-
-- [ ] **issue:** determine if dark/light theming should be supported
-
-  - **context:** Open Questions
-  - **blocking?:** no
-
-- [ ] **issue:** decide if Storybook should be integrated for visual documentation
-  - **context:** Open Questions
-  - **blocking?:** no

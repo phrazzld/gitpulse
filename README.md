@@ -557,6 +557,56 @@ To update the design system:
 
 For major theme changes, focus on updating the semantic tokens rather than changing individual component styles.
 
+## Component Library
+
+GitPulse includes a reusable component library that provides consistent UI elements throughout the application. The component library is built on top of the design token system and implements the project's styling approach.
+
+### Available Components
+
+- **Button**: A versatile button component with multiple variants (primary, secondary, danger), sizes, and states
+- **Input**: Form input component with various types, validation states, and styling options
+- **Card**: Container component for grouping content with customizable padding, border radius, and shadow
+
+### Utilities
+
+- **cn**: Class name utility that combines [clsx](https://github.com/lukeed/clsx) and [tailwind-merge](https://github.com/dcastil/tailwind-merge) for managing Tailwind CSS classes
+
+### Usage
+
+Import components from the component library using the barrel file:
+
+```tsx
+// Import single component
+import { Button } from "@/components/library";
+
+// Import multiple components
+import { Button, Input, Card } from "@/components/library";
+
+// Import with type definitions
+import { Button, ButtonProps } from "@/components/library";
+```
+
+### Example
+
+```tsx
+import { Button, Card, Input } from "@/components/library";
+
+function LoginForm() {
+  return (
+    <Card className="max-w-md mx-auto p-lg">
+      <h2 className="text-xl font-bold mb-4">Login</h2>
+      <Input type="email" placeholder="Email address" className="mb-3" />
+      <Input type="password" placeholder="Password" className="mb-4" />
+      <Button variant="primary" className="w-full">
+        Sign In
+      </Button>
+    </Card>
+  );
+}
+```
+
+For detailed documentation including all props, variants, and examples, see the [Component Library Documentation](./docs/components.md).
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
