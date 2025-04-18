@@ -45,6 +45,42 @@ module.exports = {
         lg: "var(--radius-lg)",
         full: "var(--radius-full)",
       },
+
+      // Typography system
+      fontFamily: {
+        mono: "var(--font-family-mono)",
+      },
+
+      fontSize: {
+        xs: "var(--font-size-xs)",
+        sm: "var(--font-size-sm)",
+        base: "var(--font-size-md)",
+        md: "var(--font-size-md)",
+        lg: "var(--font-size-lg)",
+        xl: "var(--font-size-xl)",
+        "2xl": "var(--font-size-2xl)",
+        "3xl": "var(--font-size-3xl)",
+      },
+
+      fontWeight: {
+        normal: "var(--font-weight-normal)",
+        medium: "var(--font-weight-medium)",
+        bold: "var(--font-weight-bold)",
+      },
+
+      lineHeight: {
+        tight: "var(--line-height-tight)",
+        normal: "var(--line-height-normal)",
+        relaxed: "var(--line-height-relaxed)",
+      },
+
+      letterSpacing: {
+        tighter: "var(--letter-spacing-tighter)",
+        tight: "var(--letter-spacing-tight)",
+        normal: "var(--letter-spacing-normal)",
+        wide: "var(--letter-spacing-wide)",
+        wider: "var(--letter-spacing-wider)",
+      },
     },
   },
   plugins: [],

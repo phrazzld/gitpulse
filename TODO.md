@@ -95,7 +95,7 @@
     1. Theme spacing and borderRadius in Tailwind config reference CSS variables
   - **depends-on:** [T003, T008]
 
-- [ ] **T011 · feature · p2: extend tailwind theme typography with css variables**
+- [x] **T011 · feature · p2: extend tailwind theme typography with css variables**
 
   - **context:** Initial UI Framework Setup → Extend Tailwind Theme Configuration
   - **action:**
