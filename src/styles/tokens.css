@@ -7,7 +7,22 @@
  */
 
 :root {
-  /* Base tokens will be defined in T006 */
+  /* Base Color Tokens
+   * Original hex values converted to HSL format
+   * Format: hue degrees, saturation percentage, lightness percentage
+   */
+
+  /* Core palette colors */
+  --dark-slate: 200 30% 15%; /* #1b2b34 */
+  --neon-green: 156 100% 50%; /* #00ff87 */
+  --electric-blue: 210 82% 57%; /* #3b8eea */
+  --luminous-yellow: 40 100% 67%; /* #ffc857 */
+  --crimson-red: 3 100% 59%; /* #ff3b30 */
+
+  /* Additional base colors */
+  --true-black: 0 0% 0%; /* #000000 */
+  --true-white: 0 0% 100%; /* #ffffff */
+  --slate-dark: 0 0% 7%; /* #121212 */
 
   /* Semantic tokens will be defined in T007 */
 

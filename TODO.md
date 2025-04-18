@@ -48,7 +48,7 @@
     1. File exists and can be imported
   - **depends-on:** none
 
-- [ ] **T006 · feature · p1: define base color css variables**
+- [x] **T006 · feature · p1: define base color css variables**
 
   - **context:** Initial UI Framework Setup → Create Design Token System
   - **action:**
