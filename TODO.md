@@ -39,7 +39,7 @@
     3. TypeScript compilation passes with no errors
   - **depends‑on:** [T001, T002]
 
-- [ ] **T004 · feature · p2: implement button variants and styling**
+- [x] **T004 · feature · p2: implement button variants and styling**
 
   - **context:** Detailed Build Steps #3 (variants and styling)
   - **action:**

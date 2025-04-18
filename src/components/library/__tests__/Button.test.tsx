@@ -56,4 +56,69 @@ describe("Button component", () => {
     const button = screen.getByRole("button");
     expect(button).toHaveAttribute("aria-disabled", "true");
   });
+
+  // Variant tests
+  describe("variants", () => {
+    it("applies primary variant styling by default", () => {
+      render(<Button>Primary Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("bg-neon-green");
+      expect(button).toHaveClass("text-dark-slate");
+    });
+
+    it("applies secondary variant styling when specified", () => {
+      render(<Button variant="secondary">Secondary Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("bg-true-white");
+      expect(button).toHaveClass("text-dark-slate");
+      expect(button).toHaveClass("border-dark-slate/30");
+    });
+
+    it("applies danger variant styling when specified", () => {
+      render(<Button variant="danger">Danger Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("bg-true-white");
+      expect(button).toHaveClass("text-crimson-red");
+      expect(button).toHaveClass("border-crimson-red/30");
+    });
+  });
+
+  // Size tests
+  describe("sizes", () => {
+    it("applies medium (md) size styling by default", () => {
+      render(<Button>Medium Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("text-base");
+      expect(button).toHaveClass("px-md");
+      expect(button).toHaveClass("py-sm");
+    });
+
+    it("applies small (sm) size styling when specified", () => {
+      render(<Button size="sm">Small Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("text-sm");
+      expect(button).toHaveClass("px-sm");
+      expect(button).toHaveClass("py-xs");
+      expect(button).toHaveClass("rounded-sm");
+    });
+
+    it("applies large (lg) size styling when specified", () => {
+      render(<Button size="lg">Large Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("text-lg");
+      expect(button).toHaveClass("px-lg");
+      expect(button).toHaveClass("py-md");
+      expect(button).toHaveClass("rounded-lg");
+      expect(button).toHaveClass("font-bold");
+    });
+  });
+
+  // Interactive state test
+  it("applies disabled styling when disabled", () => {
+    render(<Button disabled>Disabled Button</Button>);
+    const button = screen.getByRole("button");
+    expect(button).toHaveClass("opacity-50");
+    expect(button).toHaveClass("cursor-not-allowed");
+    expect(button).toHaveClass("pointer-events-none");
+  });
 });

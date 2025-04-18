@@ -30,16 +30,28 @@ export interface ButtonProps
  *
  * Uses Tailwind CSS classes for styling with CSS variables from tokens.css
  */
-// Get variant-specific classes
+// Get variant-specific classes with interactive states
 const getVariantClasses = (variant: ButtonProps["variant"]) => {
   switch (variant) {
     case "secondary":
-      return "bg-white text-gray-700 border-gray-300";
+      return cn(
+        "bg-true-white text-dark-slate border-dark-slate/30",
+        "hover:bg-dark-slate/5 focus:ring-electric-blue/50",
+        "active:bg-dark-slate/10",
+      );
     case "danger":
-      return "bg-white text-red-600 border-red-600";
+      return cn(
+        "bg-true-white text-crimson-red border-crimson-red/30",
+        "hover:bg-crimson-red/5 focus:ring-crimson-red/50",
+        "active:bg-crimson-red/10",
+      );
     case "primary":
     default:
-      return "bg-gray-100 text-gray-900";
+      return cn(
+        "bg-neon-green text-dark-slate border-transparent",
+        "hover:bg-neon-green/90 focus:ring-neon-green/50",
+        "active:bg-neon-green/80",
+      );
   }
 };
 
@@ -47,18 +59,22 @@ const getVariantClasses = (variant: ButtonProps["variant"]) => {
 const getSizeClasses = (size: ButtonProps["size"]) => {
   switch (size) {
     case "sm":
-      return "text-sm px-2 py-1";
+      return "text-sm px-sm py-xs font-medium rounded-sm";
     case "lg":
-      return "text-lg px-4 py-2";
+      return "text-lg px-lg py-md font-bold rounded-lg";
     case "md":
     default:
-      return "text-base px-3 py-2";
+      return "text-base px-md py-sm font-medium rounded";
   }
 };
 
 // Base button classes
-const baseClasses =
-  "inline-flex items-center justify-center font-medium rounded focus:outline-none focus:ring-2 focus-visible:ring-2 transition-colors border";
+const baseClasses = cn(
+  "inline-flex items-center justify-center",
+  "transition-colors duration-normal",
+  "focus:outline-none focus:ring-2",
+  "shadow-sm border",
+);
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -79,8 +95,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       baseClasses,
       getVariantClasses(variant),
       getSizeClasses(size),
-      // Basic disabled styling
-      disabled && "opacity-50 cursor-not-allowed",
+      // Disabled styling
+      disabled &&
+        "opacity-50 cursor-not-allowed hover:bg-opacity-100 pointer-events-none",
       // Pass through any custom classes
       className,
     );
