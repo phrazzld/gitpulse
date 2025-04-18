@@ -67,7 +67,7 @@
     1. Semantic color variables are properly defined and mapped
   - **depends-on:** [T006]
 
-- [ ] **T008 · feature · p1: define spacing and typography css variables**
+- [x] **T008 · feature · p1: define spacing and typography css variables**
 
   - **context:** Initial UI Framework Setup → Create Design Token System
   - **action:**
