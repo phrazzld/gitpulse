@@ -165,7 +165,7 @@
     2. Components work correctly when composed together
   - **depends‑on:** [T005, T008, T010]
 
-- [ ] **T014 · docs · p2: create component documentation markdown**
+- [x] **T014 · docs · p2: create component documentation markdown**
 
   - **context:** Detailed Build Steps #8, Documentation
   - **action:**
