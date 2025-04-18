@@ -12,6 +12,22 @@ describe("Input component", () => {
     expect(input).not.toHaveAttribute("disabled");
   });
 
+  it("generates unique IDs for inputs when id not provided", () => {
+    render(
+      <>
+        <Input placeholder="First input" />
+        <Input placeholder="Second input" />
+      </>,
+    );
+
+    const firstInput = screen.getByPlaceholderText("First input");
+    const secondInput = screen.getByPlaceholderText("Second input");
+
+    expect(firstInput.id).not.toBe("");
+    expect(secondInput.id).not.toBe("");
+    expect(firstInput.id).not.toBe(secondInput.id);
+  });
+
   it("handles value changes", () => {
     const handleChange = jest.fn();
     render(<Input value="test" onChange={handleChange} />);
@@ -36,6 +52,26 @@ describe("Input component", () => {
     expect(input).toHaveClass("test-class");
   });
 
+  it("supports additional HTML attributes", () => {
+    render(
+      <Input
+        placeholder="Custom attributes"
+        maxLength={10}
+        min={5}
+        max={100}
+        autoComplete="off"
+        data-testid="custom-input"
+      />,
+    );
+
+    const input = screen.getByPlaceholderText("Custom attributes");
+    expect(input).toHaveAttribute("maxlength", "10");
+    expect(input).toHaveAttribute("min", "5");
+    expect(input).toHaveAttribute("max", "100");
+    expect(input).toHaveAttribute("autocomplete", "off");
+    expect(input).toHaveAttribute("data-testid", "custom-input");
+  });
+
   // State tests
   describe("states", () => {
     it("applies disabled state correctly", () => {
@@ -54,6 +90,26 @@ describe("Input component", () => {
       const input = screen.getByPlaceholderText("Error input");
       expect(input).toHaveAttribute("aria-invalid", "true");
       expect(input).toHaveClass("border-crimson-red");
+    });
+
+    it("handles boolean true and string error values the same way", () => {
+      render(
+        <>
+          <Input error={true} placeholder="Boolean error" />
+          <Input
+            error="Error message without display"
+            placeholder="String error"
+          />
+        </>,
+      );
+
+      const booleanError = screen.getByPlaceholderText("Boolean error");
+      const stringError = screen.getByPlaceholderText("String error");
+
+      expect(booleanError).toHaveAttribute("aria-invalid", "true");
+      expect(stringError).toHaveAttribute("aria-invalid", "true");
+      expect(booleanError).toHaveClass("border-crimson-red");
+      expect(stringError).toHaveClass("border-crimson-red");
     });
 
     it("displays error message when provided", () => {
@@ -168,6 +224,22 @@ describe("Input component", () => {
 
       const input = screen.getByPlaceholderText("Number");
       expect(input).toHaveAttribute("type", "number");
+      expect(input).toHaveClass("font-mono");
+    });
+
+    it("renders search input with appropriate styling", () => {
+      render(<Input type="search" placeholder="Search" />);
+
+      const input = screen.getByPlaceholderText("Search");
+      expect(input).toHaveAttribute("type", "search");
+      expect(input).toHaveClass("pr-8");
+    });
+
+    it("renders date input with appropriate styling", () => {
+      render(<Input type="date" placeholder="Date" />);
+
+      const input = screen.getByPlaceholderText("Date");
+      expect(input).toHaveAttribute("type", "date");
       expect(input).toHaveClass("font-mono");
     });
   });

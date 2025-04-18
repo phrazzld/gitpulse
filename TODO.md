@@ -91,7 +91,7 @@
     3. Disabled state works properly
   - **depends‑on:** [T006]
 
-- [ ] **T008 · test · p1: create unit tests for input component**
+- [x] **T008 · test · p1: create unit tests for input component**
   - **context:** Detailed Build Steps #7, Testing Strategy
   - **action:**
     1. Create `src/components/library/__tests__/Input.test.tsx`
