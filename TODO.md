@@ -119,7 +119,7 @@
   - **Depends On:** [T016]
   - **AC Ref:** Low Priority Issue #4
 
-- [ ] **T020:** Verify filtering functionality works correctly
+- [x] **T020:** Verify filtering functionality works correctly
   - **Action:** Run the application and test that filtering functionality works correctly without organization options
   - **Depends On:** [T017, T018, T019]
   - **AC Ref:** Low Priority Issue #4
