@@ -114,7 +114,7 @@
     1. `globals.css` correctly imports tokens and includes Tailwind directives
   - **depends-on:** [T004, T005]
 
-- [ ] **T013 · refactor · p2: update body styles in globals.css to use css variables**
+- [x] **T013 · refactor · p2: update body styles in globals.css to use css variables**
 
   - **context:** Initial UI Framework Setup → Update Global Styles
   - **action:**
