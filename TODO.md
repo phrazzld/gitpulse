@@ -132,7 +132,7 @@
   - **Depends On:** None
   - **AC Ref:** Low Priority Issue #5
 
-- [ ] **T022:** Test typecheck with and without skipLibCheck
+- [x] **T022:** Test typecheck with and without skipLibCheck
 
   - **Action:** Run `tsc --noEmit` with and without the --skipLibCheck flag, documenting any issues that arise
   - **Depends On:** [T021]
