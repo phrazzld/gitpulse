@@ -155,7 +155,7 @@
     1. Documentation is added to README.md
   - **depends-on:** [T015]
 
-- [ ] **T017 · docs · p3: add inline comments explaining token usage**
+- [x] **T017 · docs · p3: add inline comments explaining token usage**
   - **context:** Initial UI Framework Setup → Document Theme System
   - **action:**
     1. Add comments to `tokens.css` explaining the purpose of token groups
