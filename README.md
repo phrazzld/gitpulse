@@ -130,8 +130,7 @@ Uses GitHub App installations with installation tokens, providing more granular 
 **Use Cases:**
 
 - Individuals who need fine-grained repository access without personal tokens
-- Enterprise environments with strict security requirements
-- When you need fine-grained permissions for your repositories
+- When you need fine-grained permissions for your personal repositories
 - Users concerned about token expiration or personal token security
 
 **Advantages:**
@@ -253,7 +252,7 @@ The diagram shows:
 
 - Initial authentication using GitHub OAuth
 - Session validation and token management
-- Handling of both OAuth and GitHub App authentication methods for individual access
+- Handling of both OAuth and GitHub App authentication methods for individual user access
 - Error handling and token refresh process
 - GitHub App installation flow for personal accounts
 
@@ -351,7 +350,7 @@ If you encounter GitHub App authentication issues:
      - Click "Configure" next to your app
      - Under "Repository access", ensure the repositories you need are either:
        - Included in "Select repositories" if you chose specific access
-       - Or that "All repositories" is selected for full access to your personal repositories
+       - Or that "All repositories" is selected for full access to all your personal repositories
 
 #### Checking Error Responses
 

@@ -189,7 +189,7 @@
   - **Depends On:** [T010]
   - **AC Ref:** Related Consideration #1
 
-- [ ] **T031:** Update documentation for individual-only focus
+- [x] **T031:** Update documentation for individual-only focus
 
   - **Action:** Review documentation and update it to reflect the individual-only focus throughout the codebase
   - **Depends On:** None
