@@ -65,7 +65,7 @@
 
 ## input component
 
-- [ ] **T006 · feature · p1: implement base input component**
+- [x] **T006 · feature · p1: implement base input component**
 
   - **context:** Detailed Build Steps #4, Public Interfaces/Contracts
   - **action:**
