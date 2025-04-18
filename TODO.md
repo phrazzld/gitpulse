@@ -104,7 +104,7 @@
     1. Theme fontFamily in Tailwind config references CSS variables
   - **depends-on:** [T003, T008]
 
-- [ ] **T012 · refactor · p1: import tokens and tailwind directives into global css**
+- [x] **T012 · refactor · p1: import tokens and tailwind directives into global css**
 
   - **context:** Initial UI Framework Setup → Update Global Styles
   - **action:**

@@ -1,5 +1,10 @@
-@import "tailwindcss";
+@import "../styles/tokens.css";
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Legacy root variables - these will be migrated to tokens.css in a future task */
 :root {
   /* Cybernetic Command Interface Color Palette */
   --dark-slate: #1b2b34;
@@ -171,21 +176,25 @@ h6 {
 }
 
 /* Custom Scrollbars */
-::-webkit-scrollbar, .scrollbar-custom::-webkit-scrollbar {
+::-webkit-scrollbar,
+.scrollbar-custom::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-::-webkit-scrollbar-track, .scrollbar-custom::-webkit-scrollbar-track {
+::-webkit-scrollbar-track,
+.scrollbar-custom::-webkit-scrollbar-track {
   background: var(--dark-slate);
 }
 
-::-webkit-scrollbar-thumb, .scrollbar-custom::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb,
+.scrollbar-custom::-webkit-scrollbar-thumb {
   background: var(--neon-green);
   border-radius: var(--border-radius);
 }
 
-::-webkit-scrollbar-thumb:hover, .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover,
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
   background: var(--electric-blue);
 }
 
