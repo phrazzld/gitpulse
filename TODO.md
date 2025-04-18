@@ -13,7 +13,7 @@
     1. Directory structure exists and is correctly organized
   - **depends‑on:** none
 
-- [ ] **T002 · feature · p1: implement class name merging utility**
+- [x] **T002 · feature · p1: implement class name merging utility**
   - **context:** Detailed Build Steps #2
   - **action:**
     1. Create `src/components/library/utils/cn.ts`
