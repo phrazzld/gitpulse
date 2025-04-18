@@ -37,40 +37,52 @@ The `skipLibCheck` flag tells TypeScript to skip type checking of declaration fi
    }
    ```
 
-### Why do we use skipLibCheck?
+### Why we use skipLibCheck
 
-1. **Performance Optimization**:
+We conducted comprehensive testing in April 2025 as part of Task T022 (documented in `docs/skipLibCheck-findings.md`) to evaluate this flag. We found:
 
-   - Our node_modules directory contains thousands of declaration files (over 3,800).
-   - Checking all these files would significantly slow down builds and pre-commit hooks.
-   - The flag was added to improve pre-commit hook performance in commit `a5da9cc`.
+1. **Type Errors in Dependencies**:
 
-2. **Dependency Management**:
+   - Multiple type errors were found in node_modules dependencies when the flag was disabled.
+   - These included missing module declarations, interface conflicts, and reference errors.
+   - Most notably, there were issues with `next-auth`, Jest type definitions, and their dependencies.
 
-   - Third-party libraries may contain type errors or conflicting type definitions.
-   - The project has dependencies with their own TypeScript installations (found in Next.js and Babel).
-   - Some dependency declaration files contain `// @ts-ignore` comments, indicating potential type issues.
+2. **Build Reliability**:
 
-3. **Focus on Project Code**:
-   - We prioritize type checking our own source code, not third-party dependencies.
-   - Type errors in dependencies are usually outside our control to fix.
+   - Without skipLibCheck, builds would fail due to errors in third-party code we cannot fix.
+   - These failures would block development despite our own code being type-safe.
 
-### Implications
+3. **Scope of Responsibility**:
+   - Our focus should be on type-checking our own source code, not third-party dependencies.
+   - We rely on package maintainers to ensure type consistency within their own packages.
 
-1. Using `skipLibCheck` means we might miss type errors in node_modules, but this is generally acceptable since:
+### Test Results
 
-   - We can't fix errors in third-party code
-   - Most important type issues would be caught during runtime testing
-   - It's impractical to enforce type correctness across all dependencies
+Our testing found two contradicting results:
 
-2. Performance testing shows varying results, but in general `skipLibCheck` is recommended for large projects with many dependencies.
+1. **Performance**:
 
-3. This is a standard practice in Next.js projects and many TypeScript projects.
+   - Initial test scripts suggested that type checking without skipLibCheck was faster (1.3x).
+   - However, those tests didn't account for all errors that would terminate checking early.
+   - When using the actual npm scripts, disabling skipLibCheck caused build failures.
 
-### Recommendation
+2. **Error Detection**:
+   - Multiple type errors were detected in dependencies (next-auth, Jest types, etc.).
+   - These errors don't affect runtime functionality but would block builds.
 
-Continue using the `skipLibCheck` flag in our TypeScript configuration since:
+### Current Recommendation
 
-- It's consistent with best practices for large TypeScript projects
-- It maintains a balance between type safety and build performance
-- It focuses our type checking efforts on our own code where we can act on the results
+We recommend **continuing to use** the `skipLibCheck` flag in this project because:
+
+- It prevents build failures due to type errors in dependencies we cannot fix
+- It maintains focus on ensuring type safety in our own code
+- It follows standard practice in the TypeScript ecosystem, especially for Next.js projects
+- The alternative would require maintaining manual type declaration overrides for dependencies
+
+### Future Considerations
+
+We should periodically re-evaluate this decision as the project evolves:
+
+- When upgrading major dependencies, especially TypeScript, Next.js, and next-auth
+- If build performance becomes problematic
+- Consider adding more specific type declarations for critical dependencies

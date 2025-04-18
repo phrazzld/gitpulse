@@ -25,14 +25,22 @@ This document presents the findings from comprehensive testing of TypeScript's `
 
 ### Type Checking Results
 
-- **No Type Errors in Production Dependencies**:
+- **Initial Test Results**:
 
-  - Surprisingly, no type errors were found in the project's node_modules dependencies, even with `skipLibCheck` disabled.
-  - TypeScript version 5.8.2 checked all declarations without errors.
+  - Initial targeted tests showed no type errors in the project's node_modules dependencies.
+  - These tests focused on a subset of declaration files.
+
+- **Full Build Type Errors**:
+
+  - When running the actual `npm run typecheck` without skipLibCheck, we encountered several errors:
+    - Interface conflicts in Jest type definitions
+    - Missing module declarations in next-auth dependencies (e.g., nodemailer, cookie)
+    - Cannot find namespace 'JSX' errors
+  - These errors prevent successful type checking despite our own code being type-safe.
 
 - **Type Error Handling**:
-  - In our simulated test with intentional type errors, `skipLibCheck` and normal type checking both detected and reported errors.
-  - This suggests that `skipLibCheck` in our project doesn't have the expected effect of ignoring declaration file errors.
+  - In our simulated test with intentional type errors, both `skipLibCheck` and normal type checking detected errors.
+  - This demonstrates that TypeScript effectively catches errors in checked code, regardless of the flag.
 
 ### Performance Impact
 
@@ -73,12 +81,18 @@ This document presents the findings from comprehensive testing of TypeScript's `
 
 Based on the comprehensive testing conducted:
 
-1. **skipLibCheck seems unnecessary** for this project because:
+1. **skipLibCheck is necessary** for this project because:
 
-   - No type errors were detected in node_modules declarations
-   - Performance is actually better without skipLibCheck
-   - Current dependencies have compatible, error-free type definitions
+   - Several type errors were detected in node_modules declarations when running the actual typecheck command
+   - These errors would prevent successful builds despite our own code being type-safe
+   - The errors are in third-party code we cannot fix (next-auth, Jest types)
 
-2. **Future Considerations**:
-   - The need for `skipLibCheck` may change if dependencies are updated or added
-   - It may be worth periodically re-evaluating this setting as the project evolves
+2. **Performance Considerations**:
+
+   - While initial tests showed better performance without skipLibCheck, this was likely because the tests didn't encounter all type errors
+   - In practice, with the full set of dependencies, skipLibCheck allows us to focus on our own code quality
+
+3. **Future Considerations**:
+   - The need for `skipLibCheck` should be periodically re-evaluated as dependencies are updated
+   - It would be worth checking if newer versions of problematic dependencies have fixed their type issues
+   - Consider adding more specific type declarations for critical dependencies if needed

@@ -138,7 +138,7 @@
   - **Depends On:** [T021]
   - **AC Ref:** Low Priority Issue #5
 
-- [ ] **T023:** Document reason for skipLibCheck or remove if unnecessary
+- [x] **T023:** Document reason for skipLibCheck or remove if unnecessary
   - **Action:** Either add documentation explaining why the flag is necessary (if it's required) or remove it from package.json if it's not needed
   - **Depends On:** [T022]
   - **AC Ref:** Low Priority Issue #5
