@@ -21,7 +21,7 @@
     2. `postcss.config.mjs` is created
   - **depends-on:** [T001]
 
-- [ ] **T003 · chore · p2: configure tailwind content paths**
+- [x] **T003 · chore · p2: configure tailwind content paths**
 
   - **context:** Initial UI Framework Setup → Install & Configure Tailwind CSS
   - **action:**
