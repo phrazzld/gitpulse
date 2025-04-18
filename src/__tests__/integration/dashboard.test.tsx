@@ -337,7 +337,11 @@ describe("Dashboard Integration", () => {
     );
   });
 
-  // Test for activity mode change removed (team-activity mode no longer supported in individual-focused MVP)
+  /**
+   * Note: In the individual-focused MVP, only "my-activity" mode is supported.
+   * The "team-activity" mode has been completely removed, so we no longer
+   * test for mode changes.
+   */
 
   it("updates state when date range is changed", async () => {
     render(<Dashboard />);
@@ -364,7 +368,11 @@ describe("Dashboard Integration", () => {
     });
   });
 
-  // Test for organization filter change removed (organizations no longer supported in individual-focused MVP)
+  /**
+   * Note: In the individual-focused MVP, organization filtering has been completely
+   * removed. Only repository filtering is supported, so we no longer test for
+   * organization filter changes.
+   */
 
   it("toggles repository list visibility", async () => {
     render(<Dashboard />);

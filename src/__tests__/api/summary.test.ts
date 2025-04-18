@@ -128,40 +128,50 @@ describe("API: /api/summary", () => {
     expect(response.data).toBeDefined();
   });
 
-  it("should handle filtering by contributors", async () => {
-    // Call the handler with contributor filter
+  /**
+   * Note: In the individual-focused MVP, contributor filtering is no longer supported.
+   * However, the API might still accept these parameters for backward compatibility
+   * but should ignore them. We keep this test to verify graceful handling.
+   */
+  it("should gracefully handle deprecated contributor parameters", async () => {
+    // Call the handler with deprecated contributor filter
     const response = await summaryTestHelper.callHandler(
       "/api/summary",
       "GET",
       {
         since: "2025-01-01",
         until: "2025-01-31",
-        contributors: "testuser,anotheruser",
+        contributors: "testuser,anotheruser", // This parameter should be ignored
       },
     );
 
-    // In our test environment, we only check for basic response structure
-    // Mocks may not be properly set up for detailed verification
+    // Even with deprecated parameters, the API should still work
     expect(response.status).toBeDefined();
     expect(response.data).toBeDefined();
+    // The API should still return data even if it ignores the contributor filter
   });
 
-  it("should handle filtering by organizations", async () => {
-    // Call the handler with organization filter
+  /**
+   * Note: In the individual-focused MVP, organization filtering is no longer supported.
+   * However, the API might still accept these parameters for backward compatibility
+   * but should ignore them. We keep this test to verify graceful handling.
+   */
+  it("should gracefully handle deprecated organization parameters", async () => {
+    // Call the handler with deprecated organization filter
     const response = await summaryTestHelper.callHandler(
       "/api/summary",
       "GET",
       {
         since: "2025-01-01",
         until: "2025-01-31",
-        organizations: "test-org",
+        organizations: "test-org", // This parameter should be ignored
       },
     );
 
-    // In our test environment, we only check for basic response structure
-    // Mocks may not be properly set up for detailed verification
+    // Even with deprecated parameters, the API should still work
     expect(response.status).toBeDefined();
     expect(response.data).toBeDefined();
+    // The API should still return data even if it ignores the organization filter
   });
 
   it("should handle filtering by repositories", async () => {
@@ -265,13 +275,14 @@ describe("API: /api/summary", () => {
     mockFetchAppRepositories.mockResolvedValueOnce([]);
 
     // Call the handler with filters that result in no repositories
+    // Note: Using repositories parameter instead of organizations in individual-focused MVP
     const response = await summaryTestHelper.callHandler(
       "/api/summary",
       "GET",
       {
         since: "2025-01-01",
         until: "2025-01-31",
-        organizations: "non-existent-org",
+        repositories: "non-existent-repo", // Using repository filter instead of organization
       },
     );
 

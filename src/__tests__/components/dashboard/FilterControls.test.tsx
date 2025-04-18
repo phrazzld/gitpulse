@@ -32,30 +32,31 @@ jest.mock("@/components/DateRangePicker", () => {
 // OrganizationPicker component removed for individual-only focus
 
 describe("FilterControls", () => {
+  // Mock installations for individual users only in the individual-focused MVP
   const mockInstallations: Installation[] = [
     {
       id: 1,
       account: {
-        login: "org1",
-        type: "Organization",
+        login: "user1",
+        type: "User", // Always User in individual-focused MVP
         avatarUrl: "https://example.com/avatar1.jpg",
       },
       appSlug: "test-app",
       appId: 123,
       repositorySelection: "all",
-      targetType: "Organization",
+      targetType: "User", // Always User in individual-focused MVP
     },
     {
       id: 2,
       account: {
-        login: "org2",
-        type: "Organization",
+        login: "user2",
+        type: "User", // Always User in individual-focused MVP
         avatarUrl: "https://example.com/avatar2.jpg",
       },
       appSlug: "test-app",
       appId: 123,
       repositorySelection: "all",
-      targetType: "Organization",
+      targetType: "User", // Always User in individual-focused MVP
     },
   ];
 
@@ -92,7 +93,8 @@ describe("FilterControls", () => {
     // Organization picker has been removed from the application
   });
 
-  // Test for team-activity mode removed as it's no longer supported
+  // Note: The individual-focused MVP only supports "my-activity" mode,
+  // so we no longer test for "team-activity" mode which has been removed
 
   it("calls handleDateRangeChange when date range is changed", () => {
     render(
@@ -118,7 +120,8 @@ describe("FilterControls", () => {
     });
   });
 
-  // Test for OrganizationPicker removed as component has been deleted
+  // Note: The OrganizationPicker component has been completely removed
+  // in the individual-focused MVP, so we no longer test for it
 
   it("displays parameters panel with correct information", () => {
     render(
@@ -144,7 +147,7 @@ describe("FilterControls", () => {
       screen.getByText(`${mockDateRange.since} to ${mockDateRange.until}`),
     ).toBeInTheDocument();
 
-    // No organizations display as it's been removed
+    // Organization filtering has been completely removed in the individual-focused MVP
   });
 });
 

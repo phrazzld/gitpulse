@@ -48,21 +48,33 @@ export const mockSession = {
   accessToken: "test-access-token",
 };
 
-// Mock Installation data (updated for individual-focused MVP)
+/**
+ * Mock Installation data for individual-focused MVP
+ *
+ * This represents a GitHub App installation for an individual user.
+ * The application no longer focuses on organization installations, though
+ * the underlying API still supports them for backward compatibility.
+ */
 export const mockInstallation = {
   id: 123,
   account: {
     login: "testuser",
-    type: "User",
+    type: "User", // Individual user focus
     avatarUrl: "https://example.com/user-avatar.jpg",
   },
   appSlug: "test-app",
   appId: 456,
   repositorySelection: "all",
-  targetType: "User",
+  targetType: "User", // Always "User" in individual-focused model
 };
 
-// Mock Repository data (updated for individual-focused MVP)
+/**
+ * Mock Repository data for individual-focused MVP
+ *
+ * These repositories are owned by an individual user, not an organization.
+ * In the individual-focused model, we only display repositories owned by
+ * or accessible to the individual user.
+ */
 export const mockRepositories = [
   {
     id: 1,
@@ -70,6 +82,7 @@ export const mockRepositories = [
     name: "repo-1",
     owner: {
       login: "testuser",
+      type: "User", // Adding type to explicitly show individual ownership
     },
     private: false,
     language: "TypeScript",
@@ -80,15 +93,21 @@ export const mockRepositories = [
     name: "repo-2",
     owner: {
       login: "testuser",
+      type: "User", // Adding type to explicitly show individual ownership
     },
     private: true,
     language: "JavaScript",
   },
 ];
 
-// Mock summary data
+/**
+ * Mock summary data for individual-focused MVP
+ *
+ * This represents a summary of activity for a single individual user,
+ * containing their commits across repositories they have access to.
+ */
 export const mockSummary = {
-  user: "Test User",
+  user: "Test User", // Individual user name
   commits: [
     {
       sha: "abc123",
@@ -102,14 +121,14 @@ export const mockSummary = {
       },
       repository: {
         name: "repo-1",
-        full_name: "testuser/repo-1",
+        full_name: "testuser/repo-1", // Individual user's repository
         html_url: "https://github.com/testuser/repo-1",
       },
     },
   ],
   stats: {
     totalCommits: 10,
-    repositories: ["testuser/repo-1", "testuser/repo-2"],
+    repositories: ["testuser/repo-1", "testuser/repo-2"], // Individual user's repositories
     dates: ["2025-01-01", "2025-01-02", "2025-01-03"],
   },
   aiSummary: {
@@ -154,9 +173,17 @@ export const mockSummary = {
   },
   authMethod: "github_app",
   installationId: 123,
+  // Note: We purposely don't include filterInfo with organizations or contributors fields
+  // to reflect the individual-focused model
 };
 
-// Mock ActivityCommit data (updated for individual-focused MVP)
+/**
+ * Mock ActivityCommit data for individual-focused MVP
+ *
+ * These commits are associated with individual user repositories.
+ * Note that the `contributor` field is deprecated in the individual-focused model
+ * but kept for backward compatibility with existing tests.
+ */
 export const mockActivityCommits = [
   {
     sha: "abc123",
@@ -173,7 +200,10 @@ export const mockActivityCommits = [
       full_name: "testuser/repo-1",
       html_url: "https://github.com/testuser/repo-1",
     },
-    // contributor field deprecated but kept for backward compatibility
+    /**
+     * @deprecated The contributor field is deprecated in the individual-focused MVP
+     * but kept for backward compatibility with existing tests.
+     */
     contributor: {
       username: "testuser",
       displayName: "Test User",
@@ -195,7 +225,10 @@ export const mockActivityCommits = [
       full_name: "testuser/repo-2",
       html_url: "https://github.com/testuser/repo-2",
     },
-    // contributor field deprecated but kept for backward compatibility
+    /**
+     * @deprecated The contributor field is deprecated in the individual-focused MVP
+     * but kept for backward compatibility with existing tests.
+     */
     contributor: {
       username: "testuser",
       displayName: "Test User",
@@ -204,12 +237,24 @@ export const mockActivityCommits = [
   },
 ];
 
-// Mock common props (updated for individual-focused MVP)
+/**
+ * Mock active filters for individual-focused MVP
+ *
+ * This object represents the filter state for the dashboard.
+ * In the individual-focused model, we only use repository filtering
+ * and have removed organization and contributor filtering.
+ */
 export const mockActiveFilters = {
-  // contributors and organizations fields have been removed completely
+  // Only repository filtering is supported in individual-focused MVP
   repositories: [],
+  // Note: contributors and organizations fields have been completely removed
 };
 
+/**
+ * Mock date range for testing
+ *
+ * Used for filtering commits by date in the dashboard.
+ */
 export const mockDateRange = {
   since: "2025-01-01",
   until: "2025-01-30",

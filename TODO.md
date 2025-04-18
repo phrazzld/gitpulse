@@ -183,7 +183,7 @@
 
 ## Additional Improvements (Optional)
 
-- [ ] **T030:** Update test fixtures for individual-focused model
+- [x] **T030:** Update test fixtures for individual-focused model
 
   - **Action:** Review and update test fixtures to better reflect the individual-focused model, removing any team/organization references
   - **Depends On:** [T010]
