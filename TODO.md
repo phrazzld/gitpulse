@@ -207,7 +207,7 @@
   - **Depends On:** [T015]
   - **AC Ref:** Related Consideration #3
 
-- [ ] **T034:** Add CI check for skipped tests
+- [x] **T034:** Add CI check for skipped tests
 
   - **Action:** Add a CI check to prevent skipping tests without proper justification
   - **Depends On:** [T006]

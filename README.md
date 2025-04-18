@@ -435,16 +435,31 @@ flowchart TD
     Quality --> Lint[ESLint]
     Quality --> TypeCheck[TypeScript Check]
     Quality --> Test[Jest Tests]
+    Quality --> SkipCheck[Skipped Tests Check]
     Quality --> Build[Next.js Build]
-    Lint & TypeCheck & Test --> Success{All Checks Pass?}
+    Lint & TypeCheck & Test & SkipCheck --> Success{All Checks Pass?}
     Success -->|Yes| MergePR[Ready to Merge]
     Success -->|No| FixIssues[Fix Issues]
 ```
 
 The CI workflow includes these jobs:
 
-1. **Code Quality:** Runs linting, type checking, and tests
+1. **Code Quality:** Runs linting, type checking, tests, and checks for unjustified skipped tests
 2. **Build:** Verifies the application builds correctly
+
+#### Skipped Tests Policy
+
+GitPulse enforces a policy that all skipped tests must have explicit justification:
+
+- **Detects:** Tests marked with `it.skip`, `test.skip`, `describe.skip`, `xit`, `xdescribe`, and commented-out tests
+- **Requires:** A `// SKIP-REASON: explanation` comment on the same line as any skipped test
+- **Purpose:** Prevents accidental test skipping and ensures all skipped tests have proper documentation
+
+Example of properly justified skipped test:
+
+```typescript
+it.skip('validates enterprise feature X', () => { ... }); // SKIP-REASON: Enterprise features postponed until Q3
+```
 
 ### Running Quality Checks Locally
 
@@ -460,7 +475,10 @@ npm run typecheck
 # Run tests
 npm run test
 
-# Run all checks (lint, typecheck, test) in sequence
+# Check for skipped tests without justification
+npm run test:no-skips
+
+# Run all checks (lint, typecheck, test, skipped test check) in sequence
 npm run ci
 ```
 

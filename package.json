@@ -16,8 +16,9 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "CI=true jest --ci --runInBand --coverage --reporters=default --no-cache --testPathIgnorePatterns='(test-utils.tsx|DashboardTestWrapper.tsx)' --coverageThreshold='{}' --bail",
+    "test:no-skips": "node ./scripts/check-skipped-tests.js",
     "prepare": "husky",
-    "ci": "npm run lint && npm run typecheck && npm run test:ci"
+    "ci": "npm run lint && npm run typecheck && npm run test:ci && npm run test:no-skips"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
@@ -51,6 +52,7 @@
     "eslint-plugin-next": "^0.0.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
+    "glob": "^11.0.1",
     "globals": "^16.0.0",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
@@ -73,6 +75,12 @@
     ],
     "*.{json,md,css}": [
       "prettier --write --end-of-line lf"
+    ],
+    "**/__tests__/**/*.{js,jsx,ts,tsx}": [
+      "node ./scripts/check-skipped-tests.js"
+    ],
+    "**/*.test.{js,jsx,ts,tsx}": [
+      "node ./scripts/check-skipped-tests.js"
     ]
   }
 }
