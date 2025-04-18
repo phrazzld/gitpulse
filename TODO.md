@@ -117,7 +117,7 @@
     3. Component allows className customization
   - **depends‑on:** [T001, T002]
 
-- [ ] **T010 · test · p2: create unit tests for card component**
+- [x] **T010 · test · p2: create unit tests for card component**
   - **context:** Detailed Build Steps #7, Testing Strategy
   - **action:**
     1. Create `src/components/library/__tests__/Card.test.tsx`
