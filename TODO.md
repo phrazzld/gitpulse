@@ -78,7 +78,7 @@
     3. TypeScript compilation passes with no errors
   - **depends‑on:** [T001, T002]
 
-- [ ] **T007 · feature · p2: implement input variants and states**
+- [x] **T007 · feature · p2: implement input variants and states**
 
   - **context:** Detailed Build Steps #4 (states and types)
   - **action:**
