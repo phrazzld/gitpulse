@@ -11,7 +11,7 @@
     1. Dependencies are added to `package.json` devDependencies
   - **depends-on:** none
 
-- [ ] **T002 · chore · p1: initialize tailwind and postcss configuration**
+- [x] **T002 · chore · p1: initialize tailwind and postcss configuration**
 
   - **context:** Initial UI Framework Setup → Install & Configure Tailwind CSS
   - **action:**
