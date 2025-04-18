@@ -145,7 +145,7 @@
     2. Linting and type checking pass
   - **depends-on:** [T014]
 
-- [ ] **T016 · docs · p2: document styling system in README.md**
+- [x] **T016 · docs · p2: document styling system in README.md**
 
   - **context:** Initial UI Framework Setup → Document Theme System
   - **action:**
