@@ -57,7 +57,7 @@
     1. Base color variables are defined in `src/styles/tokens.css`
   - **depends-on:** [T005]
 
-- [ ] **T007 · feature · p1: define semantic color css variables**
+- [x] **T007 · feature · p1: define semantic color css variables**
 
   - **context:** Initial UI Framework Setup → Create Design Token System
   - **action:**

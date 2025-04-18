@@ -24,7 +24,33 @@
   --true-white: 0 0% 100%; /* #ffffff */
   --slate-dark: 0 0% 7%; /* #121212 */
 
-  /* Semantic tokens will be defined in T007 */
+  /* Semantic Color Tokens
+   * These tokens represent colors based on their UI purpose
+   * rather than their visual appearance
+   */
+
+  /* UI Background and Content Colors */
+  --background: var(--dark-slate); /* Main background color */
+  --background-secondary: var(--slate-dark); /* Secondary background (darker) */
+  --foreground: var(--true-white); /* Main text color */
+
+  /* Accent and Interaction Colors */
+  --primary: var(--neon-green); /* Primary accent color */
+  --secondary: var(--electric-blue); /* Secondary accent color */
+  --warning: var(--luminous-yellow); /* Warning state color */
+  --error: var(--crimson-red); /* Error state color */
+  --success: var(--neon-green); /* Success state color */
+  --info: var(--electric-blue); /* Information state color */
+
+  /* Effect Colors */
+  --shadow-color: 0 0% 0%; /* Shadow base color */
+  --shadow-strength: 30%; /* Shadow opacity */
+  --glow-color: var(--primary); /* Base color for glow effects */
+  --glow-strength: 50%; /* Glow effect opacity */
+
+  /* Gradient Background */
+  --gradient-start: var(--dark-slate); /* Gradient start color */
+  --gradient-end: var(--slate-dark); /* Gradient end color */
 
   /* Spacing and typography tokens will be defined in T008 */
 }
