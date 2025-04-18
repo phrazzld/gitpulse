@@ -41,6 +41,9 @@ jobs:
         
       - name: Run tests
         run: npm run test:ci
+        
+      - name: Check for skipped tests
+        run: npm run test:no-skips
 
   # Second job builds the application
   # Only runs if all code quality checks pass

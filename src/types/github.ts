@@ -6,8 +6,8 @@
  * This allows for type-safe handling of authentication variants in a single interface.
  */
 export type GitHubCredentials =
-  | { type: 'oauth'; token: string }
-  | { type: 'app'; installationId: number };
+  | { type: "oauth"; token: string }
+  | { type: "app"; installationId: number };
 
 /**
  * GitHub installation account information
@@ -20,6 +20,10 @@ export type InstallationAccount = {
 
 /**
  * GitHub App installation information
+ *
+ * Note: In the individual-focused MVP, we primarily work with User installations.
+ * Organization installations are still supported for backward compatibility, but
+ * no organization-specific functionality is actively used.
  */
 export type Installation = {
   id: number;
@@ -27,6 +31,12 @@ export type Installation = {
   appSlug: string;
   appId: number;
   repositorySelection: string;
+  /**
+   * Type of the target account for this installation.
+   * In the individual-focused MVP, this is expected to be 'User' in most cases.
+   * 'Organization' is still supported for backward compatibility, but
+   * organization-specific features have been removed.
+   */
   targetType: string; // 'User' or 'Organization'
 };
 

@@ -13,6 +13,8 @@ type GitHubCommit = Commit;
 
 /**
  * External GitHub contributor data (using snake_case properties)
+ * 
+ * @deprecated Contributors are no longer supported in the individual-focused MVP
  */
 export interface GitHubContributor {
   login: string;
@@ -73,6 +75,8 @@ export interface MinimalCommit {
  * @property displayName - Contributor display name (transformed from name or login)
  * @property avatarUrl - Contributor avatar URL (transformed from avatar_url)
  * @property commitCount - Number of commits (transformed from commit_count)
+ * 
+ * @deprecated Contributors are no longer supported in the individual-focused MVP
  */
 export interface MinimalContributor {
   username: string;
@@ -124,7 +128,7 @@ export function transformCommit(commit: GitHubCommit): MinimalCommit {
  * This interface supports both camelCase and snake_case properties for 
  * backward compatibility during the transition to consistent naming conventions.
  * 
- * @deprecated Use GitHubContributor for external data and MinimalContributor for internal data
+ * @deprecated Contributors are no longer supported in the individual-focused MVP
  */
 export interface ContributorLike {
   // camelCase variants
@@ -148,6 +152,8 @@ export interface ContributorLike {
  * 
  * @param contributor - Contributor object from GitHub API
  * @returns - Transformed contributor data with camelCase properties
+ * 
+ * @deprecated Contributors are no longer supported in the individual-focused MVP
  */
 export function transformContributor(contributor: GitHubContributor): MinimalContributor {
   return {
@@ -182,6 +188,8 @@ export function optimizeCommit(commit: GitHubCommit): MinimalCommit {
  * 
  * @param contributor - Contributor object with flexible property naming
  * @returns - Transformed contributor data with camelCase properties
+ * 
+ * @deprecated Contributors are no longer supported in the individual-focused MVP
  */
 export function optimizeContributor(contributor: ContributorLike): MinimalContributor {
   // Find the appropriate username and displayName from either naming convention

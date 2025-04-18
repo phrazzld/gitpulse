@@ -1,11 +1,10 @@
 # GitPulse - GitHub Commit Summary
 
-GitPulse is a web application that generates summaries of GitHub commits for individuals and teams. Built with Next.js and TypeScript, GitPulse provides easy visualization of coding activity across repositories.
+GitPulse is a web application that generates summaries of GitHub commits for individuals. Built with Next.js and TypeScript, GitPulse provides easy visualization of your coding activity across repositories.
 
 ## Features
 
 - **Individual Summaries**: Track your own GitHub activity across all accessible repositories
-- **Team Summaries**: Aggregate commit data for multiple team members
 - **Repository Selection**: Choose specific repositories or include all accessible repos
 - **Configurable Time Frames**: Set custom date ranges for your summary
 - **AI-Powered Analysis**: Gemini AI generates insights from your commit history
@@ -91,11 +90,9 @@ npm run dev:log
 ## Usage
 
 1. Sign in with your GitHub account
-2. Select whether you want an individual or team summary
-3. For team summaries, enter comma-separated GitHub usernames
-4. Select a date range for your summary
-5. Optionally select specific repositories
-6. Click "Generate Summary" to view your commit statistics
+2. Select a date range for your summary
+3. Optionally select specific repositories
+4. Click "Generate Summary" to view your commit statistics
 
 ## Authentication
 
@@ -110,7 +107,7 @@ Uses personal GitHub access tokens for authentication through the standard GitHu
 **Use Cases:**
 
 - Individual developers accessing their personal repositories
-- Quick setup for personal or small team projects
+- Quick setup for personal projects
 - When you need access to repositories you personally own or collaborate on
 
 **Advantages:**
@@ -128,21 +125,19 @@ Uses personal GitHub access tokens for authentication through the standard GitHu
 
 #### GitHub App Authentication (Advanced)
 
-Uses GitHub App installations with installation tokens, providing more granular and organization-friendly permissions.
+Uses GitHub App installations with installation tokens, providing more granular permissions for your personal repositories.
 
 **Use Cases:**
 
-- Organization administrators who need to provide repository access without personal tokens
-- Enterprise environments with strict security requirements
-- When you need fine-grained permissions at the organization level
-- Teams concerned about token expiration or personal token security
+- Individuals who need fine-grained repository access without personal tokens
+- When you need fine-grained permissions for your personal repositories
+- Users concerned about token expiration or personal token security
 
 **Advantages:**
 
 - More secure (no personal tokens stored in the session)
-- Repository access managed at the organization level
+- Repository access managed at the user level
 - Fine-grained permission control
-- Can be installed across an entire organization
 - Tokens automatically refresh without user intervention
 
 **Configuration Requirements:**
@@ -184,8 +179,6 @@ Uses GitHub App installations with installation tokens, providing more granular 
        - Contents: Read-only
        - Metadata: Read-only
        - Pull requests: Read-only (if needed)
-     - **Organization permissions**:
-       - Members: Read-only
    - **Where can this GitHub App be installed?**: Any account
 
 4. After creating the app, note the App ID (found in the app settings)
@@ -200,7 +193,7 @@ Uses GitHub App installations with installation tokens, providing more granular 
    GITHUB_APP_PRIVATE_KEY_PKCS8=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----
    NEXT_PUBLIC_GITHUB_APP_NAME=GitPulse
    ```
-8. Install the app on your account or organization through GitHub's interface
+8. Install the app on your personal account through GitHub's interface
 
 ### Authentication Flow
 
@@ -234,17 +227,17 @@ flowchart TD
     ChooseAuthType -->|OAuth| CreateOAuthOctokit[Create Octokit with\nOAuth token]
     ChooseAuthType -->|GitHub App| CreateAppOctokit[Create Octokit with\nApp installation]
 
-    CreateOAuthOctokit --> FetchGitHubData[Fetch GitHub data\nwith Octokit]
-    CreateAppOctokit --> FetchGitHubData
+    CreateOAuthOctokit --> FetchUserData[Fetch individual\nuser activity data]
+    CreateAppOctokit --> FetchUserData
 
-    FetchGitHubData --> ErrorCheck{Error\noccurred?}
+    FetchUserData --> ErrorCheck{Error\noccurred?}
     ErrorCheck -->|No| DisplayData[Display data\nto user]
     ErrorCheck -->|Auth error| SignOutRedirect
     ErrorCheck -->|Other error| DisplayError[Display error\nmessage]
 
     subgraph "App Installation Flow"
         AppInstallButton[GitHub App\nInstall Button] --> RedirectToGitHub[Redirect to GitHub\nfor installation]
-        RedirectToGitHub --> GitHubInstall[User installs app\non GitHub]
+        RedirectToGitHub --> GitHubInstall[User installs app\non personal account]
         GitHubInstall --> RedirectCallback[Redirect back\nto app]
         RedirectCallback --> RegisterInstallation[Register installation\nwith user]
     end
@@ -259,9 +252,9 @@ The diagram shows:
 
 - Initial authentication using GitHub OAuth
 - Session validation and token management
-- Handling of both OAuth and GitHub App authentication methods
+- Handling of both OAuth and GitHub App authentication methods for individual user access
 - Error handling and token refresh process
-- GitHub App installation flow
+- GitHub App installation flow for personal accounts
 
 ### Troubleshooting Authentication
 
@@ -318,7 +311,7 @@ If you encounter GitHub App authentication issues:
 
    - Symptom: "No installations found" or cannot select GitHub App authentication
    - Solution:
-     - Verify your GitHub App is installed on your account/organization
+     - Verify your GitHub App is installed on your personal account
      - Check the installation at: `https://github.com/settings/installations`
      - Install or reinstall the app if needed
 
@@ -357,7 +350,7 @@ If you encounter GitHub App authentication issues:
      - Click "Configure" next to your app
      - Under "Repository access", ensure the repositories you need are either:
        - Included in "Select repositories" if you chose specific access
-       - Or that "All repositories" is selected for full access
+       - Or that "All repositories" is selected for full access to all your personal repositories
 
 #### Checking Error Responses
 
@@ -442,16 +435,31 @@ flowchart TD
     Quality --> Lint[ESLint]
     Quality --> TypeCheck[TypeScript Check]
     Quality --> Test[Jest Tests]
+    Quality --> SkipCheck[Skipped Tests Check]
     Quality --> Build[Next.js Build]
-    Lint & TypeCheck & Test --> Success{All Checks Pass?}
+    Lint & TypeCheck & Test & SkipCheck --> Success{All Checks Pass?}
     Success -->|Yes| MergePR[Ready to Merge]
     Success -->|No| FixIssues[Fix Issues]
 ```
 
 The CI workflow includes these jobs:
 
-1. **Code Quality:** Runs linting, type checking, and tests
+1. **Code Quality:** Runs linting, type checking, tests, and checks for unjustified skipped tests
 2. **Build:** Verifies the application builds correctly
+
+#### Skipped Tests Policy
+
+GitPulse enforces a policy that all skipped tests must have explicit justification:
+
+- **Detects:** Tests marked with `it.skip`, `test.skip`, `describe.skip`, `xit`, `xdescribe`, and commented-out tests
+- **Requires:** A `// SKIP-REASON: explanation` comment on the same line as any skipped test
+- **Purpose:** Prevents accidental test skipping and ensures all skipped tests have proper documentation
+
+Example of properly justified skipped test:
+
+```typescript
+it.skip('validates enterprise feature X', () => { ... }); // SKIP-REASON: Enterprise features postponed until Q3
+```
 
 ### Running Quality Checks Locally
 
@@ -467,7 +475,10 @@ npm run typecheck
 # Run tests
 npm run test
 
-# Run all checks (lint, typecheck, test) in sequence
+# Check for skipped tests without justification
+npm run test:no-skips
+
+# Run all checks (lint, typecheck, test, skipped test check) in sequence
 npm run ci
 ```
 

@@ -1,6 +1,6 @@
 /**
  * Common utility types for the application
- * 
+ *
  * This file defines reusable types that can be used across the codebase
  * to replace 'any' with more specific types.
  */
@@ -15,7 +15,7 @@ export type GenericRecord = Record<string, unknown>;
  * Represents JSON-serializable data
  * This type can be used for data that will be JSON.stringify'd or parsed
  */
-export type JsonValue = 
+export type JsonValue =
   | string
   | number
   | boolean
@@ -87,3 +87,55 @@ export type CacheData<T = unknown> = T;
  * Use this for functions that generate cache keys or ETags
  */
 export type CacheParams = Record<string, unknown>;
+
+/**
+ * Type-safe generic function with specific parameter and return types
+ * Use this instead of (...args: any[]) => any
+ */
+export type TypedFunction<
+  TArgs extends unknown[] = unknown[],
+  TReturn = unknown,
+> = (...args: TArgs) => TReturn;
+
+/**
+ * Type for objects with dynamic string keys
+ * Use this instead of {[key: string]: any}
+ */
+export type DynamicObject = {
+  [key: string]: unknown;
+};
+
+/**
+ * Type for generic promise handlers
+ * Use this when working with promises of unknown value types
+ */
+export type PromiseHandler<T = unknown> = (value: T) => void | Promise<void>;
+
+/**
+ * Type for a date range object
+ * Use this for date range selectors and filters
+ */
+export interface DateRange {
+  since: string;
+  until: string;
+}
+
+/**
+ * More specific type for data objects with known key shape but unknown values
+ * Use this when you know the shape of an object but not the exact value types
+ */
+export type ShapedObject<T extends Record<string, unknown>> = {
+  [K in keyof T]: unknown;
+};
+
+/**
+ * Type for generic configuration objects
+ * Use this for configuration parameters with mixed types
+ */
+export interface ConfigObject {
+  enabled?: boolean;
+  timeout?: number;
+  retries?: number;
+  options?: Record<string, unknown>;
+  [key: string]: unknown;
+}

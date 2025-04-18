@@ -1,12 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, conditionalTest } from '../../../__tests__/test-utils';
-
-/**
- * Using conditionalTest instead of it to skip tests in CI environment
- * This is a temporary workaround for the React JSX transform error:
- * "A React Element from an older version of React was rendered"
- * See: CI-FIXES-TODO.md task CI002
- */
+import { render, screen, fireEvent, it } from '../../../__tests__/test-utils';
 import AccountManagementPanel from '@/components/dashboard/AccountManagementPanel';
 import { mockSession } from '../../../__tests__/test-utils';
 import type { Account } from '@/components/AccountSelector';
@@ -90,7 +83,7 @@ describe('AccountManagementPanel', () => {
     jest.clearAllMocks();
   });
 
-  conditionalTest('returns null when authMethod is not github_app', () => {
+  it('returns null when authMethod is not github_app', () => {
     const { container } = render(
       <AccountManagementPanel
         authMethod="oauth"
@@ -108,7 +101,7 @@ describe('AccountManagementPanel', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  conditionalTest('returns null when installations array is empty', () => {
+  it('returns null when installations array is empty', () => {
     const { container } = render(
       <AccountManagementPanel
         authMethod="github_app"
@@ -126,7 +119,7 @@ describe('AccountManagementPanel', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  conditionalTest('renders correctly with installations', () => {
+  it('renders correctly with installations', () => {
     render(
       <AccountManagementPanel
         authMethod="github_app"
@@ -162,7 +155,7 @@ describe('AccountManagementPanel', () => {
     expect(screen.getByText(/Select one or more accounts to analyze/)).toBeInTheDocument();
   });
 
-  conditionalTest('does not display manage current button when there are no current installations', () => {
+  it('does not display manage current button when there are no current installations', () => {
     render(
       <AccountManagementPanel
         authMethod="github_app"
@@ -180,7 +173,7 @@ describe('AccountManagementPanel', () => {
     expect(screen.queryByText('MANAGE CURRENT')).not.toBeInTheDocument();
   });
 
-  conditionalTest('calls getGitHubAppInstallUrl when ADD ACCOUNT button is clicked', () => {
+  it('calls getGitHubAppInstallUrl when ADD ACCOUNT button is clicked', () => {
     render(
       <AccountManagementPanel
         authMethod="github_app"
@@ -202,7 +195,7 @@ describe('AccountManagementPanel', () => {
     expect(addAccountLink).toHaveAttribute('href', 'https://github.com/apps/test-app/installations/new');
   });
 
-  conditionalTest('verifies the MANAGE CURRENT link has the correct installation URL', () => {
+  it('verifies the MANAGE CURRENT link has the correct installation URL', () => {
     render(
       <AccountManagementPanel
         authMethod="github_app"
@@ -227,7 +220,7 @@ describe('AccountManagementPanel', () => {
     expect(manageCurrentLink).toHaveAttribute('href', 'https://github.com/organizations/test-org/settings/installations/123');
   });
 
-  conditionalTest('calls switchInstallations when an account is selected', () => {
+  it('calls switchInstallations when an account is selected', () => {
     render(
       <AccountManagementPanel
         authMethod="github_app"
@@ -249,7 +242,7 @@ describe('AccountManagementPanel', () => {
     expect(mockSwitchInstallations).toHaveBeenCalledWith([123]); // ID of test-org
   });
 
-  conditionalTest('calls switchInstallations with empty array when no accounts are selected', () => {
+  it('calls switchInstallations with empty array when no accounts are selected', () => {
     render(
       <AccountManagementPanel
         authMethod="github_app"
@@ -271,7 +264,7 @@ describe('AccountManagementPanel', () => {
     expect(mockSwitchInstallations).toHaveBeenCalledWith([]);
   });
 
-  conditionalTest('passes loading state to AccountSelector', () => {
+  it('passes loading state to AccountSelector', () => {
     render(
       <AccountManagementPanel
         authMethod="github_app"
@@ -289,7 +282,7 @@ describe('AccountManagementPanel', () => {
     expect(screen.getByText('Loading: true')).toBeInTheDocument();
   });
 
-  conditionalTest('correctly maps installation data to account format for AccountSelector', () => {
+  it('correctly maps installation data to account format for AccountSelector', () => {
     render(
       <AccountManagementPanel
         authMethod="github_app"

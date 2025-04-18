@@ -182,10 +182,9 @@ interface FilterControlsProps {
   activeFilters: Record<string, any>;
   installations: any[];
   loading: boolean;
-  handleModeChange: (mode: string) => void;
   handleDateRangeChange: (range: { since: string; until: string }) => void;
-  handleOrganizationChange: (orgs: string[]) => void;
   session: any;
+  // handleModeChange and handleOrganizationChange removed in individual-focused MVP
 }
 
 jest.mock('@/components/dashboard/FilterControls', () => {
@@ -223,7 +222,7 @@ jest.mock('@/components/dashboard/ActionButton', () => {
 
 interface SummaryDisplayProps {
   summary: any | null;
-  activityMode: string;
+  activityMode: string; // fixed to 'my-activity' in individual-focused MVP
   dateRange: { since: string; until: string };
   activeFilters: Record<string, any>;
   installationIds: number[];

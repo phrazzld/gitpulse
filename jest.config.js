@@ -1,3 +1,9 @@
+/**
+ * Jest configuration for GitPulse
+ *
+ * This configuration is designed to properly handle React 19 and Next.js 15.2+ components
+ * in tests, resolving JSX transform compatibility issues.
+ */
 const nextJest = require("next/jest");
 
 // Providing the path to your Next.js app to load next.config.js and .env files in your test environment
@@ -9,30 +15,44 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   testEnvironment: "jest-environment-jsdom",
+
+  // Module name mapping for import aliases
   moduleNameMapper: {
-    // Handle module aliases (if you configured them in tsconfig.json)
+    // Handle module aliases defined in tsconfig.json
     "^@/(.*)$": "<rootDir>/src/$1",
+    "@components/(.*)$": "<rootDir>/src/components/library/$1",
   },
+
+  // Files to exclude from testing
   testPathIgnorePatterns: [
     "<rootDir>/node_modules/",
     "<rootDir>/.next/",
+    // Only exclude utility files, not test files that were previously skipped due to JSX issues
     "<rootDir>/src/__tests__/test-utils.tsx",
     "<rootDir>/src/__tests__/integration/DashboardTestWrapper.tsx",
   ],
+
+  // Transform ignore patterns for node_modules
   transformIgnorePatterns: [
-    // Transform ESM modules from node_modules for testing
-    // Include packages that use ESM format which Jest needs to transform
-    "/node_modules/(?!(octokit|@octokit|jose|next-auth|openid-client)/)",
+    // Transform ESM modules and React packages from node_modules for testing
+    // This configuration is critical for React 19 compatibility
+    "/node_modules/(?!(octokit|@octokit|jose|next-auth|openid-client|react|react-dom|@testing-library)/)",
     "^.+\\.module\\.(css|sass|scss)$",
   ],
-  // Enable ES modules for tests when needed (must match transformIgnorePatterns)
-  // Use the babel.config.jest.js configuration for testing environment
+
+  // Transform settings for JS/TS/JSX/TSX files
   transform: {
+    // Use the updated babel.config.jest.js for proper JSX transformation
     "^.+\\.(js|jsx|ts|tsx|mjs)$": [
       "babel-jest",
       { configFile: "./babel.config.jest.js" },
     ],
   },
+
+  // Cache settings - disable to ensure fresh transformations when config changes
+  cache: false,
+
+  // Coverage configuration
   collectCoverage: true,
   collectCoverageFrom: [
     "src/components/dashboard/**/*.{js,jsx,ts,tsx}",
@@ -40,6 +60,7 @@ const customJestConfig = {
     "!**/node_modules/**",
     "!**/test-utils.tsx",
   ],
+
   // Coverage thresholds - fail the test command if these are not met
   // Disable coverage thresholds in CI to prevent build failures
   coverageThreshold:
