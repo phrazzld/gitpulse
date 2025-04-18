@@ -123,7 +123,7 @@
     1. Body styles in `globals.css` use the defined CSS variables
   - **depends-on:** [T007, T012]
 
-- [ ] **T014 · test · p1: verify styling in dev environment**
+- [x] **T014 · test · p1: verify styling in dev environment**
 
   - **context:** Initial UI Framework Setup → Test & Verify
   - **action:**
