@@ -77,7 +77,7 @@
     1. Spacing and typography variables are defined as specified
   - **depends-on:** [T005]
 
-- [ ] **T009 · feature · p2: extend tailwind theme colors with css variables**
+- [x] **T009 · feature · p2: extend tailwind theme colors with css variables**
 
   - **context:** Initial UI Framework Setup → Extend Tailwind Theme Configuration
   - **action:**
