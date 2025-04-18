@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Button } from "../Button";
 
 describe("Button component", () => {
@@ -57,6 +58,55 @@ describe("Button component", () => {
     expect(button).toHaveAttribute("aria-disabled", "true");
   });
 
+  it("supports custom HTML attributes", () => {
+    render(
+      <Button data-testid="custom-button" id="btn-1" aria-label="Custom Button">
+        Custom Attributes
+      </Button>,
+    );
+
+    const button = screen.getByText("Custom Attributes");
+    expect(button).toHaveAttribute("data-testid", "custom-button");
+    expect(button).toHaveAttribute("id", "btn-1");
+    expect(button).toHaveAttribute("aria-label", "Custom Button");
+  });
+
+  it("supports form submission when type is submit", () => {
+    const handleSubmit = jest.fn((e) => e.preventDefault());
+
+    render(
+      <form onSubmit={handleSubmit} data-testid="test-form">
+        <Button type="submit">Submit Form</Button>
+      </form>,
+    );
+
+    fireEvent.submit(screen.getByTestId("test-form"));
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it("can be focused with keyboard navigation", async () => {
+    const user = userEvent.setup();
+
+    render(<Button>Focusable Button</Button>);
+    const button = screen.getByRole("button");
+
+    // Initially not focused
+    expect(button).not.toHaveFocus();
+
+    // Focus the button programmatically
+    await user.tab();
+    expect(button).toHaveFocus();
+  });
+
+  it("maintains focus styling when focused", () => {
+    render(<Button>Focus Button</Button>);
+    const button = screen.getByRole("button");
+
+    // Verify focus-related classes are present
+    expect(button.className).toContain("focus:outline-none");
+    expect(button.className).toContain("focus:ring-2");
+  });
+
   // Variant tests
   describe("variants", () => {
     it("applies primary variant styling by default", () => {
@@ -80,6 +130,24 @@ describe("Button component", () => {
       expect(button).toHaveClass("bg-true-white");
       expect(button).toHaveClass("text-crimson-red");
       expect(button).toHaveClass("border-crimson-red/30");
+    });
+
+    it("includes hover state classes for primary variant", () => {
+      render(<Button variant="primary">Primary Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("hover:bg-neon-green/90");
+    });
+
+    it("includes hover state classes for secondary variant", () => {
+      render(<Button variant="secondary">Secondary Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("hover:bg-dark-slate/5");
+    });
+
+    it("includes hover state classes for danger variant", () => {
+      render(<Button variant="danger">Danger Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("hover:bg-crimson-red/5");
     });
   });
 
@@ -113,12 +181,40 @@ describe("Button component", () => {
     });
   });
 
-  // Interactive state test
-  it("applies disabled styling when disabled", () => {
-    render(<Button disabled>Disabled Button</Button>);
-    const button = screen.getByRole("button");
-    expect(button).toHaveClass("opacity-50");
-    expect(button).toHaveClass("cursor-not-allowed");
-    expect(button).toHaveClass("pointer-events-none");
+  // Interactive state tests
+  describe("interactive states", () => {
+    it("applies disabled styling when disabled", () => {
+      render(<Button disabled>Disabled Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("opacity-50");
+      expect(button).toHaveClass("cursor-not-allowed");
+      expect(button).toHaveClass("pointer-events-none");
+    });
+
+    it("includes focus ring styling", () => {
+      render(<Button>Focus Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("focus:ring-2");
+    });
+
+    it("includes transition effect classes", () => {
+      render(<Button>Transition Button</Button>);
+      const button = screen.getByRole("button");
+      expect(button).toHaveClass("transition-colors");
+      expect(button).toHaveClass("duration-normal");
+    });
+
+    it("includes active state classes", () => {
+      render(<Button>Active Button</Button>);
+      const button = screen.getByRole("button");
+
+      if (button.className.includes("primary")) {
+        expect(button).toHaveClass("active:bg-neon-green/80");
+      } else if (button.className.includes("secondary")) {
+        expect(button).toHaveClass("active:bg-dark-slate/10");
+      } else if (button.className.includes("danger")) {
+        expect(button).toHaveClass("active:bg-crimson-red/10");
+      }
+    });
   });
 });

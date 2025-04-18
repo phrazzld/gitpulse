@@ -52,7 +52,7 @@
     3. Interactive states work properly (hover, focus, etc.)
   - **depends‑on:** [T003]
 
-- [ ] **T005 · test · p1: create unit tests for button component**
+- [x] **T005 · test · p1: create unit tests for button component**
   - **context:** Detailed Build Steps #7, Testing Strategy
   - **action:**
     1. Create `src/components/library/__tests__/Button.test.tsx`
