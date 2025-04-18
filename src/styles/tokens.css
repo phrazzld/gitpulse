@@ -1,0 +1,15 @@
+/**
+ * Design Token System
+ * 
+ * This file defines all design tokens as CSS variables.
+ * These tokens serve as the foundation for our UI
+ * and are consumed by Tailwind CSS via theme extension.
+ */
+
+:root {
+  /* Base tokens will be defined in T006 */
+
+  /* Semantic tokens will be defined in T007 */
+
+  /* Spacing and typography tokens will be defined in T008 */
+}

@@ -39,7 +39,7 @@
     1. `postcss.config.mjs` correctly loads the tailwindcss plugin
   - **depends-on:** [T002]
 
-- [ ] **T005 · feature · p1: create design token system structure**
+- [x] **T005 · feature · p1: create design token system structure**
 
   - **context:** Initial UI Framework Setup → Create Design Token System
   - **action:**
