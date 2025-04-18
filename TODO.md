@@ -26,7 +26,7 @@
 
 ## button component
 
-- [ ] **T003 · feature · p1: implement base button component**
+- [x] **T003 · feature · p1: implement base button component**
 
   - **context:** Detailed Build Steps #3, Public Interfaces/Contracts
   - **action:**
