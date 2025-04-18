@@ -104,7 +104,7 @@
 
 ## card component
 
-- [ ] **T009 · feature · p2: implement card component**
+- [x] **T009 · feature · p2: implement card component**
 
   - **context:** Detailed Build Steps #5, Public Interfaces/Contracts
   - **action:**
