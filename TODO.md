@@ -153,7 +153,7 @@
     2. TypeScript compilation passes with no errors
   - **depends‑on:** [T004, T007, T009]
 
-- [ ] **T013 · test · p2: create integration tests for component composition**
+- [x] **T013 · test · p2: create integration tests for component composition**
 
   - **context:** Testing Strategy (Integration Tests)
   - **action:**
