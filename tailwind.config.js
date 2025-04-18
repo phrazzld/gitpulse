@@ -25,6 +25,26 @@ module.exports = {
         success: "hsl(var(--success))",
         info: "hsl(var(--info))",
       },
+
+      // Spacing system
+      spacing: {
+        xs: "var(--spacing-xs)",
+        sm: "var(--spacing-sm)",
+        md: "var(--spacing-md)",
+        lg: "var(--spacing-lg)",
+        xl: "var(--spacing-xl)",
+        "2xl": "var(--spacing-2xl)",
+        "3xl": "var(--spacing-3xl)",
+      },
+
+      // Border radius
+      borderRadius: {
+        sm: "var(--radius-sm)",
+        DEFAULT: "var(--radius-md)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
+        full: "var(--radius-full)",
+      },
     },
   },
   plugins: [],

@@ -86,7 +86,7 @@
     1. Theme colors in Tailwind config reference CSS variables
   - **depends-on:** [T003, T007]
 
-- [ ] **T010 · feature · p2: extend tailwind theme spacing with css variables**
+- [x] **T010 · feature · p2: extend tailwind theme spacing with css variables**
 
   - **context:** Initial UI Framework Setup → Extend Tailwind Theme Configuration
   - **action:**
