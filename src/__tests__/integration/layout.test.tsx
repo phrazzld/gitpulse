@@ -1,5 +1,6 @@
 // eslint-disable
 describe.skip("RootLayout Component Integration", () => {
+  // SKIP-REASON: Next.js server components are difficult to test directly
   it("should include Header and Footer components", async () => {
     // Tests skipped due to challenges with testing Next.js server components
     expect(true).toBeTruthy();
