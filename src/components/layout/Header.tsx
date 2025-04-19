@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Card, Button } from "@/components/library";
 import { NavigationMenu } from "@/components/layout/NavigationMenu";
+import { MobileMenuToggle } from "@/components/layout/MobileMenuToggle";
 import { NavLink } from "@/types/navigation";
 import { cn } from "@/components/library/utils/cn";
 import type { Session } from "next-auth";
@@ -43,8 +44,8 @@ export interface HeaderProps {
  * Header component for application layouts
  *
  * Displays the application logo, navigation menu, and user authentication UI.
- * Responsive design that works well on desktop screens.
- * Mobile menu integration is handled separately.
+ * Responsive design that adapts to both desktop and mobile screens.
+ * Includes mobile menu toggle and overlay for small viewport sizes.
  */
 export const Header: React.FC<HeaderProps> = ({
   navLinks,
@@ -56,10 +57,21 @@ export const Header: React.FC<HeaderProps> = ({
   // Get current path for active link highlighting
   const pathname = usePathname();
 
+  // Mobile menu state management
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Toggle mobile menu visibility
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => !prev);
+  };
+
   // Calculate which links to show based on auth state
   const visibleLinks = navLinks.filter(
     (link) => !link.requiresAuth || (link.requiresAuth && session),
   );
+
+  // Generate a unique ID for the mobile menu
+  const mobileMenuId = "mobile-navigation-menu";
 
   return (
     <header className={cn("w-full sticky top-0 z-10", className)}>
@@ -162,13 +174,35 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Mobile Menu Button (Hidden on desktop) */}
-            {/* This will be integrated in T010 - we're just reserving space here */}
             <div className="flex md:hidden ml-sm">
-              {/* Mobile menu toggle will be added here in T010 */}
+              <MobileMenuToggle
+                isOpen={isMobileMenuOpen}
+                onToggle={toggleMobileMenu}
+                menuId={mobileMenuId}
+                ariaLabel="Toggle navigation menu"
+              />
             </div>
           </div>
         </div>
       </Card>
+
+      {/* Mobile Navigation Menu Overlay (Hidden on desktop) */}
+      {isMobileMenuOpen && (
+        <div
+          id={mobileMenuId}
+          className="md:hidden fixed inset-x-0 top-[4rem] z-20 bg-background-secondary border-t border-dark-slate/20 shadow-lg animate-fadeIn"
+        >
+          <div className="container mx-auto p-md">
+            <NavigationMenu
+              links={visibleLinks}
+              currentPath={pathname || ""}
+              orientation="vertical"
+              className="w-full"
+              ariaLabel="Mobile Navigation"
+            />
+          </div>
+        </div>
+      )}
     </header>
   );
 };

@@ -118,6 +118,20 @@ module.exports = {
         wide: "var(--letter-spacing-wide)", // 0.025em
         wider: "var(--letter-spacing-wider)", // 0.05em
       },
+
+      /**
+       * Animation System
+       * Defines animations for UI transitions and interactions
+       */
+      animation: {
+        fadeIn: "fadeIn 0.2s ease-in-out",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: 0, transform: "translateY(-8px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
+        },
+      },
     },
   },
   plugins: [],

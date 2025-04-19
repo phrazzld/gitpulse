@@ -115,7 +115,7 @@
     3. Responsive styling for desktop view is applied
   - **depends‑on:** [T001, T004]
 
-- [ ] **T010 · feature · p1: implement mobile menu integration in header**
+- [x] **T010 · feature · p1: implement mobile menu integration in header**
 
   - **context:** Detailed Build Steps #5 - Create Header Component
   - **action:**
