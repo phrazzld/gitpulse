@@ -1,5 +1,84 @@
 # TODO
 
+## Dashboard Interface Redesign
+
+- [x] **T019 · feature · p1: define dashboard interface types**
+
+  - **context:** Dashboard Interface Redesign
+  - **action:**
+    1. Create `src/types/dashboard.ts` file
+    2. Define interfaces for dashboard panels, data visualizations, and activity items
+    3. Update existing types if needed to support new dashboard components
+  - **done‑when:**
+    1. New dashboard types are defined and exported
+    2. TypeScript type checking passes
+  - **depends‑on:** none
+
+- [x] **T020 · feature · p1: implement dashboard information panels**
+
+  - **context:** Dashboard Interface Redesign
+  - **action:**
+    1. Create `src/components/dashboard/DashboardSummaryPanel.tsx` component
+    2. Implement `ActivityOverviewPanel.tsx` for activity metrics
+    3. Design responsive grid layout for panels
+    4. Ensure clear data visualization and information hierarchy
+  - **done‑when:**
+    1. Panels render correct content based on props
+    2. Styling uses Core Component Library and design tokens
+    3. Responsive behavior works on different screen sizes
+  - **depends‑on:** [T019]
+
+- [x] **T021 · feature · p1: improve activity feed presentation**
+
+  - **context:** Dashboard Interface Redesign
+  - **action:**
+    1. Refactor existing `ActivityFeed` component
+    2. Enhance visual presentation of activity items
+    3. Implement improved loading states and error handling
+    4. Add filtering capabilities
+  - **done‑when:**
+    1. Activity feed has improved visual presentation
+    2. Loading and error states are handled gracefully
+    3. Filtering works correctly
+  - **depends‑on:** [T019]
+
+- [x] **T022 · feature · p1: redesign dashboard layout**
+
+  - **context:** Dashboard Interface Redesign
+  - **action:**
+    1. Update `src/app/dashboard/page.tsx` to incorporate new components
+    2. Improve responsive behavior for various screen sizes
+    3. Ensure proper integration with the new layout components (Header/Footer)
+  - **done‑when:**
+    1. Dashboard layout uses new components
+    2. Responsive behavior works correctly
+    3. Integration with Header and Footer is properly maintained
+  - **depends‑on:** [T020, T021]
+
+- [x] **T023 · test · p2: add unit tests for new dashboard components**
+
+  - **context:** Dashboard Interface Redesign
+  - **action:**
+    1. Create unit tests for all new dashboard components
+    2. Test responsive behaviors and edge cases
+    3. Ensure >90% test coverage
+  - **done‑when:**
+    1. Tests verify all new component functionality
+    2. Tests pass with >90% coverage
+  - **depends‑on:** [T020, T021]
+
+- [x] **T024 · test · p2: add integration tests for dashboard**
+
+  - **context:** Dashboard Interface Redesign
+  - **action:**
+    1. Create integration tests covering the full dashboard experience
+    2. Test data loading, interaction behaviors, and responsive layout
+    3. Verify proper integration with layout components
+  - **done‑when:**
+    1. Integration tests verify full dashboard functionality
+    2. Tests pass with good coverage
+  - **depends‑on:** [T022]
+
 ## Layout and Navigation Redesign
 
 - [x] **T001 · feature · p1: define navigation types**
@@ -222,24 +301,3 @@
     1. Component documentation is updated with new layout components
     2. Examples show proper usage in different contexts
   - **depends‑on:** [T017]
-
-### Clarifications & Assumptions
-
-- [ ] **issue:** what specific navigation links are required?
-
-  - **context:** Open Questions - What specific navigation links are required?
-  - **blocking?:** yes
-
-- [ ] **issue:** mobile menu UX pattern needs to be decided
-
-  - **context:** Open Questions - Should the mobile menu be a slide-out drawer or an overlay?
-  - **blocking?:** yes
-
-- [ ] **issue:** any specific accessibility requirements beyond standard WCAG?
-
-  - **context:** Open Questions - Are there specific accessibility requirements beyond standard practices?
-  - **blocking?:** no
-
-- [ ] **issue:** footer content approach needs confirmation
-  - **context:** Open Questions - Should the footer contain dynamic content or just static links?
-  - **blocking?:** no

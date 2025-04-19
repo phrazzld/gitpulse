@@ -2,40 +2,22 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { ActivityMode } from "@/types/activity";
-import DateRangePicker, { DateRange } from "@/components/DateRangePicker";
-import ActivityFeed from "@/components/ActivityFeed";
 import DashboardLoadingState from "@/components/DashboardLoadingState";
-// DashboardHeader is no longer needed as Header is included in layout
 import AuthenticationStatusBanner from "@/components/dashboard/AuthenticationStatusBanner";
 import FilterControls from "@/components/dashboard/FilterControls";
 import RepositoryInfoPanel from "@/components/dashboard/RepositoryInfoPanel";
 import ActionButton from "@/components/dashboard/ActionButton";
-import SummaryDisplay from "@/components/dashboard/SummaryDisplay";
-import { getInstallationManagementUrl } from "@/lib/auth/githubAuth";
-import { createActivityFetcher } from "@/lib/activity";
-import {
-  setCacheItem,
-  getCacheItem,
-  getStaleItem,
-} from "@/lib/localStorageCache";
-import {
-  CLIENT_CACHE_TTL,
-  AUTH_METHODS,
-  GITHUB_API,
-  STORAGE_REFRESH,
-} from "@/lib/constants";
+import DashboardSummaryPanel from "@/components/dashboard/DashboardSummaryPanel";
+import ActivityOverviewPanel from "@/components/dashboard/ActivityOverviewPanel";
+import ActivityFeedPanel from "@/components/dashboard/ActivityFeedPanel";
+import { GITHUB_API, CLIENT_CACHE_TTL, STORAGE_REFRESH } from "@/lib/constants";
+import { setCacheItem, getStaleItem } from "@/lib/localStorageCache";
 import { CommitSummary } from "@/types/summary";
 import { Repository, Installation } from "@/types/github";
+import { DashboardFilterState } from "@/types/dashboard";
 
-// FilterState type - simplified for individual focus
-export type FilterState = {
-  repositories: string[];
-  // No organizations or contributors arrays needed for individual focus
-};
-
+// Type for API response
 type ReposResponse = {
   repositories: Repository[];
   authMethod?: string;
@@ -88,9 +70,16 @@ interface DateRangeState {
   until: string;
 }
 
+/**
+ * Dashboard Page Component
+ *
+ * Main dashboard view with activity metrics, summary panels, and commit timeline.
+ * Redesigned to use the new dashboard components with improved UI.
+ *
+ * @returns The dashboard page component
+ */
 export default function Dashboard() {
   const { data: session, status } = useSession();
-  const router = useRouter();
 
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -104,18 +93,20 @@ export default function Dashboard() {
   const [showRepoList, setShowRepoList] = useState<boolean>(true);
   const [authMethod, setAuthMethod] = useState<string | null>(null);
   const [needsInstallation, setNeedsInstallation] = useState<boolean>(false);
-  // Keep these for backward compatibility but they're not actively used anymore
   const [installationIds, setInstallationIds] = useState<InstallationId[]>([]);
   const [installations, setInstallations] = useState<Installation[]>([]);
   const [currentInstallations, setCurrentInstallations] = useState<
     Installation[]
   >([]);
 
+  // UI state for panels
+  const [expandedPanels, setExpandedPanels] = useState<string[]>([]);
+
   // Activity mode is hardcoded to 'my-activity' as we no longer support team/org views
   const activityMode: ActivityMode = "my-activity";
 
   // State for filters - simplified for individual focus
-  const [activeFilters, setActiveFilters] = useState<FilterState>({
+  const [activeFilters, setActiveFilters] = useState<DashboardFilterState>({
     repositories: [],
   });
 
@@ -305,8 +296,6 @@ export default function Dashboard() {
     ],
   );
 
-  // Installation switching functionality removed as part of MVP individual focus
-
   // Function to check whether repositories need to be refreshed
   const shouldRefreshRepositories = useCallback(() => {
     // Don't refresh if we have no session
@@ -375,8 +364,6 @@ export default function Dashboard() {
     };
   }, [session, fetchRepositories, shouldRefreshRepositories]);
 
-  // No need for redirect here - the layout handles authentication protection
-
   // Fetch repositories when session is available and check for installation cookie
   useEffect(() => {
     if (session) {
@@ -420,20 +407,26 @@ export default function Dashboard() {
   }, [session, fetchRepositories]);
 
   // Function to handle date range changes
-  const handleDateRangeChange = useCallback((newDateRange: DateRange) => {
+  const handleDateRangeChange = useCallback((newDateRange: DateRangeState) => {
     setDateRange(newDateRange);
   }, []);
 
-  // Organization selection handling removed as part of MVP focus
-
   // Function to handle repository filter changes
-  const handleFilterChange = useCallback((newFilters: FilterState) => {
+  const handleFilterChange = useCallback((newFilters: DashboardFilterState) => {
     setActiveFilters(newFilters);
     console.log("Filters updated:", newFilters);
   }, []);
 
-  // Removed toggleGroupExpanded function - no longer needed with chronological view only
+  // Handler for panel expansion
+  const handlePanelExpand = useCallback((panelId: string) => {
+    setExpandedPanels((prev) =>
+      prev.includes(panelId)
+        ? prev.filter((id) => id !== panelId)
+        : [...prev, panelId],
+    );
+  }, []);
 
+  // Function to generate activity summary
   async function generateSummary(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -541,11 +534,55 @@ export default function Dashboard() {
     return <DashboardLoadingState />;
   }
 
+  // Calculate activity metrics from summary data
+  const getActivityMetrics = () => {
+    if (!summary) {
+      return {
+        commits: 0,
+        repositories: repositories.length,
+        activeDays: 0,
+      };
+    }
+
+    const uniqueDays = new Set();
+    let totalCommits = 0;
+    const repositoriesWithActivity = new Set();
+
+    // Get unique active days from the stats
+    if (summary.stats && summary.stats.dates) {
+      summary.stats.dates.forEach((day) => {
+        uniqueDays.add(day);
+      });
+    }
+
+    if (summary.commits) {
+      totalCommits = summary.commits.length;
+      summary.commits.forEach((commit) => {
+        // Cast to check for repository property (handle different commit types)
+        const commitWithRepo = commit as { repository?: { id: string } };
+        if (commitWithRepo.repository) {
+          repositoriesWithActivity.add(commitWithRepo.repository.id);
+        }
+      });
+    }
+
+    return {
+      commits: totalCommits,
+      repositories: repositoriesWithActivity.size || repositories.length,
+      activeDays: uniqueDays.size,
+    };
+  };
+
+  const metrics = getActivityMetrics();
+
   return (
-    <div style={{ background: "var(--gradient-bg)" }}>
+    <div
+      className="bg-dark-slate min-h-screen"
+      data-testid="dashboard-container"
+    >
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* Operations Panel */}
+          {/* Authentication Status and Control Panel */}
           <div
             className="border rounded-lg p-6 mb-8"
             style={{
@@ -590,7 +627,7 @@ export default function Dashboard() {
               signOutCallback={signOut}
             />
 
-            {/* Improved Filters Container */}
+            {/* Filters and Configuration */}
             <FilterControls
               activityMode={activityMode}
               dateRange={dateRange}
@@ -601,9 +638,9 @@ export default function Dashboard() {
               session={session}
             />
 
-            {/* Wrap the entire content below in a form */}
+            {/* Wrap the controls in a form */}
             <form onSubmit={generateSummary} className="space-y-8">
-              {/* Repository information panel with cyber styling */}
+              {/* Repository information panel */}
               <RepositoryInfoPanel
                 repositories={repositories}
                 showRepoList={showRepoList}
@@ -612,17 +649,43 @@ export default function Dashboard() {
                 setShowRepoList={setShowRepoList}
               />
 
-              {/* Command buttons area */}
+              {/* Command buttons */}
               <ActionButton loading={loading} />
             </form>
           </div>
 
-          <SummaryDisplay
+          {/* New Dashboard Summary Metrics Panel */}
+          <DashboardSummaryPanel
+            commits={metrics.commits}
+            repositories={metrics.repositories}
+            activeDays={metrics.activeDays}
+            isLoading={loading}
+            error={error}
+            data-testid="dashboard-summary-panel"
+          />
+
+          {/* Activity Overview Panel with AI Insights */}
+          <ActivityOverviewPanel
             summary={summary}
-            activityMode={activityMode}
+            isLoading={loading}
+            error={error}
+            truncated={!expandedPanels.includes("activity-overview")}
+            onViewMore={() => handlePanelExpand("activity-overview")}
+            data-testid="activity-overview-panel"
+          />
+
+          {/* Activity Feed Timeline */}
+          <ActivityFeedPanel
             dateRange={dateRange}
-            activeFilters={activeFilters}
+            filters={activeFilters}
             installationIds={installationIds}
+            mode={activityMode}
+            maxItems={summary?.commits?.length ? undefined : 25}
+            isLoading={loading}
+            showRepository={true}
+            truncated={!expandedPanels.includes("activity-feed")}
+            onViewMore={() => handlePanelExpand("activity-feed")}
+            data-testid="activity-feed-panel"
           />
         </div>
       </div>
