@@ -1,12 +1,12 @@
 import React from "react";
-import { FilterState } from "@/app/dashboard/page";
+import { DashboardFilterState } from "@/types/dashboard";
 import { Repository } from "@/types/github";
 
 interface Props {
   repositories: Repository[];
   showRepoList: boolean;
   loading: boolean;
-  activeFilters: FilterState;
+  activeFilters: DashboardFilterState;
   setShowRepoList: (show: boolean) => void;
 }
 

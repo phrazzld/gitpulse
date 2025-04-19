@@ -2,7 +2,7 @@ import React from "react";
 import ActivityFeed from "@/components/ActivityFeed";
 import { ActivityMode } from "@/types/activity";
 import { DateRange } from "@/components/DateRangePicker";
-import { FilterState } from "@/app/dashboard/page";
+import { DashboardFilterState } from "@/types/dashboard";
 import { createActivityFetcher } from "@/lib/activity";
 import { CommitSummary } from "@/types/summary";
 
@@ -10,7 +10,7 @@ interface Props {
   summary: CommitSummary | null;
   activityMode: ActivityMode;
   dateRange: DateRange;
-  activeFilters: FilterState;
+  activeFilters: DashboardFilterState;
   installationIds: number[];
 }
 
