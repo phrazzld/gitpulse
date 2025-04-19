@@ -15,7 +15,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "CI=true jest --ci --runInBand --coverage --reporters=default --no-cache --testPathIgnorePatterns='(test-utils.tsx|DashboardTestWrapper.tsx)' --coverageThreshold='{}' --bail",
+    "test:components": "jest 'src/components/library' --coverage",
+    "test:ci": "CI=true jest --ci --runInBand --coverage --reporters=default --no-cache --testPathIgnorePatterns='(test-utils.tsx|DashboardTestWrapper.tsx)' --coverageThreshold='{}' --collectCoverageFrom='src/components/**/*.{js,jsx,ts,tsx}' --bail",
     "test:no-skips": "node ./scripts/check-skipped-tests.js",
     "prepare": "husky",
     "ci": "npm run lint && npm run typecheck && npm run test:ci && npm run test:no-skips"
@@ -23,12 +24,14 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
     "@octokit/auth-app": "^6.0.0",
+    "clsx": "^2.1.1",
     "next": "15.2.4",
     "next-auth": "^4.24.11",
     "octokit": "^4.1.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-window": "^1.8.11"
+    "react-window": "^1.8.11",
+    "tailwind-merge": "^3.2.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.25.9",
@@ -37,6 +40,7 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^20",
     "@types/react": "^19",

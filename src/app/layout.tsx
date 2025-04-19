@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Roboto_Mono } from "next/font/google";
+import "../styles/tokens.css";
 import "./globals.css";
 import Providers from "./providers";
 
@@ -21,9 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${robotoMono.variable} antialiased`}
-      >
+      <body className={`${robotoMono.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

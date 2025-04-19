@@ -1,12 +1,5 @@
 # BACKLOG
 
-- Initial UI Framework Setup
-
-  - Install and configure Tailwind CSS or shadcn/ui
-  - Set up theme configuration (colors, spacing, typography)
-  - Create basic design tokens and CSS variables
-  - Depends on: None
-
 - Core Component Library Creation
 
   - Develop base components (buttons, inputs, cards, etc.)
