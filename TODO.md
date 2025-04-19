@@ -13,7 +13,7 @@
     2. TypeScript type checking passes
   - **depends‑on:** none
 
-- [ ] **T002 · feature · p2: create footer component**
+- [x] **T002 · feature · p2: create footer component**
 
   - **context:** Detailed Build Steps #2 - Create Footer Component
   - **action:**
