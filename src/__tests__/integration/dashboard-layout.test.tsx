@@ -214,9 +214,7 @@ describe("DashboardLayout Integration", () => {
     });
 
     // Verify custom classes are passed to Header
-    expect(headerProps?.className).toBe(
-      "bg-background-secondary/80 backdrop-blur-sm",
-    );
+    expect(headerProps?.className).toBe("mb-md");
   });
 
   it("passes correct links to Footer component", async () => {
