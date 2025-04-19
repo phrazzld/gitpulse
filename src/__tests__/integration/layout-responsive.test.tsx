@@ -1,8 +1,7 @@
 import React from "react";
 
 // eslint-disable
-describe.skip("Layout Components Responsive Behavior - Full Tests", () => {
-  // SKIP-REASON: Responsive behavior tests are unreliable in the test environment
+describe("Layout Components Responsive Behavior - Full Tests", () => {
   it("should toggle mobile menu", () => {
     // Skip these tests for now due to issues with component rendering
     expect(true).toBeTruthy();
