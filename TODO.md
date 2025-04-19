@@ -1,199 +1,245 @@
-# todo
+# TODO
 
-## component library setup
+## Layout and Navigation Redesign
 
-- [x] **T001 · chore · p1: create component library directory structure**
+- [x] **T001 · feature · p1: define navigation types**
 
-  - **context:** Detailed Build Steps #1
+  - **context:** Detailed Build Steps #1 - Create Base Types
   - **action:**
-    1. Create `src/components/library/` directory
-    2. Create `src/components/library/__tests__/` directory
-    3. Create `src/components/library/utils/` directory
+    1. Create `src/types/navigation.ts` file
+    2. Define and export the `NavLink` type according to the architecture blueprint
   - **done‑when:**
-    1. Directory structure exists and is correctly organized
+    1. `NavLink` type is defined and exported
+    2. TypeScript type checking passes
   - **depends‑on:** none
 
-- [x] **T002 · feature · p1: implement class name merging utility**
-  - **context:** Detailed Build Steps #2
+- [ ] **T002 · feature · p2: create footer component**
+
+  - **context:** Detailed Build Steps #2 - Create Footer Component
   - **action:**
-    1. Create `src/components/library/utils/cn.ts`
-    2. Implement the `cn` function using `clsx` and `tailwind-merge` libraries
-    3. Add necessary type definitions and exports
+    1. Create `src/components/layout/Footer.tsx`
+    2. Implement component with FooterProps interface
+    3. Add static content and styled using Core Component Library
   - **done‑when:**
-    1. Utility function works correctly for merging Tailwind classes
-    2. Function is exported and can be imported by components
+    1. Footer component renders correct content based on props
+    2. Styling uses Core Component Library and design tokens
   - **depends‑on:** [T001]
 
-## button component
+- [ ] **T003 · test · p2: add unit tests for footer component**
 
-- [x] **T003 · feature · p1: implement base button component**
-
-  - **context:** Detailed Build Steps #3, Public Interfaces/Contracts
+  - **context:** Detailed Build Steps #2 - Create Footer Component
   - **action:**
-    1. Create `src/components/library/Button.tsx`
-    2. Define `ButtonProps` interface with children, onClick, disabled, variant, size, and type props
-    3. Implement component with basic functionality and styling
+    1. Create `src/components/layout/__tests__/Footer.test.tsx`
+    2. Test rendering with different props (links, copyright text)
+    3. Test rendering without optional props
   - **done‑when:**
-    1. Button component renders correctly with children
-    2. Component handles click events correctly
-    3. TypeScript compilation passes with no errors
-  - **depends‑on:** [T001, T002]
+    1. Tests verify Footer renders correctly with all prop variations
+    2. Tests pass with >90% coverage
+  - **depends‑on:** [T002]
 
-- [x] **T004 · feature · p2: implement button variants and styling**
+- [ ] **T004 · feature · p1: create navigation menu component**
 
-  - **context:** Detailed Build Steps #3 (variants and styling)
+  - **context:** Detailed Build Steps #3 - Create NavigationMenu Component
   - **action:**
-    1. Implement primary, secondary, and danger variants
-    2. Implement sm, md, and lg size variants
-    3. Style different states (normal, hover, focus, disabled)
+    1. Create `src/components/layout/NavigationMenu.tsx`
+    2. Implement flexible navigation with horizontal/vertical orientations
+    3. Add active link highlighting logic
   - **done‑when:**
-    1. All variants render with correct styling
-    2. Different sizes display correctly
-    3. Interactive states work properly (hover, focus, etc.)
-  - **depends‑on:** [T003]
+    1. NavigationMenu renders links in both orientations
+    2. Active link is visually highlighted
+    3. Component handles empty links array gracefully
+  - **depends‑on:** [T001]
 
-- [x] **T005 · test · p1: create unit tests for button component**
-  - **context:** Detailed Build Steps #7, Testing Strategy
+- [ ] **T005 · feature · p1: implement accessibility for navigation menu**
+
+  - **context:** Risk Matrix - Accessibility issues with navigation
   - **action:**
-    1. Create `src/components/library/__tests__/Button.test.tsx`
-    2. Test rendering with different variants, sizes, and states
-    3. Test click handler functionality and disabled state
+    1. Add appropriate ARIA roles and attributes to NavigationMenu
+    2. Implement keyboard navigation support
+    3. Ensure proper focus management
   - **done‑when:**
-    1. All tests pass
-    2. Code coverage meets 90%+ target
+    1. NavigationMenu has proper ARIA attributes
+    2. Component is fully keyboard navigable
   - **depends‑on:** [T004]
 
-## input component
+- [ ] **T006 · test · p2: add unit tests for navigation menu component**
 
-- [x] **T006 · feature · p1: implement base input component**
-
-  - **context:** Detailed Build Steps #4, Public Interfaces/Contracts
+  - **context:** Detailed Build Steps #3 - Create NavigationMenu Component
   - **action:**
-    1. Create `src/components/library/Input.tsx`
-    2. Define `InputProps` interface with value, onChange, placeholder, disabled, type, error, and ariaLabel props
-    3. Implement component with basic functionality
+    1. Create `src/components/layout/__tests__/NavigationMenu.test.tsx`
+    2. Test rendering in different orientations
+    3. Test active link highlighting
+    4. Test keyboard navigation and accessibility features
   - **done‑when:**
-    1. Input component renders correctly
-    2. Component handles value changes correctly
-    3. TypeScript compilation passes with no errors
-  - **depends‑on:** [T001, T002]
+    1. Tests verify all features of NavigationMenu
+    2. Tests pass with >90% coverage
+  - **depends‑on:** [T004, T005]
 
-- [x] **T007 · feature · p2: implement input variants and states**
+- [ ] **T007 · feature · p1: create mobile menu toggle component**
 
-  - **context:** Detailed Build Steps #4 (states and types)
+  - **context:** Detailed Build Steps #4 - Create MobileMenuToggle Component
   - **action:**
-    1. Implement different input types (text, password, email)
-    2. Implement error and disabled states
+    1. Create `src/components/layout/MobileMenuToggle.tsx`
+    2. Implement toggle button with open/closed states
     3. Add proper ARIA attributes for accessibility
   - **done‑when:**
-    1. Different input types function correctly
-    2. Error state displays correctly (styling + aria-invalid)
-    3. Disabled state works properly
-  - **depends‑on:** [T006]
+    1. MobileMenuToggle renders different states based on isOpen prop
+    2. Button triggers onToggle callback when clicked
+    3. ARIA attributes reflect current state
+  - **depends‑on:** none
 
-- [x] **T008 · test · p1: create unit tests for input component**
-  - **context:** Detailed Build Steps #7, Testing Strategy
+- [ ] **T008 · test · p2: add unit tests for mobile menu toggle component**
+
+  - **context:** Detailed Build Steps #4 - Create MobileMenuToggle Component
   - **action:**
-    1. Create `src/components/library/__tests__/Input.test.tsx`
-    2. Test rendering with different types and states
-    3. Test onChange handler and value updates
+    1. Create `src/components/layout/__tests__/MobileMenuToggle.test.tsx`
+    2. Test rendering in different states
+    3. Test click handler
+    4. Test accessibility attributes
   - **done‑when:**
-    1. All tests pass
-    2. Code coverage meets 90%+ target
+    1. Tests verify toggle behavior and accessibility features
+    2. Tests pass with >90% coverage
   - **depends‑on:** [T007]
 
-## card component
+- [ ] **T009 · feature · p1: create header component with desktop navigation**
 
-- [x] **T009 · feature · p2: implement card component**
-
-  - **context:** Detailed Build Steps #5, Public Interfaces/Contracts
+  - **context:** Detailed Build Steps #5 - Create Header Component
   - **action:**
-    1. Create `src/components/library/Card.tsx`
-    2. Define `CardProps` interface with children and className props
-    3. Implement basic container styling using Tailwind classes
+    1. Create `src/components/layout/Header.tsx`
+    2. Implement layout structure with logo and desktop navigation
+    3. Integrate NavigationMenu for desktop view
+    4. Handle authentication state from session
   - **done‑when:**
-    1. Card component renders children correctly
-    2. Component applies proper styling (padding, border, shadow)
-    3. Component allows className customization
-  - **depends‑on:** [T001, T002]
+    1. Header shows logo and desktop navigation
+    2. Header displays user info or login UI based on session prop
+    3. Responsive styling for desktop view is applied
+  - **depends‑on:** [T001, T004]
 
-- [x] **T010 · test · p2: create unit tests for card component**
-  - **context:** Detailed Build Steps #7, Testing Strategy
+- [ ] **T010 · feature · p1: implement mobile menu integration in header**
+
+  - **context:** Detailed Build Steps #5 - Create Header Component
   - **action:**
-    1. Create `src/components/library/__tests__/Card.test.tsx`
-    2. Test rendering with different children
-    3. Test className prop application
+    1. Add state management for mobile menu visibility in Header
+    2. Integrate MobileMenuToggle
+    3. Add conditional rendering of mobile NavigationMenu
   - **done‑when:**
-    1. All tests pass
-    2. Code coverage meets 90%+ target
-  - **depends‑on:** [T009]
+    1. Mobile menu toggle is shown on small screens
+    2. Clicking toggle shows/hides mobile navigation
+    3. Responsive styling works correctly
+  - **depends‑on:** [T007, T009]
 
-## documentation and integration
+- [ ] **T011 · test · p2: add unit tests for header component**
 
-- [x] **T011 · feature · p2: add TSDoc comments to all components**
-
-  - **context:** Detailed Build Steps #8, Documentation
+  - **context:** Detailed Build Steps #5 - Create Header Component
   - **action:**
-    1. Add comprehensive TSDoc comments to all interfaces and props
-    2. Add JSDoc comments to component implementations
-    3. Document rationales for design decisions
+    1. Create `src/components/layout/__tests__/Header.test.tsx`
+    2. Test rendering with/without session
+    3. Test mobile menu toggle interaction
+    4. Test responsive behavior (desktop vs. mobile)
   - **done‑when:**
-    1. All components have proper documentation
-    2. All props and interfaces are documented
-  - **depends‑on:** [T004, T007, T009]
+    1. Tests verify all header functionality
+    2. Tests pass with >90% coverage
+  - **depends‑on:** [T009, T010]
 
-- [x] **T012 · chore · p2: create barrel file for component exports**
+- [ ] **T012 · feature · p1: integrate header and footer into app layout**
 
-  - **context:** Detailed Build Steps #6
+  - **context:** Detailed Build Steps #6 - Integrate with Layouts
   - **action:**
-    1. Create `src/components/library/index.ts`
-    2. Export all components and their prop interfaces
+    1. Update `src/app/layout.tsx` to include Header and Footer
+    2. Pass required props (session, navLinks)
+    3. Ensure responsive layout structure
   - **done‑when:**
-    1. Components can be imported from `src/components/library`
-    2. TypeScript compilation passes with no errors
-  - **depends‑on:** [T004, T007, T009]
+    1. Layout includes Header at top and Footer at bottom
+    2. Content is properly positioned between header and footer
+  - **depends‑on:** [T002, T009, T010]
 
-- [x] **T013 · test · p2: create integration tests for component composition**
+- [ ] **T013 · feature · p1: integrate header and footer into dashboard layout**
 
-  - **context:** Testing Strategy (Integration Tests)
+  - **context:** Detailed Build Steps #6 - Integrate with Layouts
   - **action:**
-    1. Create `src/components/library/__tests__/composition.test.tsx`
-    2. Test combinations like Button inside Card
-    3. Verify correct rendering and styling isolation
+    1. Update `src/app/dashboard/layout.tsx` to include Header and Footer
+    2. Pass required props (session, navLinks)
+    3. Ensure proper interaction with dashboard-specific elements
   - **done‑when:**
-    1. All tests pass
-    2. Components work correctly when composed together
-  - **depends‑on:** [T005, T008, T010]
+    1. Dashboard layout includes Header and Footer
+    2. Layout works correctly with dashboard content
+  - **depends‑on:** [T012]
 
-- [x] **T014 · docs · p2: create component documentation markdown**
+- [ ] **T014 · test · p2: add integration tests for layouts**
 
-  - **context:** Detailed Build Steps #8, Documentation
+  - **context:** Detailed Build Steps #7 - Add Integration Tests
   - **action:**
-    1. Create `docs/components.md`
-    2. Add sections for each component with usage examples
-    3. Include prop tables and explanations
+    1. Create integration tests for root and dashboard layouts
+    2. Test overall layout structure
+    3. Test responsive behavior and mobile menu
   - **done‑when:**
-    1. Documentation file exists and is comprehensive
-    2. Examples show how to use each component
-  - **depends‑on:** [T011]
+    1. Tests verify correct DOM structure of layouts
+    2. Tests cover responsive behavior
+    3. Tests pass with good coverage
+  - **depends‑on:** [T012, T013]
 
-- [x] **T015 · docs · p2: update README with component library reference**
+- [ ] **T015 · feature · p2: refine styling for all layout components**
 
-  - **context:** Detailed Build Steps #8, Documentation
+  - **context:** Detailed Build Steps #8 - Refine Styling
   - **action:**
-    1. Add section about component library to main README.md
-    2. Link to component documentation
+    1. Review and refine styling across all layout components
+    2. Ensure consistent use of design tokens and Core Component Library
+    3. Test and fix responsive behavior across various screen sizes
   - **done‑when:**
-    1. README references component library
-    2. Link to component docs works correctly
-  - **depends‑on:** [T014]
+    1. Components have consistent styling
+    2. Responsive behavior works correctly on all target screen sizes
+  - **depends‑on:** [T012, T013]
 
-- [x] **T016 · chore · p2: configure CI for component testing**
-  - **context:** Detailed Build Steps #9
+- [ ] **T016 · feature · p2: add logging for navigation events**
+
+  - **context:** Logging & Observability section
   - **action:**
-    1. Ensure linting and type checking covers component files
-    2. Verify tests are run in CI pipeline
+    1. Add logging for menu toggle events
+    2. Add logging for navigation link clicks
+    3. Include user ID when authenticated
   - **done‑when:**
-    1. CI successfully runs component tests
-    2. Linting and type checking pass for component files
-  - **depends‑on:** [T013]
+    1. Events are logged with structured data
+    2. Logs include appropriate context information
+  - **depends‑on:** [T010]
+
+- [ ] **T017 · chore · p3: add TSDoc comments to layout components**
+
+  - **context:** Documentation section
+  - **action:**
+    1. Add TSDoc comments to all public interfaces and components
+    2. Document props, behavior, and usage patterns
+  - **done‑when:**
+    1. All public interfaces and components have TSDoc comments
+  - **depends‑on:** [T002, T004, T007, T009, T010]
+
+- [ ] **T018 · chore · p3: update documentation with new layout components**
+  - **context:** Documentation section
+  - **action:**
+    1. Update `docs/components.md` with new layout components
+    2. Add usage examples and responsive behavior documentation
+    3. Document integration with layouts
+  - **done‑when:**
+    1. Component documentation is updated with new layout components
+    2. Examples show proper usage in different contexts
+  - **depends‑on:** [T017]
+
+### Clarifications & Assumptions
+
+- [ ] **issue:** what specific navigation links are required?
+
+  - **context:** Open Questions - What specific navigation links are required?
+  - **blocking?:** yes
+
+- [ ] **issue:** mobile menu UX pattern needs to be decided
+
+  - **context:** Open Questions - Should the mobile menu be a slide-out drawer or an overlay?
+  - **blocking?:** yes
+
+- [ ] **issue:** any specific accessibility requirements beyond standard WCAG?
+
+  - **context:** Open Questions - Are there specific accessibility requirements beyond standard practices?
+  - **blocking?:** no
+
+- [ ] **issue:** footer content approach needs confirmation
+  - **context:** Open Questions - Should the footer contain dynamic content or just static links?
+  - **blocking?:** no
