@@ -128,7 +128,7 @@
     3. Responsive styling works correctly
   - **depends‑on:** [T007, T009]
 
-- [ ] **T011 · test · p2: add unit tests for header component**
+- [x] **T011 · test · p2: add unit tests for header component**
 
   - **context:** Detailed Build Steps #5 - Create Header Component
   - **action:**
