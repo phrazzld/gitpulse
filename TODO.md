@@ -75,7 +75,7 @@
     2. Tests pass with >90% coverage
   - **depends‑on:** [T004, T005]
 
-- [ ] **T007 · feature · p1: create mobile menu toggle component**
+- [x] **T007 · feature · p1: create mobile menu toggle component**
 
   - **context:** Detailed Build Steps #4 - Create MobileMenuToggle Component
   - **action:**
