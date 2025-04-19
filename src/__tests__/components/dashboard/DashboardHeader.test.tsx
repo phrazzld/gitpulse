@@ -15,7 +15,7 @@ jest.mock("next-auth/react", () => ({
 jest.mock("next/image", () => ({
   __esModule: true,
   default: (props: any) => {
-    // eslint-disable-next-line jsx-a11y/alt-text
+    // Using alt from props or empty string as fallback, alt is always provided
     return (
       <img
         src={props.src}
