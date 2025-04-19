@@ -25,7 +25,7 @@
     2. Styling uses Core Component Library and design tokens
   - **depends‑on:** [T001]
 
-- [ ] **T003 · test · p2: add unit tests for footer component**
+- [x] **T003 · test · p2: add unit tests for footer component**
 
   - **context:** Detailed Build Steps #2 - Create Footer Component
   - **action:**
