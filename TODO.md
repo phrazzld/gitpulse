@@ -37,7 +37,7 @@
     2. Tests pass with >90% coverage
   - **depends‑on:** [T002]
 
-- [ ] **T004 · feature · p1: create navigation menu component**
+- [x] **T004 · feature · p1: create navigation menu component**
 
   - **context:** Detailed Build Steps #3 - Create NavigationMenu Component
   - **action:**
