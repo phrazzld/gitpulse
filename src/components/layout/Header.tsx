@@ -7,6 +7,8 @@ import { NavigationMenu } from "@/components/layout/NavigationMenu";
 import { MobileMenuToggle } from "@/components/layout/MobileMenuToggle";
 import { NavLink } from "@/types/navigation";
 import { cn } from "@/components/library/utils/cn";
+import { logger } from "@/lib/logger";
+import { LogData } from "@/types/common";
 import type { Session } from "next-auth";
 
 export interface HeaderProps {
@@ -62,7 +64,28 @@ export const Header: React.FC<HeaderProps> = ({
 
   // Toggle mobile menu visibility
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen((prev) => !prev);
+    const newState = !isMobileMenuOpen;
+    setIsMobileMenuOpen(newState);
+
+    // Log mobile menu toggle event
+    const logData: LogData = {
+      action: newState ? "open_mobile_menu" : "close_mobile_menu",
+      path: pathname,
+    };
+
+    // Add user info if available
+    if (session?.user) {
+      logData.userId = session.user.email || session.user.name;
+      logData.authenticated = true;
+    } else {
+      logData.authenticated = false;
+    }
+
+    logger.info(
+      "Header",
+      `Mobile menu ${newState ? "opened" : "closed"}`,
+      logData,
+    );
   };
 
   // Calculate which links to show based on auth state
@@ -122,6 +145,10 @@ export const Header: React.FC<HeaderProps> = ({
                 currentPath={pathname || ""}
                 className="ml-md"
                 ariaLabel="Main Navigation"
+                userId={
+                  session?.user?.email || session?.user?.name || undefined
+                }
+                isAuthenticated={!!session}
               />
             </div>
 
@@ -199,6 +226,8 @@ export const Header: React.FC<HeaderProps> = ({
               orientation="vertical"
               className="w-full"
               ariaLabel="Mobile Navigation"
+              userId={session?.user?.email || session?.user?.name || undefined}
+              isAuthenticated={!!session}
             />
           </div>
         </div>

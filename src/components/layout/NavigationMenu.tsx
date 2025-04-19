@@ -1,8 +1,16 @@
-import React, { useRef, useEffect, KeyboardEvent, useState } from "react";
+import React, {
+  useRef,
+  useEffect,
+  KeyboardEvent,
+  useState,
+  MouseEvent,
+} from "react";
 import Link from "next/link";
 import { Button } from "@/components/library";
 import { NavLink } from "@/types/navigation";
 import { cn } from "@/components/library/utils/cn";
+import { logger } from "@/lib/logger";
+import { LogData } from "@/types/common";
 
 export interface NavigationMenuProps {
   /**
@@ -36,6 +44,18 @@ export interface NavigationMenuProps {
    * Optional ID for the navigation element
    */
   id?: string;
+
+  /**
+   * Optional user information for logging purposes
+   * When provided, user details will be included in navigation logs
+   */
+  userId?: string;
+
+  /**
+   * Optional boolean indicating whether the user is authenticated
+   * Used for logging purposes
+   */
+  isAuthenticated?: boolean;
 }
 
 /**
@@ -53,6 +73,8 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
   className,
   ariaLabel = "Main Navigation",
   id,
+  userId,
+  isAuthenticated,
 }) => {
   // Don't render anything if there are no links
   if (links.length === 0) {
@@ -126,6 +148,36 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
     setFocusedIndex(-1);
   };
 
+  // Handle click on navigation link
+  const handleLinkClick = (link: NavLink, index: number) => {
+    // Don't log clicks on the current page
+    if (link.href === currentPath) {
+      return;
+    }
+
+    const logData: LogData = {
+      action: "navigation_link_click",
+      destination: link.href,
+      linkLabel: link.label,
+      navigationSource: orientation === "horizontal" ? "desktop" : "mobile",
+      fromPath: currentPath,
+    };
+
+    // Add user info if available
+    if (userId) {
+      logData.userId = userId;
+      logData.authenticated = isAuthenticated || false;
+    } else {
+      logData.authenticated = isAuthenticated || false;
+    }
+
+    logger.info(
+      "NavigationMenu",
+      `Navigation to: ${link.label} (${link.href})`,
+      logData,
+    );
+  };
+
   // Generate a unique ID for the navigation if not provided
   const navId = id || `nav-menu-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -169,6 +221,7 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
                     ? 0
                     : -1
                 }
+                onClick={() => handleLinkClick(link, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 onFocus={() => handleFocus(index)}
                 onBlur={handleBlur}

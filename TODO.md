@@ -190,7 +190,7 @@
     2. Responsive behavior works correctly on all target screen sizes
   - **depends‑on:** [T012, T013]
 
-- [ ] **T016 · feature · p2: add logging for navigation events**
+- [x] **T016 · feature · p2: add logging for navigation events**
 
   - **context:** Logging & Observability section
   - **action:**
