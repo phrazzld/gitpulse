@@ -212,7 +212,7 @@
     1. All public interfaces and components have TSDoc comments
   - **depends‑on:** [T002, T004, T007, T009, T010]
 
-- [ ] **T018 · chore · p3: update documentation with new layout components**
+- [x] **T018 · chore · p3: update documentation with new layout components**
   - **context:** Documentation section
   - **action:**
     1. Update `docs/components.md` with new layout components
