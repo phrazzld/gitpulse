@@ -12,48 +12,81 @@ import { cn } from "@/components/library/utils/cn";
 import { logger } from "@/lib/logger";
 import { LogData } from "@/types/common";
 
+/**
+ * Props for the NavigationMenu component
+ *
+ * @see {@link NavigationMenu} for component implementation
+ * @see {@link NavLink} for navigation link structure
+ */
 export interface NavigationMenuProps {
   /**
-   * Array of navigation links to display
+   * Array of navigation links to display in the menu
+   *
+   * Each link is rendered as a button within a navigation list.
+   * If links array is empty, the component returns null (renders nothing).
+   * @see {@link NavLink} for navigation link structure
    */
   links: NavLink[];
 
   /**
    * Layout orientation of the navigation menu
+   *
+   * - "horizontal": Links are displayed in a row (good for desktop headers)
+   * - "vertical": Links are displayed in a column (good for mobile menus or sidebars)
+   *
+   * Affects the flexbox direction, alignment, and keyboard navigation behavior.
    * @default "horizontal"
    */
   orientation?: "horizontal" | "vertical";
 
   /**
    * Current active path used for highlighting the active link
+   *
+   * This is typically the current URL path from the router.
+   * Used to determine which link should be highlighted as active
+   * and receive keyboard focus by default.
+   * @example "/dashboard" or "/settings"
    */
   currentPath: string;
 
   /**
-   * Optional CSS class name to apply custom styling
+   * Optional CSS class name to apply custom styling to the navigation container
+   *
+   * Applied to the root nav element in addition to the default classes.
    */
   className?: string;
 
   /**
    * Optional aria-label for the navigation element
+   *
+   * Provides an accessible name for the navigation landmark.
+   * Important for screen reader users to identify the purpose of the navigation.
    * @default "Main Navigation"
    */
   ariaLabel?: string;
 
   /**
    * Optional ID for the navigation element
+   *
+   * When not provided, a unique ID will be generated.
+   * Used for targeting the navigation with ARIA attributes and scripts.
    */
   id?: string;
 
   /**
    * Optional user information for logging purposes
-   * When provided, user details will be included in navigation logs
+   *
+   * When provided, user details will be included in navigation event logs.
+   * Can be an email, name, or other user identifier.
    */
   userId?: string;
 
   /**
    * Optional boolean indicating whether the user is authenticated
-   * Used for logging purposes
+   *
+   * Used for logging navigation events with authentication context.
+   * Does not affect which links are displayed - filtering should be done
+   * before passing links to this component.
    */
   isAuthenticated?: boolean;
 }
@@ -61,10 +94,51 @@ export interface NavigationMenuProps {
 /**
  * Navigation menu component for application layouts
  *
- * Displays a list of navigation links in either horizontal or vertical orientation.
- * Automatically highlights the active link based on the current path.
- * Supports responsive layouts and can be styled with custom classes.
- * Implements keyboard navigation and ARIA accessibility attributes.
+ * A comprehensive navigation component that can be used in headers,
+ * sidebars, or mobile menus. Supports both horizontal and vertical layouts
+ * with fully accessible keyboard navigation support and ARIA attributes.
+ *
+ * Key features:
+ * - Adaptive layout (horizontal or vertical)
+ * - Active link highlighting
+ * - Keyboard navigation (arrow keys, home/end)
+ * - Focus management
+ * - Proper ARIA roles and attributes
+ * - Event logging for analytics
+ * - Support for icons in navigation links
+ * - Empty state handling
+ *
+ * @remarks
+ * This component handles focus management and keyboard navigation according
+ * to WAI-ARIA authoring practices for navigation menus. It uses the Button
+ * component from the application's component library for consistent styling.
+ *
+ * Navigation events are logged when links are clicked, including context data
+ * about the user, the source/destination paths, and the navigation source
+ * (mobile or desktop).
+ *
+ * @example
+ * ```tsx
+ * // Basic horizontal navigation
+ * const links: NavLink[] = [
+ *   { label: "Home", href: "/" },
+ *   { label: "Dashboard", href: "/dashboard", requiresAuth: true }
+ * ];
+ *
+ * <NavigationMenu
+ *   links={links}
+ *   currentPath={pathname}
+ * />
+ *
+ * // Vertical navigation for mobile menu
+ * <NavigationMenu
+ *   links={links}
+ *   currentPath={pathname}
+ *   orientation="vertical"
+ *   ariaLabel="Mobile Navigation"
+ *   className="w-full"
+ * />
+ * ```
  */
 export const NavigationMenu: React.FC<NavigationMenuProps> = ({
   links = [],
@@ -76,36 +150,79 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
   userId,
   isAuthenticated,
 }) => {
-  // Don't render anything if there are no links
+  /**
+   * Early return guard: don't render anything if there are no links
+   * This prevents rendering an empty navigation container
+   */
   if (links.length === 0) {
     return null;
   }
 
-  // Refs for managing focus
+  /**
+   * Ref for the navigation element
+   * Used for potential DOM manipulation or future focus management enhancement
+   */
   const navRef = useRef<HTMLElement>(null);
+
+  /**
+   * Refs for each link element
+   * Used to programmatically set focus during keyboard navigation
+   * Array size matches the number of navigation links
+   */
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
 
-  // State to track which item has focus
+  /**
+   * State to track which item currently has focus
+   * - -1: No item has focus
+   * - 0+: Index of the focused item in the links array
+   * Used to apply visual focus styles and for keyboard navigation tracking
+   */
   const [focusedIndex, setFocusedIndex] = useState<number>(-1);
 
-  // Reset item refs when links change
+  /**
+   * Resize refs array when links array changes
+   * This ensures the refs array size matches the links array size
+   */
   useEffect(() => {
     itemRefs.current = itemRefs.current.slice(0, links.length);
   }, [links]);
 
-  // Find initially active link index
+  /**
+   * Find the index of the currently active link
+   * Used to set initial focus and for highlighting the active link
+   * Returns -1 if no link matches the current path
+   */
   const initialActiveIndex = links.findIndex(
     (link) => link.href === currentPath,
   );
 
-  // Determine layout classes based on orientation
+  /**
+   * CSS class mapping for different orientations
+   * Contains tailwind classes for horizontal and vertical layouts
+   */
   const layoutClasses = {
     horizontal: "flex flex-row items-center flex-wrap gap-sm",
     vertical: "flex flex-col items-start gap-sm",
   };
 
-  // Handle keyboard navigation
-  const handleKeyDown = (e: KeyboardEvent<HTMLElement>, index: number) => {
+  /**
+   * Handles keyboard navigation events
+   *
+   * Implements WAI-ARIA Authoring Practices for navigation menus:
+   * - Arrow Right/Down: Move to next item
+   * - Arrow Left/Up: Move to previous item
+   * - Home: Move to first item
+   * - End: Move to last item
+   *
+   * Wraps around at the beginning/end of the list for a circular navigation pattern
+   *
+   * @param e - Keyboard event from the navigation item
+   * @param index - Current index of the item receiving the keydown event
+   */
+  const handleKeyDown = (
+    e: KeyboardEvent<HTMLElement>,
+    index: number,
+  ): void => {
     let nextIndex = index;
 
     switch (e.key) {
@@ -131,30 +248,47 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
         return;
     }
 
-    // Focus the next navigation item
+    // Focus the next navigation item if it exists
     if (itemRefs.current[nextIndex]) {
       itemRefs.current[nextIndex]?.focus();
       setFocusedIndex(nextIndex);
     }
   };
 
-  // When an item receives focus
-  const handleFocus = (index: number) => {
+  /**
+   * Updates focus state when an item receives focus
+   *
+   * @param index - Index of the item receiving focus
+   */
+  const handleFocus = (index: number): void => {
     setFocusedIndex(index);
   };
 
-  // When an item loses focus
-  const handleBlur = () => {
+  /**
+   * Clears focus state when an item loses focus
+   * Resets focusedIndex to -1 to indicate no item has focus
+   */
+  const handleBlur = (): void => {
     setFocusedIndex(-1);
   };
 
-  // Handle click on navigation link
-  const handleLinkClick = (link: NavLink, index: number) => {
-    // Don't log clicks on the current page
+  /**
+   * Handles click events on navigation links
+   * Logs navigation events for analytics purposes
+   *
+   * Only logs clicks that actually navigate (not clicks on the current path)
+   * Includes context data like user info, current path, and destination
+   *
+   * @param link - The NavLink object being clicked
+   * @param index - Index of the link in the links array
+   */
+  const handleLinkClick = (link: NavLink, index: number): void => {
+    // Don't log clicks on the current page (no actual navigation)
     if (link.href === currentPath) {
       return;
     }
 
+    // Build log data object with navigation context
     const logData: LogData = {
       action: "navigation_link_click",
       destination: link.href,
@@ -163,7 +297,7 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
       fromPath: currentPath,
     };
 
-    // Add user info if available
+    // Add authentication context to log data
     if (userId) {
       logData.userId = userId;
       logData.authenticated = isAuthenticated || false;
@@ -171,6 +305,7 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
       logData.authenticated = isAuthenticated || false;
     }
 
+    // Log the navigation event
     logger.info(
       "NavigationMenu",
       `Navigation to: ${link.label} (${link.href})`,
@@ -178,7 +313,11 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
     );
   };
 
-  // Generate a unique ID for the navigation if not provided
+  /**
+   * Unique ID for the navigation element
+   * When not provided in props, generates a random ID with prefix
+   * Used for DOM identification and ARIA relationships
+   */
   const navId = id || `nav-menu-${Math.random().toString(36).substring(2, 9)}`;
 
   return (

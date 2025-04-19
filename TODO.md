@@ -202,7 +202,7 @@
     2. Logs include appropriate context information
   - **depends‑on:** [T010]
 
-- [ ] **T017 · chore · p3: add TSDoc comments to layout components**
+- [x] **T017 · chore · p3: add TSDoc comments to layout components**
 
   - **context:** Documentation section
   - **action:**

@@ -11,26 +11,41 @@ import { logger } from "@/lib/logger";
 import { LogData } from "@/types/common";
 import type { Session } from "next-auth";
 
+/**
+ * Props for the Header component
+ *
+ * @see {@link Header} for component implementation
+ * @see {@link NavLink} for navigation link structure
+ * @see {@link Session} from next-auth for session structure
+ */
 export interface HeaderProps {
   /**
    * Array of navigation links to display in the header
+   * These links will be filtered based on authentication state if they have requiresAuth set
+   * Links are passed to the NavigationMenu component for rendering
+   * @see {@link NavLink} for link structure details
    */
   navLinks: NavLink[];
 
   /**
-   * Optional user session information
-   * When provided, user account UI will be shown
-   * When not provided, login button will be shown
+   * Optional user session information from NextAuth
+   * When provided, user account UI with profile picture (if available) will be shown
+   * When not provided or null, login button will be shown instead
+   * This session object is also used to filter navigation links with requiresAuth
+   * @see {@link Session} from next-auth for session structure details
    */
   session?: Session | null;
 
   /**
    * Optional CSS class name for custom styling
+   * Applied to the outer header element for custom styling
+   * Useful for applying margin, padding, or other layout adjustments
    */
   className?: string;
 
   /**
    * Optional text to display as the logo
+   * Displayed in the header alongside the logo image
    * @default "GitPulse"
    */
   logoText?: string;
@@ -38,6 +53,8 @@ export interface HeaderProps {
   /**
    * Optional URL for a logo image
    * When provided, an image will be shown next to the logo text
+   * If not provided, a default globe icon will be used
+   * @example "/logo.svg" or "https://example.com/logo.png"
    */
   logoImageUrl?: string;
 }
@@ -45,9 +62,46 @@ export interface HeaderProps {
 /**
  * Header component for application layouts
  *
- * Displays the application logo, navigation menu, and user authentication UI.
- * Responsive design that adapts to both desktop and mobile screens.
- * Includes mobile menu toggle and overlay for small viewport sizes.
+ * Comprehensive header component that displays the application logo, navigation menu,
+ * and user authentication UI. Features a responsive design that adapts between desktop
+ * and mobile screen sizes with a mobile menu toggle for smaller viewports.
+ *
+ * Key features:
+ * - Responsive layout with desktop and mobile views
+ * - Conditional rendering of authentication UI based on session state
+ * - Mobile menu toggle for small viewport sizes
+ * - Active link highlighting based on current path
+ * - Filtering of navigation links based on authentication state
+ * - Accessibility features including proper ARIA attributes
+ * - Logging of menu toggle and navigation events
+ *
+ * @remarks
+ * The Header uses several other components:
+ * - NavigationMenu for rendering navigation links
+ * - MobileMenuToggle for the mobile menu button
+ * - Card and Button from the component library
+ *
+ * The mobile menu is displayed as an overlay at the top of the viewport on small screens.
+ *
+ * @example
+ * ```tsx
+ * // Basic usage with navigation links
+ * const navLinks: NavLink[] = [
+ *   { label: "Home", href: "/" },
+ *   { label: "Dashboard", href: "/dashboard", requiresAuth: true }
+ * ];
+ *
+ * <Header navLinks={navLinks} session={session} />
+ *
+ * // With custom logo and styling
+ * <Header
+ *   navLinks={navLinks}
+ *   session={session}
+ *   logoText="MyApp"
+ *   logoImageUrl="/logo.svg"
+ *   className="bg-primary/10"
+ * />
+ * ```
  */
 export const Header: React.FC<HeaderProps> = ({
   navLinks,
@@ -56,24 +110,39 @@ export const Header: React.FC<HeaderProps> = ({
   logoText = "GitPulse",
   logoImageUrl,
 }) => {
-  // Get current path for active link highlighting
+  /**
+   * Gets the current URL path using Next.js's usePathname hook
+   * Used to determine the active navigation link in the NavigationMenu
+   */
   const pathname = usePathname();
 
-  // Mobile menu state management
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  /**
+   * State for managing the visibility of the mobile menu overlay
+   * - true: mobile menu is visible
+   * - false: mobile menu is hidden
+   */
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
-  // Toggle mobile menu visibility
-  const toggleMobileMenu = () => {
+  /**
+   * Toggles the mobile menu visibility state and logs the event
+   *
+   * This function:
+   * 1. Toggles the isMobileMenuOpen state
+   * 2. Creates a log entry with relevant context data
+   * 3. Includes user info in the log when a session is available
+   * 4. Calls the logger service to record the event
+   */
+  const toggleMobileMenu = (): void => {
     const newState = !isMobileMenuOpen;
     setIsMobileMenuOpen(newState);
 
-    // Log mobile menu toggle event
+    // Build log data object with action and path context
     const logData: LogData = {
       action: newState ? "open_mobile_menu" : "close_mobile_menu",
       path: pathname,
     };
 
-    // Add user info if available
+    // Add authentication context to log data
     if (session?.user) {
       logData.userId = session.user.email || session.user.name;
       logData.authenticated = true;
@@ -81,6 +150,7 @@ export const Header: React.FC<HeaderProps> = ({
       logData.authenticated = false;
     }
 
+    // Log the menu toggle event
     logger.info(
       "Header",
       `Mobile menu ${newState ? "opened" : "closed"}`,
@@ -88,12 +158,22 @@ export const Header: React.FC<HeaderProps> = ({
     );
   };
 
-  // Calculate which links to show based on auth state
+  /**
+   * Filters navigation links based on authentication state
+   *
+   * Only shows links that:
+   * - Don't require authentication (public links), or
+   * - Require authentication AND the user is authenticated
+   */
   const visibleLinks = navLinks.filter(
     (link) => !link.requiresAuth || (link.requiresAuth && session),
   );
 
-  // Generate a unique ID for the mobile menu
+  /**
+   * Unique ID for the mobile menu
+   * Used for ARIA attributes to connect the toggle button with the menu
+   * via aria-controls and id attributes
+   */
   const mobileMenuId = "mobile-navigation-menu";
 
   return (
