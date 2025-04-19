@@ -141,7 +141,7 @@
     2. Tests pass with >90% coverage
   - **depends‑on:** [T009, T010]
 
-- [ ] **T012 · feature · p1: integrate header and footer into app layout**
+- [x] **T012 · feature · p1: integrate header and footer into app layout**
 
   - **context:** Detailed Build Steps #6 - Integrate with Layouts
   - **action:**
