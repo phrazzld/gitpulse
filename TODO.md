@@ -88,7 +88,7 @@
     3. ARIA attributes reflect current state
   - **depends‑on:** none
 
-- [ ] **T008 · test · p2: add unit tests for mobile menu toggle component**
+- [x] **T008 · test · p2: add unit tests for mobile menu toggle component**
 
   - **context:** Detailed Build Steps #4 - Create MobileMenuToggle Component
   - **action:**
