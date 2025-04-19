@@ -153,7 +153,7 @@
     2. Content is properly positioned between header and footer
   - **depends‑on:** [T002, T009, T010]
 
-- [ ] **T013 · feature · p1: integrate header and footer into dashboard layout**
+- [x] **T013 · feature · p1: integrate header and footer into dashboard layout**
 
   - **context:** Detailed Build Steps #6 - Integrate with Layouts
   - **action:**

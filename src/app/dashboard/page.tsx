@@ -8,7 +8,7 @@ import { ActivityMode } from "@/types/activity";
 import DateRangePicker, { DateRange } from "@/components/DateRangePicker";
 import ActivityFeed from "@/components/ActivityFeed";
 import DashboardLoadingState from "@/components/DashboardLoadingState";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
+// DashboardHeader is no longer needed as Header is included in layout
 import AuthenticationStatusBanner from "@/components/dashboard/AuthenticationStatusBanner";
 import FilterControls from "@/components/dashboard/FilterControls";
 import RepositoryInfoPanel from "@/components/dashboard/RepositoryInfoPanel";
@@ -542,10 +542,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--gradient-bg)" }}>
-      <DashboardHeader session={session} />
-
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div style={{ background: "var(--gradient-bg)" }}>
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* Operations Panel */}
           <div
@@ -627,7 +625,7 @@ export default function Dashboard() {
             installationIds={installationIds}
           />
         </div>
-      </main>
+      </div>
     </div>
   );
 }
