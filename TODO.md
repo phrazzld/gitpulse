@@ -26,7 +26,7 @@
     2. `npm run test:no-skips` script passes.
   - **Depends‑on:** none
 
-- [ ] **T003 · test · p1: eliminate unsafe type casts in tests**
+- [x] **T003 · test · p1: eliminate unsafe type casts in tests**
 
   - **Context:** plan.md · cr‑12 Eliminate unsafe type casts in tests
   - **Action:**

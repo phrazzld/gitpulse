@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import DashboardHeader from "../DashboardHeader";
 import { signOut } from "next-auth/react";
+import { Session } from "next-auth";
 
 // Mock the next-auth signOut function
 jest.mock("next-auth/react", () => ({
@@ -9,9 +10,18 @@ jest.mock("next-auth/react", () => ({
 }));
 
 // Mock the Next.js Image component
+// Define a proper interface for Next.js Image props
+interface NextImageProps {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  className?: string;
+}
+
 jest.mock("next/image", () => ({
   __esModule: true,
-  default: ({ src, alt, width, height, className }: any) => (
+  default: ({ src, alt, width, height, className }: NextImageProps) => (
     <img
       src={src}
       alt={alt}
@@ -112,7 +122,8 @@ describe("DashboardHeader", () => {
   });
 
   test("handles user data with missing fields gracefully", () => {
-    const mockSession = {
+    // Define a proper type with Session interface but missing name field
+    const mockSessionWithMissingName: Session = {
       user: {
         email: "test@example.com",
         image: "https://example.com/avatar.png",
@@ -120,7 +131,7 @@ describe("DashboardHeader", () => {
       expires: "2023-01-01T00:00:00.000Z",
     };
 
-    render(<DashboardHeader session={mockSession as any} />);
+    render(<DashboardHeader session={mockSessionWithMissingName} />);
 
     // Image should still be rendered with default alt text
     const image = screen.getByTestId("next-image");

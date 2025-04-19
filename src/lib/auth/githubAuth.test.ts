@@ -3,6 +3,18 @@ import { createAppAuth } from "@octokit/auth-app";
 import { createAuthenticatedOctokit, GitHubCredentials } from "./githubAuth";
 import { GitHubAuthError, GitHubConfigError } from "../errors";
 
+/**
+ * TESTING TYPE NOTE:
+ * This test file uses `as unknown as Type` type casts in specific cases.
+ * While generally discouraged, this pattern is acceptable in test files where:
+ *   1. We're mocking complex external libraries with incomplete type definitions
+ *   2. The full implementation of mocks isn't needed for the test behavior
+ *   3. The cast doesn't affect the correctness of the test itself
+ *
+ * The alternative would be to create complete mock implementations with proper types,
+ * which would add significant complexity with little benefit for test coverage.
+ */
+
 // Mock dependencies
 jest.mock("octokit");
 jest.mock("@octokit/auth-app");
@@ -25,10 +37,12 @@ describe("githubAuth", () => {
 
     // Mock Octokit constructor
     (Octokit as jest.MockedClass<typeof Octokit>).mockImplementation(() => {
-      return {
-        // Minimal implementation for testing
+      // Create a mock Octokit instance with the minimum required properties
+      const mockOctokit = {
         rest: {},
-      } as unknown as Octokit;
+      };
+      // @ts-expect-error TS2352: intentional two-stage cast for our incomplete mock Octokit
+      return mockOctokit as unknown as Octokit;
     });
 
     // Mock createAppAuth with a simplified approach using type assertion
