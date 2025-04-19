@@ -62,7 +62,7 @@
     2. Component is fully keyboard navigable
   - **depends‑on:** [T004]
 
-- [ ] **T006 · test · p2: add unit tests for navigation menu component**
+- [x] **T006 · test · p2: add unit tests for navigation menu component**
 
   - **context:** Detailed Build Steps #3 - Create NavigationMenu Component
   - **action:**
