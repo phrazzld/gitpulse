@@ -101,7 +101,7 @@
     2. Tests pass with >90% coverage
   - **depends‑on:** [T007]
 
-- [ ] **T009 · feature · p1: create header component with desktop navigation**
+- [x] **T009 · feature · p1: create header component with desktop navigation**
 
   - **context:** Detailed Build Steps #5 - Create Header Component
   - **action:**
