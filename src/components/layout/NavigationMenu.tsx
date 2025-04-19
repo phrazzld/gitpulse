@@ -235,10 +235,11 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
                   variant="secondary"
                   size="sm"
                   className={cn(
-                    "flex items-center gap-xs focus:outline-none",
+                    "flex items-center gap-xs focus:outline-none transition-all duration-normal",
                     isActive
-                      ? "bg-primary/10 text-primary border-primary/30"
-                      : "text-foreground hover:text-primary",
+                      ? "bg-primary/15 text-primary border-primary/40 shadow-sm font-medium"
+                      : "text-foreground/90 hover:text-primary hover:bg-background-secondary/80",
+                    orientation === "vertical" && "justify-start w-full",
                   )}
                   tabIndex={-1} // Button shouldn't receive tab focus, as the Link is already focusable
                 >
@@ -248,6 +249,12 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
                     </span>
                   )}
                   <span>{link.label}</span>
+                  {isActive && (
+                    <span
+                      className="ml-xs w-1.5 h-1.5 rounded-full bg-primary"
+                      aria-hidden="true"
+                    />
+                  )}
                 </Button>
               </Link>
             </li>

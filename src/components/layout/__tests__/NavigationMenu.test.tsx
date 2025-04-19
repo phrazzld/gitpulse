@@ -96,8 +96,10 @@ describe("NavigationMenu component", () => {
 
       // Get all buttons
       const dashboardButton = screen.getByText("Dashboard").closest("button");
-      expect(dashboardButton).toHaveClass("bg-primary/10");
+      expect(dashboardButton).toHaveClass("bg-primary/15");
       expect(dashboardButton).toHaveClass("text-primary");
+      expect(dashboardButton).toHaveClass("shadow-sm");
+      expect(dashboardButton).toHaveClass("font-medium");
     });
 
     it("sets aria-current attribute on the active link", () => {

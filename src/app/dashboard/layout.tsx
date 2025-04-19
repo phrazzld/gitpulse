@@ -47,13 +47,15 @@ export default function DashboardLayout({
 
   // Render dashboard layout with header and footer when authenticated
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-background to-background-secondary">
       <Header
         navLinks={dashboardNavLinks}
         session={session}
-        className="bg-background-secondary/80 backdrop-blur-sm"
+        className="mb-md"
       />
-      <main className="flex-grow">{children}</main>
+      <main className="flex-grow container mx-auto px-sm md:px-md pt-sm pb-lg">
+        {children}
+      </main>
       <Footer
         links={footerLinks}
         copyrightText="© 2025 GitPulse. All rights reserved."

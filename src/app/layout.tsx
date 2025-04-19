@@ -45,11 +45,13 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${robotoMono.variable} antialiased flex flex-col min-h-screen`}
+        className={`${robotoMono.variable} antialiased flex flex-col min-h-screen bg-gradient-to-b from-background to-background-secondary`}
       >
         <Providers>
-          <Header navLinks={mainNavLinks} session={session} />
-          <div className="flex-grow">{children}</div>
+          <Header navLinks={mainNavLinks} session={session} className="mb-md" />
+          <main className="flex-grow container mx-auto px-sm md:px-md pt-sm pb-lg">
+            {children}
+          </main>
           <Footer
             links={footerLinks}
             copyrightText="© 2025 GitPulse. All rights reserved."

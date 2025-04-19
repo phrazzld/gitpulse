@@ -72,7 +72,8 @@ export const MobileMenuToggle: React.FC<MobileMenuToggleProps> = ({
     "w-10 h-10 p-sm rounded",
     "bg-background-secondary border border-dark-slate/20",
     "focus:outline-none focus:ring-2 focus:ring-primary/50",
-    "transition-colors duration-normal",
+    "transition-all duration-normal hover:scale-105",
+    isOpen ? "border-primary/30" : "hover:border-primary/20",
     className,
   );
 
@@ -88,23 +89,27 @@ export const MobileMenuToggle: React.FC<MobileMenuToggleProps> = ({
         {/* Three lines that transform between hamburger and X icon */}
         <span
           className={cn(
-            "block w-full h-0.5 bg-foreground",
-            "transition-transform duration-normal",
-            isOpen && "translate-y-1.5 rotate-45",
+            "block w-full h-0.5",
+            isOpen ? "bg-primary" : "bg-foreground",
+            "transition-all duration-normal",
+            isOpen && "translate-y-1.5 rotate-45 w-5",
           )}
         />
         <span
           className={cn(
-            "block w-full h-0.5 bg-foreground",
-            "transition-opacity duration-normal",
-            isOpen && "opacity-0",
+            "block w-full h-0.5",
+            isOpen ? "bg-primary" : "bg-foreground",
+            "transition-all duration-normal",
+            isOpen && "opacity-0 w-3",
           )}
         />
         <span
           className={cn(
-            "block w-full h-0.5 bg-foreground",
-            "transition-transform duration-normal",
-            isOpen && "-translate-y-1.5 -rotate-45",
+            "block w-full h-0.5",
+            isOpen ? "bg-primary" : "bg-foreground",
+            "transition-all duration-normal",
+            isOpen && "-translate-y-1.5 -rotate-45 w-5",
+            !isOpen && "w-4",
           )}
         />
       </div>

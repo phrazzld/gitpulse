@@ -83,7 +83,8 @@ describe("Footer component", () => {
 
     // The Card component applies specific classes we can check for
     const cardElement = screen.getByRole("contentinfo").firstChild;
-    expect(cardElement).toHaveClass("bg-background-secondary");
+    expect(cardElement).toHaveClass("bg-background-secondary/95");
+    expect(cardElement).toHaveClass("backdrop-blur-sm");
     expect(cardElement).toHaveClass("shadow-sm");
     expect(cardElement).toHaveClass("rounded-sm");
   });

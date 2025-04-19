@@ -165,7 +165,7 @@
     2. Layout works correctly with dashboard content
   - **depends‑on:** [T012]
 
-- [ ] **T014 · test · p2: add integration tests for layouts**
+- [x] **T014 · test · p2: add integration tests for layouts**
 
   - **context:** Detailed Build Steps #7 - Add Integration Tests
   - **action:**
@@ -178,7 +178,7 @@
     3. Tests pass with good coverage
   - **depends‑on:** [T012, T013]
 
-- [ ] **T015 · feature · p2: refine styling for all layout components**
+- [x] **T015 · feature · p2: refine styling for all layout components**
 
   - **context:** Detailed Build Steps #8 - Refine Styling
   - **action:**

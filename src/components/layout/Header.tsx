@@ -102,15 +102,15 @@ export const Header: React.FC<HeaderProps> = ({
         padding="md"
         radius="sm"
         shadow="md"
-        className="w-full bg-background-secondary"
+        className="w-full bg-background-secondary/95 backdrop-blur-sm transition-all duration-normal"
       >
-        <div className="container mx-auto px-sm">
+        <div className="container mx-auto px-sm md:px-md">
           <div className="flex items-center justify-between h-16">
             {/* Logo Section */}
             <div className="flex-shrink-0">
               <Link
                 href="/"
-                className="flex items-center gap-sm no-underline"
+                className="flex items-center gap-sm no-underline transition-transform duration-normal hover:scale-105"
                 aria-label="Go to homepage"
               >
                 {logoImageUrl ? (
@@ -132,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({
                     aria-hidden="true"
                   />
                 )}
-                <span className="text-xl font-bold text-primary">
+                <span className="text-lg md:text-xl font-bold text-primary">
                   {logoText}
                 </span>
               </Link>
@@ -143,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
               <NavigationMenu
                 links={visibleLinks}
                 currentPath={pathname || ""}
-                className="ml-md"
+                className="ml-lg"
                 ariaLabel="Main Navigation"
                 userId={
                   session?.user?.email || session?.user?.name || undefined
@@ -153,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* User Account / Auth Section */}
-            <div className="ml-auto flex items-center gap-md">
+            <div className="ml-auto flex items-center gap-sm md:gap-md">
               {session ? (
                 <div className="flex items-center gap-sm">
                   {session.user?.image && (
@@ -162,7 +162,7 @@ export const Header: React.FC<HeaderProps> = ({
                       alt=""
                       width={32}
                       height={32}
-                      className="rounded-full w-8 h-8 border border-dark-slate/20"
+                      className="rounded-full w-8 h-8 border border-dark-slate/20 shadow-sm"
                       aria-hidden="true"
                     />
                   )}
@@ -173,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
                     variant="secondary"
                     size="sm"
                     aria-label="Account menu"
-                    className="ml-sm"
+                    className="ml-xs md:ml-sm"
                   >
                     <span className="sr-only">Account menu</span>
                     <svg
@@ -193,7 +193,11 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               ) : (
                 <Link href="/api/auth/signin" className="no-underline">
-                  <Button variant="primary" size="sm">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="shadow-sm hover:shadow-md transition-shadow duration-normal"
+                  >
                     Sign In
                   </Button>
                 </Link>
@@ -207,6 +211,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onToggle={toggleMobileMenu}
                 menuId={mobileMenuId}
                 ariaLabel="Toggle navigation menu"
+                className="shadow-sm hover:shadow-md"
               />
             </div>
           </div>
@@ -217,14 +222,14 @@ export const Header: React.FC<HeaderProps> = ({
       {isMobileMenuOpen && (
         <div
           id={mobileMenuId}
-          className="md:hidden fixed inset-x-0 top-[4rem] z-20 bg-background-secondary border-t border-dark-slate/20 shadow-lg animate-fadeIn"
+          className="md:hidden fixed inset-x-0 top-[4rem] z-modal-backdrop bg-background-secondary/95 backdrop-blur-sm border-t border-dark-slate/20 shadow-lg animate-fadeIn"
         >
           <div className="container mx-auto p-md">
             <NavigationMenu
               links={visibleLinks}
               currentPath={pathname || ""}
               orientation="vertical"
-              className="w-full"
+              className="w-full animate-slideIn"
               ariaLabel="Mobile Navigation"
               userId={session?.user?.email || session?.user?.name || undefined}
               isAuthenticated={!!session}

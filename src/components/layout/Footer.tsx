@@ -31,12 +31,14 @@ export const Footer: React.FC<FooterProps> = ({
         padding="md"
         radius="sm"
         shadow="sm"
-        className="w-full bg-background-secondary text-foreground"
+        className="w-full bg-background-secondary/95 backdrop-blur-sm text-foreground transition-all duration-normal"
       >
-        <div className="container mx-auto px-sm">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+        <div className="container mx-auto px-sm md:px-md">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-md">
             {/* Copyright text */}
-            <div className="text-sm mb-md md:mb-0">{copyrightText}</div>
+            <div className="text-sm text-foreground/80 mb-md md:mb-0 font-medium">
+              {copyrightText}
+            </div>
 
             {/* Navigation links */}
             {links.length > 0 && (
@@ -48,12 +50,12 @@ export const Footer: React.FC<FooterProps> = ({
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="no-underline"
+                    className="no-underline transition-transform duration-normal hover:scale-105"
                   >
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="text-foreground hover:text-primary"
+                      className="text-foreground/90 hover:text-primary shadow-sm hover:shadow-md transition-all duration-normal"
                     >
                       {link.label}
                     </Button>

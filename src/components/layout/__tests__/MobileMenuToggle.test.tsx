@@ -246,7 +246,9 @@ describe("MobileMenuToggle component", () => {
       render(<MobileMenuToggle isOpen={false} onToggle={onToggle} />);
 
       const button = screen.getByRole("button");
-      expect(button).toHaveClass("transition-colors");
+      expect(button).toHaveClass("transition-all");
+      expect(button).toHaveClass("duration-normal");
+      expect(button).toHaveClass("hover:scale-105");
     });
   });
 });
