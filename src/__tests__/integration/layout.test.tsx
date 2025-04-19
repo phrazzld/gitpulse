@@ -1,5 +1,5 @@
-// SKIP-REASON: Tests disabled due to challenges with testing Next.js server components
 describe.skip("RootLayout Component Integration", () => {
+  // SKIP-REASON: Tests disabled due to challenges with testing Next.js server components
   it("should include Header and Footer components", async () => {
     expect(true).toBeTruthy();
   });

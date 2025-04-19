@@ -1,7 +1,7 @@
 import React from "react";
 
-// SKIP-REASON: Tests disabled due to issues with component rendering in test environment
 describe.skip("Layout Components Responsive Behavior - Full Tests", () => {
+  // SKIP-REASON: Tests disabled due to issues with component rendering in test environment
   it("should toggle mobile menu", () => {
     expect(true).toBeTruthy();
   });

@@ -14,7 +14,7 @@
     2. `npm run lint` passes without errors related to removed disables.
   - **Depends‑on:** none
 
-- [ ] **T002 · chore · p0: add skip-reason comments to skipped tests**
+- [x] **T002 · chore · p0: add skip-reason comments to skipped tests**
 
   - **Context:** plan.md · cr‑02 Add SKIP-REASON to skipped tests
   - **Action:**
