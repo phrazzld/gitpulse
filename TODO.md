@@ -50,7 +50,7 @@
     3. Component handles empty links array gracefully
   - **depends‑on:** [T001]
 
-- [ ] **T005 · feature · p1: implement accessibility for navigation menu**
+- [x] **T005 · feature · p1: implement accessibility for navigation menu**
 
   - **context:** Risk Matrix - Accessibility issues with navigation
   - **action:**
