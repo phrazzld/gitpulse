@@ -79,7 +79,7 @@
     3. Configuration for redacted fields is in place.
   - **Depends‑on:** [T005]
 
-- [ ] **T007 · test · p1: add tests for log sanitization**
+- [x] **T007 · test · p1: add tests for log sanitization**
 
   - **Context:** plan.md · cr‑03 Sanitize sensitive info in logs
   - **Action:**

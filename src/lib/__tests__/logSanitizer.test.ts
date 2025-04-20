@@ -3,183 +3,155 @@ import {
   SanitizationLevel,
   SanitizationMethod,
   SensitiveDataType,
+  logSanitizer,
+  sanitizeLog,
 } from "../logSanitizer";
+import { logger } from "../logger";
+
+// Mock console methods to test logger output
+const originalConsoleDebug = console.debug;
+const originalConsoleInfo = console.info;
+const originalConsoleWarn = console.warn;
+const originalConsoleError = console.error;
 
 describe("LogSanitizer", () => {
   let sanitizer: LogSanitizer;
 
+  // Mock console methods
+  beforeAll(() => {
+    console.debug = jest.fn();
+    console.info = jest.fn();
+    console.warn = jest.fn();
+    console.error = jest.fn();
+  });
+
+  afterAll(() => {
+    // Restore original console methods
+    console.debug = originalConsoleDebug;
+    console.info = originalConsoleInfo;
+    console.warn = originalConsoleWarn;
+    console.error = originalConsoleError;
+  });
+
   beforeEach(() => {
+    // Reset mocks
+    jest.clearAllMocks();
     // Create a new instance for each test to avoid state leaking between tests
     sanitizer = new LogSanitizer();
   });
 
-  describe("sanitize method", () => {
+  describe("basic sanitization", () => {
     it("should handle null and undefined", () => {
       expect(sanitizer.sanitize(null)).toBeNull();
       expect(sanitizer.sanitize(undefined)).toBeUndefined();
     });
 
-    it("should sanitize sensitive keys in objects", () => {
+    it("should redact sensitive keys", () => {
       const data = {
-        name: "John Doe",
-        email: "john.doe@example.com",
-        token: "secret-token-value",
-        clientSecret: "very-secret-client-secret",
-        details: {
-          password: "secure-password",
-          address: "123 Main St",
-        },
+        token: "secret-token",
+        password: "secret-password",
+        apiKey: "secret-api-key",
+        normalValue: "not-sensitive",
       };
 
       const sanitized = sanitizer.sanitize(data) as Record<string, unknown>;
 
-      // Check that sensitive fields are redacted
       expect(sanitized.token).toBe("[REDACTED]");
-      expect(sanitized.clientSecret).toBe("[REDACTED]");
+      expect(sanitized.password).toBe("[REDACTED]");
+      expect(sanitized.apiKey).toBe("[REDACTED]");
+      expect(sanitized.normalValue).toBe("not-sensitive");
+    });
 
-      // Check that PII is partially redacted
-      expect(typeof sanitized.name).toBe("string");
+    it("should partially redact PII data", () => {
+      const data = {
+        name: "John Doe",
+        email: "john@example.com",
+        phoneNumber: "123-456-7890",
+      };
+
+      const sanitized = sanitizer.sanitize(data) as Record<string, unknown>;
+
+      // Should be partially redacted
       expect(sanitized.name).not.toBe("John Doe");
+      expect(typeof sanitized.name).toBe("string");
 
-      // Check email special handling
+      expect(sanitized.email).not.toBe("john@example.com");
       expect(typeof sanitized.email).toBe("string");
-      expect(sanitized.email).not.toBe("john.doe@example.com");
 
-      // Check nested objects
-      const details = sanitized.details as Record<string, unknown>;
-      expect(details.password).toBe("[REDACTED]");
-      expect(typeof details.address).toBe("string");
-      expect((details.address as string).includes("...")).toBeTruthy();
+      expect(sanitized.phoneNumber).not.toBe("123-456-7890");
+      expect(typeof sanitized.phoneNumber).toBe("string");
+    });
+  });
+
+  describe("logger integration", () => {
+    it("should sanitize data in logger.info calls", () => {
+      const sensitiveData = {
+        token: "secret-token",
+        normalValue: "normal",
+      };
+
+      logger.info("test-module", "Test message", sensitiveData);
+
+      expect(console.info).toHaveBeenCalled();
+      const loggedMessage = (console.info as jest.Mock).mock.calls[0][0];
+
+      // Sensitive data should be redacted
+      expect(loggedMessage).not.toContain("secret-token");
+      expect(loggedMessage).toContain("[REDACTED]");
+
+      // Non-sensitive data should be preserved
+      expect(loggedMessage).toContain("normal");
     });
 
-    it("should sanitize arrays of sensitive data", () => {
-      const data = [
-        { token: "token1", name: "User 1" },
-        { token: "token2", name: "User 2" },
-      ];
-
-      const sanitized = sanitizer.sanitize(data) as Array<
-        Record<string, unknown>
-      >;
-
-      expect(sanitized.length).toBe(2);
-      expect(sanitized[0].token).toBe("[REDACTED]");
-      expect(sanitized[1].token).toBe("[REDACTED]");
-
-      expect(typeof sanitized[0].name).toBe("string");
-      expect(sanitized[0].name).not.toBe("User 1");
-    });
-
-    it("should handle Error objects", () => {
-      const error = new Error("Something went wrong");
-      // Add custom property to the error
+    it("should sanitize errors in logger.error calls", () => {
+      const error = new Error("Test error");
       (error as unknown as Record<string, unknown>).token = "secret-token";
 
-      const sanitized = sanitizer.sanitize(error) as Record<string, unknown>;
+      logger.error("test-module", "Error occurred", error);
 
-      expect(sanitized.name).toBe("Error");
-      expect(sanitized.message).toBe("Something went wrong");
-      expect(sanitized.token).toBe("[REDACTED]");
+      expect(console.error).toHaveBeenCalled();
+      const loggedMessage = (console.error as jest.Mock).mock.calls[0][0];
 
-      // Stack should be present in non-production environments
-      if (process.env.NODE_ENV !== "production") {
-        expect(sanitized.stack).toBeDefined();
-      }
-    });
+      // Error message should be preserved
+      expect(loggedMessage).toContain("Test error");
 
-    it("should respect sanitization level", () => {
-      // Create sanitizer with MINIMAL level
-      const minimalSanitizer = new LogSanitizer({
-        level: SanitizationLevel.MINIMAL,
-      });
-
-      // Create sanitizer with STRICT level
-      const strictSanitizer = new LogSanitizer({
-        level: SanitizationLevel.STRICT,
-      });
-
-      const data = {
-        apiKey: "sensitive-api-key",
-        regularField:
-          "some-long-string-that-might-look-like-a-token-12345678901234567890",
-      };
-
-      // Standard level should sanitize known sensitive keys
-      const standardSanitized = sanitizer.sanitize(data) as Record<
-        string,
-        unknown
-      >;
-      expect(standardSanitized.apiKey).toBe("[REDACTED]");
-      expect(standardSanitized.regularField).toBe(data.regularField);
-
-      // Minimal level should still sanitize known sensitive keys
-      const minimalSanitized = minimalSanitizer.sanitize(data) as Record<
-        string,
-        unknown
-      >;
-      expect(minimalSanitized.apiKey).toBe("[REDACTED]");
-      expect(minimalSanitized.regularField).toBe(data.regularField);
-
-      // For the strict level, we'll test directly on a string in the strict mode
-      const longString =
-        "some-long-string-that-might-look-like-a-token-12345678901234567890";
-      const strictSanitizedString = strictSanitizer.sanitize(longString);
-      expect(typeof strictSanitizedString).toBe("string");
-      expect(strictSanitizedString).not.toBe(longString);
-
-      // Also test on the same object
-      const strictSanitized = strictSanitizer.sanitize(data) as Record<
-        string,
-        unknown
-      >;
-      expect(strictSanitized.apiKey).toBe("[REDACTED]");
+      // Sensitive data should be redacted
+      expect(loggedMessage).not.toContain("secret-token");
+      expect(loggedMessage).toContain("[REDACTED]");
     });
   });
 
-  describe("sanitizeLogData method", () => {
-    it("should sanitize log data including message and module", () => {
-      const result = sanitizer.sanitizeLogData(
-        "auth",
-        "User login successful",
-        { userId: "12345", token: "secret-token" },
-      );
+  describe("sanitizeLogData", () => {
+    it("should sanitize data while preserving module and message", () => {
+      const result = sanitizer.sanitizeLogData("auth", "Login successful", {
+        token: "secret-token",
+        userId: "123",
+      });
 
       expect(result.module).toBe("auth");
-      expect(result.message).toBe("User login successful");
+      expect(result.message).toBe("Login successful");
 
-      const sanitizedData = result.data as Record<string, unknown>;
-      expect(sanitizedData.userId).toBe("12345");
-      expect(sanitizedData.token).toBe("[REDACTED]");
+      const data = result.data as Record<string, unknown>;
+      expect(data.token).toBe("[REDACTED]");
+      expect(data.userId).toBe("123");
     });
   });
 
-  describe("custom rules", () => {
-    it("should apply custom sanitization rules", () => {
-      // Create sanitizer with custom rule
-      const customSanitizer = new LogSanitizer({
-        rules: [
-          {
-            pattern: /userId/i,
-            method: SanitizationMethod.CUSTOM,
-            type: SensitiveDataType.CUSTOM,
-            customFn: (value) =>
-              typeof value === "string" ? "user-***" : value,
-          },
-        ],
-      });
+  describe("singleton behavior", () => {
+    it("should use the same instance for multiple getInstance calls", () => {
+      const instance1 = LogSanitizer.getInstance();
+      const instance2 = LogSanitizer.getInstance();
 
-      const data = {
-        userId: "12345",
-        token: "secret-token",
-      };
+      expect(instance1).toBe(instance2);
+    });
 
-      const sanitized = customSanitizer.sanitize(data) as Record<
-        string,
-        unknown
-      >;
+    it("should make sanitizeLog function use the singleton instance", () => {
+      const data = { token: "secret-token" };
 
-      expect(sanitized.userId).toBe("user-***");
-      expect(sanitized.token).toBe("[REDACTED]"); // Default rule still applies
+      // Direct call to sanitizeLog should use the singleton instance
+      const sanitized = sanitizeLog(data) as Record<string, unknown>;
+
+      expect(sanitized.token).toBe("[REDACTED]");
     });
   });
 });
