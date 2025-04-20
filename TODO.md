@@ -165,19 +165,21 @@
     3. Component tests pass.
   - **Depends‑on:** none
 
-- [ ] **T014 · refactor · p2: consolidate activityfeed components**
+- [ ] **T014 · refactor · p1: consolidate activityfeed components with immediate deprecation**
   - **Context:** plan.md · cr‑11 Consolidate duplicate ActivityFeed
   - **Action:**
-    1. Compare `ActivityFeedPanel.tsx` and `ActivityFeed.tsx` to identify shared and unique functionality.
-    2. Create a single, unified `ActivityFeed` component incorporating all necessary features.
-    3. Make the unified component configurable via props to handle different use cases.
-    4. Replace all usages of the old components with the new unified component.
+    1. Identify all imports and usages of the old `ActivityFeed.tsx` component.
+    2. Update all usage sites to use the new `ActivityFeedPanel.tsx` component, adjusting props as needed.
+    3. Remove the old `ActivityFeed.tsx` file once all usages are migrated.
+    4. Ensure proper export of types like `ActivityCommit` that are imported from the old component.
   - **Done‑when:**
-    1. Only one `ActivityFeed` component implementation exists.
-    2. The unified component serves all previous use cases correctly.
-    3. Old component files are removed.
+    1. Only one ActivityFeed component implementation exists (`ActivityFeedPanel.tsx`).
+    2. All usages of the old component have been replaced.
+    3. The `ActivityFeed.tsx` file has been completely removed.
     4. Comprehensive tests for the unified component pass.
+    5. No build or type errors occur from the migration.
   - **Depends‑on:** [T011]
+  - **Clarification:** Immediate complete removal of the old component is preferred as there are no active users, minimizing complexity.
 
 ## Code Structure & Size
 
@@ -284,18 +286,21 @@
     3. API routes function correctly with the new utility.
   - **Depends‑on:** [T021]
 
-### Clarifications & Assumptions
+### Clarifications & Assumptions (Resolved)
 
-- [ ] **Issue:** Should we implement client-side validation using a specific library or custom validation?
+- [x] **Issue:** Should we implement client-side validation using a specific library or custom validation?
 
   - **Context:** T008 implementing client-side validation
   - **Blocking?:** no
+  - **Resolution:** Use Zod for all validation, as it's already being used in both server-side validation (API routes) and the Form/Input components in the library. This provides consistency across client and server code.
 
-- [ ] **Issue:** Should we deprecate the old ActivityFeed immediately or phase it out gradually?
+- [x] **Issue:** Should we deprecate the old ActivityFeed immediately or phase it out gradually?
 
   - **Context:** T014 consolidating ActivityFeed components
   - **Blocking?:** no
+  - **Resolution:** Deprecate and remove the old ActivityFeed component immediately. Since there are currently no users, we should eliminate deprecated code to minimize complexity.
 
-- [ ] **Issue:** Is the current error handling strategy adequate for distributed systems?
+- [x] **Issue:** Is the current error handling strategy adequate for distributed systems?
   - **Context:** T018-T020 standardizing error handling
   - **Blocking?:** no
+  - **Resolution:** The current error handling approach is adequate. Continue with the planned standardization in T018-T020.
