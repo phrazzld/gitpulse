@@ -1,12 +1,5 @@
 # BACKLOG
 
-- Core Component Library Creation
-
-  - Develop base components (buttons, inputs, cards, etc.)
-  - Create documentation for component usage
-  - Add component tests
-  - Depends on: Initial UI Framework Setup
-
 - Layout and Navigation Redesign
 
   - Implement new header and footer
@@ -36,3 +29,12 @@
 - Add proper landing page as unauthenticated home page
 - run `glance` on precommit hook
 - implement semantic versioning (ideally automatically managed somehow ... conventional commits?)
+
+# COMPLETED
+
+- Core Component Library Creation
+
+  - Develop base components (buttons, inputs, cards, etc.)
+  - Create documentation for component usage
+  - Add component tests
+  - Depends on: Initial UI Framework Setup

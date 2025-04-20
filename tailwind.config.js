@@ -118,6 +118,59 @@ module.exports = {
         wide: "var(--letter-spacing-wide)", // 0.025em
         wider: "var(--letter-spacing-wider)", // 0.05em
       },
+
+      /**
+       * Transition System
+       * Maps our transition tokens to Tailwind transition utilities
+       */
+      transitionTimingFunction: {
+        DEFAULT: "var(--transition-timing-default)",
+        bounce: "var(--transition-timing-bounce)",
+        "ease-out": "var(--transition-timing-ease-out)",
+      },
+      transitionDuration: {
+        DEFAULT: "var(--transition-duration-normal)",
+        fast: "var(--transition-duration-fast)",
+        slow: "var(--transition-duration-slow)",
+      },
+
+      /**
+       * Z-index Scale System
+       * Maps our z-index tokens to Tailwind z-index utilities
+       */
+      zIndex: {
+        dropdown: "var(--z-index-dropdown)",
+        sticky: "var(--z-index-sticky)",
+        fixed: "var(--z-index-fixed)",
+        "modal-backdrop": "var(--z-index-modal-backdrop)",
+        modal: "var(--z-index-modal)",
+        popover: "var(--z-index-popover)",
+        tooltip: "var(--z-index-tooltip)",
+      },
+
+      /**
+       * Animation System
+       * Defines animations for UI transitions and interactions
+       */
+      animation: {
+        fadeIn: "fadeIn 0.2s var(--transition-timing-ease-out)",
+        slideIn: "slideIn 0.3s var(--transition-timing-bounce)",
+        pulse: "pulse 2s var(--transition-timing-default) infinite",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: 0, transform: "translateY(-8px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
+        },
+        slideIn: {
+          "0%": { opacity: 0, transform: "translateX(-10px)" },
+          "100%": { opacity: 1, transform: "translateX(0)" },
+        },
+        pulse: {
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.7 },
+        },
+      },
     },
   },
   plugins: [],

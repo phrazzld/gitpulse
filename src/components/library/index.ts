@@ -6,7 +6,7 @@
  *
  * @example
  * // Import multiple components with a single import statement
- * import { Button, Card, Input } from '@/components/library';
+ * import { Button, Card, Input, Form } from '@/components/library';
  *
  * @example
  * // Import components and their interfaces
@@ -24,6 +24,9 @@ export type { InputProps } from "./Input";
 // Re-export Card component and its interface
 export { Card } from "./Card";
 export type { CardProps } from "./Card";
+
+// Re-export Form component and its context hook
+export { Form, useFormContext } from "./Form";
 
 // Re-export utility functions
 export { cn } from "./utils/cn";

@@ -30,6 +30,7 @@ const customJestConfig = {
     // Only exclude utility files, not test files that were previously skipped due to JSX issues
     "<rootDir>/src/__tests__/test-utils.tsx",
     "<rootDir>/src/__tests__/integration/DashboardTestWrapper.tsx",
+    "<rootDir>/src/__tests__/integration/ImprovedDashboardTestWrapper.tsx",
   ],
 
   // Transform ignore patterns for node_modules

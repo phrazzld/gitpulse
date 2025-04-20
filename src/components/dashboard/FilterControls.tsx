@@ -1,6 +1,6 @@
 import React from "react";
 import DateRangePicker, { DateRange } from "@/components/DateRangePicker";
-import { FilterState } from "@/app/dashboard/page";
+import { DashboardFilterState } from "@/types/dashboard";
 import { Installation } from "@/types/github";
 import { Session } from "next-auth";
 import { ActivityMode } from "@/types/activity";
@@ -8,7 +8,7 @@ import { ActivityMode } from "@/types/activity";
 interface Props {
   activityMode: ActivityMode;
   dateRange: DateRange;
-  activeFilters: FilterState;
+  activeFilters: DashboardFilterState;
   installations: Installation[];
   loading: boolean;
   handleDateRangeChange: (newDateRange: DateRange) => void;

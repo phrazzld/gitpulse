@@ -47,6 +47,9 @@ PLAN.md
 DEV-REF.md
 *-PLAN.md
 *-TASK.md
+DEVELOPMENT_PHILOSOPHY.md
+DEVELOPMENT_PHILOSOPHY_APPENDIX_TYPESCRIPT.md
+/docs/prompts
 
 # architect outputs
 /architect_output

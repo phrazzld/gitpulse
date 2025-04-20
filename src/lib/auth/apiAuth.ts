@@ -12,7 +12,7 @@ const MODULE_NAME = "auth:apiAuth";
  */
 export type ApiRouteHandler = (
   req: NextRequest,
-  session: unknown
+  session: unknown,
 ) => Promise<NextResponse>;
 
 /**
@@ -28,14 +28,14 @@ export function withAuthValidation(handler: ApiRouteHandler) {
       logger.warn(MODULE_NAME, "Unauthorized API request - no session", {
         url: req.url,
       });
-      
+
       return NextResponse.json(
         {
           error: "Unauthorized",
           message: "You must be signed in to access this resource",
           code: "NOT_AUTHENTICATED",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -45,35 +45,37 @@ export function withAuthValidation(handler: ApiRouteHandler) {
         url: req.url,
         user: session.user?.email || "unknown",
       });
-      
+
       return NextResponse.json(
         {
           error: "GitHub authentication required",
-          message: "Your session is missing GitHub authentication. Please sign in again.",
+          message:
+            "Your session is missing GitHub authentication. Please sign in again.",
           code: "MISSING_GITHUB_TOKEN",
           signOutRequired: true,
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
     // Validate the GitHub token
     const isValid = await isGitHubTokenValid(session.accessToken);
-    
+
     if (!isValid) {
       logger.warn(MODULE_NAME, "Invalid or expired GitHub token", {
         url: req.url,
         user: session.user?.email || "unknown",
       });
-      
+
       return NextResponse.json(
         {
           error: "Invalid GitHub authentication",
-          message: "Your GitHub token is invalid or expired. Please sign in again.",
+          message:
+            "Your GitHub token is invalid or expired. Please sign in again.",
           code: "INVALID_GITHUB_TOKEN",
           signOutRequired: true,
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -84,15 +86,19 @@ export function withAuthValidation(handler: ApiRouteHandler) {
       const { message, errorInstance } = safelyExtractError(error);
       logger.error(MODULE_NAME, "Error in API route handler", {
         url: req.url,
-        error: errorInstance || message,
+        errorType: errorInstance
+          ? errorInstance.constructor.name
+          : typeof error,
+        errorMessage: message,
+        // Don't log the full error object which might contain sensitive data
       });
-      
+
       return NextResponse.json(
         {
           error: "Internal server error",
           message: "An error occurred while processing your request",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   };

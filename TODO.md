@@ -1,199 +1,301 @@
-# todo
+# Todo
 
-## component library setup
+## Linting & Test Quality
 
-- [x] **T001 · chore · p1: create component library directory structure**
+- [x] **T001 · chore · p0: remove unjustified eslint-disables**
 
-  - **context:** Detailed Build Steps #1
-  - **action:**
-    1. Create `src/components/library/` directory
-    2. Create `src/components/library/__tests__/` directory
-    3. Create `src/components/library/utils/` directory
-  - **done‑when:**
-    1. Directory structure exists and is correctly organized
-  - **depends‑on:** none
+  - **Context:** plan.md · cr‑01 Remove unjustified eslint-disables
+  - **Action:**
+    1. Identify all `eslint-disable` directives in test files.
+    2. Remove directive and fix the underlying code issue, or add a justification comment if suppression is necessary.
+    3. Run `npm run lint` to verify.
+  - **Done‑when:**
+    1. No unjustified `eslint-disable` directives remain in test files.
+    2. `npm run lint` passes without errors related to removed disables.
+  - **Depends‑on:** none
 
-- [x] **T002 · feature · p1: implement class name merging utility**
-  - **context:** Detailed Build Steps #2
-  - **action:**
-    1. Create `src/components/library/utils/cn.ts`
-    2. Implement the `cn` function using `clsx` and `tailwind-merge` libraries
-    3. Add necessary type definitions and exports
-  - **done‑when:**
-    1. Utility function works correctly for merging Tailwind classes
-    2. Function is exported and can be imported by components
-  - **depends‑on:** [T001]
+- [x] **T002 · chore · p0: add skip-reason comments to skipped tests**
 
-## button component
+  - **Context:** plan.md · cr‑02 Add SKIP-REASON to skipped tests
+  - **Action:**
+    1. Run `npm run test:no-skips` to identify skipped tests lacking justification.
+    2. For each identified skipped test, add `// SKIP-REASON: [clear justification]` on the same line or remove the skip and fix the test.
+    3. Verify `npm run test:no-skips` passes.
+  - **Done‑when:**
+    1. All skipped tests (`it.skip`, `describe.skip`, `test.skip`, `xit`, `xdescribe`, commented tests) have a `SKIP-REASON` comment or are re-enabled.
+    2. `npm run test:no-skips` script passes.
+  - **Depends‑on:** none
 
-- [x] **T003 · feature · p1: implement base button component**
+- [x] **T003 · test · p1: eliminate unsafe type casts in tests**
 
-  - **context:** Detailed Build Steps #3, Public Interfaces/Contracts
-  - **action:**
-    1. Create `src/components/library/Button.tsx`
-    2. Define `ButtonProps` interface with children, onClick, disabled, variant, size, and type props
-    3. Implement component with basic functionality and styling
-  - **done‑when:**
-    1. Button component renders correctly with children
-    2. Component handles click events correctly
-    3. TypeScript compilation passes with no errors
-  - **depends‑on:** [T001, T002]
+  - **Context:** plan.md · cr‑12 Eliminate unsafe type casts in tests
+  - **Action:**
+    1. Identify all unsafe type casts (`as any`, `as unknown as Type`) in `*.test.ts`/`*.test.tsx` files.
+    2. Replace casts with proper types, interfaces, type guards, or correctly typed mocks.
+    3. Run `npm run typecheck` to verify type safety.
+  - **Done‑when:**
+    1. ✅ Replaced `as any` casts with properly typed interfaces
+    2. ✅ Documented necessary `as unknown as Type` casts with proper comments
+    3. ✅ Created separate TypeScript configs for application vs. test code
+    4. ✅ Updated npm scripts and lint-staged config to use appropriate tsconfig files
+    5. ✅ Passes type checking with `npm run typecheck` (app code) and `npm run typecheck:tests` (test code)
+  - **Depends‑on:** none
 
-- [x] **T004 · feature · p2: implement button variants and styling**
+- [x] **T004 · test · p1: refactor integration tests to remove internal mocking**
+  - **Context:** plan.md · cr‑08 Remove over-mocking internal code
+  - **Action:**
+    1. Review integration tests (`src/__tests__/integration`) for mocking of internal components/functions.
+    2. Replace internal mocks with real implementations, ensuring tests only mock true external boundaries (APIs, DB, filesystem).
+    3. Refactor components under test if necessary to improve testability without internal mocks.
+  - **Done‑when:**
+    1. Integration tests verify component collaboration using real internal implementations.
+    2. Mocks are only used at external system boundaries.
+    3. All relevant integration tests pass.
+  - **Depends‑on:** none
 
-  - **context:** Detailed Build Steps #3 (variants and styling)
-  - **action:**
-    1. Implement primary, secondary, and danger variants
-    2. Implement sm, md, and lg size variants
-    3. Style different states (normal, hover, focus, disabled)
-  - **done‑when:**
-    1. All variants render with correct styling
-    2. Different sizes display correctly
-    3. Interactive states work properly (hover, focus, etc.)
-  - **depends‑on:** [T003]
+## Security Improvements
 
-- [x] **T005 · test · p1: create unit tests for button component**
-  - **context:** Detailed Build Steps #7, Testing Strategy
-  - **action:**
-    1. Create `src/components/library/__tests__/Button.test.tsx`
-    2. Test rendering with different variants, sizes, and states
-    3. Test click handler functionality and disabled state
-  - **done‑when:**
-    1. All tests pass
-    2. Code coverage meets 90%+ target
-  - **depends‑on:** [T004]
+- [x] **T005 · bugfix · p0: review and manually sanitize sensitive info in logs**
 
-## input component
+  - **Context:** plan.md · cr‑03 Sanitize sensitive info in logs
+  - **Action:**
+    1. Review logging calls in authentication modules and API routes (`src/lib/auth`, `src/app/api`).
+    2. Identify and replace any logging of sensitive data (tokens, PII, keys) with redacted or placeholder values (e.g., `token: "[REDACTED]"`).
+  - **Done‑when:**
+    1. Manual code review confirms no direct logging of sensitive data in reviewed areas.
+    2. Local testing confirms sensitive data does not appear in logs during authentication/API calls.
+  - **Depends‑on:** none
 
-- [x] **T006 · feature · p1: implement base input component**
+- [x] **T006 · feature · p0: implement central log sanitization utility**
 
-  - **context:** Detailed Build Steps #4, Public Interfaces/Contracts
-  - **action:**
-    1. Create `src/components/library/Input.tsx`
-    2. Define `InputProps` interface with value, onChange, placeholder, disabled, type, error, and ariaLabel props
-    3. Implement component with basic functionality
-  - **done‑when:**
-    1. Input component renders correctly
-    2. Component handles value changes correctly
-    3. TypeScript compilation passes with no errors
-  - **depends‑on:** [T001, T002]
+  - **Context:** plan.md · cr‑03 Sanitize sensitive info in logs
+  - **Action:**
+    1. Design and implement a central log sanitization utility/wrapper around the logger.
+    2. Configure the utility to automatically redact known sensitive fields (e.g., 'token', 'password', 'apiKey', common PII patterns).
+    3. Update logging calls (or logger instantiation) to use the sanitization utility.
+  - **Done‑when:**
+    1. A central log sanitization utility is implemented.
+    2. Logging calls are routed through the sanitizer.
+    3. Configuration for redacted fields is in place.
+  - **Depends‑on:** [T005]
 
-- [x] **T007 · feature · p2: implement input variants and states**
+- [x] **T007 · test · p1: add tests for log sanitization**
 
-  - **context:** Detailed Build Steps #4 (states and types)
-  - **action:**
-    1. Implement different input types (text, password, email)
-    2. Implement error and disabled states
-    3. Add proper ARIA attributes for accessibility
-  - **done‑when:**
-    1. Different input types function correctly
-    2. Error state displays correctly (styling + aria-invalid)
-    3. Disabled state works properly
-  - **depends‑on:** [T006]
+  - **Context:** plan.md · cr‑03 Sanitize sensitive info in logs
+  - **Action:**
+    1. Write unit tests for the central log sanitization utility.
+    2. Test scenarios with various sensitive data patterns to ensure correct redaction.
+    3. Test scenarios with non-sensitive data to ensure it's not redacted.
+  - **Done‑when:**
+    1. Unit tests for the log sanitization utility pass.
+    2. Tests cover common sensitive data patterns and edge cases.
+  - **Depends‑on:** [T006]
 
-- [x] **T008 · test · p1: create unit tests for input component**
-  - **context:** Detailed Build Steps #7, Testing Strategy
-  - **action:**
-    1. Create `src/components/library/__tests__/Input.test.tsx`
-    2. Test rendering with different types and states
-    3. Test onChange handler and value updates
-  - **done‑when:**
-    1. All tests pass
-    2. Code coverage meets 90%+ target
-  - **depends‑on:** [T007]
+- [x] **T008 · feature · p0: implement client-side validation for user inputs**
 
-## card component
+  - **Context:** plan.md · cr‑04 Add input validation for user input
+  - **Action:**
+    1. Identify all components accepting user input (forms, search fields, etc.).
+    2. Implement client-side validation for each input (shape, type, allowable values) using a consistent library/approach.
+  - **Done‑when:**
+    1. Client-side validation is present on identified user input components.
+    2. Invalid input triggers validation errors visible to the user.
+  - **Depends‑on:** none
 
-- [x] **T009 · feature · p2: implement card component**
+- [ ] **T009 · feature · p1: implement server-side validation for API routes**
 
-  - **context:** Detailed Build Steps #5, Public Interfaces/Contracts
-  - **action:**
-    1. Create `src/components/library/Card.tsx`
-    2. Define `CardProps` interface with children and className props
-    3. Implement basic container styling using Tailwind classes
-  - **done‑when:**
-    1. Card component renders children correctly
-    2. Component applies proper styling (padding, border, shadow)
-    3. Component allows className customization
-  - **depends‑on:** [T001, T002]
+  - **Context:** plan.md · cr‑04 Add input validation for user input
+  - **Action:**
+    1. Identify all API routes that accept user input.
+    2. Implement server-side validation for incoming request data.
+    3. Return appropriate error responses for invalid input.
+  - **Done‑when:**
+    1. Server-side validation is present for all API routes accepting user input.
+    2. Invalid requests are rejected with clear error messages.
+  - **Depends‑on:** none
 
-- [x] **T010 · test · p2: create unit tests for card component**
-  - **context:** Detailed Build Steps #7, Testing Strategy
-  - **action:**
-    1. Create `src/components/library/__tests__/Card.test.tsx`
-    2. Test rendering with different children
-    3. Test className prop application
-  - **done‑when:**
-    1. All tests pass
-    2. Code coverage meets 90%+ target
-  - **depends‑on:** [T009]
+- [ ] **T010 · test · p1: add tests for input validation**
+  - **Context:** plan.md · cr‑04 Add input validation for user input
+  - **Action:**
+    1. Write unit/integration tests for client and server-side validation.
+    2. Test valid, invalid, and edge case inputs.
+  - **Done‑when:**
+    1. Tests verify both client and server-side validation works correctly.
+    2. Tests cover all input components and API routes with validation.
+  - **Depends‑on:** [T008, T009]
 
-## documentation and integration
+## UI Architecture Improvements
 
-- [x] **T011 · feature · p2: add TSDoc comments to all components**
+- [ ] **T011 · refactor · p1: refactor activityfeedpanel to decouple ui/data/logic**
 
-  - **context:** Detailed Build Steps #8, Documentation
-  - **action:**
-    1. Add comprehensive TSDoc comments to all interfaces and props
-    2. Add JSDoc comments to component implementations
-    3. Document rationales for design decisions
-  - **done‑when:**
-    1. All components have proper documentation
-    2. All props and interfaces are documented
-  - **depends‑on:** [T004, T007, T009]
+  - **Context:** plan.md · cr‑05 Decouple UI/data/logic in dashboard
+  - **Action:**
+    1. Extract data fetching and state management logic from `ActivityFeedPanel.tsx` into a custom hook (e.g., `useActivityData`).
+    2. Extract data processing/transformation logic into pure utility functions.
+    3. Refactor `ActivityFeedPanel.tsx` to be a presentational component using the hook and utils.
+  - **Done‑when:**
+    1. Data fetching/logic is separated from `ActivityFeedPanel` UI rendering.
+    2. `ActivityFeedPanel` primarily focuses on rendering based on props/hook state.
+    3. Unit tests verify the hook, utils, and UI component independently.
+  - **Depends‑on:** none
 
-- [x] **T012 · chore · p2: create barrel file for component exports**
+- [ ] **T012 · refactor · p1: refactor actionbutton to remove direct dom manipulation**
 
-  - **context:** Detailed Build Steps #6
-  - **action:**
-    1. Create `src/components/library/index.ts`
-    2. Export all components and their prop interfaces
-  - **done‑when:**
-    1. Components can be imported from `src/components/library`
-    2. TypeScript compilation passes with no errors
-  - **depends‑on:** [T004, T007, T009]
+  - **Context:** plan.md · cr‑07 Remove direct DOM manipulation
+  - **Action:**
+    1. Identify direct DOM manipulation (e.g., style changes) in `ActionButton.tsx` event handlers.
+    2. Replace manipulation with React state updates and conditional CSS classes (Tailwind variants preferred).
+    3. Update related tests to verify behavior via state/props rather than direct DOM inspection.
+  - **Done‑when:**
+    1. `ActionButton.tsx` uses declarative rendering and React state for all interactive states.
+    2. No direct DOM manipulation methods are called in the component.
+    3. Component tests pass.
+  - **Depends‑on:** none
 
-- [x] **T013 · test · p2: create integration tests for component composition**
+- [ ] **T013 · refactor · p1: refactor authenticationstatusbanner to remove direct dom manipulation**
 
-  - **context:** Testing Strategy (Integration Tests)
-  - **action:**
-    1. Create `src/components/library/__tests__/composition.test.tsx`
-    2. Test combinations like Button inside Card
-    3. Verify correct rendering and styling isolation
-  - **done‑when:**
-    1. All tests pass
-    2. Components work correctly when composed together
-  - **depends‑on:** [T005, T008, T010]
+  - **Context:** plan.md · cr‑07 Remove direct DOM manipulation
+  - **Action:**
+    1. Identify direct DOM manipulation in `AuthenticationStatusBanner.tsx` event handlers.
+    2. Replace with React state updates and conditional CSS classes.
+    3. Update tests accordingly.
+  - **Done‑when:**
+    1. `AuthenticationStatusBanner.tsx` uses declarative rendering and React state for all visual states.
+    2. No direct DOM manipulation remains in the component.
+    3. Component tests pass.
+  - **Depends‑on:** none
 
-- [x] **T014 · docs · p2: create component documentation markdown**
+- [ ] **T014 · refactor · p2: consolidate activityfeed components**
+  - **Context:** plan.md · cr‑11 Consolidate duplicate ActivityFeed
+  - **Action:**
+    1. Compare `ActivityFeedPanel.tsx` and `ActivityFeed.tsx` to identify shared and unique functionality.
+    2. Create a single, unified `ActivityFeed` component incorporating all necessary features.
+    3. Make the unified component configurable via props to handle different use cases.
+    4. Replace all usages of the old components with the new unified component.
+  - **Done‑when:**
+    1. Only one `ActivityFeed` component implementation exists.
+    2. The unified component serves all previous use cases correctly.
+    3. Old component files are removed.
+    4. Comprehensive tests for the unified component pass.
+  - **Depends‑on:** [T011]
 
-  - **context:** Detailed Build Steps #8, Documentation
-  - **action:**
-    1. Create `docs/components.md`
-    2. Add sections for each component with usage examples
-    3. Include prop tables and explanations
-  - **done‑when:**
-    1. Documentation file exists and is comprehensive
-    2. Examples show how to use each component
-  - **depends‑on:** [T011]
+## Code Structure & Size
 
-- [x] **T015 · docs · p2: update README with component library reference**
+- [ ] **T015 · refactor · p1: decompose activityfeedpanel.tsx into smaller files**
 
-  - **context:** Detailed Build Steps #8, Documentation
-  - **action:**
-    1. Add section about component library to main README.md
-    2. Link to component documentation
-  - **done‑when:**
-    1. README references component library
-    2. Link to component docs works correctly
-  - **depends‑on:** [T014]
+  - **Context:** plan.md · cr‑06 Break up oversized files/functions
+  - **Action:**
+    1. Analyze the `ActivityFeedPanel.tsx` file structure.
+    2. Extract logical sub-components or helper functions into separate files/modules.
+    3. Ensure the main component file is under 400 lines (excluding comments/blanks).
+  - **Done‑when:**
+    1. `ActivityFeedPanel.tsx` is under 400 lines.
+    2. Extracted components/functions are organized logically.
+    3. Component tests pass.
+  - **Depends‑on:** none
 
-- [x] **T016 · chore · p2: configure CI for component testing**
-  - **context:** Detailed Build Steps #9
-  - **action:**
-    1. Ensure linting and type checking covers component files
-    2. Verify tests are run in CI pipeline
-  - **done‑when:**
-    1. CI successfully runs component tests
-    2. Linting and type checking pass for component files
-  - **depends‑on:** [T013]
+- [ ] **T016 · refactor · p1: decompose header.tsx into smaller files**
+
+  - **Context:** plan.md · cr‑06 Break up oversized files/functions
+  - **Action:**
+    1. Analyze `Header.tsx` structure.
+    2. Extract logical sub-components (e.g., `Logo`, `UserMenu`, `MobileMenuToggle`) into separate files.
+    3. Ensure `Header.tsx` is under 400 lines (excluding comments/blanks).
+  - **Done‑when:**
+    1. `Header.tsx` is under 400 lines.
+    2. Extracted components are organized logically within `src/components/layout`.
+    3. Component tests pass.
+  - **Depends‑on:** none
+
+- [ ] **T017 · refactor · p1: decompose large functions into smaller functions**
+  - **Context:** plan.md · cr‑06 Break up oversized files/functions
+  - **Action:**
+    1. Identify functions exceeding 100 lines across all components.
+    2. Break down these functions into smaller, more focused functions.
+    3. Update related tests and ensure proper function composition.
+  - **Done‑when:**
+    1. No function exceeds 100 lines.
+    2. Functions have clear, single responsibilities.
+    3. Tests pass for refactored code.
+  - **Depends‑on:** none
+
+## API Architecture Improvements
+
+- [ ] **T018 · refactor · p1: define standard api error response format**
+
+  - **Context:** plan.md · cr‑09 Standardize error handling
+  - **Action:**
+    1. Define and document a standard JSON format for API error responses (e.g., `{ error: string, code: string, details?: string }`).
+    2. Create/refine backend error handling utilities in `src/lib/errors` or `src/lib/auth/apiErrorHandler.ts`.
+    3. Ensure utilities generate standardized error responses including codes, messages, and context.
+  - **Done‑when:**
+    1. Standard API error format is documented.
+    2. Backend error handling utilities are implemented or updated.
+    3. Utilities produce responses conforming to the standard format.
+  - **Depends‑on:** none
+
+- [ ] **T019 · refactor · p1: refactor api routes to use standardized error handling**
+
+  - **Context:** plan.md · cr‑09 Standardize error handling
+  - **Action:**
+    1. Identify all API routes (`src/app/api`).
+    2. Wrap route handlers with the `withErrorHandling` utility (or similar).
+    3. Ensure all errors thrown within handlers are caught and mapped to the standard error response format.
+  - **Done‑when:**
+    1. All API routes consistently use the centralized error handling utility/pattern.
+    2. API routes return errors in the documented standard format.
+  - **Depends‑on:** [T018]
+
+- [ ] **T020 · refactor · p1: update client-side error handling to use standard format**
+
+  - **Context:** plan.md · cr‑09 Standardize error handling
+  - **Action:**
+    1. Update fetch wrappers or error handling logic to consistently parse standardized API errors.
+    2. Ensure error messages are properly displayed in the UI.
+    3. Add tests for client-side error handling.
+  - **Done‑when:**
+    1. Client-side code properly handles standardized API error responses.
+    2. Error messages are displayed correctly to users.
+    3. Tests verify error handling works as expected.
+  - **Depends‑on:** [T019]
+
+- [ ] **T021 · refactor · p1: implement centralized installation id utility**
+
+  - **Context:** plan.md · cr‑10 Centralize installation ID handling
+  - **Action:**
+    1. Create a utility function `src/lib/auth/installationHelper.ts` to resolve installation IDs from request context (query, session, cookies).
+    2. Implement validation and error handling within the utility.
+    3. Write unit tests for the utility function covering various scenarios.
+  - **Done‑when:**
+    1. Centralized utility function exists and handles ID resolution logic.
+    2. Utility function includes validation and throws appropriate errors.
+    3. Unit tests for the utility pass with sufficient coverage.
+  - **Depends‑on:** none
+
+- [ ] **T022 · refactor · p1: refactor api routes to use installation id utility**
+  - **Context:** plan.md · cr‑10 Centralize installation ID handling
+  - **Action:**
+    1. Identify all API routes that handle installation IDs.
+    2. Replace duplicated/inconsistent logic with calls to the centralized utility.
+    3. Ensure consistent error handling for installation ID resolution failures.
+  - **Done‑when:**
+    1. All relevant API routes use the centralized installation ID utility.
+    2. Duplicated installation ID logic is removed from API routes.
+    3. API routes function correctly with the new utility.
+  - **Depends‑on:** [T021]
+
+### Clarifications & Assumptions
+
+- [ ] **Issue:** Should we implement client-side validation using a specific library or custom validation?
+
+  - **Context:** T008 implementing client-side validation
+  - **Blocking?:** no
+
+- [ ] **Issue:** Should we deprecate the old ActivityFeed immediately or phase it out gradually?
+
+  - **Context:** T014 consolidating ActivityFeed components
+  - **Blocking?:** no
+
+- [ ] **Issue:** Is the current error handling strategy adequate for distributed systems?
+  - **Context:** T018-T020 standardizing error handling
+  - **Blocking?:** no

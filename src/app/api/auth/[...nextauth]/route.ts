@@ -1,4 +1,10 @@
-import NextAuth, { Session, User, Account, Profile, type NextAuthOptions } from "next-auth";
+import NextAuth, {
+  Session,
+  User,
+  Account,
+  Profile,
+  type NextAuthOptions,
+} from "next-auth";
 import GitHubProvider, { GithubProfile } from "next-auth/providers/github";
 import { logger } from "@/lib/logger";
 import { checkAppInstallation } from "@/lib/auth/githubAuth";
@@ -28,7 +34,7 @@ function getCallbackUrl() {
   if (baseUrl) {
     return `${baseUrl}/api/auth/callback/github`;
   }
-  
+
   // For development, let NextAuth handle the callback URL automatically
   // It will use the Host header from the request which includes the correct port
   return undefined;
@@ -38,10 +44,10 @@ function getCallbackUrl() {
 function isGitHubAppInstallationCallback(req: NextRequest) {
   // Get the installation_id and setup_action from the request
   const url = new URL(req.url);
-  const installationId = url.searchParams.get('installation_id');
-  const setupAction = url.searchParams.get('setup_action');
-  
-  return installationId && setupAction === 'install';
+  const installationId = url.searchParams.get("installation_id");
+  const setupAction = url.searchParams.get("setup_action");
+
+  return installationId && setupAction === "install";
 }
 
 export const authOptions: NextAuthOptions = {
@@ -56,119 +62,167 @@ export const authOptions: NextAuthOptions = {
         url: "https://github.com/login/oauth/authorize",
       },
       // Only set callback URL if explicitly defined
-      ...(getCallbackUrl() ? { 
-        // @ts-ignore - callbackUrl is not in the type but it works
-        callbackUrl: getCallbackUrl() 
-      } : {})
+      ...(getCallbackUrl()
+        ? {
+            // @ts-ignore - callbackUrl is not in the type but it works
+            callbackUrl: getCallbackUrl(),
+          }
+        : {}),
     }),
   ],
   callbacks: {
-    async jwt({ token, account, user }: { token: ExtendedToken; account: Account | null; user: User | undefined }) {
-      logger.debug(MODULE_NAME, "JWT callback called", { 
+    async jwt({
+      token,
+      account,
+      user,
+    }: {
+      token: ExtendedToken;
+      account: Account | null;
+      user: User | undefined;
+    }) {
+      logger.debug(MODULE_NAME, "JWT callback called", {
         hasToken: !!token,
         hasAccount: !!account,
-        hasUser: !!user
+        hasUser: !!user,
       });
-      
+
       if (account) {
-        logger.info(MODULE_NAME, "Adding access token to JWT", { 
+        logger.info(MODULE_NAME, "Adding access token to JWT", {
           provider: account.provider,
           tokenType: account.type,
           // Do not log actual token values
-          hasAccessToken: !!account.access_token
+          hasAccessToken: !!account.access_token,
         });
-        
+
         token.accessToken = account.access_token;
-        
+
         // Check for GitHub App installation when we first get an access token
         try {
           if (account.access_token) {
-            const installationId = await checkAppInstallation(account.access_token);
+            const installationId = await checkAppInstallation(
+              account.access_token,
+            );
             if (installationId) {
-              logger.info(MODULE_NAME, "Found GitHub App installation during auth", { installationId });
+              logger.info(
+                MODULE_NAME,
+                "Found GitHub App installation during auth",
+                { installationId },
+              );
               token.installationId = installationId;
             } else {
-              logger.info(MODULE_NAME, "No GitHub App installation found during auth");
+              logger.info(
+                MODULE_NAME,
+                "No GitHub App installation found during auth",
+              );
             }
           }
         } catch (error) {
-          logger.warn(MODULE_NAME, "Error checking for GitHub App installation during auth", { error });
+          logger.warn(
+            MODULE_NAME,
+            "Error checking for GitHub App installation during auth",
+            {
+              errorType:
+                error instanceof Error ? error.constructor.name : typeof error,
+              errorMessage:
+                error instanceof Error ? error.message : String(error),
+            },
+          );
         }
       }
-      
+
       return token;
     },
-    async session({ session, token }: { session: ExtendedSession; token: ExtendedToken; user: User }) {
-      logger.debug(MODULE_NAME, "Session callback called", { 
-        hasSession: !!session, 
+    async session({
+      session,
+      token,
+    }: {
+      session: ExtendedSession;
+      token: ExtendedToken;
+      user: User;
+    }) {
+      logger.debug(MODULE_NAME, "Session callback called", {
+        hasSession: !!session,
         hasToken: !!token,
         hasAccessToken: !!token.accessToken,
-        hasInstallationId: !!token.installationId
+        hasInstallationId: !!token.installationId,
       });
-      
+
       // Add token and installation ID to the session
       session.accessToken = token.accessToken;
-      
+
       if (token.installationId) {
         session.installationId = token.installationId;
-        logger.debug(MODULE_NAME, "Added installation ID to session", { installationId: token.installationId });
+        logger.debug(MODULE_NAME, "Added installation ID to session", {
+          installationId: token.installationId,
+        });
       }
-      
+
       logger.info(MODULE_NAME, "Session created/updated", {
-        user: session.user?.email || session.user?.name || 'unknown',
-        hasInstallationId: !!session.installationId
+        // Don't log actual user identifiers
+        hasUser: !!session.user,
+        hasInstallationId: !!session.installationId,
       });
-      
+
       return session;
     },
-    async signIn({ user, account, profile }: { user: User; account: Account | null; profile?: Profile }) {
+    async signIn({
+      user,
+      account,
+      profile,
+    }: {
+      user: User;
+      account: Account | null;
+      profile?: Profile;
+    }) {
       if (!account) return false;
-      
+
       logger.info(MODULE_NAME, "User sign in", {
         provider: account.provider,
-        userId: user.id,
-        userName: user.name || 'unknown'
+        // Only log that we have a user, not their ID or name
+        hasUser: !!user,
       });
-      
+
       return true;
     },
   },
   events: {
     async signIn(message: { user: User }) {
       logger.info(MODULE_NAME, "User signed in successfully", {
-        user: message.user.email || message.user.name || 'unknown'
+        // Only log that a user signed in, not who they are
+        hasUser: !!message.user,
       });
     },
     async signOut(message: { token: ExtendedToken }) {
       logger.info(MODULE_NAME, "User signed out", {
-        user: message.token.email || message.token.name || 'unknown'
+        // Only log that someone signed out, not who they are
+        signOutOccurred: true,
       });
-    }
+    },
   },
   // Override NextAuth's logger with our own implementation in events
   logger: undefined,
   cookies: {
     sessionToken: {
-      name: 'next-auth.session-token',
+      name: "next-auth.session-token",
       options: {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production'
-      }
-    }
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
-  
+
   // Properly handle the callback URL problems
   pages: {
-    signIn: '/api/auth/signin',
-    signOut: '/api/auth/signout',
-    error: '/api/auth/error',
-    verifyRequest: '/api/auth/verify-request',
+    signIn: "/api/auth/signin",
+    signOut: "/api/auth/signout",
+    error: "/api/auth/error",
+    verifyRequest: "/api/auth/verify-request",
   },
-  
+
   // Add debug mode for development
-  debug: process.env.NODE_ENV !== 'production'
+  debug: process.env.NODE_ENV !== "production",
 };
 
 // Create a function to check for GitHub App installation callbacks
@@ -176,20 +230,22 @@ async function handleRequest(req: NextRequest) {
   // Check if this is a GitHub App installation callback
   if (isGitHubAppInstallationCallback(req)) {
     logger.info(MODULE_NAME, "Intercepted GitHub App installation callback");
-    
+
     // Get the installation_id from the URL
     const url = new URL(req.url);
-    const installationId = url.searchParams.get('installation_id');
-    
+    const installationId = url.searchParams.get("installation_id");
+
     // Redirect to our setup route with the installation_id
-    const redirectUrl = new URL('/api/github/setup', req.url);
-    redirectUrl.searchParams.set('installation_id', installationId as string);
-    
-    logger.debug(MODULE_NAME, "Redirecting to setup route", { redirectUrl: redirectUrl.toString() });
-    
+    const redirectUrl = new URL("/api/github/setup", req.url);
+    redirectUrl.searchParams.set("installation_id", installationId as string);
+
+    logger.debug(MODULE_NAME, "Redirecting to setup route", {
+      redirectUrl: redirectUrl.toString(),
+    });
+
     return Response.redirect(redirectUrl.toString());
   }
-  
+
   // If not an installation callback, continue with NextAuth
   return null;
 }
@@ -201,7 +257,7 @@ const handler = async (req: NextRequest, ...rest: unknown[]) => {
   if (redirectResponse) {
     return redirectResponse;
   }
-  
+
   // Otherwise, use NextAuth's handler
   const nextAuthHandler = NextAuth(authOptions);
   return nextAuthHandler(req, ...rest);
