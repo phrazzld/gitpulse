@@ -139,7 +139,7 @@
     3. Unit tests verify the hook, utils, and UI component independently.
   - **Depends‑on:** none
 
-- [ ] **T012 · refactor · p1: refactor actionbutton to remove direct dom manipulation**
+- [x] **T012 · refactor · p1: refactor actionbutton to remove direct dom manipulation**
 
   - **Context:** plan.md · cr‑07 Remove direct DOM manipulation
   - **Action:**

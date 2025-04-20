@@ -10,6 +10,10 @@ describe("ActionButton", () => {
     // Check if the button is enabled
     const button = screen.getByRole("button");
     expect(button).not.toBeDisabled();
+
+    // Verify default state styling
+    expect(button).toHaveClass("bg-dark-slate");
+    expect(button).toHaveClass("text-neon-green");
   });
 
   test("renders correctly in loading state", () => {
@@ -17,23 +21,60 @@ describe("ActionButton", () => {
 
     // Check loading indicator and text
     expect(screen.getByText("ANALYZING DATA...")).toBeInTheDocument();
-    expect(screen.getByRole("button")).toBeDisabled();
+    const button = screen.getByRole("button");
+    expect(button).toBeDisabled();
+
+    // Check for loading state styles
+    expect(button).toHaveClass("opacity-70");
+    expect(button).toHaveClass("cursor-not-allowed");
 
     // Check if spinner element exists
     const spinner = document.querySelector(".animate-spin");
     expect(spinner).toBeInTheDocument();
   });
 
-  test("handles mouse over and mouse out events with React events", () => {
+  test("changes appearance on mouse enter and leave", () => {
     render(<ActionButton loading={false} />);
     const button = screen.getByRole("button");
 
-    // Verify presence of mouse event handlers
-    expect(button.onmouseover).toBeDefined();
-    expect(button.onmouseout).toBeDefined();
+    // Initially bg-dark-slate
+    expect(button).toHaveClass("bg-dark-slate");
+    expect(button).toHaveClass("text-neon-green");
 
-    // Click event
-    fireEvent.click(button);
+    // Fire mouse enter event
+    fireEvent.mouseEnter(button);
+
+    // Should change to bg-neon-green
+    expect(button).toHaveClass("bg-neon-green");
+    expect(button).toHaveClass("text-dark-slate");
+    expect(button).toHaveClass("shadow-[0_0_15px_rgba(0,255,135,0.4)]");
+
+    // Fire mouse leave event
+    fireEvent.mouseLeave(button);
+
+    // Should revert to original state
+    expect(button).toHaveClass("bg-dark-slate");
+    expect(button).toHaveClass("text-neon-green");
+    expect(button).toHaveClass("shadow-[0_0_10px_rgba(0,255,135,0.2)]");
+  });
+
+  test("hover state doesn't change when loading", () => {
+    render(<ActionButton loading={true} />);
+    const button = screen.getByRole("button");
+
+    // Check initial loading state
+    expect(button).toHaveClass("opacity-70");
+    expect(button).toHaveClass("cursor-not-allowed");
+
+    // Hover should have no effect in loading state
+    fireEvent.mouseEnter(button);
+    expect(button).not.toHaveClass("bg-neon-green");
+    expect(button).not.toHaveClass("text-dark-slate");
+
+    // Leave should also have no effect in loading state
+    fireEvent.mouseLeave(button);
+    expect(button).toHaveClass("opacity-70");
+    expect(button).toHaveClass("cursor-not-allowed");
   });
 
   test("handles different loading states", () => {
