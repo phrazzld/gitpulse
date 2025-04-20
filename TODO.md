@@ -114,7 +114,7 @@
     2. Invalid requests are rejected with clear error messages.
   - **Depends‑on:** none
 
-- [ ] **T010 · test · p1: add tests for input validation**
+- [x] **T010 · test · p1: add tests for input validation**
   - **Context:** plan.md · cr‑04 Add input validation for user input
   - **Action:**
     1. Write unit/integration tests for client and server-side validation.
