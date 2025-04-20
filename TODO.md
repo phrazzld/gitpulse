@@ -126,7 +126,7 @@
 
 ## UI Architecture Improvements
 
-- [ ] **T011 · refactor · p1: refactor activityfeedpanel to decouple ui/data/logic**
+- [x] **T011 · refactor · p1: refactor activityfeedpanel to decouple ui/data/logic**
 
   - **Context:** plan.md · cr‑05 Decouple UI/data/logic in dashboard
   - **Action:**

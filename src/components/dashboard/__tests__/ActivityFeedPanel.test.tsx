@@ -1,13 +1,9 @@
 import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import ActivityFeedPanel from "../ActivityFeedPanel";
-import * as activityModule from "@/lib/activity";
-import { useProgressiveLoading } from "@/hooks/useProgressiveLoading";
+import { useActivityData } from "@/hooks/useActivityData";
 
-// Mock useProgressiveLoading
-jest.mock("@/hooks/useProgressiveLoading");
-
-// Mock the FixedSizeList from react-window
+// Mock FixedSizeList from react-window
 jest.mock("react-window", () => ({
   FixedSizeList: ({ children, itemCount }: any) => {
     // Render just one item for testing
@@ -19,17 +15,7 @@ jest.mock("react-window", () => ({
   },
 }));
 
-// Mock LoadMoreButton
-jest.mock("@/components/LoadMoreButton", () => ({
-  __esModule: true,
-  default: ({ onClick }: any) => (
-    <button data-testid="load-more-button" onClick={onClick}>
-      Load More
-    </button>
-  ),
-}));
-
-// Mock IntersectionObserver
+// Mock IntersectionObserver component
 jest.mock("@/components/IntersectionObserver", () => ({
   __esModule: true,
   default: ({ children, onIntersect }: any) => (
@@ -39,19 +25,22 @@ jest.mock("@/components/IntersectionObserver", () => ({
   ),
 }));
 
-// Mock Button component
+// Mock library components
 jest.mock("@/components/library", () => ({
   Button: ({ children, onClick }: any) => (
     <button data-testid="view-more-button" onClick={onClick}>
       {children}
     </button>
   ),
-  Card: ({ children, className, padding, radius, shadow }: any) => (
+  Card: ({ children, className }: any) => (
     <div data-testid="card" className={className}>
       {children}
     </div>
   ),
 }));
+
+// Mock useActivityData hook
+jest.mock("@/hooks/useActivityData");
 
 // Sample commit data
 const mockCommits = [
@@ -89,13 +78,8 @@ const mockCommits = [
   },
 ];
 
-// Mock the activity fetcher
-jest.mock("@/lib/activity", () => ({
-  createActivityFetcher: jest.fn(),
-}));
-
 describe("ActivityFeedPanel", () => {
-  // Default mock implementation for useProgressiveLoading
+  // Default mock implementation for useActivityData
   const mockLoadMore = jest.fn().mockResolvedValue({});
   const mockReset = jest.fn();
   const mockLoadInitialData = jest.fn().mockResolvedValue({});
@@ -110,9 +94,9 @@ describe("ActivityFeedPanel", () => {
     // Reset mocks before each test
     jest.clearAllMocks();
 
-    // Setup default mock implementation for useProgressiveLoading
-    (useProgressiveLoading as jest.Mock).mockReturnValue({
-      items: mockCommits,
+    // Setup default mock implementation for useActivityData
+    (useActivityData as jest.Mock).mockReturnValue({
+      commits: mockCommits,
       loading: false,
       initialLoading: false,
       incrementalLoading: false,
@@ -123,17 +107,6 @@ describe("ActivityFeedPanel", () => {
       reset: mockReset,
     });
 
-    // Setup default mock implementation
-    (activityModule.createActivityFetcher as jest.Mock).mockImplementation(
-      () => {
-        return jest.fn().mockResolvedValue({
-          data: mockCommits,
-          nextCursor: null,
-          hasMore: false,
-        });
-      },
-    );
-
     // Mock window resize event
     window.innerWidth = 1024;
     window.dispatchEvent(new Event("resize"));
@@ -141,8 +114,8 @@ describe("ActivityFeedPanel", () => {
 
   test("renders loading state initially", async () => {
     // Mock initial loading state
-    (useProgressiveLoading as jest.Mock).mockReturnValue({
-      items: [],
+    (useActivityData as jest.Mock).mockReturnValue({
+      commits: [],
       loading: true,
       initialLoading: true,
       incrementalLoading: false,
@@ -182,8 +155,8 @@ describe("ActivityFeedPanel", () => {
 
   test("renders error state when fetch fails", async () => {
     // Mock error state
-    (useProgressiveLoading as jest.Mock).mockReturnValue({
-      items: [],
+    (useActivityData as jest.Mock).mockReturnValue({
+      commits: [],
       loading: false,
       initialLoading: false,
       incrementalLoading: false,
@@ -208,8 +181,8 @@ describe("ActivityFeedPanel", () => {
 
   test("renders empty state when no data", async () => {
     // Mock empty state
-    (useProgressiveLoading as jest.Mock).mockReturnValue({
-      items: [],
+    (useActivityData as jest.Mock).mockReturnValue({
+      commits: [],
       loading: false,
       initialLoading: false,
       incrementalLoading: false,
@@ -252,22 +225,10 @@ describe("ActivityFeedPanel", () => {
     expect(mockViewMore).toHaveBeenCalled();
   });
 
-  test("handles repository filters when provided", async () => {
-    render(
-      <ActivityFeedPanel
-        dateRange={{ since: "2023-01-01", until: "2023-01-31" }}
-        filters={{ repositories: ["repo1", "repo2"] }}
-      />,
-    );
-
-    // Just check if loadInitialData was called
-    expect(mockLoadInitialData).toHaveBeenCalled();
-  });
-
   test("handles infinite scroll intersection", async () => {
     // Mock hasMore true to enable infinite scroll
-    (useProgressiveLoading as jest.Mock).mockReturnValue({
-      items: mockCommits,
+    (useActivityData as jest.Mock).mockReturnValue({
+      commits: mockCommits,
       loading: false,
       initialLoading: false,
       incrementalLoading: false,
@@ -296,8 +257,8 @@ describe("ActivityFeedPanel", () => {
 
   test("shows loading indicator during incremental loading", async () => {
     // Mock incremental loading state
-    (useProgressiveLoading as jest.Mock).mockReturnValue({
-      items: mockCommits,
+    (useActivityData as jest.Mock).mockReturnValue({
+      commits: mockCommits,
       loading: false,
       initialLoading: false,
       incrementalLoading: true,
@@ -318,75 +279,25 @@ describe("ActivityFeedPanel", () => {
     expect(screen.getByText("LOADING")).toBeInTheDocument();
   });
 
-  test("calculates proper list height based on truncation", async () => {
-    // Test with truncated mode
-    const { rerender } = render(
-      <ActivityFeedPanel
-        dateRange={{ since: "2023-01-01", until: "2023-01-31" }}
-        truncated={true}
-      />,
-    );
-
-    // List height in truncated mode should be less (using mocked FixedSizeList)
-    const virtualList = screen.getByTestId("virtual-list");
-
-    // Re-render without truncation
-    rerender(
-      <ActivityFeedPanel
-        dateRange={{ since: "2023-01-01", until: "2023-01-31" }}
-        truncated={false}
-      />,
-    );
-
-    // Same virtual list, but height calculation should be different
-    expect(virtualList).toBeInTheDocument();
-  });
-
-  test("cleans up on unmount", async () => {
-    const { unmount } = render(
-      <ActivityFeedPanel
-        dateRange={{ since: "2023-01-01", until: "2023-01-31" }}
-      />,
-    );
-
-    // Unmount the component
-    unmount();
-
-    // Reset should be called on unmount
-    expect(mockReset).toHaveBeenCalled();
-  });
-
-  test("uses loadInitialData to load data", async () => {
+  test("passes filters and installation IDs correctly", async () => {
     render(
       <ActivityFeedPanel
         dateRange={{ since: "2023-01-01", until: "2023-01-31" }}
+        filters={{ repositories: ["repo1", "repo2"] }}
+        installationIds={[123, 456]}
+        mode="my-activity"
       />,
     );
 
-    // Check if loadInitialData was called
-    expect(mockLoadInitialData).toHaveBeenCalled();
-  });
-
-  test("loads data with the provided date range", async () => {
-    render(
-      <ActivityFeedPanel
-        dateRange={{ since: "2023-01-01", until: "2023-01-31" }}
-      />,
+    // Check that useActivityData was called with the correct parameters
+    expect(useActivityData).toHaveBeenCalledWith(
+      {
+        dateRange: { since: "2023-01-01", until: "2023-01-31" },
+        filters: { repositories: ["repo1", "repo2"] },
+        installationIds: [123, 456],
+        mode: "my-activity",
+      },
+      expect.anything(),
     );
-
-    // Check if loadInitialData was called
-    expect(mockLoadInitialData).toHaveBeenCalled();
-  });
-
-  test("renders with maxItems limitation when provided", async () => {
-    render(
-      <ActivityFeedPanel
-        dateRange={{ since: "2023-01-01", until: "2023-01-31" }}
-        maxItems={10}
-      />,
-    );
-
-    // Virtual list should be rendered
-    expect(screen.getByTestId("virtual-list")).toBeInTheDocument();
   });
 });
