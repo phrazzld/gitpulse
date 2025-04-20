@@ -144,7 +144,8 @@ export async function createAuthenticatedOctokit(
 
       logger.debug(MODULE_NAME, "Using OAuth token authentication", {
         ...context,
-        tokenLength: credentials.token.length,
+        // Only log that we have a token, not its length or any other details
+        hasToken: true,
       });
 
       return new Octokit({ auth: credentials.token });
@@ -186,8 +187,11 @@ export async function createAuthenticatedOctokit(
       const installationAuth = await auth({ type: "installation" });
       logger.debug(MODULE_NAME, "Generated installation access token", {
         ...context,
+        // Only log token type and expiration, not the actual token
         tokenType: installationAuth.type,
         expiresAt: installationAuth.expiresAt,
+        // Explicitly note that we're not logging the token
+        tokenRedacted: true,
       });
 
       // Return an Octokit instance with the installation token
@@ -291,7 +295,8 @@ export async function getAllAppInstallations(
 ): Promise<AppInstallation[]> {
   const context = {
     functionName: "getAllAppInstallations",
-    accessTokenLength: accessToken?.length,
+    // Only log if we have a token, not its length
+    hasAccessToken: !!accessToken,
   };
   logger.debug(MODULE_NAME, "getAllAppInstallations called", context);
 
@@ -419,7 +424,8 @@ export async function checkAppInstallation(
 ): Promise<number | null> {
   const context = {
     functionName: "checkAppInstallation",
-    accessTokenLength: accessToken?.length,
+    // Only log if we have a token, not its length
+    hasAccessToken: !!accessToken,
   };
   logger.debug(MODULE_NAME, "checkAppInstallation called", context);
 

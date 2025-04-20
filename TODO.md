@@ -55,7 +55,7 @@
 
 ## Security Improvements
 
-- [ ] **T005 · bugfix · p0: review and manually sanitize sensitive info in logs**
+- [x] **T005 · bugfix · p0: review and manually sanitize sensitive info in logs**
 
   - **Context:** plan.md · cr‑03 Sanitize sensitive info in logs
   - **Action:**

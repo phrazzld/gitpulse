@@ -16,7 +16,10 @@ export class GitHubError extends Error {
   public readonly cause?: Error;
   public readonly context?: Record<string, unknown>;
 
-  constructor(message: string, options?: ErrorOptions & { context?: Record<string, unknown> }) {
+  constructor(
+    message: string,
+    options?: ErrorOptions & { context?: Record<string, unknown> },
+  ) {
     super(message);
     this.name = this.constructor.name; // Ensure correct name
     this.cause = options?.cause instanceof Error ? options?.cause : undefined;
@@ -32,7 +35,10 @@ export class GitHubError extends Error {
  * Error for configuration issues (e.g., missing App ID/Key).
  */
 export class GitHubConfigError extends GitHubError {
-  constructor(message: string, options?: ErrorOptions & { context?: Record<string, unknown> }) {
+  constructor(
+    message: string,
+    options?: ErrorOptions & { context?: Record<string, unknown> },
+  ) {
     super(message, options);
   }
 }
@@ -43,7 +49,13 @@ export class GitHubConfigError extends GitHubError {
 export class GitHubAuthError extends GitHubError {
   public readonly status: number;
 
-  constructor(message: string, options?: ErrorOptions & { status?: number, context?: Record<string, unknown> }) {
+  constructor(
+    message: string,
+    options?: ErrorOptions & {
+      status?: number;
+      context?: Record<string, unknown>;
+    },
+  ) {
     super(message, options);
     this.status = options?.status ?? 401; // Default to 401
   }
@@ -55,7 +67,10 @@ export class GitHubAuthError extends GitHubError {
 export class GitHubNotFoundError extends GitHubError {
   public readonly status: number = 404;
 
-  constructor(message: string, options?: ErrorOptions & { context?: Record<string, unknown> }) {
+  constructor(
+    message: string,
+    options?: ErrorOptions & { context?: Record<string, unknown> },
+  ) {
     super(message, options);
   }
 }
@@ -67,7 +82,14 @@ export class GitHubRateLimitError extends GitHubError {
   public readonly status: number;
   public readonly resetTimestamp?: number; // Unix timestamp (seconds)
 
-  constructor(message: string, options?: ErrorOptions & { status?: number, resetTimestamp?: number, context?: Record<string, unknown> }) {
+  constructor(
+    message: string,
+    options?: ErrorOptions & {
+      status?: number;
+      resetTimestamp?: number;
+      context?: Record<string, unknown>;
+    },
+  ) {
     super(message, options);
     this.status = options?.status ?? 429; // Default to 429
     this.resetTimestamp = options?.resetTimestamp;
@@ -80,7 +102,13 @@ export class GitHubRateLimitError extends GitHubError {
 export class GitHubApiError extends GitHubError {
   public readonly status: number;
 
-  constructor(message: string, options?: ErrorOptions & { status?: number, context?: Record<string, unknown> }) {
+  constructor(
+    message: string,
+    options?: ErrorOptions & {
+      status?: number;
+      context?: Record<string, unknown>;
+    },
+  ) {
     super(message, options);
     this.status = options?.status ?? 500; // Default to 500
   }
@@ -88,74 +116,77 @@ export class GitHubApiError extends GitHubError {
 
 /**
  * Extract error information from an error object.
- * 
+ *
  * @param error The caught error
  * @param functionName The name of the function where the error occurred
  * @returns Object containing extracted message, status, and headers
  */
-function extractErrorInfo(error: unknown, functionName: string): {
-    message: string;
-    status?: number;
-    headers: Record<string, string>;
+function extractErrorInfo(
+  error: unknown,
+  functionName: string,
+): {
+  message: string;
+  status?: number;
+  headers: Record<string, string>;
 } {
-    let message = `GitHub operation failed in ${functionName}`;
-    let status: number | undefined;
-    let headers: Record<string, string> = {};
+  let message = `GitHub operation failed in ${functionName}`;
+  let status: number | undefined;
+  let headers: Record<string, string> = {};
 
-    // Check if it's an Octokit RequestError like object
-    if (typeof error === 'object' && error !== null) {
-        const err = error as Record<string, unknown>;
-        if (typeof err.message === 'string') {
-            message = err.message;
-        }
-        if (typeof err.status === 'number') {
-            status = err.status;
-        }
-        
-        // Extract headers from different possible locations
-        if (typeof err.response === 'object' && err.response !== null) {
-            const response = err.response as Record<string, unknown>;
-            if (typeof response.headers === 'object' && response.headers !== null) {
-                headers = response.headers as Record<string, string>;
-            }
-        } else if (typeof err.headers === 'object' && err.headers !== null) {
-            headers = err.headers as Record<string, string>;
-        }
-    } else if (error instanceof Error) {
-        message = error.message;
-    } else {
-        message = 'An unknown error occurred during GitHub operation.';
+  // Check if it's an Octokit RequestError like object
+  if (typeof error === "object" && error !== null) {
+    const err = error as Record<string, unknown>;
+    if (typeof err.message === "string") {
+      message = err.message;
+    }
+    if (typeof err.status === "number") {
+      status = err.status;
     }
 
-    return { message, status, headers };
+    // Extract headers from different possible locations
+    if (typeof err.response === "object" && err.response !== null) {
+      const response = err.response as Record<string, unknown>;
+      if (typeof response.headers === "object" && response.headers !== null) {
+        headers = response.headers as Record<string, string>;
+      }
+    } else if (typeof err.headers === "object" && err.headers !== null) {
+      headers = err.headers as Record<string, string>;
+    }
+  } else if (error instanceof Error) {
+    message = error.message;
+  } else {
+    message = "An unknown error occurred during GitHub operation.";
+  }
+
+  return { message, status, headers };
 }
 
 /**
  * Check if an error is a rate limit error based on headers.
- * 
+ *
  * @param headers HTTP headers from the response
  * @returns Object containing whether it's a rate limit error and the reset timestamp
  */
 function checkRateLimitError(headers: Record<string, string>): {
-    isRateLimitError: boolean;
-    resetTimestamp?: number;
+  isRateLimitError: boolean;
+  resetTimestamp?: number;
 } {
-    const rateLimitRemaining = headers['x-ratelimit-remaining'];
-    const rateLimitReset = headers['x-ratelimit-reset'];
-    
-    if (rateLimitRemaining === '0' && rateLimitReset) {
-        return {
-            isRateLimitError: true,
-            resetTimestamp: parseInt(rateLimitReset, 10)
-        };
-    }
-    
-    return { isRateLimitError: false };
+  const rateLimitRemaining = headers["x-ratelimit-remaining"];
+  const rateLimitReset = headers["x-ratelimit-reset"];
+
+  if (rateLimitRemaining === "0" && rateLimitReset) {
+    return {
+      isRateLimitError: true,
+      resetTimestamp: parseInt(rateLimitReset, 10),
+    };
+  }
+
+  return { isRateLimitError: false };
 }
 
 /**
  * Create error options for GitHub errors.
- * 
+ *
  * @param error The original error
  * @param context Additional context information
  * @param status HTTP status code
@@ -163,22 +194,26 @@ function checkRateLimitError(headers: Record<string, string>): {
  * @returns Error options object
  */
 function createErrorOptions(
-    error: unknown, 
-    context: Record<string, unknown>, 
-    status?: number,
-    resetTimestamp?: number
-): ErrorOptions & { status?: number; resetTimestamp?: number; context?: Record<string, unknown> } {
-    return {
-        cause: error instanceof Error ? error : undefined,
-        status,
-        resetTimestamp,
-        context
-    };
+  error: unknown,
+  context: Record<string, unknown>,
+  status?: number,
+  resetTimestamp?: number,
+): ErrorOptions & {
+  status?: number;
+  resetTimestamp?: number;
+  context?: Record<string, unknown>;
+} {
+  return {
+    cause: error instanceof Error ? error : undefined,
+    status,
+    resetTimestamp,
+    context,
+  };
 }
 
 /**
  * Handle authentication and authorization errors.
- * 
+ *
  * @param message Error message
  * @param status HTTP status code
  * @param headers HTTP headers
@@ -186,98 +221,144 @@ function createErrorOptions(
  * @returns Never returns, always throws an error
  */
 function handleAuthError(
-    message: string,
-    status: number,
-    headers: Record<string, string>,
-    options: ErrorOptions & { status?: number; resetTimestamp?: number; context?: Record<string, unknown> }
+  message: string,
+  status: number,
+  headers: Record<string, string>,
+  options: ErrorOptions & {
+    status?: number;
+    resetTimestamp?: number;
+    context?: Record<string, unknown>;
+  },
 ): never {
-    // Check if it's a rate limit error
-    const { isRateLimitError, resetTimestamp } = checkRateLimitError(headers);
-    if (isRateLimitError) {
-        options.resetTimestamp = resetTimestamp;
-        throw new GitHubRateLimitError(`GitHub API rate limit exceeded. ${message}`, options);
-    }
-    
-    // Check for scope or permission issues
-    if (message.includes('scope') || message.includes('permission')) {
-        throw new GitHubAuthError(`GitHub permission or scope error: ${message}`, options);
-    }
-    
-    // Default auth error
-    throw new GitHubAuthError(`GitHub authentication/authorization error (Status ${status}): ${message}`, options);
+  // Check if it's a rate limit error
+  const { isRateLimitError, resetTimestamp } = checkRateLimitError(headers);
+  if (isRateLimitError) {
+    options.resetTimestamp = resetTimestamp;
+    throw new GitHubRateLimitError(
+      `GitHub API rate limit exceeded. ${message}`,
+      options,
+    );
+  }
+
+  // Check for scope or permission issues
+  if (message.includes("scope") || message.includes("permission")) {
+    throw new GitHubAuthError(
+      `GitHub permission or scope error: ${message}`,
+      options,
+    );
+  }
+
+  // Default auth error
+  throw new GitHubAuthError(
+    `GitHub authentication/authorization error (Status ${status}): ${message}`,
+    options,
+  );
 }
 
 /**
  * Safely extract error information from an unknown error
- * 
+ *
  * @param error The unknown error object
  * @returns An object with message and optional error instance
  */
-export function safelyExtractError(error: unknown): { 
-  message: string; 
+export function safelyExtractError(error: unknown): {
+  message: string;
   errorInstance?: Error;
 } {
   if (error instanceof Error) {
-    return { 
+    return {
       message: error.message,
-      errorInstance: error 
+      errorInstance: error,
     };
   }
-  
-  if (typeof error === 'object' && error !== null) {
+
+  if (typeof error === "object" && error !== null) {
     const err = error as Record<string, unknown>;
-    if (typeof err.message === 'string') {
-      return { 
+    if (typeof err.message === "string") {
+      return {
         message: err.message as string,
         // We don't cast non-Error objects to Error here
       };
     }
   }
-  
+
   return { message: String(error) };
 }
 
 /**
  * Helper function to analyze Octokit/generic errors and throw appropriate GitHubError.
- * 
+ *
  * @param error The caught error
  * @param context Additional context for the error message and logging
  * @returns Never returns, always throws an error
  */
-export function handleGitHubError(error: unknown, context: Record<string, unknown> = {}): never {
-    const functionName = (context.functionName as string) || 'unknown GitHub function';
-    logger.error(MODULE_NAME, `Error in ${functionName}`, { ...context, error });
+export function handleGitHubError(
+  error: unknown,
+  context: Record<string, unknown> = {},
+): never {
+  const functionName =
+    (context.functionName as string) || "unknown GitHub function";
 
-    // If it's already one of our custom errors, re-throw it
-    if (error instanceof GitHubError) {
-        throw error;
-    }
+  // Create a sanitized context by removing any sensitive fields
+  const sanitizedContext = { ...context };
+  // Remove any potential token or sensitive auth information
+  delete sanitizedContext.token;
+  delete sanitizedContext.accessToken;
+  delete sanitizedContext.credentials;
+  delete sanitizedContext.auth;
 
-    // Extract error information
-    const { message, status, headers } = extractErrorInfo(error, functionName);
-    
-    // Create error options
-    const errorOptions = createErrorOptions(error, context, status);
+  // Log error with safer details to avoid exposing tokens/auth details
+  logger.error(MODULE_NAME, `Error in ${functionName}`, {
+    ...sanitizedContext,
+    errorType: error instanceof Error ? error.constructor.name : typeof error,
+    errorMessage: error instanceof Error ? error.message : String(error),
+    // Don't log the entire error object which might contain sensitive data
+  });
 
-    // Handle different error types based on status code
-    switch (status) {
-        case 401:
-        case 403:
-            return handleAuthError(message, status, headers, errorOptions);
-            
-        case 404:
-            throw new GitHubNotFoundError(`GitHub resource not found (Status 404): ${message}`, errorOptions);
-            
-        case 429: // Explicit rate limit status
-            const resetTimestamp = headers['x-ratelimit-reset'] ? parseInt(headers['x-ratelimit-reset'], 10) : undefined;
-            errorOptions.resetTimestamp = resetTimestamp;
-            throw new GitHubRateLimitError(`GitHub API rate limit exceeded (Status 429). ${message}`, errorOptions);
-            
-        default:
-            if (status && status >= 400 && status < 600) {
-                throw new GitHubApiError(`GitHub API error (Status ${status}): ${message}`, errorOptions);
-            }
-            // For non-API errors or unknown errors
-            throw new GitHubError(`Unexpected GitHub utility error: ${message}`, errorOptions);
-    }
+  // If it's already one of our custom errors, re-throw it
+  if (error instanceof GitHubError) {
+    throw error;
+  }
+
+  // Extract error information
+  const { message, status, headers } = extractErrorInfo(error, functionName);
+
+  // Create error options
+  const errorOptions = createErrorOptions(error, context, status);
+
+  // Handle different error types based on status code
+  switch (status) {
+    case 401:
+    case 403:
+      return handleAuthError(message, status, headers, errorOptions);
+
+    case 404:
+      throw new GitHubNotFoundError(
+        `GitHub resource not found (Status 404): ${message}`,
+        errorOptions,
+      );
+
+    case 429: // Explicit rate limit status
+      const resetTimestamp = headers["x-ratelimit-reset"]
+        ? parseInt(headers["x-ratelimit-reset"], 10)
+        : undefined;
+      errorOptions.resetTimestamp = resetTimestamp;
+      throw new GitHubRateLimitError(
+        `GitHub API rate limit exceeded (Status 429). ${message}`,
+        errorOptions,
+      );
+
+    default:
+      if (status && status >= 400 && status < 600) {
+        throw new GitHubApiError(
+          `GitHub API error (Status ${status}): ${message}`,
+          errorOptions,
+        );
+      }
+      // For non-API errors or unknown errors
+      throw new GitHubError(
+        `Unexpected GitHub utility error: ${message}`,
+        errorOptions,
+      );
+  }
 }

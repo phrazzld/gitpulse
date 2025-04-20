@@ -58,7 +58,18 @@ async function handleGetRepositories(
 ) {
   logger.debug(MODULE_NAME, "GET /api/repos request received", {
     url: request.url,
-    headers: Object.fromEntries([...request.headers.entries()]),
+    // Sanitize headers by only including non-sensitive ones
+    headers: {
+      host: request.headers.get("host") || "",
+      referer: request.headers.get("referer") || "",
+      "user-agent": request.headers.get("user-agent") || "",
+      "content-type": request.headers.get("content-type") || "",
+      accept: request.headers.get("accept") || "",
+      "has-authorization": request.headers.has("authorization")
+        ? "true"
+        : "false",
+      "has-cookie": request.headers.has("cookie") ? "true" : "false",
+    },
   });
 
   // Get installation ID from query parameter if present
@@ -103,9 +114,8 @@ async function handleGetRepositories(
       allInstallations = await getAllAppInstallations(session.accessToken);
       logger.info(MODULE_NAME, "Retrieved all GitHub App installations", {
         count: allInstallations.length,
-        accounts: allInstallations
-          .filter((i) => i.account)
-          .map((i) => i.account?.login),
+        // Don't log actual account names, just account count
+        accountCount: allInstallations.filter((i) => i.account).length,
       });
 
       // If we don't have an installation ID yet, use the first available installation
@@ -176,7 +186,8 @@ async function handleGetRepositories(
   }
 
   logger.info(MODULE_NAME, "Authenticated user requesting repositories", {
-    user: session.user?.email || session.user?.name || "unknown",
+    // Only log that there is a user, not the specific user identity
+    userAuthenticated: !!session.user,
     authMethod: installationId ? "GitHub App" : "OAuth",
   });
 
@@ -195,12 +206,10 @@ async function handleGetRepositories(
         installationId,
       });
     } else if (session.accessToken) {
-      // Log GitHub token info (safely)
-      const tokenInfo = {
-        length: session.accessToken?.length,
-        prefix: session.accessToken?.substring(0, 4) + "...",
-      };
-      logger.debug(MODULE_NAME, "Using GitHub access token", tokenInfo);
+      // Only log that we have a token, not any details about it
+      logger.debug(MODULE_NAME, "Using GitHub access token", {
+        hasToken: true,
+      });
     }
 
     // Create an authenticated Octokit instance
@@ -257,11 +266,9 @@ async function handleGetRepositories(
     // Log additional debugging info for troubleshooting
     logger.debug(MODULE_NAME, "Repository fetch details", {
       fetchTimeMs: endTime - startTime,
-      userInfo: {
-        name: session.user?.name,
-        email: session.user?.email,
-      },
-      ownerDetails: ownerStats,
+      // Don't log actual user info, just that we have a user
+      hasUser: !!session.user,
+      ownerCount: ownerStats.length,
     });
 
     // Create response object
@@ -286,7 +293,11 @@ async function handleGetRepositories(
       staleWhileRevalidate: CacheTTL.LONG * 2, // Allow stale content for 2 hours while revalidating
     });
   } catch (error) {
-    logger.error(MODULE_NAME, "Error fetching repositories", { error });
+    // Use sanitizeLog to ensure any sensitive data in the error is redacted
+    logger.error(MODULE_NAME, "Error fetching repositories", {
+      errorType: error instanceof Error ? error.constructor.name : typeof error,
+      errorMessage: error instanceof Error ? error.message : String(error),
+    });
 
     // Import GitHubError classes directly in this file
     const {
