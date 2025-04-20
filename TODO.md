@@ -223,7 +223,7 @@
 
 ## API Architecture Improvements
 
-- [ ] **T018 · refactor · p1: define standard api error response format**
+- [x] **T018 · refactor · p1: define standard api error response format**
 
   - **Context:** plan.md · cr‑09 Standardize error handling
   - **Action:**

@@ -15,7 +15,16 @@ import {
   ApiCacheOptions,
 } from "@/types/api";
 import { GenericRecord } from "@/types/common";
+import { randomUUID } from "crypto";
 
+/**
+ * Creates a standardized error response for API routes
+ *
+ * @param error The error that occurred
+ * @param context Additional context information for logging
+ * @param moduleName The module name for logging purposes
+ * @returns NextResponse with appropriate status code and formatted error message
+ */
 /**
  * Creates a standardized error response for API routes
  *
@@ -29,8 +38,12 @@ export function createApiErrorResponse(
   context: GenericRecord = {},
   moduleName: string = "api",
 ): NextResponse {
+  // Generate a unique request ID for tracking this error
+  const requestId = randomUUID();
+
   // Log the error with provided context, but sanitize sensitive data
   logger.error(moduleName, "API error occurred", {
+    requestId,
     ...context,
     // Don't log the full error object which might contain tokens or PII
     errorType: error instanceof Error ? error.constructor.name : typeof error,
@@ -45,6 +58,7 @@ export function createApiErrorResponse(
   let signOutRequired = false;
   const needsInstallation = false;
   let resetAt: string | undefined = undefined;
+  let metadata: Record<string, unknown> | undefined = undefined;
 
   // Handle based on error type
   if (error instanceof GitHubConfigError) {
@@ -52,6 +66,11 @@ export function createApiErrorResponse(
     errorCode = "GITHUB_APP_CONFIG_ERROR";
     statusCode = 500;
     errorDetails = error.message;
+
+    // Add any context from the error
+    if (error.context) {
+      metadata = { configIssue: true, ...error.context };
+    }
   } else if (error instanceof GitHubAuthError) {
     if (error.message.includes("scope")) {
       errorMessage = "GitHub token is missing required permissions";
@@ -69,6 +88,11 @@ export function createApiErrorResponse(
     statusCode = 403; // Use 403 instead of 401 to prevent automatic browser redirects
     signOutRequired = true;
     errorDetails = error.message;
+
+    // Add any context from the error
+    if (error.context) {
+      metadata = { ...error.context };
+    }
   } else if (error instanceof GitHubRateLimitError) {
     errorMessage = "GitHub API rate limit exceeded";
     errorCode = "GITHUB_RATE_LIMIT_ERROR";
@@ -78,23 +102,51 @@ export function createApiErrorResponse(
     // Add reset time if available
     if (error.resetTimestamp) {
       resetAt = new Date(error.resetTimestamp * 1000).toISOString();
+
+      // Calculate time until reset for metadata
+      const secondsUntilReset =
+        error.resetTimestamp - Math.floor(Date.now() / 1000);
+      metadata = {
+        secondsUntilReset,
+        minutesUntilReset: Math.ceil(secondsUntilReset / 60),
+      };
+    }
+
+    // Add any context from the error
+    if (error.context) {
+      metadata = { ...metadata, ...error.context };
     }
   } else if (error instanceof GitHubNotFoundError) {
     errorMessage = "GitHub resource not found";
     errorCode = "GITHUB_NOT_FOUND_ERROR";
     statusCode = 404;
     errorDetails = error.message;
+
+    // Add any context from the error
+    if (error.context) {
+      metadata = { ...error.context };
+    }
   } else if (error instanceof GitHubApiError) {
     errorMessage = "GitHub API error occurred";
     errorCode = "GITHUB_API_ERROR";
     statusCode = error.status;
     errorDetails = error.message;
+
+    // Add any context from the error
+    if (error.context) {
+      metadata = { ...error.context };
+    }
   } else if (error instanceof GitHubError) {
     // Generic GitHub error
     errorMessage = "GitHub operation failed";
     errorCode = "GITHUB_ERROR";
     statusCode = 500;
     errorDetails = error.message;
+
+    // Add any context from the error
+    if (error.context) {
+      metadata = { ...error.context };
+    }
   } else if (error instanceof Error) {
     // Standard JavaScript Error
     errorMessage = "An error occurred";
@@ -109,11 +161,21 @@ export function createApiErrorResponse(
     errorDetails = String(error);
   }
 
+  // For validation errors, use a specific code pattern
+  if (
+    errorMessage.includes("Validation error") ||
+    errorDetails.includes("Validation error")
+  ) {
+    errorCode = "VALIDATION_ERROR";
+    statusCode = 400; // Bad request for validation errors
+  }
+
   // Build the error response
   const errorResponse: ApiErrorResponse = {
     error: errorMessage,
     code: errorCode,
     details: errorDetails,
+    requestId,
   };
 
   // Add optional fields only if they have meaningful values
@@ -129,11 +191,16 @@ export function createApiErrorResponse(
     errorResponse.resetAt = resetAt;
   }
 
+  if (metadata && Object.keys(metadata).length > 0) {
+    errorResponse.metadata = metadata;
+  }
+
   // Return NextResponse with JSON content
   return NextResponse.json(errorResponse, {
     status: statusCode,
     headers: {
       "Content-Type": "application/json",
+      "X-Request-ID": requestId,
     },
   });
 }
