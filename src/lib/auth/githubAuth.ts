@@ -293,94 +293,262 @@ export function getInstallationManagementUrl(
 export async function getAllAppInstallations(
   accessToken: string,
 ): Promise<AppInstallation[]> {
-  const context = {
-    functionName: "getAllAppInstallations",
-    // Only log if we have a token, not its length
-    hasAccessToken: !!accessToken,
-  };
-  logger.debug(MODULE_NAME, "getAllAppInstallations called", context);
-
-  if (!accessToken) {
-    throw new GitHubAuthError("Access token is required", { context });
-  }
+  // Initialize context and validate inputs
+  const context = createLogContext(accessToken);
+  validateAccessToken(accessToken, context);
 
   try {
-    const octokit = new Octokit({ auth: accessToken });
+    // Create authenticated client
+    const octokit = createOctokitWithToken(accessToken);
 
-    // Get all installations for the authenticated user
-    const { data } =
-      await octokit.rest.apps.listInstallationsForAuthenticatedUser();
+    // Get and process installations
+    const installations = await fetchAndProcessInstallations(octokit, context);
 
-    // Find our app's installations
-    const appName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME;
-    const appId = process.env.GITHUB_APP_ID;
-
-    logger.debug(MODULE_NAME, "Retrieved user installations", {
-      ...context,
-      installationsCount: data.installations.length,
-      appName,
-      appId,
-    });
-
-    // Filter installations by app name/id if provided
-    let filteredInstallations = data.installations;
-    if (appName || appId) {
-      filteredInstallations = data.installations.filter(
-        (inst) => inst.app_slug === appName || inst.app_id.toString() === appId,
-      );
-    }
-
-    // Map to our simplified format
-    const installations: AppInstallation[] = filteredInstallations.map(
-      (inst) => {
-        // Ensure we have a valid account object
-        if (!inst.account || typeof inst.account !== "object") {
-          return {
-            id: inst.id,
-            account: null,
-            appSlug: inst.app_slug,
-            appId: inst.app_id,
-            repositorySelection: inst.repository_selection,
-            targetType: inst.target_type,
-          };
-        }
-
-        // Handle both user and organization accounts
-        // Safe assertion - we already checked inst.account is not null
-        const account = inst.account as {
-          login: string;
-          type?: string;
-          avatar_url: string;
-        };
-
-        return {
-          id: inst.id,
-          account: {
-            login: account.login,
-            type: "type" in account ? account.type : undefined,
-            avatarUrl: account.avatar_url,
-          },
-          appSlug: inst.app_slug,
-          appId: inst.app_id,
-          repositorySelection: inst.repository_selection,
-          targetType: inst.target_type,
-        };
-      },
-    );
-
-    logger.info(MODULE_NAME, "Found GitHub App installations", {
-      ...context,
-      count: installations.length,
-      accounts: installations
-        .filter((i) => i.account !== null && "login" in i.account)
-        .map((i) => i.account?.login)
-        .join(", "),
-    });
+    // Log success
+    logSuccessfulFetch(installations, context);
 
     return installations;
   } catch (error) {
     return handleGitHubError(error, context);
   }
+}
+
+/**
+ * Create logging context
+ */
+function createLogContext(accessToken: string): Record<string, unknown> {
+  const context = {
+    functionName: "getAllAppInstallations",
+    // Only log if we have a token, not its length
+    hasAccessToken: !!accessToken,
+  };
+
+  logger.debug(MODULE_NAME, "getAllAppInstallations called", context);
+  return context;
+}
+
+/**
+ * Validate that access token is provided
+ */
+function validateAccessToken(
+  accessToken: string,
+  context: Record<string, unknown>,
+): void {
+  if (!accessToken) {
+    throw new GitHubAuthError("Access token is required", { context });
+  }
+}
+
+/**
+ * Create Octokit instance with token
+ */
+function createOctokitWithToken(accessToken: string): Octokit {
+  return new Octokit({ auth: accessToken });
+}
+
+/**
+ * Interface for GitHub API Installation object
+ */
+interface GitHubInstallation {
+  id: number;
+  app_slug: string;
+  app_id: number;
+  repository_selection: string;
+  target_type: string;
+  account?: {
+    login: string;
+    type?: string;
+    avatar_url: string;
+  };
+}
+
+/**
+ * Fetch installations and process them
+ */
+async function fetchAndProcessInstallations(
+  octokit: Octokit,
+  context: Record<string, unknown>,
+): Promise<AppInstallation[]> {
+  // Get all installations for the authenticated user
+  const { data } =
+    await octokit.rest.apps.listInstallationsForAuthenticatedUser();
+
+  // Get app configuration
+  const appName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME;
+  const appId = process.env.GITHUB_APP_ID;
+
+  // Log retrieval
+  logInstallationsRetrieval(data.installations.length, appName, appId, context);
+
+  // Convert installations to our expected format
+  const typedInstallations: GitHubInstallation[] = data.installations.map(
+    (inst) => {
+      // Convert account property safely
+      let account;
+      if (inst.account && typeof inst.account === "object") {
+        // Use type assertion with more specific interface
+        interface AccountLike {
+          login?: string;
+          type?: string;
+          avatar_url?: string;
+        }
+        const accountObj = inst.account as AccountLike;
+        // Check for login property to determine if it's a valid account object
+        if (accountObj.login && accountObj.avatar_url) {
+          account = {
+            login: accountObj.login,
+            type: accountObj.type,
+            avatar_url: accountObj.avatar_url,
+          };
+        }
+      }
+
+      return {
+        id: inst.id,
+        app_slug: inst.app_slug,
+        app_id: inst.app_id,
+        repository_selection: inst.repository_selection,
+        target_type: inst.target_type,
+        account,
+      };
+    },
+  );
+
+  // Filter installations by app name/id if provided
+  const filteredInstallations = filterInstallationsByApp(
+    typedInstallations,
+    appName,
+    appId,
+  );
+
+  // Map to our simplified format
+  return mapInstallationsToAppFormat(filteredInstallations);
+}
+
+/**
+ * Log installations retrieval
+ */
+function logInstallationsRetrieval(
+  count: number,
+  appName?: string,
+  appId?: string,
+  context?: Record<string, unknown>,
+): void {
+  logger.debug(MODULE_NAME, "Retrieved user installations", {
+    ...context,
+    installationsCount: count,
+    appName,
+    appId,
+  });
+}
+
+/**
+ * Filter installations by app name/id
+ */
+function filterInstallationsByApp(
+  installations: GitHubInstallation[],
+  appName?: string,
+  appId?: string,
+): GitHubInstallation[] {
+  if (!appName && !appId) {
+    return installations;
+  }
+
+  return installations.filter(
+    (inst) => inst.app_slug === appName || inst.app_id.toString() === appId,
+  );
+}
+
+/**
+ * Map GitHub installations to our app format
+ */
+function mapInstallationsToAppFormat(
+  installations: GitHubInstallation[],
+): AppInstallation[] {
+  return installations.map((inst) => {
+    // Handle case with missing account object
+    if (!inst.account || typeof inst.account !== "object") {
+      return createInstallationWithoutAccount(inst);
+    }
+
+    // Handle case with valid account object
+    if (inst.account) {
+      return createInstallationWithAccount({
+        ...inst,
+        account: inst.account,
+      });
+    }
+
+    // Fallback
+    return createInstallationWithoutAccount(inst);
+  });
+}
+
+/**
+ * Create installation object without account information
+ */
+function createInstallationWithoutAccount(
+  installation: GitHubInstallation,
+): AppInstallation {
+  return {
+    id: installation.id,
+    account: null,
+    appSlug: installation.app_slug,
+    appId: installation.app_id,
+    repositorySelection: installation.repository_selection,
+    targetType: installation.target_type,
+  };
+}
+
+/**
+ * Create installation object with account information
+ */
+function createInstallationWithAccount(
+  installation: GitHubInstallation & {
+    account: {
+      login: string;
+      type?: string;
+      avatar_url: string;
+    };
+  },
+): AppInstallation {
+  // Handle both user and organization accounts
+  // Safe assertion - we already checked inst.account is not null
+  const account = installation.account as {
+    login: string;
+    type?: string;
+    avatar_url: string;
+  };
+
+  return {
+    id: installation.id,
+    account: {
+      login: account.login,
+      type: "type" in account ? account.type : undefined,
+      avatarUrl: account.avatar_url,
+    },
+    appSlug: installation.app_slug,
+    appId: installation.app_id,
+    repositorySelection: installation.repository_selection,
+    targetType: installation.target_type,
+  };
+}
+
+/**
+ * Log successful fetch result
+ */
+function logSuccessfulFetch(
+  installations: AppInstallation[],
+  context: Record<string, unknown>,
+): void {
+  logger.info(MODULE_NAME, "Found GitHub App installations", {
+    ...context,
+    count: installations.length,
+    accounts: installations
+      .filter((i) => i.account !== null && "login" in i.account)
+      .map((i) => i.account?.login)
+      .join(", "),
+  });
 }
 
 /**

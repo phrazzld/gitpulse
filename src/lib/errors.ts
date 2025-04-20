@@ -299,33 +299,57 @@ export function handleGitHubError(
   const functionName =
     (context.functionName as string) || "unknown GitHub function";
 
-  // Create a sanitized context by removing any sensitive fields
-  const sanitizedContext = { ...context };
-  // Remove any potential token or sensitive auth information
-  delete sanitizedContext.token;
-  delete sanitizedContext.accessToken;
-  delete sanitizedContext.credentials;
-  delete sanitizedContext.auth;
-
-  // Log error with safer details to avoid exposing tokens/auth details
-  logger.error(MODULE_NAME, `Error in ${functionName}`, {
-    ...sanitizedContext,
-    errorType: error instanceof Error ? error.constructor.name : typeof error,
-    errorMessage: error instanceof Error ? error.message : String(error),
-    // Don't log the entire error object which might contain sensitive data
-  });
+  // Log error with sanitized context
+  logErrorWithSanitizedContext(error, functionName, context);
 
   // If it's already one of our custom errors, re-throw it
   if (error instanceof GitHubError) {
     throw error;
   }
 
-  // Extract error information
+  // Extract error information and create error options
   const { message, status, headers } = extractErrorInfo(error, functionName);
-
-  // Create error options
   const errorOptions = createErrorOptions(error, context, status);
 
+  // Create and throw appropriate error type
+  throw createAppropriateErrorType(message, status, headers, errorOptions);
+}
+
+/**
+ * Log error with sanitized context to avoid exposing sensitive information
+ */
+function logErrorWithSanitizedContext(
+  error: unknown,
+  functionName: string,
+  context: Record<string, unknown>,
+): void {
+  // Create a sanitized context by removing any sensitive fields
+  const sanitizedContext = { ...context };
+
+  // Remove any potential token or sensitive auth information
+  delete sanitizedContext.token;
+  delete sanitizedContext.accessToken;
+  delete sanitizedContext.credentials;
+  delete sanitizedContext.auth;
+
+  // Log error with safer details
+  logger.error(MODULE_NAME, `Error in ${functionName}`, {
+    ...sanitizedContext,
+    errorType: error instanceof Error ? error.constructor.name : typeof error,
+    errorMessage: error instanceof Error ? error.message : String(error),
+    // Don't log the entire error object which might contain sensitive data
+  });
+}
+
+/**
+ * Create and return the appropriate error type based on status code
+ */
+function createAppropriateErrorType(
+  message: string,
+  status: number | undefined,
+  headers: Record<string, string>,
+  errorOptions: ErrorOptions,
+): never {
   // Handle different error types based on status code
   switch (status) {
     case 401:
@@ -334,31 +358,75 @@ export function handleGitHubError(
 
     case 404:
       throw new GitHubNotFoundError(
-        `GitHub resource not found (Status 404): ${message}`,
+        formatErrorMessage(404, "GitHub resource not found", message),
         errorOptions,
       );
 
     case 429: // Explicit rate limit status
-      const resetTimestamp = headers["x-ratelimit-reset"]
-        ? parseInt(headers["x-ratelimit-reset"], 10)
-        : undefined;
-      errorOptions.resetTimestamp = resetTimestamp;
-      throw new GitHubRateLimitError(
-        `GitHub API rate limit exceeded (Status 429). ${message}`,
-        errorOptions,
-      );
+      return handleRateLimitError(message, headers, errorOptions);
 
     default:
-      if (status && status >= 400 && status < 600) {
-        throw new GitHubApiError(
-          `GitHub API error (Status ${status}): ${message}`,
-          errorOptions,
-        );
-      }
-      // For non-API errors or unknown errors
-      throw new GitHubError(
-        `Unexpected GitHub utility error: ${message}`,
-        errorOptions,
-      );
+      return handleDefaultError(message, status, errorOptions);
   }
+}
+
+/**
+ * Handle rate limit errors (429)
+ */
+function handleRateLimitError(
+  message: string,
+  headers: Record<string, string>,
+  errorOptions: ErrorOptions,
+): never {
+  const resetTimestamp = getResetTimestamp(headers);
+  errorOptions.resetTimestamp = resetTimestamp;
+
+  throw new GitHubRateLimitError(
+    formatErrorMessage(429, "GitHub API rate limit exceeded", message),
+    errorOptions,
+  );
+}
+
+/**
+ * Get rate limit reset timestamp from headers
+ */
+function getResetTimestamp(
+  headers: Record<string, string>,
+): number | undefined {
+  return headers["x-ratelimit-reset"]
+    ? parseInt(headers["x-ratelimit-reset"], 10)
+    : undefined;
+}
+
+/**
+ * Handle default error cases
+ */
+function handleDefaultError(
+  message: string,
+  status: number | undefined,
+  errorOptions: ErrorOptions,
+): never {
+  if (status && status >= 400 && status < 600) {
+    throw new GitHubApiError(
+      formatErrorMessage(status, "GitHub API error", message),
+      errorOptions,
+    );
+  }
+
+  // For non-API errors or unknown errors
+  throw new GitHubError(
+    `Unexpected GitHub utility error: ${message}`,
+    errorOptions,
+  );
+}
+
+/**
+ * Format error message with status code and description
+ */
+function formatErrorMessage(
+  status: number,
+  description: string,
+  message: string,
+): string {
+  return `${description} (Status ${status}): ${message}`;
 }

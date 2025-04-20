@@ -209,7 +209,7 @@
     3. Component tests pass.
   - **Depends‑on:** none
 
-- [ ] **T017 · refactor · p1: decompose large functions into smaller functions**
+- [x] **T017 · refactor · p1: decompose large functions into smaller functions**
   - **Context:** plan.md · cr‑06 Break up oversized files/functions
   - **Action:**
     1. Identify functions exceeding 100 lines across all components.

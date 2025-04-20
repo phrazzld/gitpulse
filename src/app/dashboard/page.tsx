@@ -16,6 +16,13 @@ import { setCacheItem, getStaleItem } from "@/lib/localStorageCache";
 import { CommitSummary } from "@/types/summary";
 import { Repository, Installation } from "@/types/github";
 import { DashboardFilterState } from "@/types/dashboard";
+import {
+  useDashboardState,
+  useRepositoryFetching,
+  useSummaryGeneration,
+  useActivityMetrics,
+  useWindowFocusRefresh,
+} from "./dashboardHooks";
 
 // Type for API response
 type ReposResponse = {
@@ -30,6 +37,16 @@ type ReposResponse = {
   code?: string;
   needsInstallation?: boolean;
 };
+
+// Type definitions for Dashboard component state
+type InstallationId = number;
+type RequestedInstallationId = InstallationId | null;
+
+// Type for date range state
+interface DateRangeState {
+  since: string;
+  until: string;
+}
 
 // Helper functions for date formatting
 function getTodayDate() {
@@ -60,16 +77,6 @@ function getGitHubAppInstallUrl() {
   return `https://github.com/apps/${appName}/installations/new`;
 }
 
-// Type definitions for Dashboard component state
-type InstallationId = number;
-type RequestedInstallationId = InstallationId | null;
-
-// Type for date range state
-interface DateRangeState {
-  since: string;
-  until: string;
-}
-
 /**
  * Dashboard Page Component
  *
@@ -81,268 +88,88 @@ interface DateRangeState {
 export default function Dashboard() {
   const { data: session, status } = useSession();
 
-  const [repositories, setRepositories] = useState<Repository[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [initialLoad, setInitialLoad] = useState<boolean>(true);
-  const [dateRange, setDateRange] = useState<DateRangeState>({
-    since: getLastWeekDate(),
-    until: getTodayDate(),
-  });
-  const [summary, setSummary] = useState<CommitSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showRepoList, setShowRepoList] = useState<boolean>(true);
-  const [authMethod, setAuthMethod] = useState<string | null>(null);
-  const [needsInstallation, setNeedsInstallation] = useState<boolean>(false);
-  const [installationIds, setInstallationIds] = useState<InstallationId[]>([]);
-  const [installations, setInstallations] = useState<Installation[]>([]);
-  const [currentInstallations, setCurrentInstallations] = useState<
-    Installation[]
-  >([]);
-
-  // UI state for panels
-  const [expandedPanels, setExpandedPanels] = useState<string[]>([]);
+  // Initialize all dashboard state
+  const {
+    repositories,
+    setRepositories,
+    loading,
+    setLoading,
+    initialLoad,
+    setInitialLoad,
+    dateRange,
+    setDateRange,
+    summary,
+    setSummary,
+    error,
+    setError,
+    showRepoList,
+    setShowRepoList,
+    authMethod,
+    setAuthMethod,
+    needsInstallation,
+    setNeedsInstallation,
+    installationIds,
+    setInstallationIds,
+    installations,
+    setInstallations,
+    currentInstallations,
+    setCurrentInstallations,
+    expandedPanels,
+    setExpandedPanels,
+    activeFilters,
+    setActiveFilters,
+  } = useDashboardState(getLastWeekDate, getTodayDate);
 
   // Activity mode is hardcoded to 'my-activity' as we no longer support team/org views
   const activityMode: ActivityMode = "my-activity";
 
-  // State for filters - simplified for individual focus
-  const [activeFilters, setActiveFilters] = useState<DashboardFilterState>({
-    repositories: [],
-  });
+  // Error handling callbacks
+  const { handleAuthError, handleAppInstallationNeeded } = useErrorHandling(
+    setError,
+    setNeedsInstallation,
+  );
 
-  // Handle repository fetch errors - set descriptive error message
-  const handleAuthError = useCallback(() => {
-    console.log("GitHub authentication issue detected.");
-    setError(
-      "GitHub authentication issue detected. Your token may be invalid, expired, or missing required permissions. Please sign out and sign in again to grant all necessary permissions.",
-    );
-  }, [setError]);
-
-  const handleAppInstallationNeeded = useCallback(() => {
-    console.log("GitHub App installation needed.");
-    setNeedsInstallation(true);
-    setError(
-      "GitHub App installation required. Please install the GitHub App to access all your repositories, including private ones.",
-    );
-  }, [setError, setNeedsInstallation]);
-
-  const fetchRepositories = useCallback(
-    async (selectedInstallationId?: InstallationId) => {
-      // Create a consistent cache key
-      const cacheKey = `repos:${session?.user?.email || "user"}`;
-      let forceFetch = false;
-
-      // If we already have repositories from a previous session, maintain them while fetching fresh data
-      if (!forceFetch && !selectedInstallationId) {
-        // Check for cached data using stale-while-revalidate approach
-        const { data: cachedRepos, isStale } =
-          getStaleItem<Repository[]>(cacheKey);
-
-        // If we have cached data, use it immediately
-        if (cachedRepos && cachedRepos.length > 0) {
-          setRepositories(cachedRepos);
-          console.log("Using cached repositories:", cachedRepos.length);
-
-          // If data is fresh enough, don't fetch
-          if (!isStale) {
-            console.log("Cache is fresh, skipping fetch");
-            return true;
-          }
-
-          // If data is stale, continue with fetch in background but don't show loading state
-          console.log("Cache is stale, fetching in background");
-          forceFetch = true;
-        }
+  // Repository fetching logic
+  const sessionState = session
+    ? {
+        user: {
+          email: session.user?.email || undefined,
+        },
+        accessToken: session.accessToken || undefined,
       }
+    : null;
 
-      try {
-        // Only show loading if we don't have cached data
-        if (!forceFetch) {
-          setLoading(true);
-        }
-
-        // Add installation_id query parameter if it was provided
-        const url = selectedInstallationId
-          ? `/api/repos?installation_id=${selectedInstallationId}`
-          : "/api/repos";
-
-        const response: Response = await fetch(url);
-
-        if (!response.ok) {
-          // Parse the error response
-          const errorData: {
-            error?: string;
-            code?: string;
-            needsInstallation?: boolean;
-          } = await response.json();
-
-          if (errorData.needsInstallation) {
-            // GitHub App not installed
-            handleAppInstallationNeeded();
-            return false;
-          }
-
-          if (
-            response.status === 401 ||
-            response.status === 403 ||
-            errorData.code === "GITHUB_AUTH_ERROR" ||
-            errorData.code === "GITHUB_SCOPE_ERROR" ||
-            errorData.code === "GITHUB_APP_CONFIG_ERROR" ||
-            (errorData.error &&
-              (errorData.error.includes("authentication") ||
-                errorData.error.includes("scope") ||
-                errorData.error.includes("permissions")))
-          ) {
-            // Auth error - token expired, invalid, or missing required scopes
-            handleAuthError();
-            return false;
-          }
-
-          throw new Error(errorData.error || "Failed to fetch repositories");
-        }
-
-        const data: ReposResponse = await response.json();
-
-        // Cache the repositories for future use with 1 hour TTL
-        if (data.repositories && data.repositories.length > 0) {
-          setCacheItem(cacheKey, data.repositories, CLIENT_CACHE_TTL.LONG);
-        }
-
-        setRepositories(data.repositories);
-
-        // Update auth method and installation ID if available
-        if (data.authMethod) {
-          setAuthMethod(data.authMethod);
-          console.log("Using auth method:", data.authMethod);
-        }
-
-        if (data.installationId) {
-          // Add to the installation IDs array if not already included
-          setInstallationIds((prev) =>
-            prev.includes(data.installationId!)
-              ? prev
-              : [...prev, data.installationId!],
-          );
-          console.log("Using GitHub App installation ID:", data.installationId);
-          setNeedsInstallation(false); // Clear the installation needed flag
-        }
-
-        // Update installations list
-        if (data.installations && data.installations.length > 0) {
-          setInstallations(data.installations);
-          console.log("Available installations:", data.installations.length);
-
-          // Cache installations with a longer TTL
-          setCacheItem(
-            "installations",
-            data.installations,
-            CLIENT_CACHE_TTL.LONG,
-          );
-        }
-
-        // Update current installations
-        if (data.currentInstallation) {
-          setCurrentInstallations((prev) => {
-            // Check if this installation is already in the array
-            const exists = prev.some(
-              (inst) => inst.id === data.currentInstallation!.id,
-            );
-
-            if (!exists) {
-              return [...prev, data.currentInstallation!];
-            }
-            return prev;
-          });
-          console.log(
-            "Current installation:",
-            data.currentInstallation?.account?.login || "unknown",
-          );
-
-          // Cache current installations
-          setCacheItem(
-            "currentInstallations",
-            data.currentInstallations || [data.currentInstallation],
-            CLIENT_CACHE_TTL.LONG,
-          );
-        }
-
-        setError(null); // Clear any previous errors
-        return true;
-      } catch (error: unknown) {
-        console.error("Error fetching repositories:", error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch repositories. Please try again.";
-        setError(errorMessage);
-        return false;
-      } finally {
-        if (!forceFetch) {
-          setLoading(false);
-        }
-      }
-    },
-    [
-      handleAuthError,
-      handleAppInstallationNeeded,
+  const { fetchRepositories, shouldRefreshRepositories } =
+    useRepositoryFetching(
+      sessionState,
+      repositories,
       setRepositories,
-      setError,
       setLoading,
+      setError,
       setAuthMethod,
       setInstallationIds,
       setInstallations,
       setCurrentInstallations,
-      session,
-    ],
+      setNeedsInstallation,
+      handleAuthError,
+      handleAppInstallationNeeded,
+    );
+
+  // Window focus refresh effect
+  useWindowFocusRefresh(
+    sessionState,
+    fetchRepositories,
+    shouldRefreshRepositories,
   );
 
-  // Function to check whether repositories need to be refreshed
-  const shouldRefreshRepositories = useCallback(() => {
-    // Don't refresh if we have no session
-    if (!session?.accessToken) return false;
-
-    // Check if we have cached repository data
-    const cacheKey = `repos:${session.user?.email || "user"}`;
-
-    // Get stale data if available - stale data is invalid but usable while we refresh
-    const { data: cachedData, isStale } = getStaleItem<Repository[]>(cacheKey);
-
-    // If we have cached data but it's stale, allow a refresh
-    if (cachedData && isStale) {
-      return true;
-    }
-
-    // If we have valid cached data, don't refresh
-    if (cachedData) {
-      return false;
-    }
-
-    // If we have no cached data but have repositories in state, use legacy check
-    if (repositories.length > 0) {
-      const lastRefreshTime = localStorage.getItem("lastRepositoryRefresh");
-      if (lastRefreshTime) {
-        // Use longer TTL for repository data
-        const timeSinceLastRefresh = Date.now() - parseInt(lastRefreshTime, 10);
-        return (
-          timeSinceLastRefresh > STORAGE_REFRESH.REPOSITORY_REFRESH_INTERVAL
-        );
-      }
-    }
-
-    // No cache, no repositories - must refresh
-    return true;
-  }, [session, repositories.length]);
-
-  // Function to check for repository updates when focus returns to the window
+  // Fetch repositories when session is available
   useEffect(() => {
-    const handleFocus = () => {
-      // Only refresh if needed
-      if (shouldRefreshRepositories()) {
-        console.log(
-          "Window focused, refreshing repositories (due to cache expiration)",
-        );
-        fetchRepositories().then((success) => {
-          // Update the last refresh time
+    if (session) {
+      // Check for GitHub installation cookie
+      const installationId = getInstallationIdFromCookie();
+
+      if (installationId) {
+        fetchRepositories(installationId).then((success) => {
           if (success) {
             localStorage.setItem(
               "lastRepositoryRefresh",
@@ -350,51 +177,9 @@ export default function Dashboard() {
             );
           }
         });
-      } else {
-        console.log(
-          "Window focused, skipping repository refresh (recently fetched)",
-        );
-      }
-    };
-
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, [session, fetchRepositories, shouldRefreshRepositories]);
-
-  // Fetch repositories when session is available and check for installation cookie
-  useEffect(() => {
-    if (session) {
-      // Check for GitHub installation cookie
-      const getCookie = (name: string) => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop()?.split(";").shift();
-        return null;
-      };
-
-      const installCookie = getCookie("github_installation_id");
-
-      if (installCookie) {
-        console.log("Found GitHub installation cookie:", installCookie);
-        // Parse the installation ID from cookie and use it
-        const installationId: InstallationId = parseInt(installCookie, 10);
-        if (!isNaN(installationId)) {
-          fetchRepositories(installationId).then((success) => {
-            if (success) {
-              localStorage.setItem(
-                "lastRepositoryRefresh",
-                Date.now().toString(),
-              );
-            }
-          });
-          // Clear the cookie after using it
-          document.cookie =
-            "github_installation_id=; path=/; max-age=0; samesite=lax";
-          return;
-        }
+        // Clear the cookie after using it
+        clearInstallationCookie();
+        return;
       }
 
       // No installation cookie found, proceed with normal fetch
@@ -406,128 +191,58 @@ export default function Dashboard() {
     }
   }, [session, fetchRepositories]);
 
-  // Function to handle date range changes
-  const handleDateRangeChange = useCallback((newDateRange: DateRangeState) => {
-    setDateRange(newDateRange);
-  }, []);
-
-  // Function to handle repository filter changes
-  const handleFilterChange = useCallback((newFilters: DashboardFilterState) => {
-    setActiveFilters(newFilters);
-    console.log("Filters updated:", newFilters);
-  }, []);
-
-  // Handler for panel expansion
-  const handlePanelExpand = useCallback((panelId: string) => {
-    setExpandedPanels((prev) =>
-      prev.includes(panelId)
-        ? prev.filter((id) => id !== panelId)
-        : [...prev, panelId],
-    );
-  }, []);
-
-  // Function to generate activity summary
-  async function generateSummary(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      setLoading(true);
-      setError(null);
-      setSummary(null);
-
-      // Construct query parameters
-      const params = new URLSearchParams({
-        since: dateRange.since,
-        until: dateRange.until,
-      });
-
-      // Add installation IDs if available
-      if (installationIds.length > 0) {
-        params.append("installation_ids", installationIds.join(","));
-      }
-
-      // Add filter parameters
-      if (activeFilters.repositories.length > 0) {
-        params.append("repositories", activeFilters.repositories.join(","));
-      }
-
-      // Always use chronological view
-      params.append("groupBy", "chronological");
-
-      const response: Response = await fetch(
-        `/api/summary?${params.toString()}`,
-      );
-      if (!response.ok) {
-        const errorData: {
-          error?: string;
-          code?: string;
-          needsInstallation?: boolean;
-        } = await response.json();
-
-        // Check for installation needed error
-        if (errorData.needsInstallation) {
-          handleAppInstallationNeeded();
-          return;
-        }
-
-        // Check for auth errors
-        if (
-          response.status === 401 ||
-          response.status === 403 ||
-          errorData.code === "GITHUB_AUTH_ERROR" ||
-          errorData.code === "GITHUB_APP_CONFIG_ERROR"
-        ) {
-          handleAuthError();
-          return;
-        }
-
-        throw new Error(errorData.error || "Failed to generate summary");
-      }
-
-      const data: CommitSummary & {
-        authMethod?: string;
-        installationIds?: InstallationId[];
-        installations?: Installation[];
-        currentInstallations?: Installation[];
-      } = await response.json();
-      setSummary(data);
-
-      // Update auth method and installation IDs if available
-      if (data.authMethod) {
-        setAuthMethod(data.authMethod);
-      }
-
-      if (data.installationIds && data.installationIds.length > 0) {
-        setInstallationIds(data.installationIds);
-        setNeedsInstallation(false); // Clear the installation needed flag
-      }
-
-      // Update installations list
-      if (data.installations && data.installations.length > 0) {
-        setInstallations(data.installations);
-      }
-
-      // Update current installations
-      if (data.currentInstallations && data.currentInstallations.length > 0) {
-        setCurrentInstallations(data.currentInstallations);
-      }
-    } catch (error: unknown) {
-      console.error("Error generating summary:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to generate summary. Please try again.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   // Update initialLoad status after first fetch completes
   useEffect(() => {
     if (!loading && repositories.length > 0 && initialLoad) {
       setInitialLoad(false);
     }
-  }, [loading, repositories, initialLoad]);
+  }, [loading, repositories, initialLoad, setInitialLoad]);
+
+  // Function to handle date range changes
+  const handleDateRangeChange = useCallback(
+    (newDateRange: DateRangeState) => {
+      setDateRange(newDateRange);
+    },
+    [setDateRange],
+  );
+
+  // Function to handle repository filter changes
+  const handleFilterChange = useCallback(
+    (newFilters: DashboardFilterState) => {
+      setActiveFilters(newFilters);
+      console.log("Filters updated:", newFilters);
+    },
+    [setActiveFilters],
+  );
+
+  // Handler for panel expansion
+  const handlePanelExpand = useCallback(
+    (panelId: string) => {
+      setExpandedPanels((prev) =>
+        prev.includes(panelId)
+          ? prev.filter((id) => id !== panelId)
+          : [...prev, panelId],
+      );
+    },
+    [setExpandedPanels],
+  );
+
+  // Function to generate activity summary
+  const { generateSummary } = useSummaryGeneration(
+    dateRange,
+    installationIds,
+    activeFilters,
+    setLoading,
+    setError,
+    setSummary,
+    setAuthMethod,
+    setInstallationIds,
+    setInstallations,
+    setCurrentInstallations,
+    setNeedsInstallation,
+    handleAuthError,
+    handleAppInstallationNeeded,
+  );
 
   // Show loading state during initial session loading or first data fetch
   if (status === "loading" || initialLoad) {
@@ -535,45 +250,7 @@ export default function Dashboard() {
   }
 
   // Calculate activity metrics from summary data
-  const getActivityMetrics = () => {
-    if (!summary) {
-      return {
-        commits: 0,
-        repositories: repositories.length,
-        activeDays: 0,
-      };
-    }
-
-    const uniqueDays = new Set();
-    let totalCommits = 0;
-    const repositoriesWithActivity = new Set();
-
-    // Get unique active days from the stats
-    if (summary.stats && summary.stats.dates) {
-      summary.stats.dates.forEach((day) => {
-        uniqueDays.add(day);
-      });
-    }
-
-    if (summary.commits) {
-      totalCommits = summary.commits.length;
-      summary.commits.forEach((commit) => {
-        // Cast to check for repository property (handle different commit types)
-        const commitWithRepo = commit as { repository?: { id: string } };
-        if (commitWithRepo.repository) {
-          repositoriesWithActivity.add(commitWithRepo.repository.id);
-        }
-      });
-    }
-
-    return {
-      commits: totalCommits,
-      repositories: repositoriesWithActivity.size || repositories.length,
-      activeDays: uniqueDays.size,
-    };
-  };
-
-  const metrics = getActivityMetrics();
+  const metrics = useActivityMetrics(summary, repositories);
 
   return (
     <div
@@ -593,30 +270,7 @@ export default function Dashboard() {
             }}
           >
             {/* Terminal-like header */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center">
-                <div
-                  className="w-2 h-2 rounded-full mr-2"
-                  style={{ backgroundColor: "var(--neon-green)" }}
-                ></div>
-                <h2
-                  className="text-xl font-bold"
-                  style={{ color: "var(--neon-green)" }}
-                >
-                  COMMIT ANALYSIS MODULE
-                </h2>
-              </div>
-              <div
-                className="px-2 py-1 text-xs rounded"
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0.3)",
-                  border: "1px solid var(--electric-blue)",
-                  color: "var(--electric-blue)",
-                }}
-              >
-                OPERATIONAL STATUS: ACTIVE
-              </div>
-            </div>
+            <DashboardHeader />
 
             <AuthenticationStatusBanner
               error={error}
@@ -688,6 +342,86 @@ export default function Dashboard() {
             data-testid="activity-feed-panel"
           />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Error handling functions
+function useErrorHandling(
+  setError: (error: string | null) => void,
+  setNeedsInstallation: (needsInstallation: boolean) => void,
+) {
+  const handleAuthError = useCallback(() => {
+    console.log("GitHub authentication issue detected.");
+    setError(
+      "GitHub authentication issue detected. Your token may be invalid, expired, or missing required permissions. Please sign out and sign in again to grant all necessary permissions.",
+    );
+  }, [setError]);
+
+  const handleAppInstallationNeeded = useCallback(() => {
+    console.log("GitHub App installation needed.");
+    setNeedsInstallation(true);
+    setError(
+      "GitHub App installation required. Please install the GitHub App to access all your repositories, including private ones.",
+    );
+  }, [setError, setNeedsInstallation]);
+
+  return { handleAuthError, handleAppInstallationNeeded };
+}
+
+// Cookie handling functions
+function getInstallationIdFromCookie(): number | null {
+  const getCookie = (name: string) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(";").shift();
+    return null;
+  };
+
+  const installCookie = getCookie("github_installation_id");
+
+  if (installCookie) {
+    console.log("Found GitHub installation cookie:", installCookie);
+    // Parse the installation ID from cookie and use it
+    const installationId = parseInt(installCookie, 10);
+    if (!isNaN(installationId)) {
+      return installationId;
+    }
+  }
+
+  return null;
+}
+
+function clearInstallationCookie() {
+  document.cookie = "github_installation_id=; path=/; max-age=0; samesite=lax";
+}
+
+// Dashboard header component
+function DashboardHeader() {
+  return (
+    <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center">
+        <div
+          className="w-2 h-2 rounded-full mr-2"
+          style={{ backgroundColor: "var(--neon-green)" }}
+        ></div>
+        <h2
+          className="text-xl font-bold"
+          style={{ color: "var(--neon-green)" }}
+        >
+          COMMIT ANALYSIS MODULE
+        </h2>
+      </div>
+      <div
+        className="px-2 py-1 text-xs rounded"
+        style={{
+          backgroundColor: "rgba(0, 0, 0, 0.3)",
+          border: "1px solid var(--electric-blue)",
+          color: "var(--electric-blue)",
+        }}
+      >
+        OPERATIONAL STATUS: ACTIVE
       </div>
     </div>
   );
