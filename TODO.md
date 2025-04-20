@@ -152,7 +152,7 @@
     3. Component tests pass.
   - **Depends‑on:** none
 
-- [ ] **T013 · refactor · p1: refactor authenticationstatusbanner to remove direct dom manipulation**
+- [x] **T013 · refactor · p1: refactor authenticationstatusbanner to remove direct dom manipulation**
 
   - **Context:** plan.md · cr‑07 Remove direct DOM manipulation
   - **Action:**

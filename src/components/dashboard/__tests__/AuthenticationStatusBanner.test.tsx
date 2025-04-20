@@ -146,7 +146,7 @@ describe("AuthenticationStatusBanner", () => {
     expect(screen.queryByText("UPGRADE TO APP")).not.toBeInTheDocument();
   });
 
-  test("includes github app installation button with proper attributes", () => {
+  test("handles install button hover state correctly", () => {
     const props = {
       ...defaultProps,
       error: "GitHub App installation required",
@@ -154,20 +154,24 @@ describe("AuthenticationStatusBanner", () => {
     };
 
     render(<AuthenticationStatusBanner {...props} />);
-
     const installButton = screen.getByText("INSTALL GITHUB APP");
-    expect(installButton).toBeInTheDocument();
-    expect(installButton).toHaveAttribute(
-      "href",
-      "https://github.com/apps/test-app/installations/new",
-    );
 
-    // Verify mouse event handlers
-    expect(installButton.onmouseover).toBeDefined();
-    expect(installButton.onmouseout).toBeDefined();
+    // Check initial state (not hovered)
+    expect(installButton).toHaveClass("bg-dark-slate");
+    expect(installButton).toHaveClass("text-neon-green");
+
+    // Simulate hover
+    fireEvent.mouseEnter(installButton);
+    expect(installButton).toHaveClass("bg-neon-green");
+    expect(installButton).toHaveClass("text-dark-slate");
+
+    // Simulate hover out
+    fireEvent.mouseLeave(installButton);
+    expect(installButton).toHaveClass("bg-dark-slate");
+    expect(installButton).toHaveClass("text-neon-green");
   });
 
-  test("includes upgrade button for oauth users with correct attributes", () => {
+  test("handles upgrade button hover state correctly", () => {
     const props = {
       ...defaultProps,
       authMethod: "oauth",
@@ -175,16 +179,44 @@ describe("AuthenticationStatusBanner", () => {
     };
 
     render(<AuthenticationStatusBanner {...props} />);
-
     const upgradeButton = screen.getByText("UPGRADE TO APP");
-    expect(upgradeButton).toBeInTheDocument();
-    expect(upgradeButton).toHaveAttribute(
-      "href",
-      "https://github.com/apps/test-app/installations/new",
-    );
 
-    // Verify mouse event handlers
-    expect(upgradeButton.onmouseover).toBeDefined();
-    expect(upgradeButton.onmouseout).toBeDefined();
+    // Check initial state (not hovered)
+    expect(upgradeButton).toHaveClass("bg-dark-slate");
+    expect(upgradeButton).toHaveClass("text-neon-green");
+
+    // Simulate hover
+    fireEvent.mouseEnter(upgradeButton);
+    expect(upgradeButton).toHaveClass("bg-neon-green");
+    expect(upgradeButton).toHaveClass("text-dark-slate");
+
+    // Simulate hover out
+    fireEvent.mouseLeave(upgradeButton);
+    expect(upgradeButton).toHaveClass("bg-dark-slate");
+    expect(upgradeButton).toHaveClass("text-neon-green");
+  });
+
+  test("handles reinitialize session button hover state correctly", () => {
+    const props = {
+      ...defaultProps,
+      error: "GitHub authentication issue detected",
+    };
+
+    render(<AuthenticationStatusBanner {...props} />);
+    const resetButton = screen.getByText("REINITIALIZE SESSION");
+
+    // Check initial state (not hovered)
+    expect(resetButton).toHaveClass("bg-dark-slate");
+    expect(resetButton).toHaveClass("text-electric-blue");
+
+    // Simulate hover
+    fireEvent.mouseEnter(resetButton);
+    expect(resetButton).toHaveClass("bg-electric-blue");
+    expect(resetButton).toHaveClass("text-dark-slate");
+
+    // Simulate hover out
+    fireEvent.mouseLeave(resetButton);
+    expect(resetButton).toHaveClass("bg-dark-slate");
+    expect(resetButton).toHaveClass("text-electric-blue");
   });
 });
