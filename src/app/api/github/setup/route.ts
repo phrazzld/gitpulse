@@ -2,50 +2,88 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { logger } from "@/lib/logger";
+import { installationIdSchema, validateQueryParams } from "@/lib/validation";
+import {
+  withErrorHandling,
+  createApiErrorResponse,
+} from "@/lib/auth/apiErrorHandler";
 
 const MODULE_NAME = "api:github:setup";
 
-export async function GET(request: NextRequest) {
-  logger.debug(MODULE_NAME, "GET /api/github/setup request received", { 
+async function handleGET(request: NextRequest) {
+  logger.debug(MODULE_NAME, "GET /api/github/setup request received", {
     url: request.url,
-    searchParams: Object.fromEntries(request.nextUrl.searchParams.entries())
+    searchParams: Object.fromEntries(request.nextUrl.searchParams.entries()),
   });
-  
+
   const session = await getServerSession(authOptions);
-  
+
   // Check if there's a valid session
   if (!session) {
     logger.warn(MODULE_NAME, "No valid session for GitHub App setup");
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
-  
-  // Extract the installation_id from the query parameters
-  const installationId = request.nextUrl.searchParams.get("installation_id");
-  
-  if (!installationId) {
-    logger.warn(MODULE_NAME, "No installation_id provided in the setup callback");
-    return NextResponse.redirect(new URL('/dashboard?error=missing_installation_id', request.url));
+
+  // Validate the installation_id from the query parameters
+  const validationResult = validateQueryParams(
+    request.nextUrl.searchParams,
+    z.object({
+      installation_id: installationIdSchema,
+    }),
+  );
+
+  if (!validationResult.success) {
+    logger.warn(MODULE_NAME, "Invalid installation_id provided", {
+      error: validationResult.error,
+    });
+    return NextResponse.redirect(
+      new URL(
+        `/dashboard?error=invalid_installation_id&message=${validationResult.error}`,
+        request.url,
+      ),
+    );
   }
-  
+
+  if (!validationResult.data) {
+    logger.error(MODULE_NAME, "Validation result data is undefined");
+    return NextResponse.redirect(
+      new URL(
+        `/dashboard?error=invalid_installation_id&message=Invalid installation ID format`,
+        request.url,
+      ),
+    );
+  }
+
+  const installationId = validationResult.data.installation_id.toString();
+
   logger.info(MODULE_NAME, "GitHub App installation ID received", {
     installationId,
-    user: session.user?.name || 'unknown'
+    user: session.user?.name || "unknown",
   });
-  
+
   // We'll store the installation ID in a cookie for now
   // In a production environment, you might want to store this in a database
-  const response = NextResponse.redirect(new URL('/dashboard', request.url));
-  
+  const response = NextResponse.redirect(new URL("/dashboard", request.url));
+
   // Set the installation_id cookie - httpOnly:false so JS can read it
   response.cookies.set("github_installation_id", installationId, {
     path: "/",
     httpOnly: false,
     maxAge: 30 * 24 * 60 * 60, // 30 days
     sameSite: "lax",
-    secure: process.env.NODE_ENV === 'production'
+    secure: process.env.NODE_ENV === "production",
   });
-  
-  logger.debug(MODULE_NAME, "Redirecting to dashboard with installation_id cookie set");
-  
+
+  logger.debug(
+    MODULE_NAME,
+    "Redirecting to dashboard with installation_id cookie set",
+  );
+
   return response;
 }
+
+// Missing import
+import { z } from "zod";
+
+// Wrap the handler with standardized error handling
+export const GET = withErrorHandling(handleGET, MODULE_NAME);

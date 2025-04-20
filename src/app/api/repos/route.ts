@@ -23,6 +23,8 @@ import {
 import { withAuthValidation, ApiRouteHandler } from "@/lib/auth/apiAuth";
 import { SessionInfo } from "@/types/api";
 import { safelyExtractError } from "@/lib/errors";
+import { z } from "zod";
+import { installationIdSchema, validateQueryParams } from "@/lib/validation";
 
 const MODULE_NAME = "api:repos";
 
@@ -72,12 +74,38 @@ async function handleGetRepositories(
     },
   });
 
-  // Get installation ID from query parameter if present
+  // Validate the installation_id query parameter if present
+  let installationId = session.installationId;
   const requestedInstallationId =
     request.nextUrl.searchParams.get("installation_id");
-  let installationId = requestedInstallationId
-    ? parseInt(requestedInstallationId, 10)
-    : session.installationId;
+
+  if (requestedInstallationId) {
+    const validationResult = validateQueryParams(
+      request.nextUrl.searchParams,
+      z.object({
+        installation_id: installationIdSchema,
+      }),
+    );
+
+    if (!validationResult.success) {
+      logger.warn(MODULE_NAME, "Invalid installation_id parameter", {
+        error: validationResult.error,
+      });
+
+      return cachedJsonResponse(
+        {
+          error: `Validation error: ${validationResult.error}`,
+          code: "VALIDATION_ERROR",
+          details: "The installation_id parameter must be a positive integer.",
+        },
+        400,
+      );
+    }
+
+    if (validationResult.data) {
+      installationId = validationResult.data.installation_id;
+    }
+  }
 
   // Create cache key parameters
   const cacheParams = {

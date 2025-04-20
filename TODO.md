@@ -102,7 +102,7 @@
     2. Invalid input triggers validation errors visible to the user.
   - **Depends‑on:** none
 
-- [ ] **T009 · feature · p1: implement server-side validation for API routes**
+- [x] **T009 · feature · p1: implement server-side validation for API routes**
 
   - **Context:** plan.md · cr‑04 Add input validation for user input
   - **Action:**

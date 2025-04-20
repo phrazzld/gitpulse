@@ -57,6 +57,44 @@ export const repoNameSchema = z
     "Repository name can only contain letters, numbers, periods, underscores, and hyphens",
   );
 
+// Installation ID validation
+export const installationIdSchema = z.coerce
+  .number()
+  .int("Installation ID must be an integer")
+  .positive("Installation ID must be positive");
+
+// Pagination cursor validation
+export const cursorSchema = z.string().optional();
+
+// Pagination limit validation
+export const limitSchema = z.coerce
+  .number()
+  .int("Limit must be an integer")
+  .min(1, "Limit must be at least 1")
+  .max(100, "Limit cannot exceed 100")
+  .default(50);
+
+// Contributors validation (array of contributor IDs or usernames)
+export const contributorsSchema = z
+  .string()
+  .transform((val) => val.split(",").map((v) => v.trim()))
+  .or(z.array(z.string()))
+  .optional();
+
+// Repositories validation (array of repository names)
+export const repositoriesSchema = z
+  .string()
+  .transform((val) => val.split(",").map((v) => v.trim()))
+  .or(z.array(z.string()))
+  .optional();
+
+// Organizations validation (array of organization names)
+export const organizationsSchema = z
+  .string()
+  .transform((val) => val.split(",").map((v) => v.trim()))
+  .or(z.array(z.string()))
+  .optional();
+
 // Utility function for validating any schema
 export function validateSchema<T>(
   schema: z.ZodType<T>,
@@ -81,6 +119,20 @@ export function validateSchema<T>(
       error: "Validation failed",
     };
   }
+}
+
+// Utility function to validate URL query parameters
+export function validateQueryParams<T>(
+  searchParams: URLSearchParams,
+  schema: z.ZodType<T>,
+): {
+  success: boolean;
+  data?: T;
+  error?: string;
+} {
+  // Convert URLSearchParams to object
+  const params = Object.fromEntries(searchParams.entries());
+  return validateSchema(schema, params);
 }
 
 // Input validation
