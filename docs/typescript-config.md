@@ -2,6 +2,123 @@
 
 This document explains key TypeScript configuration choices in the GitPulse project.
 
+## Configuration Files
+
+The project uses three TypeScript configuration files:
+
+1. **`tsconfig.json`** - The base configuration inherited by the other configs
+2. **`tsconfig.app.json`** - Configuration for application code (excluding tests)
+3. **`tsconfig.test.json`** - Configuration for test files (with specific relaxations)
+
+## TypeScript Configuration Strategy
+
+### Application Code (`tsconfig.app.json`)
+
+Application code uses the strictest TypeScript settings:
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**"]
+}
+```
+
+The application code configuration:
+
+- Inherits all strict settings from `tsconfig.json`
+- Maintains full type safety for production code
+- Excludes test files from the compilation scope
+- Is used by the main `npm run typecheck` command and pre-commit hooks
+
+### Test Code (`tsconfig.test.json`)
+
+Test files have specific configuration needs:
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "noImplicitAny": true,
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": []
+}
+```
+
+The test code configuration:
+
+- Maintains most strict settings (explicit flags instead of `strict: true`)
+- Disables `exactOptionalPropertyTypes` to accommodate mock patterns
+- Allows two-stage casting (`as unknown as Type`) with proper documentation
+- Is used by the `npm run typecheck:tests` command
+
+## Type Casting in Tests
+
+### Acceptable Patterns
+
+In test files, two-stage casting (`as unknown as Type`) is permitted with the following guidelines:
+
+1. **Documentation Required**: All casts must be documented with comments explaining why the cast is necessary and its safety implications.
+
+2. **Limited Scope**: Only used for:
+
+   - Mocking complex external libraries (e.g., Octokit)
+   - Testing error handling boundaries
+   - Edge case testing
+
+3. **Proper Comments**: Casts should have explanatory comments:
+
+```typescript
+// This is an intentional two-stage cast for our incomplete mock Octokit
+// We need this because the mock is missing properties required by the full type
+return mockOctokit as unknown as Octokit;
+```
+
+### Prohibited Patterns
+
+Even in tests, the following are not allowed:
+
+1. **Direct `as any` casts**: These should be replaced with proper interfaces
+2. **Undocumented casts**: All type assertions must have explanatory comments
+3. **Unnecessary casts**: Use proper typing when possible
+
+## NPM Scripts
+
+The project has dedicated commands for type checking:
+
+- `npm run typecheck` - Check application code (using `tsconfig.app.json`)
+- `npm run typecheck:tests` - Check test files (using `tsconfig.test.json`)
+- `npm run typecheck:all` - Check all files using the base config
+
+## Pre-commit Hooks
+
+The `lint-staged` configuration uses the application-specific TypeScript config:
+
+```json
+"*.{ts,tsx}": [
+  "eslint",
+  "bash -c 'tsc --skipLibCheck --noEmit --project tsconfig.app.json'",
+  "prettier --write --end-of-line lf",
+  "node ./scripts/check-file-size.js"
+]
+```
+
+This ensures:
+
+- Application code maintains strict typing
+- Pre-commit hooks avoid failing on intentional test-specific type casts
+- Code quality is enforced without hindering testing patterns
+
 ## skipLibCheck Flag
 
 ### What is skipLibCheck?

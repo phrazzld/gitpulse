@@ -13,6 +13,9 @@ import { GitHubAuthError, GitHubConfigError } from "../errors";
  *
  * The alternative would be to create complete mock implementations with proper types,
  * which would add significant complexity with little benefit for test coverage.
+ *
+ * For TypeScript < 4.9, we use `as unknown as Type` for type casting.
+ * For TypeScript >= 4.9, we could use the safer pattern: (value as unknown) as Type
  */
 
 // Mock dependencies
@@ -41,7 +44,8 @@ describe("githubAuth", () => {
       const mockOctokit = {
         rest: {},
       };
-      // @ts-expect-error TS2352: intentional two-stage cast for our incomplete mock Octokit
+      // This is an intentional two-stage cast for our incomplete mock Octokit
+      // We need this because the mock is missing properties required by the full Octokit type
       return mockOctokit as unknown as Octokit;
     });
 

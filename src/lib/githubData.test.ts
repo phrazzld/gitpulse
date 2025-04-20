@@ -24,6 +24,9 @@ import {
  *
  * The alternative would be to create complete mock implementations with proper types,
  * which would add significant complexity with little benefit for test coverage.
+ *
+ * For TypeScript < 4.9, we use `as unknown as Type` for type casting.
+ * For TypeScript >= 4.9, we could use the safer pattern: (value as unknown) as Type
  */
 
 // Mock dependencies
@@ -199,12 +202,14 @@ describe("githubData", () => {
         typeof createAuthenticatedOctokit
       >
     )
-      // @ts-expect-error TS2352: intentional two-stage cast for our incomplete mock Octokit
+      // This is an intentional two-stage cast for our incomplete mock Octokit
+      // We need this because the mock is missing properties required by the full Octokit type
       .mockResolvedValue(mockOctokit as unknown as Octokit);
 
     // Mock Octokit constructor
     (Octokit as jest.MockedClass<typeof Octokit>).mockImplementation(() => {
-      // @ts-expect-error TS2352: intentional two-stage cast for our incomplete mock Octokit
+      // This is an intentional two-stage cast for our incomplete mock Octokit
+      // We need this because the mock is missing properties required by the full Octokit type
       return mockOctokit as unknown as Octokit;
     });
   });
@@ -212,7 +217,7 @@ describe("githubData", () => {
   describe("fetchRepositories", () => {
     it("should fetch repositories using provided Octokit instance", async () => {
       // Call the function with our mock Octokit
-      // @ts-expect-error TS2352: intentional two-stage cast for our incomplete mock Octokit
+      // This is an intentional two-stage cast for our incomplete mock Octokit
       const repositories = await fetchRepositories(
         mockOctokit as unknown as Octokit,
       );
@@ -232,7 +237,7 @@ describe("githubData", () => {
 
     it("should throw an error if Octokit instance is not provided", async () => {
       // Call the function without an Octokit instance
-      // @ts-expect-error TS2352: intentional two-stage cast for undefined to Octokit
+      // This is an intentional cast for undefined to Octokit to test error handling
       await expect(
         fetchRepositories(undefined as unknown as Octokit),
       ).rejects.toThrow("Octokit instance is required");
@@ -262,6 +267,7 @@ describe("githubData", () => {
     it("should throw an error if Octokit instance is not provided", async () => {
       // Call the function without an Octokit instance
       // Using 'unknown' as intermediate step for undefined Octokit is justified in tests
+      // This is an intentional cast to test error handling
       await expect(
         fetchAppRepositories(undefined as unknown as Octokit),
       ).rejects.toThrow("Octokit instance is required");
@@ -349,8 +355,9 @@ describe("githubData", () => {
       const since = "2025-01-01T00:00:00Z";
       const until = "2025-01-31T23:59:59Z";
 
+      // Using intentional cast for testing purposes
       const commits = await fetchRepositoryCommitsWithOctokit(
-        mockOctokit as Octokit,
+        mockOctokit as unknown as Octokit,
         owner,
         repo,
         since,
@@ -389,8 +396,9 @@ describe("githubData", () => {
       const until = "2025-01-31T23:59:59Z";
       const author = "testuser";
 
+      // Using intentional cast for testing purposes
       await fetchRepositoryCommitsWithOctokit(
-        mockOctokit as Octokit,
+        mockOctokit as unknown as Octokit,
         owner,
         repo,
         since,
@@ -414,9 +422,10 @@ describe("githubData", () => {
 
     it("should throw an error if Octokit instance is not provided", async () => {
       // Call the function without an Octokit instance
+      // This is an intentional cast to test error handling
       await expect(
         fetchRepositoryCommitsWithOctokit(
-          undefined as Octokit,
+          undefined as unknown as Octokit,
           "owner",
           "repo1",
           "2025-01-01",
@@ -567,8 +576,9 @@ describe("githubData", () => {
       const until = "2025-01-31T23:59:59Z";
 
       // Call the function with our mock Octokit
+      // Using intentional cast for testing purposes
       const commits = await fetchCommitsForRepositoriesWithOctokit(
-        mockOctokit as Octokit,
+        mockOctokit as unknown as Octokit,
         repositories,
         since,
         until,
@@ -613,8 +623,9 @@ describe("githubData", () => {
       const until = "2025-01-31T23:59:59Z";
       const author = "testuser";
 
+      // Using intentional cast for testing purposes
       await fetchCommitsForRepositoriesWithOctokit(
-        mockOctokit as Octokit,
+        mockOctokit as unknown as Octokit,
         repositories,
         since,
         until,
@@ -637,8 +648,9 @@ describe("githubData", () => {
 
     it("should handle empty repository list", async () => {
       // Call with empty repositories array
+      // Using intentional cast for testing purposes
       const commits = await fetchCommitsForRepositoriesWithOctokit(
-        mockOctokit as Octokit,
+        mockOctokit as unknown as Octokit,
         [],
         "2025-01-01",
         "2025-01-31",
@@ -652,9 +664,10 @@ describe("githubData", () => {
     });
 
     it("should throw an error if Octokit instance is not provided", async () => {
+      // This is an intentional cast to test error handling
       await expect(
         fetchCommitsForRepositoriesWithOctokit(
-          undefined as Octokit,
+          undefined as unknown as Octokit,
           ["owner/repo1"],
           "2025-01-01",
           "2025-01-31",
@@ -678,8 +691,9 @@ describe("githubData", () => {
         Promise.resolve(mockCommits),
       );
 
+      // Using intentional cast for testing purposes
       await fetchCommitsForRepositoriesWithOctokit(
-        mockOctokit as Octokit,
+        mockOctokit as unknown as Octokit,
         repositories,
         since,
         until,
@@ -725,8 +739,9 @@ describe("githubData", () => {
         Promise.resolve(mockCommits),
       );
 
+      // Using intentional cast for testing purposes
       await fetchCommitsForRepositoriesWithOctokit(
-        mockOctokit as Octokit,
+        mockOctokit as unknown as Octokit,
         repositories,
         since,
         until,

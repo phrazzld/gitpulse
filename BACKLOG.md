@@ -7,6 +7,8 @@
   - Update responsive menu behavior
   - Depends on: Core Component Library Creation
 
+- audit whole codebase against dev philosophy, identify key things to hit
+
 - Dashboard Interface Redesign
 
   - Rework main dashboard layout
