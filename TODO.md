@@ -66,7 +66,7 @@
     2. Local testing confirms sensitive data does not appear in logs during authentication/API calls.
   - **Depends‑on:** none
 
-- [ ] **T006 · feature · p0: implement central log sanitization utility**
+- [x] **T006 · feature · p0: implement central log sanitization utility**
 
   - **Context:** plan.md · cr‑03 Sanitize sensitive info in logs
   - **Action:**
