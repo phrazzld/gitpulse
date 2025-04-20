@@ -3,20 +3,20 @@ import { render, screen } from "@testing-library/react";
 import SummaryDisplay from "../SummaryDisplay";
 import { CommitSummary } from "@/types/summary";
 
-// Mock ActivityFeed component
-jest.mock("@/components/ActivityFeed", () => ({
+// Mock ActivityFeedPanel component
+jest.mock("@/components/dashboard/ActivityFeedPanel", () => ({
   __esModule: true,
   default: ({
-    loadCommits,
-    useInfiniteScroll,
-    initialLimit,
-    additionalItemsPerPage,
+    dateRange,
+    filters,
+    installationIds,
+    mode,
+    maxItems,
     showRepository,
-    emptyMessage,
   }: any) => (
     <div data-testid="activity-feed">
       <div data-testid="activity-feed-props">
-        {JSON.stringify({ useInfiniteScroll, initialLimit, showRepository })}
+        {JSON.stringify({ maxItems, showRepository, mode })}
       </div>
       <div>Activity Feed Mock</div>
     </div>
