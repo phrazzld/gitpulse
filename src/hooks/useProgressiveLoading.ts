@@ -6,6 +6,15 @@ export type ProgressiveLoadingOptions = {
   infiniteScroll?: boolean;
 };
 
+export type ProgressiveLoadingError = {
+  message: string;
+  code?: string;
+  details?: string;
+  requestId?: string;
+  signOutRequired?: boolean;
+  needsInstallation?: boolean;
+};
+
 export type ProgressiveLoadingState<T> = {
   items: T[];
   loading: boolean;
@@ -13,6 +22,7 @@ export type ProgressiveLoadingState<T> = {
   incrementalLoading: boolean;
   hasMore: boolean;
   error: string | null;
+  errorDetails?: ProgressiveLoadingError | null;
 };
 
 type FetchFunction<T> = (
@@ -49,6 +59,7 @@ export function useProgressiveLoading<T>(
     incrementalLoading: false,
     hasMore: true,
     error: null,
+    errorDetails: null,
   });
 
   // Refs to track cursors and prevent duplicate requests
@@ -124,6 +135,7 @@ function setLoadingState<T>(
     initialLoading,
     incrementalLoading,
     error: null,
+    errorDetails: null,
   }));
 }
 
@@ -179,12 +191,56 @@ function handleLoadError<T>(
   setState: React.Dispatch<React.SetStateAction<ProgressiveLoadingState<T>>>,
   error: unknown,
 ) {
+  // Extract relevant properties from the standardized error format
+  let errorMessage = "An error occurred";
+  let errorDetails: ProgressiveLoadingError | null = null;
+
+  if (error instanceof Error) {
+    errorMessage = error.message;
+
+    // Extract additional properties from standardized error format
+    const apiError = error as Error & {
+      code?: string;
+      details?: string;
+      requestId?: string;
+      signOutRequired?: boolean;
+      needsInstallation?: boolean;
+      resetAt?: string;
+      metadata?: Record<string, unknown>;
+    };
+
+    // Create error details object with all available properties
+    errorDetails = {
+      message: errorMessage,
+      code: apiError.code,
+      details: apiError.details,
+      requestId: apiError.requestId,
+      signOutRequired: apiError.signOutRequired,
+      needsInstallation: apiError.needsInstallation,
+    };
+
+    // Include error details in the message if available and not already included
+    if (apiError.details && !errorMessage.includes(apiError.details)) {
+      errorMessage = `${errorMessage}${apiError.details ? `: ${apiError.details}` : ""}`;
+    }
+
+    // Add request ID for logging/debugging if available
+    if (apiError.requestId) {
+      console.error(
+        `API Error [${apiError.requestId}]:`,
+        errorMessage,
+        apiError.code,
+      );
+    }
+  }
+
   setState((prev) => ({
     ...prev,
     loading: false,
     initialLoading: false,
     incrementalLoading: false,
-    error: error instanceof Error ? error.message : "An error occurred",
+    error: errorMessage,
+    errorDetails,
   }));
 }
 
@@ -199,5 +255,6 @@ function resetState<T>(
     incrementalLoading: false,
     hasMore: true,
     error: null,
+    errorDetails: null,
   });
 }

@@ -40,7 +40,9 @@ export default function ActivityFeedPanel({
     incrementalLoading,
     hasMore,
     error,
+    errorDetails,
     loadMore,
+    loadInitialData,
   } = useActivityData(
     {
       dateRange,
@@ -81,6 +83,7 @@ export default function ActivityFeedPanel({
         incrementalLoading={incrementalLoading}
         hasMore={hasMore}
         error={error}
+        errorDetails={errorDetails}
         propsLoading={propsLoading}
         truncated={truncated}
         maxItems={maxItems}
@@ -90,6 +93,7 @@ export default function ActivityFeedPanel({
         itemHeight={itemHeight}
         canTriggerInfiniteScroll={canTriggerInfiniteScroll}
         handleIntersect={handleIntersect}
+        onRetry={loadInitialData}
         listContainerRef={listContainerRef}
       />
 

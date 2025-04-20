@@ -248,7 +248,7 @@
     2. API routes return errors in the documented standard format.
   - **Depends‑on:** [T018]
 
-- [ ] **T020 · refactor · p1: update client-side error handling to use standard format**
+- [x] **T020 · refactor · p1: update client-side error handling to use standard format**
 
   - **Context:** plan.md · cr‑09 Standardize error handling
   - **Action:**

@@ -2,14 +2,25 @@ import React from "react";
 
 interface ActivityFeedErrorProps {
   error: string;
+  code?: string;
+  requestId?: string;
+  details?: string;
+  retryFn?: () => void;
 }
 
 /**
  * ActivityFeedError Component
  *
  * Displays an error message when data fetching fails
+ * Supports standardized API error format with error code, details, and request ID
  */
-export function ActivityFeedError({ error }: ActivityFeedErrorProps) {
+export function ActivityFeedError({
+  error,
+  code,
+  requestId,
+  details,
+  retryFn,
+}: ActivityFeedErrorProps) {
   return (
     <div
       className="p-4 rounded-md border"
@@ -31,7 +42,33 @@ export function ActivityFeedError({ error }: ActivityFeedErrorProps) {
             clipRule="evenodd"
           />
         </svg>
-        <div>Failed to load activity data: {error}</div>
+        <div className="flex-1">
+          <div>Failed to load activity data: {error}</div>
+
+          {/* Show additional details if available */}
+          {details && details !== error && (
+            <div className="text-sm mt-1">{details}</div>
+          )}
+
+          {/* Show error code and request ID for support debugging */}
+          {(code || requestId) && (
+            <div className="text-xs mt-2 opacity-80">
+              {code && <span>Error code: {code}</span>}
+              {code && requestId && <span> · </span>}
+              {requestId && <span>Request ID: {requestId}</span>}
+            </div>
+          )}
+
+          {/* Add retry button if retry function provided */}
+          {retryFn && (
+            <button
+              onClick={retryFn}
+              className="mt-3 px-3 py-1 text-sm rounded-md border border-current hover:bg-red-100"
+            >
+              Try Again
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

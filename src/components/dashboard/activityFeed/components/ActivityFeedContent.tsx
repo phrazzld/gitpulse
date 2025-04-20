@@ -7,6 +7,8 @@ import { CommitList } from "./CommitList";
 import { LoadMoreSection } from "./LoadMoreSection";
 import { calculateListHeight } from "../utils/activityFeedUtils";
 
+import { ProgressiveLoadingError } from "@/hooks/useProgressiveLoading";
+
 interface ActivityFeedContentProps {
   commits: ActivityCommit[];
   loading: boolean;
@@ -14,6 +16,7 @@ interface ActivityFeedContentProps {
   incrementalLoading: boolean;
   hasMore: boolean;
   error: string | null;
+  errorDetails?: ProgressiveLoadingError | null;
   propsLoading?: boolean;
   truncated: boolean;
   maxItems?: number;
@@ -23,6 +26,7 @@ interface ActivityFeedContentProps {
   itemHeight: number;
   canTriggerInfiniteScroll: boolean;
   handleIntersect: () => void;
+  onRetry?: () => void;
   listContainerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -38,6 +42,7 @@ export function ActivityFeedContent({
   incrementalLoading,
   hasMore,
   error,
+  errorDetails,
   propsLoading,
   truncated,
   maxItems,
@@ -47,6 +52,7 @@ export function ActivityFeedContent({
   itemHeight,
   canTriggerInfiniteScroll,
   handleIntersect,
+  onRetry,
   listContainerRef,
 }: ActivityFeedContentProps) {
   // Loading state
@@ -56,7 +62,15 @@ export function ActivityFeedContent({
 
   // Error state
   if (error) {
-    return <ActivityFeedError error={error} />;
+    return (
+      <ActivityFeedError
+        error={error}
+        code={errorDetails?.code}
+        details={errorDetails?.details}
+        requestId={errorDetails?.requestId}
+        retryFn={onRetry}
+      />
+    );
   }
 
   // Empty state

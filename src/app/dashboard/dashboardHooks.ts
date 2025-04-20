@@ -180,11 +180,47 @@ export function useRepositoryFetching(
         );
       } catch (error: unknown) {
         console.error("Error fetching repositories:", error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to fetch repositories. Please try again.";
-        setError(errorMessage);
+
+        // Handle standardized API error format
+        if (error instanceof Error) {
+          // Check for API-specific properties
+          const apiError = error as Error & {
+            code?: string;
+            details?: string;
+            requestId?: string;
+            signOutRequired?: boolean;
+            needsInstallation?: boolean;
+            resetAt?: string;
+            metadata?: Record<string, unknown>;
+          };
+
+          // If it's a sign-out required error that wasn't caught earlier
+          if (apiError.signOutRequired) {
+            handleAuthError();
+            return false;
+          }
+
+          // If it's an installation needed error that wasn't caught earlier
+          if (apiError.needsInstallation) {
+            handleAppInstallationNeeded();
+            return false;
+          }
+
+          // Include error details in the message if available
+          let errorMessage = apiError.message;
+          if (apiError.details && !errorMessage.includes(apiError.details)) {
+            errorMessage = `${errorMessage}${apiError.details ? `: ${apiError.details}` : ""}`;
+          }
+
+          // Add request ID for logging if available
+          if (apiError.requestId) {
+            console.error(`API Error [${apiError.requestId}]: ${errorMessage}`);
+          }
+
+          setError(errorMessage);
+        } else {
+          setError("Failed to fetch repositories. Please try again.");
+        }
         return false;
       } finally {
         if (!forceFetch) {
@@ -324,26 +360,64 @@ export function useSummaryGeneration(
         );
 
         if (!response.ok) {
-          const errorData = await response.json();
+          // Parse the error response using the standardized API error format
+          const errorData: {
+            error?: string;
+            code?: string;
+            details?: string;
+            requestId?: string;
+            signOutRequired?: boolean;
+            needsInstallation?: boolean;
+            resetAt?: string;
+            metadata?: Record<string, unknown>;
+          } = await response.json();
 
-          // Check for installation needed error
+          // Log the error with request ID if available for debugging
+          if (errorData.requestId) {
+            console.error(
+              `API Error [${errorData.requestId}]:`,
+              errorData.error,
+              errorData.code,
+            );
+          }
+
+          // Check if app installation is needed
           if (errorData.needsInstallation) {
             handleAppInstallationNeeded();
             return;
           }
 
-          // Check for auth errors
+          // Check if authentication error (rely on standardized fields)
           if (
+            errorData.signOutRequired ||
             response.status === 401 ||
             response.status === 403 ||
             errorData.code === "GITHUB_AUTH_ERROR" ||
+            errorData.code === "GITHUB_TOKEN_ERROR" ||
+            errorData.code === "GITHUB_SCOPE_ERROR" ||
             errorData.code === "GITHUB_APP_CONFIG_ERROR"
           ) {
             handleAuthError();
             return;
           }
 
-          throw new Error(errorData.error || "Failed to generate summary");
+          // Create error object with all standardized properties
+          const error = new Error(
+            errorData.error || "Failed to generate summary",
+          );
+
+          // Add all standardized properties to the error object
+          Object.assign(error, {
+            code: errorData.code || "API_ERROR",
+            details: errorData.details,
+            requestId: errorData.requestId,
+            signOutRequired: errorData.signOutRequired || false,
+            needsInstallation: errorData.needsInstallation || false,
+            resetAt: errorData.resetAt,
+            metadata: errorData.metadata,
+          });
+
+          throw error;
         }
 
         const data: CommitSummary & {
@@ -376,11 +450,42 @@ export function useSummaryGeneration(
         }
       } catch (error: unknown) {
         console.error("Error generating summary:", error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to generate summary. Please try again.";
-        setError(errorMessage);
+
+        // Handle standardized API error format
+        if (error instanceof Error) {
+          // Check for API-specific properties
+          const apiError = error as Error & {
+            code?: string;
+            details?: string;
+            requestId?: string;
+            signOutRequired?: boolean;
+            needsInstallation?: boolean;
+            resetAt?: string;
+            metadata?: Record<string, unknown>;
+          };
+
+          // If it's a sign-out required error that wasn't caught earlier
+          if (apiError.signOutRequired) {
+            handleAuthError();
+            return;
+          }
+
+          // If it's an installation needed error that wasn't caught earlier
+          if (apiError.needsInstallation) {
+            handleAppInstallationNeeded();
+            return;
+          }
+
+          // Include error details in the message if available
+          let errorMessage = apiError.message;
+          if (apiError.details && !errorMessage.includes(apiError.details)) {
+            errorMessage = `${errorMessage}${apiError.details ? `: ${apiError.details}` : ""}`;
+          }
+
+          setError(errorMessage);
+        } else {
+          setError("Failed to generate summary. Please try again.");
+        }
       } finally {
         setLoading(false);
       }
@@ -495,36 +600,64 @@ async function handleRepositoryFetchError(
   handleAuthError: () => void,
   handleAppInstallationNeeded: () => void,
 ): Promise<boolean> {
-  // Parse the error response
+  // Parse the error response using the standardized API error format
   const errorData: {
     error?: string;
     code?: string;
+    details?: string;
+    requestId?: string;
+    signOutRequired?: boolean;
     needsInstallation?: boolean;
+    resetAt?: string;
+    metadata?: Record<string, unknown>;
   } = await response.json();
 
+  // Log the error with request ID if available for debugging
+  if (errorData.requestId) {
+    console.error(
+      `API Error [${errorData.requestId}]:`,
+      errorData.error,
+      errorData.code,
+    );
+  }
+
+  // Check if app installation is needed
   if (errorData.needsInstallation) {
     // GitHub App not installed
     handleAppInstallationNeeded();
     return false;
   }
 
+  // Check if authentication error (rely on standardized fields)
   if (
+    errorData.signOutRequired ||
     response.status === 401 ||
     response.status === 403 ||
     errorData.code === "GITHUB_AUTH_ERROR" ||
+    errorData.code === "GITHUB_TOKEN_ERROR" ||
     errorData.code === "GITHUB_SCOPE_ERROR" ||
-    errorData.code === "GITHUB_APP_CONFIG_ERROR" ||
-    (errorData.error &&
-      (errorData.error.includes("authentication") ||
-        errorData.error.includes("scope") ||
-        errorData.error.includes("permissions")))
+    errorData.code === "GITHUB_APP_CONFIG_ERROR"
   ) {
     // Auth error - token expired, invalid, or missing required scopes
     handleAuthError();
     return false;
   }
 
-  throw new Error(errorData.error || "Failed to fetch repositories");
+  // Create error object with all standardized properties
+  const error = new Error(errorData.error || "Failed to fetch repositories");
+
+  // Add all standardized properties to the error object
+  Object.assign(error, {
+    code: errorData.code || "API_ERROR",
+    details: errorData.details,
+    requestId: errorData.requestId,
+    signOutRequired: errorData.signOutRequired || false,
+    needsInstallation: errorData.needsInstallation || false,
+    resetAt: errorData.resetAt,
+    metadata: errorData.metadata,
+  });
+
+  throw error;
 }
 
 function handleRepositoryFetchSuccess(

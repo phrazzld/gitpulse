@@ -113,6 +113,7 @@ export function useActivityData(
     incrementalLoading,
     hasMore,
     error,
+    errorDetails: null, // We don't have access to the internal state of useProgressiveLoading
     loadInitialData,
     loadMore,
     reset,

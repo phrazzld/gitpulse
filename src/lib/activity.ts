@@ -199,8 +199,34 @@ export function createActivityFetcher(
     const response = await fetch(`${baseUrl}?${queryParams.toString()}`);
 
     if (!response.ok) {
-      const errorData = (await response.json()) as { error?: string };
-      throw new Error(errorData.error || "Failed to fetch activity data");
+      const errorData = (await response.json()) as {
+        error?: string;
+        code?: string;
+        details?: string;
+        requestId?: string;
+        signOutRequired?: boolean;
+        needsInstallation?: boolean;
+        resetAt?: string;
+        metadata?: Record<string, unknown>;
+      };
+
+      // Create error object with additional properties from API error response
+      const error = new Error(
+        errorData.error || "Failed to fetch activity data",
+      );
+
+      // Add standardized error properties
+      Object.assign(error, {
+        code: errorData.code || "API_ERROR",
+        details: errorData.details,
+        requestId: errorData.requestId,
+        signOutRequired: errorData.signOutRequired || false,
+        needsInstallation: errorData.needsInstallation || false,
+        resetAt: errorData.resetAt,
+        metadata: errorData.metadata,
+      });
+
+      throw error;
     }
 
     const data = (await response.json()) as ApiResponse;
