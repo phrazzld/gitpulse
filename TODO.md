@@ -261,7 +261,7 @@
     3. Tests verify error handling works as expected.
   - **Depends‑on:** [T019]
 
-- [ ] **T021 · refactor · p1: implement centralized installation id utility**
+- [x] **T021 · refactor · p1: implement centralized installation id utility**
 
   - **Context:** plan.md · cr‑10 Centralize installation ID handling
   - **Action:**
