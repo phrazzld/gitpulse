@@ -83,12 +83,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       sessionExists: !!session,
     });
 
-    return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    throw new Error("Unauthorized access. Please sign in to continue.");
   }
 
   // Validate query parameters
@@ -147,18 +142,11 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
         hasInstallationId: !!installationId,
       });
 
-      return new NextResponse(
-        JSON.stringify({
-          error: "GitHub authentication required. Please sign in again.",
-          code: "GITHUB_AUTH_ERROR",
-        }),
-        {
-          status: 401,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
+      const error = new Error(
+        "GitHub authentication required. Please sign in again.",
       );
+      error.name = "GitHubAuthError";
+      throw error;
     }
 
     // Create credentials object for authentication
@@ -177,26 +165,14 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
         ? await fetchAppRepositories(octokit)
         : await fetchRepositories(octokit);
     } catch (error: unknown) {
-      const errorObj =
-        error instanceof Error ? error : { message: String(error) };
       logger.error(MODULE_NAME, "Error fetching repositories", {
-        error: errorObj,
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        errorMessage: error instanceof Error ? error.message : String(error),
       });
 
-      return new NextResponse(
-        JSON.stringify({
-          error:
-            "Error fetching repositories: " +
-            (error instanceof Error ? error.message : String(error)),
-          code: "GITHUB_REPO_ERROR",
-        }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
+      // Rethrow the error to be handled by the withErrorHandling wrapper
+      throw error;
     }
 
     // Get repository full names for fetching commits
@@ -214,24 +190,14 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
         userLogin, // Only fetch commits by the current user
       );
     } catch (error: unknown) {
-      const errorObj =
-        error instanceof Error ? error : { message: String(error) };
-      logger.error(MODULE_NAME, "Error fetching commits", { error: errorObj });
+      logger.error(MODULE_NAME, "Error fetching commits", {
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+      });
 
-      return new NextResponse(
-        JSON.stringify({
-          error:
-            "Error fetching commits: " +
-            (error instanceof Error ? error.message : String(error)),
-          code: "GITHUB_COMMIT_ERROR",
-        }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
+      // Rethrow the error to be handled by the withErrorHandling wrapper
+      throw error;
     }
 
     // Optimize commits to reduce payload size
@@ -311,22 +277,13 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       compress: true,
     });
   } catch (error: unknown) {
-    const errorObj =
-      error instanceof Error ? error : { message: String(error) };
     logger.error(MODULE_NAME, "Unexpected error processing request", {
-      error: errorObj,
+      errorType: error instanceof Error ? error.constructor.name : typeof error,
+      errorMessage: error instanceof Error ? error.message : String(error),
     });
 
-    return await optimizedJsonResponse(
-      request,
-      {
-        error:
-          "An unexpected error occurred: " +
-          (error instanceof Error ? error.message : String(error)),
-        code: "UNEXPECTED_ERROR",
-      },
-      500,
-    );
+    // Rethrow the error to be handled by the withErrorHandling wrapper
+    throw error;
   }
 }
 

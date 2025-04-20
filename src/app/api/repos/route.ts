@@ -22,9 +22,13 @@ import {
 } from "@/lib/cache";
 import { withAuthValidation, ApiRouteHandler } from "@/lib/auth/apiAuth";
 import { SessionInfo } from "@/types/api";
-import { safelyExtractError } from "@/lib/errors";
 import { z } from "zod";
 import { installationIdSchema, validateQueryParams } from "@/lib/validation";
+import {
+  withErrorHandling,
+  createApiErrorResponse,
+  createApiSuccessResponse,
+} from "@/lib/auth/apiErrorHandler";
 
 const MODULE_NAME = "api:repos";
 
@@ -92,13 +96,8 @@ async function handleGetRepositories(
         error: validationResult.error,
       });
 
-      return cachedJsonResponse(
-        {
-          error: `Validation error: ${validationResult.error}`,
-          code: "VALIDATION_ERROR",
-          details: "The installation_id parameter must be a positive integer.",
-        },
-        400,
+      throw new Error(
+        `Validation error: The installation_id parameter must be a positive integer.`,
       );
     }
 
@@ -203,14 +202,11 @@ async function handleGetRepositories(
       hasInstallationId: !!installationId,
     });
 
-    return cachedJsonResponse(
-      {
-        error: "GitHub authentication required",
-        needsInstallation: true,
-        message: "Please install the GitHub App to access your repositories.",
-      },
-      403,
+    const error = new Error(
+      "GitHub authentication required. Please install the GitHub App to access your repositories.",
     );
+    error.name = "GitHubAuthError";
+    throw error;
   }
 
   logger.info(MODULE_NAME, "Authenticated user requesting repositories", {
@@ -315,96 +311,20 @@ async function handleGetRepositories(
     };
 
     // Return cached JSON response with appropriate headers
-    return cachedJsonResponse(responseData, 200, {
+    return createApiSuccessResponse(responseData, 200, {
       etag,
       maxAge: CacheTTL.LONG, // Cache for 1 hour
       staleWhileRevalidate: CacheTTL.LONG * 2, // Allow stale content for 2 hours while revalidating
     });
   } catch (error) {
-    // Use sanitizeLog to ensure any sensitive data in the error is redacted
-    logger.error(MODULE_NAME, "Error fetching repositories", {
-      errorType: error instanceof Error ? error.constructor.name : typeof error,
-      errorMessage: error instanceof Error ? error.message : String(error),
-    });
-
-    // Import GitHubError classes directly in this file
-    const {
-      GitHubAuthError,
-      GitHubConfigError,
-      GitHubRateLimitError,
-      GitHubNotFoundError,
-      GitHubApiError,
-      GitHubError,
-    } = await import("@/lib/errors");
-
-    let errorMessage = "Failed to fetch repositories";
-    let errorCode = "API_ERROR";
-    let statusCode = 500;
-    let signOutRequired = false;
-    let errorDetails = "";
-    const needsInstallation = false;
-
-    // Check for specific error types based on our custom error classes
-    if (error instanceof GitHubConfigError) {
-      errorMessage =
-        "GitHub App not properly configured. Please contact the administrator.";
-      errorCode = "GITHUB_APP_CONFIG_ERROR";
-      statusCode = 500;
-      errorDetails = error.message;
-    } else if (error instanceof GitHubAuthError) {
-      if (error.message.includes("scope")) {
-        errorMessage =
-          "Your GitHub token is missing required permissions. Please sign out and sign in again to grant access to your repositories.";
-        errorCode = "GITHUB_SCOPE_ERROR";
-      } else {
-        errorMessage =
-          "GitHub authentication failed. Your access token is invalid or expired.";
-        errorCode = "GITHUB_AUTH_ERROR";
-      }
-      statusCode = 403; // Use 403 instead of 401 to prevent automatic browser redirects
-      signOutRequired = true;
-      errorDetails = error.message;
-    } else if (error instanceof GitHubRateLimitError) {
-      errorMessage = "GitHub API rate limit exceeded. Please try again later.";
-      errorCode = "GITHUB_RATE_LIMIT_ERROR";
-      statusCode = 429;
-      // Add reset time if available
-      const resetTime = error.resetTimestamp
-        ? new Date(error.resetTimestamp * 1000).toISOString()
-        : "unknown";
-      errorDetails = `Rate limit exceeded. Reset at ${resetTime}`;
-    } else if (error instanceof GitHubNotFoundError) {
-      errorMessage = "GitHub resource not found.";
-      errorCode = "GITHUB_NOT_FOUND_ERROR";
-      statusCode = 404;
-      errorDetails = error.message;
-    } else if (error instanceof GitHubApiError) {
-      errorMessage = "GitHub API error occurred.";
-      errorCode = "GITHUB_API_ERROR";
-      statusCode = error.status;
-      errorDetails = error.message;
-    } else {
-      // For any other type of error, including generic GitHubError
-      errorMessage = "Failed to fetch repositories";
-      errorCode = "API_ERROR";
-      statusCode = 500;
-      errorDetails = error instanceof Error ? error.message : String(error);
-    }
-
-    // Use 403 for auth errors rather than 401 to prevent automatic browser redirects
-    return cachedJsonResponse(
-      {
-        error: errorMessage,
-        details: errorDetails,
-        code: errorCode,
-        signOutRequired: signOutRequired,
-        needsInstallation: needsInstallation,
-      },
-      statusCode,
-    );
+    // The error will be caught and handled by the withErrorHandling wrapper
+    throw error;
   }
 }
 
-// Export the authenticated handler
-// Type cast the handler to match the expected function signature
-export const GET = withAuthValidation(handleGetRepositories as ApiRouteHandler);
+// Export the authenticated handler with standardized error handling
+// First apply auth validation, then wrap with error handling
+const authenticatedHandler = withAuthValidation(
+  handleGetRepositories as ApiRouteHandler,
+);
+export const GET = withErrorHandling(authenticatedHandler, MODULE_NAME);

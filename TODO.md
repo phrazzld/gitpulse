@@ -236,7 +236,7 @@
     3. Utilities produce responses conforming to the standard format.
   - **Depends‑on:** none
 
-- [ ] **T019 · refactor · p1: refactor api routes to use standardized error handling**
+- [x] **T019 · refactor · p1: refactor api routes to use standardized error handling**
 
   - **Context:** plan.md · cr‑09 Standardize error handling
   - **Action:**
