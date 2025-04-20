@@ -91,7 +91,7 @@
     2. Tests cover common sensitive data patterns and edge cases.
   - **Depends‑on:** [T006]
 
-- [ ] **T008 · feature · p0: implement client-side validation for user inputs**
+- [x] **T008 · feature · p0: implement client-side validation for user inputs**
 
   - **Context:** plan.md · cr‑04 Add input validation for user input
   - **Action:**

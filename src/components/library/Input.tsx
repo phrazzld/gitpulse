@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "./utils/cn";
+import { validateInput } from "@/lib/validation";
 
 /**
  * Input component props interface
@@ -106,6 +107,18 @@ export interface InputProps
    * @default false
    */
   readOnly?: boolean;
+
+  /**
+   * Validation options for the input.
+   * These are used to validate the input value and display error messages.
+   */
+  validation?: {
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: RegExp;
+    customValidator?: (value: string) => string | null;
+  };
 }
 
 /**
@@ -273,7 +286,7 @@ const getTypeClasses = (type?: InputProps["type"]) => {
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
-      value,
+      value = "",
       onChange,
       placeholder,
       disabled = false,
@@ -288,17 +301,50 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       variant = "outlined",
       className,
       id,
+      validation,
+      onBlur,
       ...rest
     },
     ref,
   ) => {
+    // State for validation errors
+    const [validationError, setValidationError] = React.useState<string | null>(
+      null,
+    );
+
     // Generate a unique ID for the input if not provided
     const uniqueId = React.useId();
     const inputId = id || `input-${uniqueId}`;
-    const errorId = errorMessage ? `error-${inputId}` : undefined;
+
+    // Determine error message priority: explicit errorMessage -> validationError -> error as string
+    const displayErrorMessage =
+      errorMessage ||
+      validationError ||
+      (typeof error === "string" ? error : undefined);
+    const errorId = displayErrorMessage ? `error-${inputId}` : undefined;
 
     // Combine describedby with error ID if present
     const describedBy = cn(ariaDescribedby, errorId);
+
+    // Determine if there's an error condition
+    const hasError = !!error || !!validationError;
+
+    // Validate input on blur
+    const handleBlur = React.useCallback(
+      (e: React.FocusEvent<HTMLInputElement>) => {
+        // Only validate if validation props are provided
+        if (validation && value !== undefined) {
+          const result = validateInput(value, validation);
+          setValidationError(result);
+        }
+
+        // Call the original onBlur handler
+        if (onBlur) {
+          onBlur(e);
+        }
+      },
+      [validation, value, onBlur],
+    );
 
     // Apply classes based on component state and props
     const inputClasses = cn(
@@ -306,7 +352,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       getVariantClasses(variant),
       getSizeClasses(size),
       getTypeClasses(type),
-      getErrorClasses(error),
+      getErrorClasses(hasError),
       getReadOnlyClasses(readOnly),
       // Pass through any custom classes
       className,
@@ -320,11 +366,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           value={value}
           onChange={onChange}
+          onBlur={handleBlur}
           placeholder={placeholder}
           disabled={disabled}
           readOnly={readOnly}
           size={htmlSize}
-          aria-invalid={!!error}
+          aria-invalid={hasError}
           aria-disabled={disabled}
           aria-readonly={readOnly}
           aria-label={ariaLabel}
@@ -334,9 +381,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         />
 
         {/* Error message display */}
-        {errorMessage && (
+        {displayErrorMessage && (
           <div id={errorId} className="text-crimson-red text-sm mt-1">
-            {errorMessage}
+            {displayErrorMessage}
           </div>
         )}
       </div>
