@@ -165,7 +165,7 @@
     3. Component tests pass.
   - **Depends‑on:** none
 
-- [~] **T014 · refactor · p1: consolidate activityfeed components with immediate deprecation**
+- [x] **T014 · refactor · p1: consolidate activityfeed components with immediate deprecation**
   - **Context:** plan.md · cr‑11 Consolidate duplicate ActivityFeed
   - **Action:**
     1. Identify all imports and usages of the old `ActivityFeed.tsx` component.
@@ -183,7 +183,7 @@
 
 ## Code Structure & Size
 
-- [ ] **T015 · refactor · p1: decompose activityfeedpanel.tsx into smaller files**
+- [x] **T015 · refactor · p1: decompose activityfeedpanel.tsx into smaller files**
 
   - **Context:** plan.md · cr‑06 Break up oversized files/functions
   - **Action:**
