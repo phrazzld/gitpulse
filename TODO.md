@@ -196,7 +196,7 @@
     3. Component tests pass.
   - **Depends‑on:** none
 
-- [ ] **T016 · refactor · p1: decompose header.tsx into smaller files**
+- [x] **T016 · refactor · p1: decompose header.tsx into smaller files**
 
   - **Context:** plan.md · cr‑06 Break up oversized files/functions
   - **Action:**
