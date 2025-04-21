@@ -2,7 +2,7 @@
 
 ## `useActivityData` Hook Test Failures
 
-- [ ] **Fix "hasMore" Flag Issue**
+- [~] **Fix "hasMore" Flag Issue**
 
   - Examine how `hasMore` is set in `src/hooks/useActivityData.ts`
   - Debug why `result.current.hasMore` is `false` when it should be `true` after first page load

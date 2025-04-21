@@ -8,7 +8,6 @@
   - Depends on: Core Component Library Creation
 
 - audit whole codebase against dev philosophy, identify key things to hit
-- run glance on post-commit hook
 
 - Dashboard Interface Redesign
 
