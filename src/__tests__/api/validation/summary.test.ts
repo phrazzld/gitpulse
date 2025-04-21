@@ -61,11 +61,15 @@ const mockSummaryHandler = async (req: NextRequest) => {
   // Convert URLSearchParams to object
   const params = Object.fromEntries(urlParams.entries());
 
+  // Parse URL parameters for validation
+
   // Validate parameters
   try {
     const validationResult = summaryParamsSchema.safeParse(params);
 
     if (!validationResult.success) {
+      // Validation failed, return error response
+
       return NextResponse.json(
         {
           error: `Validation error: ${validationResult.error.errors[0].message}`,
@@ -77,6 +81,8 @@ const mockSummaryHandler = async (req: NextRequest) => {
     }
 
     // For test purposes, return a success response with validated parameters
+    // Validation succeeded, return success response with validated data
+
     return NextResponse.json(
       {
         success: true,
@@ -85,6 +91,8 @@ const mockSummaryHandler = async (req: NextRequest) => {
       { status: 200 },
     );
   } catch (error) {
+    // Unexpected error occurred during validation
+
     return NextResponse.json(
       {
         error: "Validation failed",

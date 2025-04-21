@@ -304,3 +304,52 @@
   - **Context:** T018-T020 standardizing error handling
   - **Blocking?:** no
   - **Resolution:** The current error handling approach is adequate. Continue with the planned standardization in T018-T020.
+
+## Test & CI Fixes
+
+- [x] **T023 · bugfix · p0: fix NextRequest mock for API route tests**
+
+  - **Context:** CI failure · Installation ID utility integration
+  - **Action:**
+    1. Update the `NextRequest` mock in test environment to properly handle URL properties.
+    2. Ensure `req.nextUrl` returns a proper object with working `searchParams`.
+    3. Modify `jest.setup.js` to include this improved mock.
+  - **Done‑when:**
+    1. Summary API tests no longer show URL undefined errors.
+    2. CI passes without URL-related errors.
+  - **Depends‑on:** none
+
+- [ ] **T024 · bugfix · p0: improve installation helper mocking in tests**
+
+  - **Context:** CI failure · Installation ID utility integration
+  - **Action:**
+    1. Create a proper mock implementation for `installationHelper.ts` utilities.
+    2. Update test files that need the mock (`summary.test.ts` and others).
+    3. Ensure the mock simulates different installation ID scenarios appropriately.
+  - **Done‑when:**
+    1. Tests using installation helper functions pass without errors.
+    2. Mock properly integrates with test environment.
+  - **Depends‑on:** none
+
+- [ ] **T025 · bugfix · p0: fix ActionButton style attribute test**
+
+  - **Context:** CI failure · Unrelated to installation ID changes
+  - **Action:**
+    1. Examine the failing test in `ActionButton.test.tsx` related to opacity style.
+    2. Determine why the style attribute is null in the test environment.
+    3. Update either the component or the test to fix the assertion.
+  - **Done‑when:**
+    1. ActionButton tests pass without style attribute errors.
+    2. The test correctly verifies the loading state visual indicator.
+  - **Depends‑on:** none
+
+- [ ] **T026 · test · p1: improve test coverage for API routes**
+  - **Context:** CI failure · Coverage thresholds
+  - **Action:**
+    1. Identify coverage gaps in API route tests.
+    2. Add tests specifically for the installation ID resolution paths.
+    3. Include tests for error cases and fallback behaviors.
+  - **Done‑when:**
+    1. Test coverage for API routes meets CI thresholds.
+    2. All main code paths for installation ID resolution are tested.
+  - **Depends‑on:** [T023, T024]
