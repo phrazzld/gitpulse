@@ -343,7 +343,7 @@
     2. The test correctly verifies the loading state visual indicator.
   - **Depends‑on:** none
 
-- [ ] **T026 · test · p1: improve test coverage for API routes**
+- [x] **T026 · test · p1: improve test coverage for API routes**
   - **Context:** CI failure · Coverage thresholds
   - **Action:**
     1. Identify coverage gaps in API route tests.
