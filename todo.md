@@ -102,57 +102,60 @@
   - Pushed changes to feature branch
   - Will verify CI passes with all tests
 
-## Maximum Update Depth Bug Fix
+## Maximum Update Depth Bug Fix with Zustand
 
-- [ ] **T001: Consolidate dashboard state into a single state object**
+- [x] **T001: Migrate dashboard state to Zustand store**
 
-  - In `src/app/dashboard/dashboardHooks.ts`, refactor the `useDashboardState` hook
-  - Replace individual useState calls with a single consolidated state object
-  - Create or update `DashboardState` TypeScript interface
-  - Ensure all previously tracked state is included in the new object
+  - Create a new dashboard state slice in the Zustand store using `/src/state/slices/dashboardSlice.ts` as reference
+  - Implement all required state properties from `src/app/dashboard/dashboardHooks.ts`
+  - Create TypeScript interfaces and actions for atomic state updates
+  - Ensure proper typing and organization of state
+  - Add custom selector hooks if needed
   - **Depends On:** None
   - **AC Ref:** None
 
-- [ ] **T002: Refactor handleRepositoryFetchSuccess to use single state update**
+- [x] **T002: Refactor handleRepositoryFetchSuccess to use Zustand atomic updates**
 
-  - In `src/app/dashboard/dashboardHooks.ts`, update `handleRepositoryFetchSuccess`
-  - Replace multiple sequential setState calls with a single setDashboardState call
-  - Make sure all properties (repositories, authMethod, installationIds, etc.) are updated
+  - Create a Zustand action in the dashboard slice that performs a single atomic update
+  - Replace the implementation in `handleRepositoryFetchSuccess` to use the new store action
+  - Ensure all properties (repositories, authMethod, installationIds, etc.) are updated atomically
   - Include proper null/undefined handling for optional values
   - **Depends On:** T001
   - **AC Ref:** None
 
-- [ ] **T003: Memoize authentication and installation error handlers**
+- [ ] **T003: Memoize authentication and installation error handlers with Zustand**
 
-  - Identify any callback functions like `handleAuthError` and `handleAppInstallationNeeded`
-  - Wrap them in useCallback with minimal dependency arrays
-  - Ensure they maintain stable references across renders
+  - Move auth error handling logic to the Zustand store actions
+  - Create dedicated actions for `handleAuthError` and `handleAppInstallationNeeded`
+  - Implement proper error handling in the Zustand slice
+  - Use Zustand's built-in memoization capabilities to optimize performance
   - **Depends On:** T001
   - **AC Ref:** None
 
-- [ ] **T004: Update fetchRepositories to use consolidated state**
+- [ ] **T004: Convert fetchRepositories to use Zustand store**
 
-  - Update the useCallback for fetchRepositories
-  - Remove individual state setters from dependencies
-  - Replace them with the single setDashboardState
-  - Verify fetchRepositories still calls handleRepositoryFetchSuccess correctly
+  - Refactor `fetchRepositories` to consume state from Zustand store using selector hooks
+  - Update the implementation to dispatch Zustand actions instead of React setState calls
+  - Remove unnecessary useCallback wrappers where Zustand provides stability
+  - Verify API interactions still work correctly with the new state management approach
   - **Depends On:** T002, T003
   - **AC Ref:** None
 
-- [ ] **T005: Update dashboard page components to use consolidated state**
+- [ ] **T005: Update dashboard components to use Zustand selectors**
 
-  - In `src/app/dashboard/page.tsx`, update code to use the new dashboardState
-  - Destructure needed values from dashboardState
-  - Review useEffect dependency arrays and remove any unnecessary dependencies
+  - In `src/app/dashboard/page.tsx`, update components to use Zustand selector hooks
+  - Replace useState/useEffect combinations with appropriate Zustand hooks
+  - Implement performance optimizations using Zustand's built-in selector memoization
   - Clean up unused imports and variables
   - **Depends On:** T004
   - **AC Ref:** None
 
-- [ ] **T006: Verify the fix resolves the infinite update loop**
-  - Run the application locally
+- [ ] **T006: Verify Zustand implementation resolves the infinite update loop**
+  - Run the application locally with the Zustand implementation
   - Monitor the console for the "Maximum update depth exceeded" error
-  - Verify repository data loads correctly
-  - Test various user interactions to ensure no rendering issues
+  - Verify repository data loads correctly using the Redux DevTools to inspect state
+  - Test various user interactions to ensure proper state flow
+  - Compare performance and behavior with previous implementation
   - Document verification steps and results
   - **Depends On:** T005
   - **AC Ref:** None

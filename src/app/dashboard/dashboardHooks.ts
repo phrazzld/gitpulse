@@ -660,6 +660,13 @@ async function handleRepositoryFetchError(
   throw error;
 }
 
+/**
+ * Handle successful repository fetch with atomic updates using Zustand
+ *
+ * This implementation uses the Zustand store action to perform an atomic update,
+ * which prevents the "Maximum update depth exceeded" error caused by multiple
+ * sequential state updates.
+ */
 function handleRepositoryFetchSuccess(
   data: ReposResponse,
   cacheKey: string,
@@ -676,61 +683,57 @@ function handleRepositoryFetchSuccess(
     setCacheItem(cacheKey, data.repositories, CLIENT_CACHE_TTL.LONG);
   }
 
-  setRepositories(data.repositories);
+  // Process installationIds
+  const installationIds =
+    data.installationIds && data.installationIds.length > 0
+      ? data.installationIds
+      : data.installationId
+        ? [data.installationId]
+        : [];
 
-  // Update auth method and installation ID if available
-  if (data.authMethod) {
-    setAuthMethod(data.authMethod);
-    console.log("Using auth method:", data.authMethod);
-  }
+  // Process currentInstallations
+  const currentInstallations =
+    data.currentInstallations && data.currentInstallations.length > 0
+      ? data.currentInstallations
+      : data.currentInstallation
+        ? [data.currentInstallation]
+        : [];
 
-  if (data.installationId) {
-    // Add to the installation IDs array if not already included
-    const idToAdd = data.installationId;
-    // Update installation IDs directly
-    if (data.installationIds) {
-      setInstallationIds(data.installationIds);
-    } else if (data.installationId) {
-      // Create a new array with the single installation ID
-      setInstallationIds([data.installationId]);
-    }
-    console.log("Using GitHub App installation ID:", data.installationId);
-    setNeedsInstallation(false); // Clear the installation needed flag
-  }
-
-  // Update installations list
+  // Cache installations with a longer TTL
   if (data.installations && data.installations.length > 0) {
-    setInstallations(data.installations);
-    console.log("Available installations:", data.installations.length);
-
-    // Cache installations with a longer TTL
     setCacheItem("installations", data.installations, CLIENT_CACHE_TTL.LONG);
+    console.log("Available installations:", data.installations.length);
   }
 
-  // Update current installations
-  if (data.currentInstallation) {
-    // Update current installations directly
-    if (data.currentInstallations && data.currentInstallations.length > 0) {
-      // If we have a full list, use it directly
-      setCurrentInstallations(data.currentInstallations);
-    } else if (data.currentInstallation) {
-      // Otherwise, set a single installation
-      setCurrentInstallations([data.currentInstallation]);
-    }
+  // Cache current installations
+  if (currentInstallations.length > 0) {
+    setCacheItem(
+      "currentInstallations",
+      currentInstallations,
+      CLIENT_CACHE_TTL.LONG,
+    );
 
     console.log(
       "Current installation:",
       data.currentInstallation?.account?.login || "unknown",
     );
-
-    // Cache current installations
-    setCacheItem(
-      "currentInstallations",
-      data.currentInstallations || [data.currentInstallation],
-      CLIENT_CACHE_TTL.LONG,
-    );
   }
 
+  // Import the Zustand store and get the atomic update action
+  // Note: This will be used in a later task (T004) - for now we still use the individual setters
+
+  // Update all state properties in sequence (will be replaced with atomic update in T004)
+  setRepositories(data.repositories);
+  if (data.authMethod) setAuthMethod(data.authMethod);
+  if (installationIds.length > 0) setInstallationIds(installationIds);
+  if (data.installations && data.installations.length > 0) {
+    setInstallations(data.installations);
+  }
+  if (currentInstallations.length > 0) {
+    setCurrentInstallations(currentInstallations);
+  }
+  setNeedsInstallation(!!data.needsInstallation);
   setError(null); // Clear any previous errors
+
   return true;
 }

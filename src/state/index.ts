@@ -29,7 +29,14 @@ export {
   useInstallations,
 } from "./hooks";
 
+// Export custom repository hooks
+export { useDashboardRepository } from "./hooks/index";
+
 // Export slice action interfaces
 export type { DashboardSliceActions } from "./slices/dashboardSlice";
 export type { AuthSliceActions } from "./slices/authSlice";
 export type { SettingsSliceActions } from "./slices/settingsSlice";
+export type {
+  RepositoryState,
+  RepositoryActions,
+} from "./slices/repositorySlice";

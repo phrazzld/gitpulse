@@ -15,6 +15,7 @@ export enum StateSlice {
   Dashboard = "dashboard",
   Auth = "auth",
   Settings = "settings",
+  Repository = "repository",
 }
 
 /**
@@ -118,6 +119,9 @@ export interface SettingsState {
   resetSettings: () => void;
 }
 
+// Import repository state and actions from their respective files
+import { RepositoryState, RepositoryActions } from "./slices/repositorySlice";
+
 /**
  * Root state containing all slices
  */
@@ -125,4 +129,5 @@ export interface RootState {
   [StateSlice.Dashboard]: DashboardState;
   [StateSlice.Auth]: AuthState;
   [StateSlice.Settings]: SettingsState;
+  [StateSlice.Repository]: RepositoryState & RepositoryActions;
 }

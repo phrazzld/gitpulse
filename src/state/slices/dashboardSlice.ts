@@ -50,7 +50,7 @@ export interface DashboardSliceActions {
   setInstallations: (installations: Installation[]) => void;
   setCurrentInstallations: (installations: Installation[]) => void;
 
-  // Handle repository fetch actions
+  // Handle repository fetch actions with atomic updates
   handleRepositoryFetchSuccess: (
     repositories: Repository[],
     authMethod?: string | null,
@@ -60,7 +60,8 @@ export interface DashboardSliceActions {
     currentInstallation?: Installation | null,
     currentInstallations?: Installation[],
     needsInstallation?: boolean,
-  ) => void;
+    cacheKey?: string,
+  ) => boolean;
 
   // Reset actions
   resetDashboard: () => void;
@@ -227,7 +228,23 @@ export const createDashboardSlice: StateCreator<
       },
     })),
 
-  // Composite action for handling repository fetch success - atomic state update
+  /**
+   * Composite action for handling repository fetch success with atomic state update
+   *
+   * This action updates all repository-related state in a single atomic operation.
+   * Using a single atomic update prevents the "Maximum update depth exceeded" error
+   * that can occur with multiple sequential state updates.
+   *
+   * @param repositories - The list of repositories to set in state
+   * @param authMethod - The authentication method used (e.g., 'oauth', 'github_app')
+   * @param installationId - Single installation ID (used if installationIds is empty)
+   * @param installationIds - List of installation IDs
+   * @param installations - List of available GitHub App installations
+   * @param currentInstallation - Current active installation (used if currentInstallations is empty)
+   * @param currentInstallations - List of current active installations
+   * @param needsInstallation - Flag indicating if GitHub App installation is needed
+   * @param cacheKey - Optional key for caching repositories (defaults to 'repos:user')
+   */
   handleRepositoryFetchSuccess: (
     repositories,
     authMethod = null,
@@ -237,61 +254,83 @@ export const createDashboardSlice: StateCreator<
     currentInstallation = null,
     currentInstallations = [],
     needsInstallation = false,
+    cacheKey?: string,
   ) => {
+    // Default cache key if not provided
+    const repoCacheKey = cacheKey || "repos:user";
     set((state) => {
       const dashboard = state[StateSlice.Dashboard];
 
-      // Process installationIds
+      // Process installationIds with improved null/undefined handling
       const updatedInstallationIds =
-        installationIds.length > 0
+        installationIds && installationIds.length > 0
           ? installationIds
           : installationId
             ? [installationId]
             : dashboard.installationIds;
 
-      // Process currentInstallations
+      // Process currentInstallations with improved null/undefined handling
       const updatedCurrentInstallations =
-        currentInstallations.length > 0
+        currentInstallations && currentInstallations.length > 0
           ? currentInstallations
           : currentInstallation
             ? [currentInstallation]
             : dashboard.currentInstallations;
 
-      // Cache repositories
-      if (repositories.length > 0) {
-        const cacheKey = `repos:user`; // Cache key could be more specific if needed
-        setCacheItem(cacheKey, repositories, CLIENT_CACHE_TTL.LONG);
+      // Cache repositories if they exist
+      if (repositories && repositories.length > 0) {
+        setCacheItem(repoCacheKey, repositories, CLIENT_CACHE_TTL.LONG);
       }
 
-      // Cache installations
-      if (installations.length > 0) {
+      // Cache installations if they exist
+      if (installations && installations.length > 0) {
         setCacheItem("installations", installations, CLIENT_CACHE_TTL.LONG);
+        console.log("Available installations:", installations.length);
       }
 
-      // Cache current installations
-      if (updatedCurrentInstallations.length > 0) {
+      // Cache current installations if they exist
+      if (
+        updatedCurrentInstallations &&
+        updatedCurrentInstallations.length > 0
+      ) {
         setCacheItem(
           "currentInstallations",
           updatedCurrentInstallations,
           CLIENT_CACHE_TTL.LONG,
         );
+        console.log(
+          "Current installation:",
+          currentInstallation?.account?.login ||
+            updatedCurrentInstallations[0]?.account?.login ||
+            "unknown",
+        );
       }
 
-      // Return updated state
+      // Return updated state in a single atomic update
       return {
         [StateSlice.Dashboard]: {
           ...dashboard,
-          repositories,
+          repositories: repositories || dashboard.repositories,
+          loading: false, // Ensure loading is reset
+          initialLoad: false, // Mark initial load as complete
           authMethod: authMethod ?? dashboard.authMethod,
           installationIds: updatedInstallationIds,
           installations:
-            installations.length > 0 ? installations : dashboard.installations,
+            installations && installations.length > 0
+              ? installations
+              : dashboard.installations,
           currentInstallations: updatedCurrentInstallations,
-          needsInstallation,
+          needsInstallation: !!needsInstallation,
           error: null, // Clear previous errors
         },
       };
     });
+
+    // Set a flag in localStorage to track the last refresh time
+    // This is used by the window focus refresh mechanism
+    localStorage.setItem("lastRepositoryRefresh", Date.now().toString());
+
+    return true; // Return a consistent value for callers expecting a boolean
   },
 
   // Reset dashboard state
