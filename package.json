@@ -34,7 +34,8 @@
     "react-dom": "^19.0.0",
     "react-window": "^1.8.11",
     "tailwind-merge": "^3.2.0",
-    "zod": "^3.24.3"
+    "zod": "^3.24.3",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.25.9",

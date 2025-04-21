@@ -1,5 +1,19 @@
 # Todo Tasks for CI Fix
 
+## State Management with Zustand
+
+- [x] **T000: Set up Zustand as application state manager**
+  - Install Zustand package: `npm install zustand`
+  - Create a state store directory structure at `src/state`
+  - Create initial store configuration in `src/state/store.ts`
+  - Implement core types in `src/state/types.ts`
+  - Create an example store slice for dashboard state
+  - Add utility hooks in `src/state/hooks.ts` for accessing store state
+  - Document Zustand usage patterns in `docs/state-management.md`
+  - Update relevant components to demonstrate Zustand pattern
+  - **Depends On:** None
+  - **Priority:** High - foundation for dashboard state refactoring
+
 ## `useActivityData` Hook Test Failures
 
 - [x] **Fix "hasMore" Flag Issue**
@@ -83,7 +97,62 @@
   - Created a barrel file to export the components from their actual locations
   - Verified test passes with the new exports
 
-- [ ] **Commit and push changes**
-  - Create a commit specifically for this fix
-  - Push changes to feature branch
-  - Verify CI passes with all tests
+- [x] **Commit and push changes**
+  - Created a commit specifically for this fix
+  - Pushed changes to feature branch
+  - Will verify CI passes with all tests
+
+## Maximum Update Depth Bug Fix
+
+- [ ] **T001: Consolidate dashboard state into a single state object**
+
+  - In `src/app/dashboard/dashboardHooks.ts`, refactor the `useDashboardState` hook
+  - Replace individual useState calls with a single consolidated state object
+  - Create or update `DashboardState` TypeScript interface
+  - Ensure all previously tracked state is included in the new object
+  - **Depends On:** None
+  - **AC Ref:** None
+
+- [ ] **T002: Refactor handleRepositoryFetchSuccess to use single state update**
+
+  - In `src/app/dashboard/dashboardHooks.ts`, update `handleRepositoryFetchSuccess`
+  - Replace multiple sequential setState calls with a single setDashboardState call
+  - Make sure all properties (repositories, authMethod, installationIds, etc.) are updated
+  - Include proper null/undefined handling for optional values
+  - **Depends On:** T001
+  - **AC Ref:** None
+
+- [ ] **T003: Memoize authentication and installation error handlers**
+
+  - Identify any callback functions like `handleAuthError` and `handleAppInstallationNeeded`
+  - Wrap them in useCallback with minimal dependency arrays
+  - Ensure they maintain stable references across renders
+  - **Depends On:** T001
+  - **AC Ref:** None
+
+- [ ] **T004: Update fetchRepositories to use consolidated state**
+
+  - Update the useCallback for fetchRepositories
+  - Remove individual state setters from dependencies
+  - Replace them with the single setDashboardState
+  - Verify fetchRepositories still calls handleRepositoryFetchSuccess correctly
+  - **Depends On:** T002, T003
+  - **AC Ref:** None
+
+- [ ] **T005: Update dashboard page components to use consolidated state**
+
+  - In `src/app/dashboard/page.tsx`, update code to use the new dashboardState
+  - Destructure needed values from dashboardState
+  - Review useEffect dependency arrays and remove any unnecessary dependencies
+  - Clean up unused imports and variables
+  - **Depends On:** T004
+  - **AC Ref:** None
+
+- [ ] **T006: Verify the fix resolves the infinite update loop**
+  - Run the application locally
+  - Monitor the console for the "Maximum update depth exceeded" error
+  - Verify repository data loads correctly
+  - Test various user interactions to ensure no rendering issues
+  - Document verification steps and results
+  - **Depends On:** T005
+  - **AC Ref:** None
