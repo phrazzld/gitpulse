@@ -4,6 +4,7 @@ import { DashboardFilterState } from "@/types/dashboard";
 import { Installation } from "@/types/github";
 import { Session } from "next-auth";
 import { ActivityMode } from "@/types/activity";
+import { Button, Card, cn } from "@/components/library";
 
 interface Props {
   activityMode: ActivityMode;
@@ -25,8 +26,10 @@ export default function FilterControls({
   session,
 }: Props) {
   return (
-    <div
-      className="mb-8 border rounded-lg p-6"
+    <Card
+      className="mb-8"
+      padding="lg"
+      radius="lg"
       style={{
         backgroundColor: "rgba(27, 43, 52, 0.8)",
         backdropFilter: "blur(5px)",
@@ -47,24 +50,28 @@ export default function FilterControls({
             ANALYSIS FILTERS
           </h3>
         </div>
-        <div
-          className="px-2 py-1 text-xs rounded flex items-center"
+        <Button
+          variant="secondary"
+          size="sm"
+          className="text-xs"
           style={{
             backgroundColor: "rgba(0, 0, 0, 0.3)",
             border: "1px solid var(--electric-blue)",
             color: "var(--electric-blue)",
           }}
         >
-          <span>CONFIGURE PARAMETERS</span>
-        </div>
+          CONFIGURE PARAMETERS
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Left column */}
         <div className="space-y-6">
           {/* Activity mode info panel */}
-          <div
-            className="rounded-lg border"
+          <Card
+            padding="none"
+            radius="lg"
+            shadow="none"
             style={{
               backgroundColor: "rgba(27, 43, 52, 0.7)",
               backdropFilter: "blur(5px)",
@@ -123,7 +130,7 @@ export default function FilterControls({
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
 
         {/* Right column - Date and Analysis Info */}
@@ -135,8 +142,10 @@ export default function FilterControls({
           />
 
           {/* Analysis Parameters Info Card */}
-          <div
-            className="rounded-lg border bg-opacity-70 p-4"
+          <Card
+            padding="md"
+            radius="lg"
+            shadow="none"
             style={{
               backgroundColor: "rgba(27, 43, 52, 0.7)",
               backdropFilter: "blur(5px)",
@@ -165,11 +174,11 @@ export default function FilterControls({
                   MODE
                 </span>
                 <span
-                  className="text-xs px-2 py-1 rounded"
-                  style={{
-                    backgroundColor: "rgba(0, 255, 135, 0.1)",
-                    color: "var(--neon-green)",
-                  }}
+                  className={cn(
+                    "text-xs px-2 py-1 rounded",
+                    "bg-opacity-10 bg-neon-green",
+                  )}
+                  style={{ color: "var(--neon-green)" }}
                 >
                   MY ACTIVITY
                 </span>
@@ -183,11 +192,11 @@ export default function FilterControls({
                   DATE RANGE
                 </span>
                 <span
-                  className="text-xs px-2 py-1 rounded"
-                  style={{
-                    backgroundColor: "rgba(59, 142, 234, 0.1)",
-                    color: "var(--electric-blue)",
-                  }}
+                  className={cn(
+                    "text-xs px-2 py-1 rounded",
+                    "bg-opacity-10 bg-electric-blue",
+                  )}
+                  style={{ color: "var(--electric-blue)" }}
                 >
                   {dateRange.since} to {dateRange.until}
                 </span>
@@ -203,9 +212,9 @@ export default function FilterControls({
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

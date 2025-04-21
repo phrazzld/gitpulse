@@ -69,7 +69,7 @@
 
 ## Child Component Refactoring
 
-- [ ] **T006 · Refactor · P2: refactor FilterControls internals to use library components**
+- [x] **T006 · Refactor · P2: refactor FilterControls internals to use library components**
 
   - **Context:** Detailed Build Steps #5
   - **Action:**
