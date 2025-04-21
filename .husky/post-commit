@@ -1,5 +1,2 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-echo "Running glance to update directory documentation..."
-glance ./
+echo "Running glance to update directory documentation in the background..."
+(glance ./ > /dev/null 2>&1 &)
