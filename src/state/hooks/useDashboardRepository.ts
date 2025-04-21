@@ -3,6 +3,8 @@
  *
  * Custom hooks for working with repository state in the dashboard.
  * These hooks encapsulate the repository-related functionality from the Zustand store.
+ *
+ * This hook has been refactored to use dashboardSlice instead of repositorySlice.
  */
 
 import { useCallback, useEffect } from "react";
@@ -14,46 +16,37 @@ import { Repository } from "@/types/github";
  * Hook for accessing and managing repository state
  */
 export function useDashboardRepository() {
-  // Repository state
-  const repositories = useStore(
-    (state) => state[StateSlice.Repository].repositories,
-  );
-  const loading = useStore((state) => state[StateSlice.Repository].loading);
-  const error = useStore((state) => state[StateSlice.Repository].error);
-  const installationIds = useStore(
-    (state) => state[StateSlice.Repository].installationIds,
-  );
-  const installations = useStore(
-    (state) => state[StateSlice.Repository].installations,
-  );
-  const currentInstallations = useStore(
-    (state) => state[StateSlice.Repository].currentInstallations,
-  );
-  const authMethod = useStore(
-    (state) => state[StateSlice.Repository].authMethod,
-  );
-  const needsInstallation = useStore(
-    (state) => state[StateSlice.Repository].needsInstallation,
-  );
-  const initialLoad = useStore(
-    (state) => state[StateSlice.Repository].initialLoad,
-  );
+  // Repository state from dashboard slice
+  const dashboard = useStore((state) => state[StateSlice.Dashboard]);
 
-  // Repository actions
+  // Extract state properties
+  const {
+    repositories,
+    loading,
+    error,
+    installationIds,
+    installations,
+    currentInstallations,
+    authMethod,
+    needsInstallation,
+    initialLoad,
+  } = dashboard;
+
+  // Repository actions - get from dashboard slice
   const fetchRepositories = useStore(
-    (state) => state[StateSlice.Repository].fetchRepositories,
+    (state) => state[StateSlice.Dashboard].fetchRepositories,
   );
   const shouldRefreshRepositories = useStore(
-    (state) => state[StateSlice.Repository].shouldRefreshRepositories,
+    (state) => state[StateSlice.Dashboard].shouldRefreshRepositories,
   );
   const setInitialLoad = useStore(
-    (state) => state[StateSlice.Repository].setInitialLoad,
+    (state) => state[StateSlice.Dashboard].setInitialLoad,
   );
   const handleAuthError = useStore(
-    (state) => state[StateSlice.Repository].handleAuthError,
+    (state) => state[StateSlice.Dashboard].handleAuthError,
   );
   const handleAppInstallationNeeded = useStore(
-    (state) => state[StateSlice.Repository].handleAppInstallationNeeded,
+    (state) => state[StateSlice.Dashboard].handleAppInstallationNeeded,
   );
 
   // Effect to update initialLoad status after first fetch completes
@@ -158,6 +151,9 @@ export function useDashboardRepository() {
 
 /**
  * Get installation ID from cookie
+ *
+ * Note: This function is duplicated in dashboardSlice.ts.
+ * In a future update, we should refactor to use a shared utility.
  */
 function getInstallationIdFromCookie(): number | null {
   const getCookie = (name: string) => {
@@ -184,6 +180,9 @@ function getInstallationIdFromCookie(): number | null {
 
 /**
  * Clear installation cookie
+ *
+ * Note: This function is duplicated in dashboardSlice.ts.
+ * In a future update, we should refactor to use a shared utility.
  */
 function clearInstallationCookie() {
   if (typeof document === "undefined") return;

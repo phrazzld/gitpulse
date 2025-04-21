@@ -26,6 +26,7 @@ const useStoreSlice = <T>(selector: Selector<T>) => {
 
 /**
  * Hook to access dashboard state
+ * This now contains all repository-related state to reduce duplication
  */
 export const useDashboardState = () => {
   return useStoreSlice((state) => state[StateSlice.Dashboard]);
@@ -184,6 +185,8 @@ export const useUIState = () => {
  */
 export const useInstallations = () => {
   const dashboard = useDashboardState();
+
+  // Updated selectors to reference Dashboard slice
   const setInstallationIds = useStore(
     (state) => state[StateSlice.Dashboard].setInstallationIds,
   );

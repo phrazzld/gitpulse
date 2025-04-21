@@ -2,14 +2,49 @@
  * Dashboard State Slice
  *
  * This slice manages dashboard state including repositories, filters, and UI state.
+ * It now includes all repository-related functionality previously in repositorySlice.
  */
 
 import { StateCreator } from "zustand";
 import { DashboardState, RootState, StateSlice } from "../types";
 import { Repository, Installation } from "@/types/github";
 import { CommitSummary } from "@/types/summary";
-import { CLIENT_CACHE_TTL } from "@/lib/constants";
-import { setCacheItem } from "@/lib/localStorageCache";
+import { CLIENT_CACHE_TTL, STORAGE_REFRESH } from "@/lib/constants";
+import { setCacheItem, getStaleItem } from "@/lib/localStorageCache";
+
+/**
+ * Get installation ID from cookie
+ */
+function getInstallationIdFromCookie(): number | null {
+  const getCookie = (name: string) => {
+    if (typeof document === "undefined") return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(";").shift();
+    return null;
+  };
+
+  const installCookie = getCookie("github_installation_id");
+
+  if (installCookie) {
+    console.log("Found GitHub installation cookie:", installCookie);
+    // Parse the installation ID from cookie and use it
+    const installationId = parseInt(installCookie, 10);
+    if (!isNaN(installationId)) {
+      return installationId;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Clear installation cookie
+ */
+function clearInstallationCookie() {
+  if (typeof document === "undefined") return;
+  document.cookie = "github_installation_id=; path=/; max-age=0; samesite=lax";
+}
 
 // Helper function to get dates
 const getLastWeekDate = (): string => {
@@ -28,6 +63,7 @@ export interface DashboardSliceActions {
   setLoading: (loading: boolean) => void;
   setInitialLoad: (initialLoad: boolean) => void;
   setError: (error: string | null) => void;
+  setLastRefreshTime: (time: number) => void;
 
   // Date range actions
   setDateRange: (since: string, until: string) => void;
@@ -49,6 +85,19 @@ export interface DashboardSliceActions {
   setInstallationIds: (ids: number[]) => void;
   setInstallations: (installations: Installation[]) => void;
   setCurrentInstallations: (installations: Installation[]) => void;
+
+  // Repository fetch actions
+  fetchRepositories: (
+    selectedInstallationId?: number,
+    email?: string,
+    forceFetch?: boolean,
+  ) => Promise<boolean>;
+  shouldRefreshRepositories: (accessToken?: string) => boolean;
+
+  // Error handling actions
+  handleAuthError: (customMessage?: string) => void;
+  handleAppInstallationNeeded: (customMessage?: string) => void;
+  handleRepositoryFetchError: (response: Response) => Promise<boolean>;
 
   // Handle repository fetch actions with atomic updates
   handleRepositoryFetchSuccess: (
@@ -82,6 +131,7 @@ const initialDashboardState = {
   activeFilters: { repositories: [] },
   authMethod: null,
   needsInstallation: false,
+  lastRefreshTime: null,
   dateRange: {
     since: getLastWeekDate(),
     until: getTodayDate(),
@@ -130,6 +180,14 @@ export const createDashboardSlice: StateCreator<
       [StateSlice.Dashboard]: {
         ...state[StateSlice.Dashboard],
         error,
+      },
+    })),
+
+  setLastRefreshTime: (lastRefreshTime) =>
+    set((state) => ({
+      [StateSlice.Dashboard]: {
+        ...state[StateSlice.Dashboard],
+        lastRefreshTime,
       },
     })),
 
@@ -227,6 +285,283 @@ export const createDashboardSlice: StateCreator<
         currentInstallations,
       },
     })),
+
+  // Error handling actions
+  handleAuthError: (customMessage) => {
+    console.log("GitHub authentication issue detected.");
+    set((state) => ({
+      [StateSlice.Dashboard]: {
+        ...state[StateSlice.Dashboard],
+        error:
+          customMessage ||
+          "GitHub authentication issue detected. Your token may be invalid, expired, or missing required permissions. Please sign out and sign in again to grant all necessary permissions.",
+      },
+    }));
+  },
+
+  handleAppInstallationNeeded: (customMessage) => {
+    console.log("GitHub App installation needed.");
+    set((state) => ({
+      [StateSlice.Dashboard]: {
+        ...state[StateSlice.Dashboard],
+        needsInstallation: true,
+        error:
+          customMessage ||
+          "GitHub App installation required. Please install the GitHub App to access all your repositories, including private ones.",
+      },
+    }));
+  },
+
+  // Helper function to handle fetch errors
+  handleRepositoryFetchError: async function (
+    response: Response,
+  ): Promise<boolean> {
+    // Parse the error response using the standardized API error format
+    const errorData: {
+      error?: string;
+      code?: string;
+      details?: string;
+      requestId?: string;
+      signOutRequired?: boolean;
+      needsInstallation?: boolean;
+      resetAt?: string;
+      metadata?: Record<string, unknown>;
+    } = await response.json();
+
+    // Log the error with request ID if available for debugging
+    if (errorData.requestId) {
+      console.error(
+        `API Error [${errorData.requestId}]:`,
+        errorData.error,
+        errorData.code,
+      );
+    }
+
+    // Check if app installation is needed
+    if (errorData.needsInstallation) {
+      // GitHub App not installed
+      const state = get()[StateSlice.Dashboard];
+      state.handleAppInstallationNeeded();
+      return false;
+    }
+
+    // Check if authentication error (rely on standardized fields)
+    if (
+      errorData.signOutRequired ||
+      response.status === 401 ||
+      response.status === 403 ||
+      errorData.code === "GITHUB_AUTH_ERROR" ||
+      errorData.code === "GITHUB_TOKEN_ERROR" ||
+      errorData.code === "GITHUB_SCOPE_ERROR" ||
+      errorData.code === "GITHUB_APP_CONFIG_ERROR"
+    ) {
+      // Auth error - token expired, invalid, or missing required scopes
+      const state = get()[StateSlice.Dashboard];
+      state.handleAuthError();
+      return false;
+    }
+
+    // Create error object with all standardized properties
+    const error = new Error(errorData.error || "Failed to fetch repositories");
+
+    // Add all standardized properties to the error object
+    Object.assign(error, {
+      code: errorData.code || "API_ERROR",
+      details: errorData.details,
+      requestId: errorData.requestId,
+      signOutRequired: errorData.signOutRequired || false,
+      needsInstallation: errorData.needsInstallation || false,
+      resetAt: errorData.resetAt,
+      metadata: errorData.metadata,
+    });
+
+    throw error;
+  },
+
+  // Repository fetch action
+  fetchRepositories: async function (
+    selectedInstallationId?: number,
+    email: string = "user",
+    forceFetch: boolean = false,
+  ): Promise<boolean> {
+    // Create a consistent cache key
+    const cacheKey = `repos:${email}`;
+
+    // If we already have repositories from a previous session, maintain them while fetching fresh data
+    if (!forceFetch && !selectedInstallationId) {
+      // Check for cached data using stale-while-revalidate approach
+      const { data: cachedRepos, isStale } =
+        getStaleItem<Repository[]>(cacheKey);
+
+      // If we have cached data, use it immediately
+      if (cachedRepos && cachedRepos.length > 0) {
+        set((state) => ({
+          [StateSlice.Dashboard]: {
+            ...state[StateSlice.Dashboard],
+            repositories: cachedRepos,
+          },
+        }));
+        console.log("Using cached repositories:", cachedRepos.length);
+
+        // If data is fresh enough, don't fetch
+        if (!isStale) {
+          console.log("Cache is fresh, skipping fetch");
+          return true;
+        }
+
+        // If data is stale, continue with fetch in background but don't show loading state
+        console.log("Cache is stale, fetching in background");
+        forceFetch = true;
+      }
+    }
+
+    try {
+      // Only show loading if we don't have cached data
+      if (!forceFetch) {
+        set((state) => ({
+          [StateSlice.Dashboard]: {
+            ...state[StateSlice.Dashboard],
+            loading: true,
+          },
+        }));
+      }
+
+      // Add installation_id query parameter if it was provided
+      const url = selectedInstallationId
+        ? `/api/repos?installation_id=${selectedInstallationId}`
+        : "/api/repos";
+
+      const response: Response = await fetch(url);
+
+      if (!response.ok) {
+        const dashboard = get()[StateSlice.Dashboard];
+        return await dashboard.handleRepositoryFetchError(response);
+      }
+
+      const data = await response.json();
+
+      // Handle successful fetch with atomic update
+      const dashboard = get()[StateSlice.Dashboard];
+      return dashboard.handleRepositoryFetchSuccess(
+        data.repositories,
+        data.authMethod,
+        data.installationId,
+        data.installationIds,
+        data.installations,
+        data.currentInstallation,
+        data.currentInstallations,
+        data.needsInstallation,
+        cacheKey,
+      );
+    } catch (error: unknown) {
+      console.error("Error fetching repositories:", error);
+
+      // Handle standardized API error format
+      if (error instanceof Error) {
+        // Check for API-specific properties
+        const apiError = error as Error & {
+          code?: string;
+          details?: string;
+          requestId?: string;
+          signOutRequired?: boolean;
+          needsInstallation?: boolean;
+          resetAt?: string;
+          metadata?: Record<string, unknown>;
+        };
+
+        // If it's a sign-out required error that wasn't caught earlier
+        if (apiError.signOutRequired) {
+          const state = get()[StateSlice.Dashboard];
+          state.handleAuthError();
+          return false;
+        }
+
+        // If it's an installation needed error that wasn't caught earlier
+        if (apiError.needsInstallation) {
+          const state = get()[StateSlice.Dashboard];
+          state.handleAppInstallationNeeded();
+          return false;
+        }
+
+        // Include error details in the message if available
+        let errorMessage = apiError.message;
+        if (apiError.details && !errorMessage.includes(apiError.details)) {
+          errorMessage = `${errorMessage}${
+            apiError.details ? `: ${apiError.details}` : ""
+          }`;
+        }
+
+        // Add request ID for logging if available
+        if (apiError.requestId) {
+          console.error(`API Error [${apiError.requestId}]: ${errorMessage}`);
+        }
+
+        set((state) => ({
+          [StateSlice.Dashboard]: {
+            ...state[StateSlice.Dashboard],
+            error: errorMessage,
+          },
+        }));
+      } else {
+        set((state) => ({
+          [StateSlice.Dashboard]: {
+            ...state[StateSlice.Dashboard],
+            error: "Failed to fetch repositories. Please try again.",
+          },
+        }));
+      }
+      return false;
+    } finally {
+      if (!forceFetch) {
+        set((state) => ({
+          [StateSlice.Dashboard]: {
+            ...state[StateSlice.Dashboard],
+            loading: false,
+          },
+        }));
+      }
+    }
+  },
+
+  // Utility to check if repositories should be refreshed
+  shouldRefreshRepositories: (accessToken) => {
+    // Don't refresh if we have no session
+    if (!accessToken) return false;
+
+    const state = get()[StateSlice.Dashboard];
+
+    // Get last refresh time from state
+    const lastRefreshTime = state.lastRefreshTime;
+
+    // Check if we have cached repository data
+    const cacheKey = `repos:user`;
+
+    // Get stale data if available - stale data is invalid but usable while we refresh
+    const { data: cachedData, isStale } = getStaleItem<Repository[]>(cacheKey);
+
+    // If we have cached data but it's stale, allow a refresh
+    if (cachedData && isStale) {
+      return true;
+    }
+
+    // If we have valid cached data, don't refresh
+    if (cachedData) {
+      return false;
+    }
+
+    // If we have no cached data but have repositories in state, use legacy check
+    if (state.repositories.length > 0 && lastRefreshTime) {
+      // Use longer TTL for repository data
+      const timeSinceLastRefresh = Date.now() - lastRefreshTime;
+      // Using a constant from STORAGE_REFRESH
+      const REPOSITORY_REFRESH_INTERVAL =
+        STORAGE_REFRESH.REPOSITORY_REFRESH_INTERVAL || 30 * 60 * 1000; // 30 minutes
+      return timeSinceLastRefresh > REPOSITORY_REFRESH_INTERVAL;
+    }
+
+    // No cache, no repositories - must refresh
+    return true;
+  },
 
   /**
    * Composite action for handling repository fetch success with atomic state update
@@ -357,6 +692,12 @@ export const createDashboardSlice: StateCreator<
           setInstallationIds: currentState.setInstallationIds,
           setInstallations: currentState.setInstallations,
           setCurrentInstallations: currentState.setCurrentInstallations,
+          setLastRefreshTime: currentState.setLastRefreshTime,
+          fetchRepositories: currentState.fetchRepositories,
+          handleRepositoryFetchError: currentState.handleRepositoryFetchError,
+          shouldRefreshRepositories: currentState.shouldRefreshRepositories,
+          handleAuthError: currentState.handleAuthError,
+          handleAppInstallationNeeded: currentState.handleAppInstallationNeeded,
           handleRepositoryFetchSuccess:
             currentState.handleRepositoryFetchSuccess,
           resetDashboard: currentState.resetDashboard,

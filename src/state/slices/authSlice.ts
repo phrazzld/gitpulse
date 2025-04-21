@@ -115,15 +115,21 @@ export const createAuthSlice: StateCreator<
       },
     }));
 
-    // Also update the state in the repository slice to maintain consistency
+    // Repository state has been consolidated into Dashboard slice, this is kept
+    // only for backward compatibility during the transition
     if (get()[StateSlice.Repository]) {
-      set((state) => ({
-        [StateSlice.Repository]: {
-          ...state[StateSlice.Repository],
-          error: customMessage || ERROR_MESSAGES.AUTH.GITHUB_AUTH_ERROR,
-          loading: false,
-        },
-      }));
+      set((state) => {
+        const repoState = state[StateSlice.Repository];
+        if (!repoState) return {}; // No repository slice present, skip update
+
+        return {
+          [StateSlice.Repository]: {
+            ...repoState,
+            error: customMessage || ERROR_MESSAGES.AUTH.GITHUB_AUTH_ERROR,
+            loading: false,
+          },
+        };
+      });
     }
 
     // We might need to update dashboard state as well
@@ -150,17 +156,23 @@ export const createAuthSlice: StateCreator<
       },
     }));
 
-    // Also update the state in the repository slice to maintain consistency
+    // Repository state has been consolidated into Dashboard slice, this is kept
+    // only for backward compatibility during the transition
     if (get()[StateSlice.Repository]) {
-      set((state) => ({
-        [StateSlice.Repository]: {
-          ...state[StateSlice.Repository],
-          needsInstallation: true,
-          error:
-            customMessage || ERROR_MESSAGES.INSTALLATION.INSTALLATION_NEEDED,
-          loading: false,
-        },
-      }));
+      set((state) => {
+        const repoState = state[StateSlice.Repository];
+        if (!repoState) return {}; // No repository slice present, skip update
+
+        return {
+          [StateSlice.Repository]: {
+            ...repoState,
+            needsInstallation: true,
+            error:
+              customMessage || ERROR_MESSAGES.INSTALLATION.INSTALLATION_NEEDED,
+            loading: false,
+          },
+        };
+      });
     }
 
     // We might need to update dashboard state as well

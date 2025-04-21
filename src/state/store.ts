@@ -15,6 +15,9 @@ import { createRepositorySlice } from "./slices/repositorySlice";
 
 /**
  * Create the root store with all slices
+ *
+ * Note: Repository slice has been consolidated into Dashboard slice
+ * but is still included as a type-safe adapter for backward compatibility.
  */
 export const useStore = create<RootState>()(
   devtools(
@@ -24,6 +27,7 @@ export const useStore = create<RootState>()(
         [StateSlice.Dashboard]: createDashboardSlice(...a),
         [StateSlice.Auth]: createAuthSlice(...a),
         [StateSlice.Settings]: createSettingsSlice(...a),
+        // Repository slice is now an adapter that delegates to Dashboard slice
         [StateSlice.Repository]: createRepositorySlice(...a),
       }),
       {
@@ -41,13 +45,14 @@ export const useStore = create<RootState>()(
           },
           // Only persist non-sensitive dashboard data
           [StateSlice.Dashboard]: {
-            activeFilters: state[StateSlice.Dashboard].activeFilters,
-            expandedPanels: state[StateSlice.Dashboard].expandedPanels,
-            showRepoList: state[StateSlice.Dashboard].showRepoList,
-          },
-          // Persist repository UI preferences, but not the actual repository data
-          [StateSlice.Repository]: {
-            lastRefreshTime: state[StateSlice.Repository].lastRefreshTime,
+            ...(state[StateSlice.Dashboard]
+              ? {
+                  activeFilters: state[StateSlice.Dashboard].activeFilters,
+                  expandedPanels: state[StateSlice.Dashboard].expandedPanels,
+                  showRepoList: state[StateSlice.Dashboard].showRepoList,
+                  lastRefreshTime: state[StateSlice.Dashboard].lastRefreshTime,
+                }
+              : {}),
           },
         }),
       },

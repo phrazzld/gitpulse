@@ -1,13 +1,25 @@
 # BACKLOG
 
-- audit whole codebase against dev philosophy, identify key things to hit
+- Dashboard Layout Restructuring
 
-- Dashboard Interface Redesign
-
-  - Rework main dashboard layout
-  - Update information panels and data visualization
-  - Improve activity feed presentation
+  - Reorganize the dashboard's main layout using the new component library
+  - Implement responsive grid for dashboard panels
+  - Apply consistent spacing and alignment
   - Depends on: Layout and Navigation Redesign
+
+- Information Panel Redesign
+
+  - Redesign repository info panel
+  - Update metrics visualization with new styling
+  - Enhance summary dashboard panels
+  - Depends on: Dashboard Layout Restructuring
+
+- Activity Feed Enhancement
+
+  - Improve activity feed visual presentation
+  - Implement enhanced filtering controls
+  - Add progressive loading for better performance
+  - Depends on: Information Panel Redesign
 
 - Authentication UI Redesign
 
@@ -22,7 +34,6 @@
   - Depends on: All previous UI tasks
 
 - Add proper landing page as unauthenticated home page
-- run `glance` on precommit hook
 - implement semantic versioning (ideally automatically managed somehow ... conventional commits?)
 
 # COMPLETED
@@ -35,7 +46,6 @@
   - Depends on: Core Component Library Creation
 
 - Core Component Library Creation
-
   - Develop base components (buttons, inputs, cards, etc.)
   - Create documentation for component usage
   - Add component tests

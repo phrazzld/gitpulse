@@ -15,11 +15,17 @@ export enum StateSlice {
   Dashboard = "dashboard",
   Auth = "auth",
   Settings = "settings",
+  /**
+   * @deprecated Repository slice is being consolidated into Dashboard slice.
+   * Use Dashboard slice instead for repository-related state and actions.
+   */
   Repository = "repository",
 }
 
 /**
  * Dashboard state slice
+ *
+ * Contains all former repository state and actions to reduce duplication.
  */
 export interface DashboardState {
   // Data state
@@ -28,6 +34,7 @@ export interface DashboardState {
   installationIds: number[];
   installations: Installation[];
   currentInstallations: Installation[];
+  lastRefreshTime: number | null;
 
   // UI state
   loading: boolean;
@@ -63,6 +70,17 @@ export interface DashboardState {
   setInstallationIds: (ids: number[]) => void;
   setInstallations: (installations: Installation[]) => void;
   setCurrentInstallations: (installations: Installation[]) => void;
+  setLastRefreshTime: (time: number) => void;
+
+  // Repository fetch actions
+  fetchRepositories: (
+    selectedInstallationId?: number,
+    email?: string,
+    forceFetch?: boolean,
+  ) => Promise<boolean>;
+  shouldRefreshRepositories: (accessToken?: string) => boolean;
+
+  // Composite actions
   handleRepositoryFetchSuccess: (
     repositories: Repository[],
     authMethod?: string | null,
@@ -72,7 +90,11 @@ export interface DashboardState {
     currentInstallation?: Installation | null,
     currentInstallations?: Installation[],
     needsInstallation?: boolean,
-  ) => void;
+    cacheKey?: string,
+  ) => boolean;
+  handleRepositoryFetchError: (response: Response) => Promise<boolean>;
+  handleAuthError: (customMessage?: string) => void;
+  handleAppInstallationNeeded: (customMessage?: string) => void;
   resetDashboard: () => void;
 }
 
@@ -127,7 +149,7 @@ export interface SettingsState {
   resetSettings: () => void;
 }
 
-// Import repository state and actions from their respective files
+// Import repository types for backwards compatibility
 import { RepositoryState, RepositoryActions } from "./slices/repositorySlice";
 
 /**
@@ -137,5 +159,10 @@ export interface RootState {
   [StateSlice.Dashboard]: DashboardState;
   [StateSlice.Auth]: AuthState;
   [StateSlice.Settings]: SettingsState;
+  /**
+   * @deprecated Repository slice is being consolidated into Dashboard slice.
+   * Use Dashboard slice instead for repository-related state and actions.
+   * This is now implemented as an adapter that delegates to Dashboard slice.
+   */
   [StateSlice.Repository]: RepositoryState & RepositoryActions;
 }
