@@ -18,7 +18,7 @@
 
 ## Core Layout Components
 
-- [ ] **T002 · Feature · P1: implement DashboardGridContainer component**
+- [x] **T002 · Feature · P1: implement DashboardGridContainer component**
   - **Context:** Detailed Build Steps #2, Architecture Blueprint (Modules)
   - **Action:**
     1. Create `src/components/dashboard/layout/DashboardGridContainer.tsx`.
