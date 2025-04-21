@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SessionInfo } from "@/types/api";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { logger } from "@/lib/logger";
-import { installationIdSchema, validateQueryParams } from "@/lib/validation";
+import { resolveInstallationId } from "@/lib/auth/installationHelper";
 import {
   withErrorHandling,
   createApiErrorResponse,
@@ -16,7 +17,9 @@ async function handleGET(request: NextRequest) {
     searchParams: Object.fromEntries(request.nextUrl.searchParams.entries()),
   });
 
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(
+    authOptions,
+  )) as unknown as SessionInfo;
 
   // Check if there's a valid session
   if (!session) {
@@ -24,37 +27,28 @@ async function handleGET(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // Validate the installation_id from the query parameters
-  const validationResult = validateQueryParams(
-    request.nextUrl.searchParams,
-    z.object({
-      installation_id: installationIdSchema,
-    }),
-  );
+  // Use the centralized utility to validate the installation ID
+  const installationResult = resolveInstallationId({
+    req: request,
+    session,
+    validateAgainstAvailable: false, // No need to validate against available installations for setup
+  });
 
-  if (!validationResult.success) {
-    logger.warn(MODULE_NAME, "Invalid installation_id provided", {
-      error: validationResult.error,
+  if (!installationResult.isValid || !installationResult.id) {
+    logger.warn(MODULE_NAME, "Invalid installation ID provided", {
+      error: installationResult.error,
+      source: installationResult.source,
     });
+
     return NextResponse.redirect(
       new URL(
-        `/dashboard?error=invalid_installation_id&message=${validationResult.error}`,
+        `/dashboard?error=invalid_installation_id&message=${installationResult.error || "Invalid installation ID"}`,
         request.url,
       ),
     );
   }
 
-  if (!validationResult.data) {
-    logger.error(MODULE_NAME, "Validation result data is undefined");
-    return NextResponse.redirect(
-      new URL(
-        `/dashboard?error=invalid_installation_id&message=Invalid installation ID format`,
-        request.url,
-      ),
-    );
-  }
-
-  const installationId = validationResult.data.installation_id.toString();
+  const installationId = installationResult.id.toString();
 
   logger.info(MODULE_NAME, "GitHub App installation ID received", {
     installationId,
@@ -82,8 +76,7 @@ async function handleGET(request: NextRequest) {
   return response;
 }
 
-// Missing import
-import { z } from "zod";
+// z is now imported via the installationHelper utility
 
 // Wrap the handler with standardized error handling
 export const GET = withErrorHandling(handleGET, MODULE_NAME);

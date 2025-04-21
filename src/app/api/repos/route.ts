@@ -23,7 +23,8 @@ import {
 import { withAuthValidation, ApiRouteHandler } from "@/lib/auth/apiAuth";
 import { SessionInfo } from "@/types/api";
 import { z } from "zod";
-import { installationIdSchema, validateQueryParams } from "@/lib/validation";
+import { validateQueryParams } from "@/lib/validation";
+import { resolveInstallationId } from "@/lib/auth/installationHelper";
 import {
   withErrorHandling,
   createApiErrorResponse,
@@ -78,33 +79,23 @@ async function handleGetRepositories(
     },
   });
 
-  // Validate the installation_id query parameter if present
-  let installationId = session.installationId;
-  const requestedInstallationId =
-    request.nextUrl.searchParams.get("installation_id");
+  // Resolve installation ID from request, session, and cookies
+  const installationResult = resolveInstallationId({
+    req: request,
+    session,
+    availableInstallations: [], // Will fetch installations later
+    validateAgainstAvailable: false, // Will validate after fetching installations
+  });
 
-  if (requestedInstallationId) {
-    const validationResult = validateQueryParams(
-      request.nextUrl.searchParams,
-      z.object({
-        installation_id: installationIdSchema,
-      }),
-    );
+  let installationId = installationResult.isValid
+    ? installationResult.id
+    : session.installationId;
 
-    if (!validationResult.success) {
-      logger.warn(MODULE_NAME, "Invalid installation_id parameter", {
-        error: validationResult.error,
-      });
-
-      throw new Error(
-        `Validation error: The installation_id parameter must be a positive integer.`,
-      );
-    }
-
-    if (validationResult.data) {
-      installationId = validationResult.data.installation_id;
-    }
-  }
+  logger.debug(MODULE_NAME, "Resolved installation ID", {
+    source: installationResult.source,
+    isValid: installationResult.isValid,
+    hasId: !!installationId,
+  });
 
   // Create cache key parameters
   const cacheParams = {
@@ -145,34 +136,25 @@ async function handleGetRepositories(
         accountCount: allInstallations.filter((i) => i.account).length,
       });
 
-      // If we don't have an installation ID yet, use the first available installation
-      if (!installationId && allInstallations.length > 0) {
-        installationId = allInstallations[0].id;
-        logger.info(MODULE_NAME, "Using first available installation", {
+      // Now that we have fetched all installations, validate the installation ID against them
+      const validatedInstallationResult = resolveInstallationId({
+        req: request,
+        session,
+        availableInstallations: allInstallations,
+        validateAgainstAvailable: true,
+        useFirstAvailableAsFallback: true,
+      });
+
+      // Use the validated installation ID if it's valid
+      if (
+        validatedInstallationResult.isValid &&
+        validatedInstallationResult.id
+      ) {
+        installationId = validatedInstallationResult.id;
+        logger.info(MODULE_NAME, "Using validated installation ID", {
           installationId,
-          account: allInstallations[0].account?.login || "unknown",
+          source: validatedInstallationResult.source,
         });
-      }
-
-      // Validate that the requested installation ID is in our list
-      if (requestedInstallationId && allInstallations.length > 0) {
-        const parsedId = parseInt(requestedInstallationId, 10);
-        const validInstallation = allInstallations.find(
-          (inst) => inst.id === parsedId,
-        );
-
-        if (!validInstallation) {
-          logger.warn(
-            MODULE_NAME,
-            "Requested installation ID not found in user's installations",
-            {
-              requestedId: requestedInstallationId,
-              availableIds: allInstallations.map((i) => i.id),
-            },
-          );
-          // Fallback to the first available installation
-          installationId = allInstallations[0].id;
-        }
       }
     } catch (error) {
       logger.warn(MODULE_NAME, "Error getting all GitHub App installations", {
@@ -181,17 +163,20 @@ async function handleGetRepositories(
     }
   }
 
-  // Also check for installation ID in cookies if we still don't have one
-  if (!installationId) {
-    const cookieHeader = request.headers.get("cookie");
-    if (cookieHeader && cookieHeader.includes("github_installation_id=")) {
-      const match = cookieHeader.match(/github_installation_id=([^;]+)/);
-      if (match && match[1]) {
-        installationId = parseInt(match[1], 10);
-        logger.info(MODULE_NAME, "Found installation ID in cookie", {
-          installationId,
-        });
-      }
+  // If we still don't have an installation ID after checking all sources,
+  // attempt one final resolution with useFirstAvailableAsFallback
+  if (!installationId && allInstallations.length > 0) {
+    const fallbackResult = resolveInstallationId({
+      availableInstallations: allInstallations,
+      useFirstAvailableAsFallback: true,
+    });
+
+    if (fallbackResult.isValid && fallbackResult.id) {
+      installationId = fallbackResult.id;
+      logger.info(MODULE_NAME, "Using fallback installation ID", {
+        source: fallbackResult.source,
+        installationId,
+      });
     }
   }
 

@@ -36,6 +36,7 @@ import {
   withErrorHandling,
   createApiErrorResponse,
 } from "@/lib/auth/apiErrorHandler";
+import { requireInstallationId } from "@/lib/auth/installationHelper";
 import { z } from "zod";
 import {
   dateSchema,
@@ -132,27 +133,42 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       limit,
     });
 
-    // We'll use the access token from the session and/or installation ID
-    const accessToken = session.accessToken as string;
-    const installationId = session.installationId as number;
-
-    if (!accessToken && !installationId) {
-      logger.error(MODULE_NAME, "No authentication method available", {
-        hasAccessToken: !!accessToken,
-        hasInstallationId: !!installationId,
+    // Resolve installation ID using the centralized utility
+    let installationId: number | undefined;
+    try {
+      installationId = requireInstallationId({
+        session,
+        useFirstAvailableAsFallback: false,
       });
 
-      const error = new Error(
-        "GitHub authentication required. Please sign in again.",
+      logger.info(MODULE_NAME, "Using installation ID for authentication", {
+        installationId,
+      });
+    } catch (error) {
+      // If we can't get an installation ID but have an access token, we can still proceed
+      if (!session.accessToken) {
+        logger.error(MODULE_NAME, "No authentication method available", {
+          hasAccessToken: !!session.accessToken,
+          hasInstallationId: !!installationId,
+          error,
+        });
+
+        throw error; // Will be caught by the outer catch block
+      }
+
+      logger.info(
+        MODULE_NAME,
+        "No installation ID found, falling back to OAuth",
+        {
+          hasAccessToken: !!session.accessToken,
+        },
       );
-      error.name = "GitHubAuthError";
-      throw error;
     }
 
     // Create credentials object for authentication
     const credentials: GitHubCredentials = installationId
       ? { type: "app", installationId }
-      : { type: "oauth", token: accessToken };
+      : { type: "oauth", token: session.accessToken as string };
 
     // Create an authenticated Octokit instance
     const octokit = await createAuthenticatedOctokit(credentials);

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { SessionInfo } from "@/types/api";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { safelyExtractError } from "@/lib/errors";
@@ -31,6 +32,7 @@ import {
   organizationsSchema,
   validateQueryParams,
 } from "@/lib/validation";
+import { resolveMultipleInstallationIds } from "@/lib/auth/installationHelper";
 
 const MODULE_NAME = "api:summary";
 
@@ -68,7 +70,9 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     headers: Object.fromEntries(request.headers),
   });
 
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(
+    authOptions,
+  )) as unknown as SessionInfo;
 
   if (!session) {
     logger.warn(MODULE_NAME, "Unauthorized request - no valid session", {
@@ -83,25 +87,17 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     });
   }
 
-  // Get installation IDs from query parameter if present
-  const requestedInstallationIds =
-    request.nextUrl.searchParams.get("installation_ids");
-  let installationIds: number[] = [];
+  // Get installation IDs using the centralized utility
+  let installationIds = resolveMultipleInstallationIds({
+    req: request,
+    session,
+    validateAgainstAvailable: false, // Will validate after fetching available installations
+  });
 
-  if (requestedInstallationIds) {
-    // Parse comma-separated installation IDs
-    installationIds = requestedInstallationIds
-      .split(",")
-      .map((id) => parseInt(id.trim(), 10))
-      .filter((id) => !isNaN(id));
-
-    logger.debug(MODULE_NAME, "Parsed installation IDs from request", {
-      installationIds,
-    });
-  } else if (session.installationId) {
-    // If no IDs provided but session has one, use that
-    installationIds = [session.installationId];
-  }
+  logger.debug(MODULE_NAME, "Resolved installation IDs", {
+    count: installationIds.length,
+    ids: installationIds,
+  });
 
   // Get all available installations if we have an access token
   let allInstallations: AppInstallation[] = [];
@@ -115,52 +111,27 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
           .map((i) => i.account?.login),
       });
 
-      // If we don't have any installation IDs yet, use the first available installation
-      if (installationIds.length === 0 && allInstallations.length > 0) {
-        installationIds = [allInstallations[0].id];
-        logger.info(MODULE_NAME, "Using first available installation", {
-          installationId: allInstallations[0].id,
-          account: allInstallations[0].account?.login || "unknown",
-        });
-      }
+      // Re-validate installation IDs against available installations
+      const validatedInstallationIds = resolveMultipleInstallationIds({
+        req: request,
+        session,
+        availableInstallations: allInstallations,
+        validateAgainstAvailable: true,
+        useFirstAvailableAsFallback: true,
+      });
 
-      // Validate that the requested installation IDs are in our list
-      if (installationIds.length > 0 && allInstallations.length > 0) {
-        // Filter to only valid installation IDs
-        const validInstallationIds = installationIds.filter((id) =>
-          allInstallations.some((inst) => inst.id === id),
-        );
+      logger.debug(
+        MODULE_NAME,
+        "Validated installation IDs against available installations",
+        {
+          originalCount: installationIds.length,
+          validatedCount: validatedInstallationIds.length,
+          validatedIds: validatedInstallationIds,
+        },
+      );
 
-        // Log any invalid IDs that were filtered out
-        const invalidIds = installationIds.filter(
-          (id) => !validInstallationIds.includes(id),
-        );
-
-        if (invalidIds.length > 0) {
-          logger.warn(
-            MODULE_NAME,
-            "Some requested installation IDs not found in user's installations",
-            {
-              invalidIds,
-              availableIds: allInstallations.map((i) => i.id),
-            },
-          );
-        }
-
-        // If none of the requested IDs are valid, fallback to the first available
-        if (validInstallationIds.length === 0 && allInstallations.length > 0) {
-          installationIds = [allInstallations[0].id];
-          logger.warn(
-            MODULE_NAME,
-            "No valid installation IDs found, using default",
-            {
-              defaultId: allInstallations[0].id,
-            },
-          );
-        } else {
-          installationIds = validInstallationIds;
-        }
-      }
+      // Use the validated IDs
+      installationIds = validatedInstallationIds;
     } catch (error) {
       logger.warn(MODULE_NAME, "Error getting all GitHub App installations", {
         error,
@@ -168,18 +139,18 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     }
   }
 
-  // Also check for installation ID in cookies if we don't have any
-  if (installationIds.length === 0) {
-    const cookieHeader = request.headers.get("cookie");
-    if (cookieHeader && cookieHeader.includes("github_installation_id=")) {
-      const match = cookieHeader.match(/github_installation_id=([^;]+)/);
-      if (match && match[1]) {
-        const cookieId = parseInt(match[1], 10);
-        installationIds = [cookieId];
-        logger.info(MODULE_NAME, "Found installation ID in cookie", {
-          installationId: cookieId,
-        });
-      }
+  // If we still have no installation IDs, try one more time with fallback enabled
+  if (installationIds.length === 0 && allInstallations.length > 0) {
+    installationIds = resolveMultipleInstallationIds({
+      availableInstallations: allInstallations,
+      useFirstAvailableAsFallback: true,
+    });
+
+    if (installationIds.length > 0) {
+      logger.info(MODULE_NAME, "Using fallback installations", {
+        count: installationIds.length,
+        ids: installationIds,
+      });
     }
   }
 

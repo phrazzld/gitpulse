@@ -12,6 +12,17 @@ import {
   organizationsSchema,
 } from "@/lib/validation";
 
+// Mock the installation helper
+jest.mock("@/lib/auth/installationHelper", () => ({
+  resolveInstallationId: jest.fn().mockImplementation(() => ({
+    isValid: true,
+    id: 123456,
+    source: "TEST",
+  })),
+  resolveMultipleInstallationIds: jest.fn().mockImplementation(() => [123456]),
+  requireInstallationId: jest.fn().mockImplementation(() => 123456),
+}));
+
 // Create a mock handler for the summary API validation
 const mockSummaryHandler = async (req: NextRequest) => {
   const session = await mockGetServerSession();

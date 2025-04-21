@@ -274,7 +274,7 @@
     3. Unit tests for the utility pass with sufficient coverage.
   - **Depends‑on:** none
 
-- [ ] **T022 · refactor · p1: refactor api routes to use installation id utility**
+- [x] **T022 · refactor · p1: refactor api routes to use installation id utility**
   - **Context:** plan.md · cr‑10 Centralize installation ID handling
   - **Action:**
     1. Identify all API routes that handle installation IDs.
