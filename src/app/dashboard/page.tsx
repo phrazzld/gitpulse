@@ -18,12 +18,11 @@ import { Repository, Installation } from "@/types/github";
 import { DashboardFilterState } from "@/types/dashboard";
 import {
   useDashboardState,
-  useRepositoryFetching,
   useSummaryGeneration,
   useActivityMetrics,
-  useWindowFocusRefresh,
 } from "./dashboardHooks";
 import { useErrorHandlers } from "@/state/hooks";
+import { useDashboardRepository } from "@/state";
 
 // Type for API response
 type ReposResponse = {
@@ -127,67 +126,85 @@ export default function Dashboard() {
   // Error handling callbacks - using memoized handlers from AuthState
   const { handleAuthError, handleAppInstallationNeeded } = useErrorHandlers();
 
-  // Repository fetching logic
-  const sessionState = session
-    ? {
-        user: {
-          email: session.user?.email || undefined,
-        },
-        accessToken: session.accessToken || undefined,
-      }
-    : null;
+  // Access repository state and actions from Zustand store
+  const {
+    repositories: storeRepositories,
+    loading: repoLoading,
+    error: repoError,
+    authMethod: repoAuthMethod,
+    needsInstallation: repoNeedsInstallation,
+    installationIds: repoInstallationIds,
+    installations: repoInstallations,
+    currentInstallations: repoCurrentInstallations,
+    initialLoad: repoInitialLoad,
+    fetchRepositoriesWithCookieHandling,
+    setupWindowFocusRefresh,
+  } = useDashboardRepository();
 
-  const { fetchRepositories, shouldRefreshRepositories } =
-    useRepositoryFetching(
-      sessionState,
-      repositories,
-      setRepositories,
-      setLoading,
-      setError,
-      setAuthMethod,
-      setInstallationIds,
-      setInstallations,
-      setCurrentInstallations,
-      setNeedsInstallation,
-      handleAuthError,
-      handleAppInstallationNeeded,
-    );
+  // Sync Zustand store state with local state for backwards compatibility
+  // This will be removed in T005 when we fully migrate to Zustand selectors
+  useEffect(() => {
+    if (storeRepositories?.length > 0) {
+      setRepositories(storeRepositories);
+    }
+  }, [storeRepositories, setRepositories]);
 
-  // Window focus refresh effect
-  useWindowFocusRefresh(
-    sessionState,
-    fetchRepositories,
-    shouldRefreshRepositories,
-  );
+  useEffect(() => {
+    setLoading(repoLoading);
+  }, [repoLoading, setLoading]);
+
+  useEffect(() => {
+    if (repoError) {
+      setError(repoError);
+    }
+  }, [repoError, setError]);
+
+  useEffect(() => {
+    if (repoAuthMethod) {
+      setAuthMethod(repoAuthMethod);
+    }
+  }, [repoAuthMethod, setAuthMethod]);
+
+  useEffect(() => {
+    setNeedsInstallation(repoNeedsInstallation);
+  }, [repoNeedsInstallation, setNeedsInstallation]);
+
+  useEffect(() => {
+    if (repoInstallationIds?.length > 0) {
+      setInstallationIds(repoInstallationIds);
+    }
+  }, [repoInstallationIds, setInstallationIds]);
+
+  useEffect(() => {
+    if (repoInstallations?.length > 0) {
+      setInstallations(repoInstallations);
+    }
+  }, [repoInstallations, setInstallations]);
+
+  useEffect(() => {
+    if (repoCurrentInstallations?.length > 0) {
+      setCurrentInstallations(repoCurrentInstallations);
+    }
+  }, [repoCurrentInstallations, setCurrentInstallations]);
+
+  // Setup window focus refresh handler
+  useEffect(() => {
+    if (session?.accessToken) {
+      return setupWindowFocusRefresh(session.accessToken);
+    }
+    return undefined; // Explicitly return undefined for TypeScript
+  }, [session, setupWindowFocusRefresh]);
 
   // Fetch repositories when session is available
   useEffect(() => {
     if (session) {
-      // Check for GitHub installation cookie
-      const installationId = getInstallationIdFromCookie();
-
-      if (installationId) {
-        fetchRepositories(installationId).then((success) => {
-          if (success) {
-            localStorage.setItem(
-              "lastRepositoryRefresh",
-              Date.now().toString(),
-            );
-          }
-        });
-        // Clear the cookie after using it
-        clearInstallationCookie();
-        return;
-      }
-
-      // No installation cookie found, proceed with normal fetch
-      fetchRepositories().then((success) => {
-        if (success) {
-          localStorage.setItem("lastRepositoryRefresh", Date.now().toString());
-        }
-      });
+      // Use the repository store's fetchRepositoriesWithCookieHandling which has cookie handling built-in
+      fetchRepositoriesWithCookieHandling(
+        session.user?.email as string,
+        session.accessToken as string,
+      );
     }
-  }, [session, fetchRepositories]);
+  }, [session, fetchRepositoriesWithCookieHandling]);
 
   // Update initialLoad status after first fetch completes
   useEffect(() => {
@@ -349,32 +366,8 @@ export default function Dashboard() {
 // We're now using the memoized version from useErrorHandlers() hook
 // This ensures consistent error handling across the application
 
-// Cookie handling functions
-function getInstallationIdFromCookie(): number | null {
-  const getCookie = (name: string) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop()?.split(";").shift();
-    return null;
-  };
-
-  const installCookie = getCookie("github_installation_id");
-
-  if (installCookie) {
-    console.log("Found GitHub installation cookie:", installCookie);
-    // Parse the installation ID from cookie and use it
-    const installationId = parseInt(installCookie, 10);
-    if (!isNaN(installationId)) {
-      return installationId;
-    }
-  }
-
-  return null;
-}
-
-function clearInstallationCookie() {
-  document.cookie = "github_installation_id=; path=/; max-age=0; samesite=lax";
-}
+// NOTE: Cookie handling functions have been moved to the useDashboardRepository hook
+// We're now using fetchRepositoriesWithCookieHandling which handles cookies internally
 
 // Dashboard header component
 function DashboardHeader() {

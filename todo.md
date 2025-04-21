@@ -132,7 +132,7 @@
   - **Depends On:** T001
   - **AC Ref:** None
 
-- [ ] **T004: Convert fetchRepositories to use Zustand store**
+- [x] **T004: Convert fetchRepositories to use Zustand store**
 
   - Refactor `fetchRepositories` to consume state from Zustand store using selector hooks
   - Update the implementation to dispatch Zustand actions instead of React setState calls
