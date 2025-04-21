@@ -12,9 +12,6 @@ import DashboardSummaryPanel from "@/components/dashboard/DashboardSummaryPanel"
 import ActivityOverviewPanel from "@/components/dashboard/ActivityOverviewPanel";
 import ActivityFeedPanel from "@/components/dashboard/ActivityFeedPanel";
 import {
-  useDashboardRepository,
-  useActivityMetrics,
-  useSummaryGeneration,
   useDashboardState,
   useDateRange,
   useFilters,
@@ -22,6 +19,9 @@ import {
   useInstallations,
   usePanelExpansion,
   useErrorHandlers,
+  useDashboardRepository,
+  useActivityMetrics,
+  useSummaryGeneration,
 } from "@/state";
 
 // Helper function to get GitHub App installation URL

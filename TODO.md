@@ -32,7 +32,7 @@
 
 ## Dashboard Page Refactoring
 
-- [ ] **T003 · Refactor · P1: update dashboard page to use consolidated state hooks**
+- [x] **T003 · Refactor · P1: update dashboard page to use consolidated state hooks**
 
   - **Context:** Detailed Build Steps #3 (Update imports)
   - **Action:**
