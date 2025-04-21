@@ -57,3 +57,6 @@ DEVELOPMENT_PHILOSOPHY_APPENDIX_TYPESCRIPT.md
 /architect_output_tasks
 # temp files
 .temp/
+
+# glance files
+**/glance.md
