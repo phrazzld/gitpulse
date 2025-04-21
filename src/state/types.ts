@@ -89,8 +89,9 @@ export interface AuthState {
   };
   loading: boolean;
   error: string | null;
+  needsInstallation: boolean;
 
-  // Actions
+  // Basic actions
   setUser: (user: {
     email: string | null;
     name: string | null;
@@ -99,6 +100,13 @@ export interface AuthState {
   setAuthenticated: (authenticated: boolean, token?: string | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setNeedsInstallation: (needsInstallation: boolean) => void;
+
+  // Error handling actions
+  handleAuthError: (customMessage?: string) => void;
+  handleAppInstallationNeeded: (customMessage?: string) => void;
+
+  // Auth actions
   signOut: () => void;
 }
 

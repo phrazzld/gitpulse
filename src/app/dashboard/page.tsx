@@ -23,6 +23,7 @@ import {
   useActivityMetrics,
   useWindowFocusRefresh,
 } from "./dashboardHooks";
+import { useErrorHandlers } from "@/state/hooks";
 
 // Type for API response
 type ReposResponse = {
@@ -123,11 +124,8 @@ export default function Dashboard() {
   // Activity mode is hardcoded to 'my-activity' as we no longer support team/org views
   const activityMode: ActivityMode = "my-activity";
 
-  // Error handling callbacks
-  const { handleAuthError, handleAppInstallationNeeded } = useErrorHandling(
-    setError,
-    setNeedsInstallation,
-  );
+  // Error handling callbacks - using memoized handlers from AuthState
+  const { handleAuthError, handleAppInstallationNeeded } = useErrorHandlers();
 
   // Repository fetching logic
   const sessionState = session
@@ -347,28 +345,9 @@ export default function Dashboard() {
   );
 }
 
-// Error handling functions
-function useErrorHandling(
-  setError: (error: string | null) => void,
-  setNeedsInstallation: (needsInstallation: boolean) => void,
-) {
-  const handleAuthError = useCallback(() => {
-    console.log("GitHub authentication issue detected.");
-    setError(
-      "GitHub authentication issue detected. Your token may be invalid, expired, or missing required permissions. Please sign out and sign in again to grant all necessary permissions.",
-    );
-  }, [setError]);
-
-  const handleAppInstallationNeeded = useCallback(() => {
-    console.log("GitHub App installation needed.");
-    setNeedsInstallation(true);
-    setError(
-      "GitHub App installation required. Please install the GitHub App to access all your repositories, including private ones.",
-    );
-  }, [setError, setNeedsInstallation]);
-
-  return { handleAuthError, handleAppInstallationNeeded };
-}
+// NOTE: Error handling functions have been moved to the Auth slice
+// We're now using the memoized version from useErrorHandlers() hook
+// This ensures consistent error handling across the application
 
 // Cookie handling functions
 function getInstallationIdFromCookie(): number | null {

@@ -39,6 +39,27 @@ export const useAuthState = () => {
 };
 
 /**
+ * Hook for accessing the error handlers from auth slice
+ *
+ * These error handlers are memoized and will consistently update
+ * all related state in an atomic operation.
+ */
+export const useErrorHandlers = () => {
+  const handleAuthError = useStore(
+    (state) => state[StateSlice.Auth].handleAuthError,
+  );
+
+  const handleAppInstallationNeeded = useStore(
+    (state) => state[StateSlice.Auth].handleAppInstallationNeeded,
+  );
+
+  return {
+    handleAuthError,
+    handleAppInstallationNeeded,
+  };
+};
+
+/**
  * Hook to access settings state
  */
 export const useSettingsState = () => {

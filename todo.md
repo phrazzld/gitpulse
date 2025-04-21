@@ -123,7 +123,7 @@
   - **Depends On:** T001
   - **AC Ref:** None
 
-- [ ] **T003: Memoize authentication and installation error handlers with Zustand**
+- [x] **T003: Memoize authentication and installation error handlers with Zustand**
 
   - Move auth error handling logic to the Zustand store actions
   - Create dedicated actions for `handleAuthError` and `handleAppInstallationNeeded`

@@ -95,6 +95,10 @@ export function useDashboardState(
 
 /**
  * Hook to handle repository fetching logic
+ *
+ * Note: This implementation will be replaced in T004 with a version that fully
+ * uses the Zustand store for state management. For now, we're just updating
+ * the error handlers to use the memoized versions from the Auth slice.
  */
 export function useRepositoryFetching(
   session: {
@@ -110,8 +114,8 @@ export function useRepositoryFetching(
   setInstallations: (installations: Installation[]) => void,
   setCurrentInstallations: (installations: Installation[]) => void,
   setNeedsInstallation: (needsInstallation: boolean) => void,
-  handleAuthError: () => void,
-  handleAppInstallationNeeded: () => void,
+  handleAuthError: (customMessage?: string) => void, // Updated parameter
+  handleAppInstallationNeeded: (customMessage?: string) => void, // Updated parameter
 ) {
   // Function to fetch repositories
   const fetchRepositories = useCallback(
