@@ -331,7 +331,7 @@
     2. Mock properly integrates with test environment.
   - **Depends‑on:** none
 
-- [ ] **T025 · bugfix · p0: fix ActionButton style attribute test**
+- [x] **T025 · bugfix · p0: fix ActionButton style attribute test**
 
   - **Context:** CI failure · Unrelated to installation ID changes
   - **Action:**
