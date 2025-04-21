@@ -319,7 +319,7 @@
     2. CI passes without URL-related errors.
   - **Depends‑on:** none
 
-- [ ] **T024 · bugfix · p0: improve installation helper mocking in tests**
+- [x] **T024 · bugfix · p0: improve installation helper mocking in tests**
 
   - **Context:** CI failure · Installation ID utility integration
   - **Action:**

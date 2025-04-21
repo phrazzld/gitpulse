@@ -17,10 +17,18 @@ jest.mock("@/lib/auth/installationHelper", () => ({
   resolveInstallationId: jest.fn().mockImplementation(() => ({
     isValid: true,
     id: 123456,
-    source: "TEST",
+    source: "query",
   })),
   resolveMultipleInstallationIds: jest.fn().mockImplementation(() => [123456]),
   requireInstallationId: jest.fn().mockImplementation(() => 123456),
+  InstallationIdSource: {
+    QUERY: "query",
+    SESSION: "session",
+    COOKIE: "cookie",
+    AVAILABLE_INSTALLATIONS: "available_installations",
+    FALLBACK: "fallback",
+    NONE: "none",
+  },
 }));
 
 // Create a mock handler for the summary API validation
