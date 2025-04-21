@@ -82,7 +82,7 @@
     3. Component functionality remains unchanged.
   - **Depends‑on:** none
 
-- [ ] **T007 · Refactor · P2: refactor RepositoryInfoPanel internals to use library components**
+- [x] **T007 · Refactor · P2: refactor RepositoryInfoPanel internals to use library components**
 
   - **Context:** Detailed Build Steps #5
   - **Action:**

@@ -44,6 +44,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **NEVER Trust Input:** Validate all external input rigorously at system boundaries.
 - **Conventional Commits:** All commit messages MUST follow the spec for automated versioning/changelogs.
 - **Always write detailed multiline conventional commit messages**
+- **NEVER sign your commit messages. Your commit messages should ALWAYS and ONLY contain detailed multiline conventional commit formatted details about the work done**
 - **Structured Logging:** Use the project's standard structured logging library to output JSON logs.
 - **Context Propagation:** Ensure `correlation_id` (Trace/Request ID) is generated, propagated across boundaries, and included in ALL relevant logs.
 - **Quality Gates:** All code MUST pass mandatory pre-commit hooks and all CI checks (lint, format, tests, coverage, security scan). Bypassing hooks (`--no-verify`) is FORBIDDEN.
