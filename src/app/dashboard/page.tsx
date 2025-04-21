@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { ActivityMode } from "@/types/activity";
 import DashboardLoadingState from "@/components/DashboardLoadingState";
 import { DashboardGridContainer } from "@/components/dashboard/layout";
+import { Card } from "@/components/library";
 import AuthenticationStatusBanner from "@/components/dashboard/AuthenticationStatusBanner";
 import FilterControls from "@/components/dashboard/FilterControls";
 import RepositoryInfoPanel from "@/components/dashboard/RepositoryInfoPanel";
@@ -147,52 +148,57 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <DashboardGridContainer className="px-4 py-6 sm:px-0">
           {/* Authentication Status and Control Panel - full width */}
-          <div
-            className="border rounded-lg p-6 mb-8 col-span-12"
-            style={{
-              backgroundColor: "rgba(27, 43, 52, 0.7)",
-              backdropFilter: "blur(5px)",
-              borderColor: "var(--neon-green)",
-              boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
-            }}
-          >
-            {/* Terminal-like header */}
-            <DashboardHeader />
+          <div className="col-span-12">
+            <Card
+              padding="lg"
+              radius="md"
+              shadow="lg"
+              className="mb-6"
+              style={{
+                backgroundColor: "rgba(27, 43, 52, 0.7)",
+                backdropFilter: "blur(5px)",
+                borderColor: "var(--neon-green)",
+                boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
+              }}
+            >
+              {/* Terminal-like header */}
+              <DashboardHeader />
 
-            <AuthenticationStatusBanner
-              error={error}
-              authMethod={authMethod}
-              needsInstallation={needsInstallation}
-              getGitHubAppInstallUrl={getGitHubAppInstallUrl}
-              handleAuthError={handleAuthError}
-              signOutCallback={signOut}
-            />
-
-            {/* Filters and Configuration */}
-            <FilterControls
-              activityMode={activityMode}
-              dateRange={dateRange}
-              activeFilters={activeFilters}
-              installations={installations}
-              loading={isLoading}
-              handleDateRangeChange={handleDateRangeChange}
-              session={session}
-            />
-
-            {/* Wrap the controls in a form */}
-            <form onSubmit={generateSummary} className="space-y-8">
-              {/* Repository information panel */}
-              <RepositoryInfoPanel
-                repositories={repositories}
-                showRepoList={showRepoList}
-                loading={isLoading}
-                activeFilters={activeFilters}
-                setShowRepoList={setShowRepoList}
+              <AuthenticationStatusBanner
+                error={error}
+                authMethod={authMethod}
+                needsInstallation={needsInstallation}
+                getGitHubAppInstallUrl={getGitHubAppInstallUrl}
+                handleAuthError={handleAuthError}
+                signOutCallback={signOut}
               />
 
-              {/* Command buttons */}
-              <ActionButton loading={isLoading} />
-            </form>
+              {/* Filters and Configuration */}
+              <FilterControls
+                activityMode={activityMode}
+                dateRange={dateRange}
+                activeFilters={activeFilters}
+                installations={installations}
+                loading={isLoading}
+                handleDateRangeChange={handleDateRangeChange}
+                session={session}
+              />
+
+              {/* Wrap the controls in a form */}
+              <form onSubmit={generateSummary} className="space-y-8">
+                {/* Repository information panel */}
+                <RepositoryInfoPanel
+                  repositories={repositories}
+                  showRepoList={showRepoList}
+                  loading={isLoading}
+                  activeFilters={activeFilters}
+                  setShowRepoList={setShowRepoList}
+                />
+
+                {/* Command buttons */}
+                <ActionButton loading={isLoading} />
+              </form>
+            </Card>
           </div>
 
           {/* New Dashboard Summary Metrics Panel - full width */}

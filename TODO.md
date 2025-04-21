@@ -56,7 +56,7 @@
     2. Existing panels render as children of the grid container.
   - **Depends‑on:** [T002, T003]
 
-- [ ] **T005 · Refactor · P2: wrap dashboard panels in Card components**
+- [x] **T005 · Refactor · P2: wrap dashboard panels in Card components**
   - **Context:** Detailed Build Steps #4
   - **Action:**
     1. Identify major dashboard panels (e.g., `FilterControls`, `RepositoryInfoPanel`) rendered in `page.tsx`.
