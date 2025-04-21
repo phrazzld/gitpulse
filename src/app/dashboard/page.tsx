@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { ActivityMode } from "@/types/activity";
 import DashboardLoadingState from "@/components/DashboardLoadingState";
+import { DashboardGridContainer } from "@/components/dashboard/layout";
 import AuthenticationStatusBanner from "@/components/dashboard/AuthenticationStatusBanner";
 import FilterControls from "@/components/dashboard/FilterControls";
 import RepositoryInfoPanel from "@/components/dashboard/RepositoryInfoPanel";
@@ -144,10 +145,10 @@ export default function Dashboard() {
       data-testid="dashboard-container"
     >
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {/* Authentication Status and Control Panel */}
+        <DashboardGridContainer className="px-4 py-6 sm:px-0">
+          {/* Authentication Status and Control Panel - full width */}
           <div
-            className="border rounded-lg p-6 mb-8"
+            className="border rounded-lg p-6 mb-8 col-span-12"
             style={{
               backgroundColor: "rgba(27, 43, 52, 0.7)",
               backdropFilter: "blur(5px)",
@@ -194,40 +195,46 @@ export default function Dashboard() {
             </form>
           </div>
 
-          {/* New Dashboard Summary Metrics Panel */}
-          <DashboardSummaryPanel
-            commits={metrics.commits}
-            repositories={metrics.repositories}
-            activeDays={metrics.activeDays}
-            isLoading={isLoading}
-            error={error}
-            data-testid="dashboard-summary-panel"
-          />
+          {/* New Dashboard Summary Metrics Panel - full width */}
+          <div className="col-span-12">
+            <DashboardSummaryPanel
+              commits={metrics.commits}
+              repositories={metrics.repositories}
+              activeDays={metrics.activeDays}
+              isLoading={isLoading}
+              error={error}
+              data-testid="dashboard-summary-panel"
+            />
+          </div>
 
-          {/* Activity Overview Panel with AI Insights */}
-          <ActivityOverviewPanel
-            summary={summary}
-            isLoading={isLoading}
-            error={error}
-            truncated={!expandedPanels.includes("activity-overview")}
-            onViewMore={() => handlePanelExpand("activity-overview")}
-            data-testid="activity-overview-panel"
-          />
+          {/* Activity Overview Panel with AI Insights - full width */}
+          <div className="col-span-12">
+            <ActivityOverviewPanel
+              summary={summary}
+              isLoading={isLoading}
+              error={error}
+              truncated={!expandedPanels.includes("activity-overview")}
+              onViewMore={() => handlePanelExpand("activity-overview")}
+              data-testid="activity-overview-panel"
+            />
+          </div>
 
-          {/* Activity Feed Timeline */}
-          <ActivityFeedPanel
-            dateRange={dateRange}
-            filters={activeFilters}
-            installationIds={installationIds}
-            mode={activityMode}
-            maxItems={summary?.commits?.length ? undefined : 25}
-            isLoading={isLoading}
-            showRepository={true}
-            truncated={!expandedPanels.includes("activity-feed")}
-            onViewMore={() => handlePanelExpand("activity-feed")}
-            data-testid="activity-feed-panel"
-          />
-        </div>
+          {/* Activity Feed Timeline - full width */}
+          <div className="col-span-12">
+            <ActivityFeedPanel
+              dateRange={dateRange}
+              filters={activeFilters}
+              installationIds={installationIds}
+              mode={activityMode}
+              maxItems={summary?.commits?.length ? undefined : 25}
+              isLoading={isLoading}
+              showRepository={true}
+              truncated={!expandedPanels.includes("activity-feed")}
+              onViewMore={() => handlePanelExpand("activity-feed")}
+              data-testid="activity-feed-panel"
+            />
+          </div>
+        </DashboardGridContainer>
       </div>
     </div>
   );

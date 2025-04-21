@@ -44,7 +44,7 @@
     3. The page compiles and renders (layout structure not yet changed).
   - **Depends‑on:** [T001]
 
-- [ ] **T004 · Refactor · P2: replace dashboard page layout with DashboardGridContainer**
+- [x] **T004 · Refactor · P2: replace dashboard page layout with DashboardGridContainer**
 
   - **Context:** Detailed Build Steps #3 (Replace layout structure)
   - **Action:**
