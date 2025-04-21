@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { ActivityMode } from "@/types/activity";
 import DashboardLoadingState from "@/components/DashboardLoadingState";
@@ -11,54 +11,18 @@ import ActionButton from "@/components/dashboard/ActionButton";
 import DashboardSummaryPanel from "@/components/dashboard/DashboardSummaryPanel";
 import ActivityOverviewPanel from "@/components/dashboard/ActivityOverviewPanel";
 import ActivityFeedPanel from "@/components/dashboard/ActivityFeedPanel";
-import { GITHUB_API, CLIENT_CACHE_TTL, STORAGE_REFRESH } from "@/lib/constants";
-import { setCacheItem, getStaleItem } from "@/lib/localStorageCache";
-import { CommitSummary } from "@/types/summary";
-import { Repository, Installation } from "@/types/github";
-import { DashboardFilterState } from "@/types/dashboard";
 import {
-  useDashboardState,
-  useSummaryGeneration,
+  useDashboardRepository,
   useActivityMetrics,
-} from "./dashboardHooks";
-import { useErrorHandlers } from "@/state/hooks";
-import { useDashboardRepository } from "@/state";
-
-// Type for API response
-type ReposResponse = {
-  repositories: Repository[];
-  authMethod?: string;
-  installationId?: RequestedInstallationId;
-  installationIds?: InstallationId[];
-  installations?: Installation[];
-  currentInstallation?: Installation | null;
-  currentInstallations?: Installation[];
-  error?: string;
-  code?: string;
-  needsInstallation?: boolean;
-};
-
-// Type definitions for Dashboard component state
-type InstallationId = number;
-type RequestedInstallationId = InstallationId | null;
-
-// Type for date range state
-interface DateRangeState {
-  since: string;
-  until: string;
-}
-
-// Helper functions for date formatting
-function getTodayDate() {
-  const today = new Date();
-  return today.toISOString().split("T")[0];
-}
-
-function getLastWeekDate() {
-  const lastWeek = new Date();
-  lastWeek.setDate(lastWeek.getDate() - 7);
-  return lastWeek.toISOString().split("T")[0];
-}
+  useSummaryGeneration,
+  useDashboardState,
+  useDateRange,
+  useFilters,
+  useUIState,
+  useInstallations,
+  usePanelExpansion,
+  useErrorHandlers,
+} from "@/state";
 
 // Helper function to get GitHub App installation URL
 function getGitHubAppInstallUrl() {
@@ -70,7 +34,7 @@ function getGitHubAppInstallUrl() {
     console.error(
       "GitHub App name not configured. Please set NEXT_PUBLIC_GITHUB_APP_NAME environment variable.",
     );
-    return GITHUB_API.APP_INSTALLATION_URL_FRAGMENT;
+    return "https://github.com/apps/installations/new";
   }
 
   // Use the standard GitHub App installation URL - our custom handler will intercept it
@@ -88,104 +52,48 @@ function getGitHubAppInstallUrl() {
 export default function Dashboard() {
   const { data: session, status } = useSession();
 
-  // Initialize all dashboard state
+  // Get state and actions from Zustand hooks
   const {
-    repositories,
-    setRepositories,
-    loading,
-    setLoading,
-    initialLoad,
-    setInitialLoad,
-    dateRange,
-    setDateRange,
-    summary,
-    setSummary,
-    error,
-    setError,
+    loading: uiLoading,
+    error: uiError,
     showRepoList,
     setShowRepoList,
-    authMethod,
-    setAuthMethod,
-    needsInstallation,
-    setNeedsInstallation,
+  } = useUIState();
+  const { dateRange, updateDateRange } = useDateRange();
+  const { filters: activeFilters, updateFilters } = useFilters();
+  const { expandedPanels, handlePanelExpand } = usePanelExpansion();
+  const {
     installationIds,
-    setInstallationIds,
     installations,
-    setInstallations,
-    currentInstallations,
-    setCurrentInstallations,
-    expandedPanels,
-    setExpandedPanels,
-    activeFilters,
-    setActiveFilters,
-  } = useDashboardState(getLastWeekDate, getTodayDate);
+    needsInstallation,
+    authMethod,
+    error: installationError,
+  } = useInstallations();
 
   // Activity mode is hardcoded to 'my-activity' as we no longer support team/org views
   const activityMode: ActivityMode = "my-activity";
 
-  // Error handling callbacks - using memoized handlers from AuthState
-  const { handleAuthError, handleAppInstallationNeeded } = useErrorHandlers();
-
-  // Access repository state and actions from Zustand store
+  // Get repository data and actions from Zustand
   const {
-    repositories: storeRepositories,
+    repositories,
     loading: repoLoading,
+    initialLoad,
     error: repoError,
-    authMethod: repoAuthMethod,
-    needsInstallation: repoNeedsInstallation,
-    installationIds: repoInstallationIds,
-    installations: repoInstallations,
-    currentInstallations: repoCurrentInstallations,
-    initialLoad: repoInitialLoad,
     fetchRepositoriesWithCookieHandling,
     setupWindowFocusRefresh,
   } = useDashboardRepository();
 
-  // Sync Zustand store state with local state for backwards compatibility
-  // This will be removed in T005 when we fully migrate to Zustand selectors
-  useEffect(() => {
-    if (storeRepositories?.length > 0) {
-      setRepositories(storeRepositories);
-    }
-  }, [storeRepositories, setRepositories]);
+  // Get summary generation functionality
+  const { generateSummary } = useSummaryGeneration();
 
-  useEffect(() => {
-    setLoading(repoLoading);
-  }, [repoLoading, setLoading]);
+  // Get error handlers
+  const { handleAuthError } = useErrorHandlers();
 
-  useEffect(() => {
-    if (repoError) {
-      setError(repoError);
-    }
-  }, [repoError, setError]);
+  // Calculate metrics directly from Zustand store
+  const metrics = useActivityMetrics();
 
-  useEffect(() => {
-    if (repoAuthMethod) {
-      setAuthMethod(repoAuthMethod);
-    }
-  }, [repoAuthMethod, setAuthMethod]);
-
-  useEffect(() => {
-    setNeedsInstallation(repoNeedsInstallation);
-  }, [repoNeedsInstallation, setNeedsInstallation]);
-
-  useEffect(() => {
-    if (repoInstallationIds?.length > 0) {
-      setInstallationIds(repoInstallationIds);
-    }
-  }, [repoInstallationIds, setInstallationIds]);
-
-  useEffect(() => {
-    if (repoInstallations?.length > 0) {
-      setInstallations(repoInstallations);
-    }
-  }, [repoInstallations, setInstallations]);
-
-  useEffect(() => {
-    if (repoCurrentInstallations?.length > 0) {
-      setCurrentInstallations(repoCurrentInstallations);
-    }
-  }, [repoCurrentInstallations, setCurrentInstallations]);
+  // Dashboard state from Zustand store
+  const { summary } = useDashboardState();
 
   // Setup window focus refresh handler
   useEffect(() => {
@@ -198,7 +106,6 @@ export default function Dashboard() {
   // Fetch repositories when session is available
   useEffect(() => {
     if (session) {
-      // Use the repository store's fetchRepositoriesWithCookieHandling which has cookie handling built-in
       fetchRepositoriesWithCookieHandling(
         session.user?.email as string,
         session.accessToken as string,
@@ -206,66 +113,30 @@ export default function Dashboard() {
     }
   }, [session, fetchRepositoriesWithCookieHandling]);
 
-  // Update initialLoad status after first fetch completes
-  useEffect(() => {
-    if (!loading && repositories.length > 0 && initialLoad) {
-      setInitialLoad(false);
-    }
-  }, [loading, repositories, initialLoad, setInitialLoad]);
-
   // Function to handle date range changes
-  const handleDateRangeChange = useCallback(
-    (newDateRange: DateRangeState) => {
-      setDateRange(newDateRange);
-    },
-    [setDateRange],
-  );
+  const handleDateRangeChange = (newDateRange: {
+    since: string;
+    until: string;
+  }) => {
+    updateDateRange(newDateRange.since, newDateRange.until);
+  };
 
-  // Function to handle repository filter changes
-  const handleFilterChange = useCallback(
-    (newFilters: DashboardFilterState) => {
-      setActiveFilters(newFilters);
-      console.log("Filters updated:", newFilters);
-    },
-    [setActiveFilters],
-  );
+  // Function to handle filter changes
+  const handleFilterChange = (newFilters: { repositories: string[] }) => {
+    updateFilters(newFilters);
+    console.log("Filters updated:", newFilters);
+  };
 
-  // Handler for panel expansion
-  const handlePanelExpand = useCallback(
-    (panelId: string) => {
-      setExpandedPanels((prev) =>
-        prev.includes(panelId)
-          ? prev.filter((id) => id !== panelId)
-          : [...prev, panelId],
-      );
-    },
-    [setExpandedPanels],
-  );
+  // Determine loading state for UI components
+  const isLoading = uiLoading || repoLoading;
 
-  // Function to generate activity summary
-  const { generateSummary } = useSummaryGeneration(
-    dateRange,
-    installationIds,
-    activeFilters,
-    setLoading,
-    setError,
-    setSummary,
-    setAuthMethod,
-    setInstallationIds,
-    setInstallations,
-    setCurrentInstallations,
-    setNeedsInstallation,
-    handleAuthError,
-    handleAppInstallationNeeded,
-  );
+  // Determine error state for UI components
+  const error = uiError || repoError || installationError;
 
   // Show loading state during initial session loading or first data fetch
   if (status === "loading" || initialLoad) {
     return <DashboardLoadingState />;
   }
-
-  // Calculate activity metrics from summary data
-  const metrics = useActivityMetrics(summary, repositories);
 
   return (
     <div
@@ -302,7 +173,7 @@ export default function Dashboard() {
               dateRange={dateRange}
               activeFilters={activeFilters}
               installations={installations}
-              loading={loading}
+              loading={isLoading}
               handleDateRangeChange={handleDateRangeChange}
               session={session}
             />
@@ -313,13 +184,13 @@ export default function Dashboard() {
               <RepositoryInfoPanel
                 repositories={repositories}
                 showRepoList={showRepoList}
-                loading={loading}
+                loading={isLoading}
                 activeFilters={activeFilters}
                 setShowRepoList={setShowRepoList}
               />
 
               {/* Command buttons */}
-              <ActionButton loading={loading} />
+              <ActionButton loading={isLoading} />
             </form>
           </div>
 
@@ -328,7 +199,7 @@ export default function Dashboard() {
             commits={metrics.commits}
             repositories={metrics.repositories}
             activeDays={metrics.activeDays}
-            isLoading={loading}
+            isLoading={isLoading}
             error={error}
             data-testid="dashboard-summary-panel"
           />
@@ -336,7 +207,7 @@ export default function Dashboard() {
           {/* Activity Overview Panel with AI Insights */}
           <ActivityOverviewPanel
             summary={summary}
-            isLoading={loading}
+            isLoading={isLoading}
             error={error}
             truncated={!expandedPanels.includes("activity-overview")}
             onViewMore={() => handlePanelExpand("activity-overview")}
@@ -350,7 +221,7 @@ export default function Dashboard() {
             installationIds={installationIds}
             mode={activityMode}
             maxItems={summary?.commits?.length ? undefined : 25}
-            isLoading={loading}
+            isLoading={isLoading}
             showRepository={true}
             truncated={!expandedPanels.includes("activity-feed")}
             onViewMore={() => handlePanelExpand("activity-feed")}
@@ -361,13 +232,6 @@ export default function Dashboard() {
     </div>
   );
 }
-
-// NOTE: Error handling functions have been moved to the Auth slice
-// We're now using the memoized version from useErrorHandlers() hook
-// This ensures consistent error handling across the application
-
-// NOTE: Cookie handling functions have been moved to the useDashboardRepository hook
-// We're now using fetchRepositoriesWithCookieHandling which handles cookies internally
 
 // Dashboard header component
 function DashboardHeader() {

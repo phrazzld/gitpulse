@@ -5,3 +5,5 @@
  */
 
 export { useDashboardRepository } from "./useDashboardRepository";
+export { useActivityMetrics } from "./useActivityMetrics";
+export { useSummaryGeneration } from "./useSummaryGeneration";

@@ -141,7 +141,7 @@
   - **Depends On:** T002, T003
   - **AC Ref:** None
 
-- [ ] **T005: Update dashboard components to use Zustand selectors**
+- [x] **T005: Update dashboard components to use Zustand selectors**
 
   - In `src/app/dashboard/page.tsx`, update components to use Zustand selector hooks
   - Replace useState/useEffect combinations with appropriate Zustand hooks

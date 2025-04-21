@@ -124,7 +124,9 @@ export const useDateRange = () => {
   );
 
   return {
-    ...dateRange,
+    dateRange,
+    since: dateRange.since,
+    until: dateRange.until,
     updateDateRange,
   };
 };
@@ -169,6 +171,8 @@ export const useUIState = () => {
   return {
     expandedPanels: dashboard.expandedPanels,
     showRepoList: dashboard.showRepoList,
+    loading: dashboard.loading,
+    error: dashboard.error,
     togglePanel,
     setExpandedPanels,
     setShowRepoList,
@@ -198,9 +202,34 @@ export const useInstallations = () => {
     installations: dashboard.installations,
     currentInstallations: dashboard.currentInstallations,
     needsInstallation: dashboard.needsInstallation,
+    authMethod: dashboard.authMethod,
+    loading: dashboard.loading,
+    error: dashboard.error,
     setInstallationIds,
     setInstallations,
     setCurrentInstallations,
     setNeedsInstallation,
+  };
+};
+
+/**
+ * Hook for panel expansion state
+ */
+export const usePanelExpansion = () => {
+  const { expandedPanels } = useDashboardState();
+  const togglePanel = useStore(
+    (state) => state[StateSlice.Dashboard].togglePanel,
+  );
+
+  const handlePanelExpand = useCallback(
+    (panelId: string) => {
+      togglePanel(panelId);
+    },
+    [togglePanel],
+  );
+
+  return {
+    expandedPanels,
+    handlePanelExpand,
   };
 };

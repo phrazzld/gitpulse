@@ -27,10 +27,16 @@ export {
   useFilters,
   useUIState,
   useInstallations,
+  usePanelExpansion,
+  useErrorHandlers,
 } from "./hooks";
 
-// Export custom repository hooks
-export { useDashboardRepository } from "./hooks/index";
+// Export custom hooks from hooks directory
+export {
+  useDashboardRepository,
+  useActivityMetrics,
+  useSummaryGeneration,
+} from "./hooks/index";
 
 // Export slice action interfaces
 export type { DashboardSliceActions } from "./slices/dashboardSlice";
