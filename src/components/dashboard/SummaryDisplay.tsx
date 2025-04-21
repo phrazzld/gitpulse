@@ -1,16 +1,15 @@
 import React from "react";
-import ActivityFeed from "@/components/ActivityFeed";
+import ActivityFeedPanel from "@/components/dashboard/ActivityFeedPanel";
 import { ActivityMode } from "@/types/activity";
 import { DateRange } from "@/components/DateRangePicker";
-import { FilterState } from "@/app/dashboard/page";
-import { createActivityFetcher } from "@/lib/activity";
+import { DashboardFilterState } from "@/types/dashboard";
 import { CommitSummary } from "@/types/summary";
 
 interface Props {
   summary: CommitSummary | null;
   activityMode: ActivityMode;
   dateRange: DateRange;
-  activeFilters: FilterState;
+  activeFilters: DashboardFilterState;
   installationIds: number[];
 }
 
@@ -82,32 +81,16 @@ export default function SummaryDisplay({
             </h3>
           </div>
 
-          <ActivityFeed
-            loadCommits={(cursor, limit) => {
-              // Build parameters for API request
-              const params: Record<string, string> = {
-                since: dateRange.since,
-                until: dateRange.until,
-              };
-
-              // Organization filters removed in individual-focused MVP
-
-              // If installation IDs available, include them
-              if (installationIds.length > 0) {
-                params.installation_ids = installationIds.join(",");
-              }
-
-              // Always use my-activity endpoint
-              const apiEndpoint = "/api/my-activity";
-
-              // Create and return the fetcher
-              return createActivityFetcher(apiEndpoint, params)(cursor, limit);
+          <ActivityFeedPanel
+            dateRange={{
+              since: dateRange.since,
+              until: dateRange.until,
             }}
-            useInfiniteScroll={true}
-            initialLimit={30}
-            additionalItemsPerPage={20}
+            filters={activeFilters}
+            installationIds={installationIds}
+            mode={activityMode}
+            maxItems={30}
             showRepository={true}
-            emptyMessage="No activity data found for the selected filters."
           />
         </div>
       )}

@@ -47,9 +47,16 @@ PLAN.md
 DEV-REF.md
 *-PLAN.md
 *-TASK.md
+*-audit.md
+DEVELOPMENT_PHILOSOPHY.md
+DEVELOPMENT_PHILOSOPHY_APPENDIX_TYPESCRIPT.md
+/docs/prompts
 
 # architect outputs
 /architect_output
 /architect_output_tasks
 # temp files
 .temp/
+
+# glance files
+**/glance.md

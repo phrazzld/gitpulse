@@ -9,15 +9,27 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Standard API error response structure
+ *
+ * This defines the standardized JSON format for API error responses used across all API routes.
+ *
+ * @property error - Main error message for user display
+ * @property code - Error code for programmatic handling (e.g., "GITHUB_AUTH_ERROR")
+ * @property details - Optional additional information about the error
+ * @property requestId - Optional correlation ID for tracking errors across systems
+ * @property signOutRequired - Whether the client should sign the user out due to this error
+ * @property needsInstallation - Whether the client needs to install the GitHub app
+ * @property resetAt - For rate limit errors, when the rate limit will reset
+ * @property metadata - Optional additional structured data related to the error
  */
 export interface ApiErrorResponse {
   error: string;
   code: string;
   details?: string;
+  requestId?: string;
   signOutRequired?: boolean;
   needsInstallation?: boolean;
   resetAt?: string;
-  [key: string]: unknown; // Allow additional properties
+  metadata?: Record<string, unknown>;
 }
 
 /**

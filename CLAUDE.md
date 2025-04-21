@@ -1,79 +1,51 @@
-# GitPulse Development Guide
+# CLAUDE.md
 
-This guide outlines our development principles and practices for building robust, maintainable, and reliable software.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Git Workflow
+# Claude Code Instructions - Core Project Guide
 
-### Commit Style
-- **Conventional Commits**: Use structured format: `type(scope): description`
-  - Types: feat, fix, docs, style, refactor, test, chore, etc.
-  - Example: `feat(auth): implement GitHub OAuth login`
-- **Atomic Commits**: Each commit should encapsulate exactly one logical change
-- Use present tense in commit messages
-- Keep messages clear, concise and descriptive
+**IMPORTANT:** You MUST adhere to the principles and mandatory standards outlined in the full `DEVELOPMENT_PHILOSOPHY.md` document provided in context. This file is a concise reminder of key operational points for working within this repository.
 
-## Commands
+## Build/Lint/Test Commands
 
-### Development
-- `npm run dev` - Start development server
-- `npm run dev:log` - Start development server with logging to file
-- `npm run logs:rotate` - Rotate log files
+- **Development:** `npm run dev` - Run Next.js dev server with Turbopack
+- **Lint:** `npm run lint` - Run ESLint checks
+- **Type Check:** `npm run typecheck` - Run TypeScript type checking
+- **Test All:** `npm test` - Run all Jest tests
+- **Test Single File:** `npx jest path/to/component.test.tsx` - Run specific test file
+- **Test Watch:** `npm run test:watch` - Run tests in watch mode
+- **Test Coverage:** `npm run test:coverage` - Generate test coverage report
+- **CI Checks:** `npm run ci` - Run all checks (lint, typecheck, tests)
 
-### Quality & Testing
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript type checking
+## Code Style Guidelines
 
-## Project Structure
-- `src/lib` - Core utilities and services
-  - `src/lib/auth` - Authentication related modules (GitHub OAuth and App)
-  - `src/lib/errors` - Error types and handling utilities
-- `src/app` - Next.js app router pages and API routes
-- `src/types` - TypeScript type definitions
-- `scripts` - Utility scripts for development
+- **TypeScript:** No `any` types allowed (`@typescript-eslint/no-explicit-any: error`)
+- **Formatting:** Prettier enforced via pre-commit hooks
+- **File Size:** Max 400 lines per file, 100 lines per function (enforced by ESLint)
+- **Naming:** Meaningful, descriptive names; follow camelCase convention
+- **Error Handling:** Use structured errors; handle all Promise rejections
+- **Immutability:** Default to const; avoid modifying parameters
 
-## Authentication Flow
-- Two authentication methods are supported:
-  - **GitHub OAuth:** Personal access tokens for user authentication
-  - **GitHub App:** Installation-based access for more granular permissions
-- Authentication is handled by the `githubAuth` module, separate from data fetching
-- Data fetching functions accept pre-authenticated Octokit instances
-- Access tokens are stored in NextAuth.js sessions
-- Tokens may expire or be revoked, requiring re-authentication
-- The app handles invalid tokens by showing clear error messages
-- Users can sign out and sign back in to refresh their token
+## Core Principles Reminder
 
-## Engineering Best Practices
+- **Simplicity First:** Seek the simplest correct solution. Eliminate unnecessary complexity.
+- **Modularity:** Build small, focused components with clear interfaces. Follow package-by-feature structure.
+- **Design for Testability:** Non-negotiable. Structure code for easy automated testing. **NO mocking internal collaborators.** Difficulty testing REQUIRES refactoring the code under test first.
+- **Maintainability:** Code for humans first. Clarity > Premature Optimization.
+- **Explicit > Implicit:** Make dependencies, control flow, and contracts obvious.
+- **Automate Everything:** Especially linting, formatting, testing, versioning via established project tooling.
+- **Document _Why_, Not _How_:** Code should be self-documenting. Comments explain rationale.
 
-### Logging & Observability
-- Implement structured logging (JSON format) consistently
-- Include correlation IDs for request tracing
-- Establish meaningful metrics aligned with user experience
+## Mandatory Practices
 
-### Testing
-- Maintain high test coverage (unit, integration, end-to-end)
-- Write deterministic, repeatable, and efficient tests
-- Integrate automated testing into CI pipelines
+- **Strict Configuration:** Use strictest settings for linters, formatters, and type checkers defined in project configuration files.
+- **NEVER Suppress Errors/Warnings:** Fix the root cause. Directives to ignore linter/type errors are FORBIDDEN without explicit, reviewed justification and explanation.
+- **NEVER Hardcode Secrets:** Use environment variables or designated secret managers.
+- **NEVER Trust Input:** Validate all external input rigorously at system boundaries.
+- **Conventional Commits:** All commit messages MUST follow the spec for automated versioning/changelogs.
+- **Always write detailed multiline conventional commit messages**
+- **Structured Logging:** Use the project's standard structured logging library to output JSON logs.
+- **Context Propagation:** Ensure `correlation_id` (Trace/Request ID) is generated, propagated across boundaries, and included in ALL relevant logs.
+- **Quality Gates:** All code MUST pass mandatory pre-commit hooks and all CI checks (lint, format, tests, coverage, security scan). Bypassing hooks (`--no-verify`) is FORBIDDEN.
 
-### Documentation
-- Document the **why** behind design decisions
-- Keep documentation close to the codebase in markdown
-- Update documentation as part of the Definition of Done
-
-### Architecture & Design
-- Embrace modularity and loose coupling
-- Separate infrastructure and business logic
-- Design for resilience with graceful degradation
-
-### Security-First Mindset
-- Assume all inputs could be hostile; build secure defaults
-- Regularly perform dependency scans
-- Default to encryption in transit and at rest
-
-### Performance & Scalability
-- Establish and maintain performance benchmarks
-- Monitor critical metrics (response times, throughput, latency)
-- Ensure horizontal scalability
-
-### Continuous Improvement
-- Regularly conduct retrospectives
-- Actively manage and reduce technical debt
+**REMINDER:** This file highlights key operational points. Always refer to `DEVELOPMENT_PHILOSOPHY.md` and the relevant language-specific appendix (`DEVELOPMENT_PHILOSOPHY_APPENDIX_TYPESCRIPT.md`) for the complete standards and detailed guidelines.

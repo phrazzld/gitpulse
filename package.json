@@ -11,7 +11,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint --quiet",
-    "typecheck": "tsc --noEmit --skipLibCheck --project tsconfig.json",
+    "typecheck": "tsc --noEmit --skipLibCheck --project tsconfig.app.json",
+    "typecheck:tests": "tsc --noEmit --skipLibCheck --project tsconfig.test.json",
+    "typecheck:all": "tsc --noEmit --skipLibCheck --project tsconfig.json",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -31,7 +33,9 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-window": "^1.8.11",
-    "tailwind-merge": "^3.2.0"
+    "tailwind-merge": "^3.2.0",
+    "zod": "^3.24.3",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.25.9",
@@ -70,7 +74,7 @@
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint",
-      "bash -c 'tsc --skipLibCheck --noEmit'",
+      "bash -c 'tsc --skipLibCheck --noEmit --project tsconfig.app.json'",
       "prettier --write --end-of-line lf",
       "node ./scripts/check-file-size.js"
     ],

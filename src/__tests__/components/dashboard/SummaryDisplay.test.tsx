@@ -7,59 +7,42 @@ import {
   mockDateRange,
   mockActiveFilters,
 } from "../../../__tests__/test-utils";
-import type { ActivityCommit } from "@/components/ActivityFeed";
+import type { ActivityCommit } from "@/types/activity";
 
-// Mock ActivityFeed component to simplify testing
-jest.mock("@/components/ActivityFeed", () => {
+// Mock ActivityFeedPanel component to simplify testing
+jest.mock("@/components/dashboard/ActivityFeedPanel", () => {
   return {
     __esModule: true,
     default: ({
-      loadCommits,
-      useInfiniteScroll,
-      initialLimit,
-      additionalItemsPerPage,
+      dateRange,
+      filters,
+      installationIds,
+      mode,
+      maxItems,
       showRepository,
-      showContributor,
-      emptyMessage,
+      truncated,
     }: {
-      loadCommits: (
-        cursor: string | null,
-        limit: number,
-      ) => Promise<{
-        data: ActivityCommit[];
-        nextCursor?: string | null;
-        hasMore: boolean;
-      }>;
-      useInfiniteScroll?: boolean;
-      initialLimit?: number;
-      additionalItemsPerPage?: number;
+      dateRange: { since: string; until: string };
+      filters?: { repositories: string[] };
+      installationIds?: number[];
+      mode?: string;
+      maxItems?: number;
       showRepository?: boolean;
-      showContributor?: boolean;
-      emptyMessage?: string;
+      truncated?: boolean;
     }) => (
       <div data-testid="activity-feed">
         <div data-testid="infinite-scroll">
-          Infinite Scroll: {useInfiniteScroll ? "true" : "false"}
+          Infinite Scroll: {!truncated ? "true" : "false"}
         </div>
-        <div data-testid="initial-limit">Initial Limit: {initialLimit}</div>
+        <div data-testid="initial-limit">Initial Limit: {maxItems}</div>
         <div data-testid="show-repository">
           Show Repository: {showRepository ? "true" : "false"}
         </div>
-        <div data-testid="show-contributor">
-          Show Contributor: {showContributor ? "true" : "false"}
+        <div data-testid="show-contributor">Show Contributor: false</div>
+        <div data-testid="empty-message">
+          Empty Message: No activity data found for the selected filters.
         </div>
-        <div data-testid="empty-message">Empty Message: {emptyMessage}</div>
-        <button
-          onClick={() =>
-            loadCommits(null, 10).then((result) => {
-              // This simulates an activity commit fetch
-              console.log(`Fetched ${result.data.length} commits`);
-            })
-          }
-          data-testid="fetch-commits-button"
-        >
-          Fetch Commits
-        </button>
+        <button data-testid="fetch-commits-button">Fetch Commits</button>
       </div>
     ),
   };

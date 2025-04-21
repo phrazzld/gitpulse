@@ -293,92 +293,187 @@ async function processRepositoriesWithFallback(
 ): Promise<Commit[]> {
   const batchSize = GITHUB_API.BATCH_SIZE;
   const allCommits: Commit[] = [];
-  let githubUsername = author;
 
   // First attempt: Use provided author
+  const primaryCommits = await processRepositoriesWithAuthor(
+    octokit,
+    repositories,
+    since,
+    until,
+    author,
+    batchSize,
+    context,
+  );
+
+  allCommits.push(...primaryCommits);
+
+  // If no commits found with primary author, try fallback strategies
+  if (allCommits.length === 0 && author) {
+    // Try with repo owner as fallback author
+    const ownerCommits = await tryFallbackWithRepoOwner(
+      octokit,
+      repositories,
+      since,
+      until,
+      author,
+      batchSize,
+      context,
+    );
+
+    allCommits.push(...ownerCommits);
+
+    // If still no commits, try without any author filter
+    if (allCommits.length === 0) {
+      const unfilterredCommits = await tryWithoutAuthorFilter(
+        octokit,
+        repositories,
+        since,
+        until,
+        batchSize,
+        context,
+      );
+
+      allCommits.push(...unfilterredCommits);
+    }
+  }
+
+  logCompletionInfo(context, repositories.length, allCommits.length, author);
+  return allCommits;
+}
+
+/**
+ * Process repositories with the specified author filter
+ */
+async function processRepositoriesWithAuthor(
+  octokit: Octokit,
+  repositories: string[],
+  since: string,
+  until: string,
+  author: string | undefined,
+  batchSize: number,
+  context: Record<string, unknown>,
+): Promise<Commit[]> {
+  const commits: Commit[] = [];
+
   for (let i = 0; i < repositories.length; i += batchSize) {
     const batch = repositories.slice(i, i + batchSize);
-    logger.debug(
-      MODULE_NAME,
-      `Processing batch ${Math.floor(i / batchSize) + 1} with author=${githubUsername || "none"}`,
-      {
-        ...context,
-        batchSize,
-        totalBatches: Math.ceil(repositories.length / batchSize),
-      },
-    );
+    logBatchProcessing(i, batchSize, repositories.length, author, context);
 
     const batchCommits = await processBatchForCommits(
       octokit,
       batch,
       since,
       until,
-      githubUsername,
+      author,
       context,
     );
 
-    allCommits.push(...batchCommits);
+    commits.push(...batchCommits);
   }
 
-  // If no commits found and author specified, try with repo owner as fallback
-  if (allCommits.length === 0 && author) {
-    logger.info(
-      MODULE_NAME,
-      "No commits found with provided author name; retrying with the repo owner as author",
-      context,
-    );
+  return commits;
+}
 
-    if (repositories.length > 0) {
-      const [fallbackOwner] = repositories[0].split("/");
-      githubUsername = fallbackOwner;
+/**
+ * Try using repo owner as the author filter
+ */
+async function tryFallbackWithRepoOwner(
+  octokit: Octokit,
+  repositories: string[],
+  since: string,
+  until: string,
+  originalAuthor: string,
+  batchSize: number,
+  context: Record<string, unknown>,
+): Promise<Commit[]> {
+  logger.info(
+    MODULE_NAME,
+    "No commits found with provided author name; retrying with the repo owner as author",
+    context,
+  );
 
-      for (let i = 0; i < repositories.length; i += batchSize) {
-        const batch = repositories.slice(i, i + batchSize);
-        const batchCommits = await processBatchForCommits(
-          octokit,
-          batch,
-          since,
-          until,
-          githubUsername,
-          context,
-        );
-
-        allCommits.push(...batchCommits);
-      }
-    }
+  if (repositories.length === 0) {
+    return [];
   }
 
-  // Final fallback: No author filter at all
-  if (allCommits.length === 0 && author) {
-    logger.info(
-      MODULE_NAME,
-      "Still no commits found, retrying without author filter",
-      context,
-    );
+  // Extract owner from first repository
+  const [fallbackOwner] = repositories[0].split("/");
 
-    for (let i = 0; i < repositories.length; i += batchSize) {
-      const batch = repositories.slice(i, i + batchSize);
-      const batchCommits = await processBatchForCommits(
-        octokit,
-        batch,
-        since,
-        until,
-        undefined,
-        context,
-      );
+  return await processRepositoriesWithAuthor(
+    octokit,
+    repositories,
+    since,
+    until,
+    fallbackOwner,
+    batchSize,
+    context,
+  );
+}
 
-      allCommits.push(...batchCommits);
-    }
-  }
+/**
+ * Try fetching commits without any author filter
+ */
+async function tryWithoutAuthorFilter(
+  octokit: Octokit,
+  repositories: string[],
+  since: string,
+  until: string,
+  batchSize: number,
+  context: Record<string, unknown>,
+): Promise<Commit[]> {
+  logger.info(
+    MODULE_NAME,
+    "Still no commits found, retrying without author filter",
+    context,
+  );
 
+  return await processRepositoriesWithAuthor(
+    octokit,
+    repositories,
+    since,
+    until,
+    undefined,
+    batchSize,
+    context,
+  );
+}
+
+/**
+ * Log batch processing information
+ */
+function logBatchProcessing(
+  index: number,
+  batchSize: number,
+  totalRepos: number,
+  author: string | undefined,
+  context: Record<string, unknown>,
+): void {
+  logger.debug(
+    MODULE_NAME,
+    `Processing batch ${Math.floor(index / batchSize) + 1} with author=${author || "none"}`,
+    {
+      ...context,
+      batchSize,
+      totalBatches: Math.ceil(totalRepos / batchSize),
+    },
+  );
+}
+
+/**
+ * Log completion information
+ */
+function logCompletionInfo(
+  context: Record<string, unknown>,
+  repoCount: number,
+  commitCount: number,
+  author: string | undefined,
+): void {
   logger.info(MODULE_NAME, "Completed repositories processing for commits", {
     ...context,
-    totalRepositories: repositories.length,
-    totalCommits: allCommits.length,
-    finalAuthorFilter: githubUsername || "none",
+    totalRepositories: repoCount,
+    totalCommits: commitCount,
+    finalAuthorFilter: author || "none",
   });
-
-  return allCommits;
 }
 
 /**
@@ -663,19 +758,61 @@ export async function fetchAllRepositories(
   accessToken?: string,
   installationId?: number,
 ): Promise<Repository[]> {
-  const context = {
+  // Create logging context
+  const context = createFetchContext(accessToken, installationId);
+
+  // Log entry
+  logFetchEntryPoint(context);
+
+  // Validate authentication requirements
+  validateAuthentication(accessToken, installationId, context);
+
+  try {
+    // Create authenticated client and fetch repositories
+    const octokit = await createOctokitClient(accessToken, installationId);
+    return await fetchRepositoriesBasedOnAuthType(
+      octokit,
+      installationId,
+      context,
+    );
+  } catch (error) {
+    return handleGitHubError(error, context);
+  }
+}
+
+/**
+ * Create context object for logging
+ */
+function createFetchContext(
+  accessToken?: string,
+  installationId?: number,
+): Record<string, unknown> {
+  return {
     functionName: "fetchAllRepositories",
     hasAccessToken: !!accessToken,
     hasInstallationId: !!installationId,
   };
+}
 
+/**
+ * Log function entry point
+ */
+function logFetchEntryPoint(context: Record<string, unknown>): void {
   logger.debug(
     MODULE_NAME,
     "fetchAllRepositories called (deprecated)",
     context,
   );
+}
 
-  // Validate that we have at least one authentication method
+/**
+ * Validate that at least one authentication method is provided
+ */
+function validateAuthentication(
+  accessToken: string | undefined,
+  installationId: number | undefined,
+  context: Record<string, unknown>,
+): void {
   if (!accessToken && !installationId) {
     logger.error(
       MODULE_NAME,
@@ -687,36 +824,47 @@ export async function fetchAllRepositories(
       { context },
     );
   }
+}
 
-  try {
-    // Create an authenticated Octokit instance using the auth module
-    const credentials: GitHubCredentials = installationId
-      ? { type: "app", installationId }
-      : { type: "oauth", token: accessToken! };
+/**
+ * Create an authenticated Octokit client
+ */
+async function createOctokitClient(
+  accessToken: string | undefined,
+  installationId?: number,
+): Promise<Octokit> {
+  const credentials: GitHubCredentials = installationId
+    ? { type: "app", installationId }
+    : { type: "oauth", token: accessToken! };
 
-    const octokit = await createAuthenticatedOctokit(credentials);
+  return await createAuthenticatedOctokit(credentials);
+}
 
-    // Now call the appropriate repository fetching function
-    if (installationId) {
-      logger.info(
-        MODULE_NAME,
-        "Using GitHub App installation for repository access",
-        {
-          ...context,
-          installationId,
-        },
-      );
-      return await fetchAppRepositories(octokit);
-    } else {
-      logger.info(
-        MODULE_NAME,
-        "Using OAuth token for repository access",
-        context,
-      );
-      return await fetchRepositories(octokit);
-    }
-  } catch (error) {
-    return handleGitHubError(error, context);
+/**
+ * Fetch repositories based on authentication type
+ */
+async function fetchRepositoriesBasedOnAuthType(
+  octokit: Octokit,
+  installationId: number | undefined,
+  context: Record<string, unknown> = {},
+): Promise<Repository[]> {
+  if (installationId) {
+    logger.info(
+      MODULE_NAME,
+      "Using GitHub App installation for repository access",
+      {
+        ...context,
+        installationId,
+      },
+    );
+    return await fetchAppRepositories(octokit);
+  } else {
+    logger.info(
+      MODULE_NAME,
+      "Using OAuth token for repository access",
+      context,
+    );
+    return await fetchRepositories(octokit);
   }
 }
 

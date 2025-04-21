@@ -22,7 +22,14 @@ import {
 } from "@/lib/cache";
 import { withAuthValidation, ApiRouteHandler } from "@/lib/auth/apiAuth";
 import { SessionInfo } from "@/types/api";
-import { safelyExtractError } from "@/lib/errors";
+import { z } from "zod";
+import { validateQueryParams } from "@/lib/validation";
+import { resolveInstallationId } from "@/lib/auth/installationHelper";
+import {
+  withErrorHandling,
+  createApiErrorResponse,
+  createApiSuccessResponse,
+} from "@/lib/auth/apiErrorHandler";
 
 const MODULE_NAME = "api:repos";
 
@@ -58,15 +65,37 @@ async function handleGetRepositories(
 ) {
   logger.debug(MODULE_NAME, "GET /api/repos request received", {
     url: request.url,
-    headers: Object.fromEntries([...request.headers.entries()]),
+    // Sanitize headers by only including non-sensitive ones
+    headers: {
+      host: request.headers.get("host") || "",
+      referer: request.headers.get("referer") || "",
+      "user-agent": request.headers.get("user-agent") || "",
+      "content-type": request.headers.get("content-type") || "",
+      accept: request.headers.get("accept") || "",
+      "has-authorization": request.headers.has("authorization")
+        ? "true"
+        : "false",
+      "has-cookie": request.headers.has("cookie") ? "true" : "false",
+    },
   });
 
-  // Get installation ID from query parameter if present
-  const requestedInstallationId =
-    request.nextUrl.searchParams.get("installation_id");
-  let installationId = requestedInstallationId
-    ? parseInt(requestedInstallationId, 10)
+  // Resolve installation ID from request, session, and cookies
+  const installationResult = resolveInstallationId({
+    req: request,
+    session,
+    availableInstallations: [], // Will fetch installations later
+    validateAgainstAvailable: false, // Will validate after fetching installations
+  });
+
+  let installationId = installationResult.isValid
+    ? installationResult.id
     : session.installationId;
+
+  logger.debug(MODULE_NAME, "Resolved installation ID", {
+    source: installationResult.source,
+    isValid: installationResult.isValid,
+    hasId: !!installationId,
+  });
 
   // Create cache key parameters
   const cacheParams = {
@@ -103,39 +132,29 @@ async function handleGetRepositories(
       allInstallations = await getAllAppInstallations(session.accessToken);
       logger.info(MODULE_NAME, "Retrieved all GitHub App installations", {
         count: allInstallations.length,
-        accounts: allInstallations
-          .filter((i) => i.account)
-          .map((i) => i.account?.login),
+        // Don't log actual account names, just account count
+        accountCount: allInstallations.filter((i) => i.account).length,
       });
 
-      // If we don't have an installation ID yet, use the first available installation
-      if (!installationId && allInstallations.length > 0) {
-        installationId = allInstallations[0].id;
-        logger.info(MODULE_NAME, "Using first available installation", {
+      // Now that we have fetched all installations, validate the installation ID against them
+      const validatedInstallationResult = resolveInstallationId({
+        req: request,
+        session,
+        availableInstallations: allInstallations,
+        validateAgainstAvailable: true,
+        useFirstAvailableAsFallback: true,
+      });
+
+      // Use the validated installation ID if it's valid
+      if (
+        validatedInstallationResult.isValid &&
+        validatedInstallationResult.id
+      ) {
+        installationId = validatedInstallationResult.id;
+        logger.info(MODULE_NAME, "Using validated installation ID", {
           installationId,
-          account: allInstallations[0].account?.login || "unknown",
+          source: validatedInstallationResult.source,
         });
-      }
-
-      // Validate that the requested installation ID is in our list
-      if (requestedInstallationId && allInstallations.length > 0) {
-        const parsedId = parseInt(requestedInstallationId, 10);
-        const validInstallation = allInstallations.find(
-          (inst) => inst.id === parsedId,
-        );
-
-        if (!validInstallation) {
-          logger.warn(
-            MODULE_NAME,
-            "Requested installation ID not found in user's installations",
-            {
-              requestedId: requestedInstallationId,
-              availableIds: allInstallations.map((i) => i.id),
-            },
-          );
-          // Fallback to the first available installation
-          installationId = allInstallations[0].id;
-        }
       }
     } catch (error) {
       logger.warn(MODULE_NAME, "Error getting all GitHub App installations", {
@@ -144,17 +163,20 @@ async function handleGetRepositories(
     }
   }
 
-  // Also check for installation ID in cookies if we still don't have one
-  if (!installationId) {
-    const cookieHeader = request.headers.get("cookie");
-    if (cookieHeader && cookieHeader.includes("github_installation_id=")) {
-      const match = cookieHeader.match(/github_installation_id=([^;]+)/);
-      if (match && match[1]) {
-        installationId = parseInt(match[1], 10);
-        logger.info(MODULE_NAME, "Found installation ID in cookie", {
-          installationId,
-        });
-      }
+  // If we still don't have an installation ID after checking all sources,
+  // attempt one final resolution with useFirstAvailableAsFallback
+  if (!installationId && allInstallations.length > 0) {
+    const fallbackResult = resolveInstallationId({
+      availableInstallations: allInstallations,
+      useFirstAvailableAsFallback: true,
+    });
+
+    if (fallbackResult.isValid && fallbackResult.id) {
+      installationId = fallbackResult.id;
+      logger.info(MODULE_NAME, "Using fallback installation ID", {
+        source: fallbackResult.source,
+        installationId,
+      });
     }
   }
 
@@ -165,18 +187,16 @@ async function handleGetRepositories(
       hasInstallationId: !!installationId,
     });
 
-    return cachedJsonResponse(
-      {
-        error: "GitHub authentication required",
-        needsInstallation: true,
-        message: "Please install the GitHub App to access your repositories.",
-      },
-      403,
+    const error = new Error(
+      "GitHub authentication required. Please install the GitHub App to access your repositories.",
     );
+    error.name = "GitHubAuthError";
+    throw error;
   }
 
   logger.info(MODULE_NAME, "Authenticated user requesting repositories", {
-    user: session.user?.email || session.user?.name || "unknown",
+    // Only log that there is a user, not the specific user identity
+    userAuthenticated: !!session.user,
     authMethod: installationId ? "GitHub App" : "OAuth",
   });
 
@@ -195,12 +215,10 @@ async function handleGetRepositories(
         installationId,
       });
     } else if (session.accessToken) {
-      // Log GitHub token info (safely)
-      const tokenInfo = {
-        length: session.accessToken?.length,
-        prefix: session.accessToken?.substring(0, 4) + "...",
-      };
-      logger.debug(MODULE_NAME, "Using GitHub access token", tokenInfo);
+      // Only log that we have a token, not any details about it
+      logger.debug(MODULE_NAME, "Using GitHub access token", {
+        hasToken: true,
+      });
     }
 
     // Create an authenticated Octokit instance
@@ -257,11 +275,9 @@ async function handleGetRepositories(
     // Log additional debugging info for troubleshooting
     logger.debug(MODULE_NAME, "Repository fetch details", {
       fetchTimeMs: endTime - startTime,
-      userInfo: {
-        name: session.user?.name,
-        email: session.user?.email,
-      },
-      ownerDetails: ownerStats,
+      // Don't log actual user info, just that we have a user
+      hasUser: !!session.user,
+      ownerCount: ownerStats.length,
     });
 
     // Create response object
@@ -280,92 +296,20 @@ async function handleGetRepositories(
     };
 
     // Return cached JSON response with appropriate headers
-    return cachedJsonResponse(responseData, 200, {
+    return createApiSuccessResponse(responseData, 200, {
       etag,
       maxAge: CacheTTL.LONG, // Cache for 1 hour
       staleWhileRevalidate: CacheTTL.LONG * 2, // Allow stale content for 2 hours while revalidating
     });
   } catch (error) {
-    logger.error(MODULE_NAME, "Error fetching repositories", { error });
-
-    // Import GitHubError classes directly in this file
-    const {
-      GitHubAuthError,
-      GitHubConfigError,
-      GitHubRateLimitError,
-      GitHubNotFoundError,
-      GitHubApiError,
-      GitHubError,
-    } = await import("@/lib/errors");
-
-    let errorMessage = "Failed to fetch repositories";
-    let errorCode = "API_ERROR";
-    let statusCode = 500;
-    let signOutRequired = false;
-    let errorDetails = "";
-    const needsInstallation = false;
-
-    // Check for specific error types based on our custom error classes
-    if (error instanceof GitHubConfigError) {
-      errorMessage =
-        "GitHub App not properly configured. Please contact the administrator.";
-      errorCode = "GITHUB_APP_CONFIG_ERROR";
-      statusCode = 500;
-      errorDetails = error.message;
-    } else if (error instanceof GitHubAuthError) {
-      if (error.message.includes("scope")) {
-        errorMessage =
-          "Your GitHub token is missing required permissions. Please sign out and sign in again to grant access to your repositories.";
-        errorCode = "GITHUB_SCOPE_ERROR";
-      } else {
-        errorMessage =
-          "GitHub authentication failed. Your access token is invalid or expired.";
-        errorCode = "GITHUB_AUTH_ERROR";
-      }
-      statusCode = 403; // Use 403 instead of 401 to prevent automatic browser redirects
-      signOutRequired = true;
-      errorDetails = error.message;
-    } else if (error instanceof GitHubRateLimitError) {
-      errorMessage = "GitHub API rate limit exceeded. Please try again later.";
-      errorCode = "GITHUB_RATE_LIMIT_ERROR";
-      statusCode = 429;
-      // Add reset time if available
-      const resetTime = error.resetTimestamp
-        ? new Date(error.resetTimestamp * 1000).toISOString()
-        : "unknown";
-      errorDetails = `Rate limit exceeded. Reset at ${resetTime}`;
-    } else if (error instanceof GitHubNotFoundError) {
-      errorMessage = "GitHub resource not found.";
-      errorCode = "GITHUB_NOT_FOUND_ERROR";
-      statusCode = 404;
-      errorDetails = error.message;
-    } else if (error instanceof GitHubApiError) {
-      errorMessage = "GitHub API error occurred.";
-      errorCode = "GITHUB_API_ERROR";
-      statusCode = error.status;
-      errorDetails = error.message;
-    } else {
-      // For any other type of error, including generic GitHubError
-      errorMessage = "Failed to fetch repositories";
-      errorCode = "API_ERROR";
-      statusCode = 500;
-      errorDetails = error instanceof Error ? error.message : String(error);
-    }
-
-    // Use 403 for auth errors rather than 401 to prevent automatic browser redirects
-    return cachedJsonResponse(
-      {
-        error: errorMessage,
-        details: errorDetails,
-        code: errorCode,
-        signOutRequired: signOutRequired,
-        needsInstallation: needsInstallation,
-      },
-      statusCode,
-    );
+    // The error will be caught and handled by the withErrorHandling wrapper
+    throw error;
   }
 }
 
-// Export the authenticated handler
-// Type cast the handler to match the expected function signature
-export const GET = withAuthValidation(handleGetRepositories as ApiRouteHandler);
+// Export the authenticated handler with standardized error handling
+// First apply auth validation, then wrap with error handling
+const authenticatedHandler = withAuthValidation(
+  handleGetRepositories as ApiRouteHandler,
+);
+export const GET = withErrorHandling(authenticatedHandler, MODULE_NAME);

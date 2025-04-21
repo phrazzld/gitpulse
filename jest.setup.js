@@ -121,14 +121,62 @@ jest.mock("next/server", () => {
     }
   }
 
+  // Class to properly implement the NextURL object
+  class MockNextURL {
+    constructor(url = "https://example.com") {
+      // Handle if input is null or undefined by defaulting to example.com
+      const safeUrl = url || "https://example.com";
+      // Parse the URL
+      try {
+        const parsedUrl = new URL(safeUrl);
+        this.href = parsedUrl.href;
+        this.origin = parsedUrl.origin;
+        this.protocol = parsedUrl.protocol;
+        this.host = parsedUrl.host;
+        this.hostname = parsedUrl.hostname;
+        this.port = parsedUrl.port;
+        this.pathname = parsedUrl.pathname;
+        this.search = parsedUrl.search;
+        this.searchParams = parsedUrl.searchParams;
+        this.hash = parsedUrl.hash;
+        this.basePath = "";
+      } catch (e) {
+        // Handle invalid URLs gracefully
+        const fallbackUrl = new URL("https://example.com");
+        this.href = fallbackUrl.href;
+        this.origin = fallbackUrl.origin;
+        this.protocol = fallbackUrl.protocol;
+        this.host = fallbackUrl.host;
+        this.hostname = fallbackUrl.hostname;
+        this.port = fallbackUrl.port;
+        this.pathname = fallbackUrl.pathname;
+        this.search = fallbackUrl.search;
+        this.searchParams = new URLSearchParams();
+        this.hash = fallbackUrl.hash;
+        this.basePath = "";
+      }
+    }
+  }
+
   class MockNextRequest {
     constructor(input, init = {}) {
-      this.url = typeof input === "string" ? input : input.url;
+      // Handle the URL appropriately
+      if (typeof input === "string") {
+        this.url = input;
+      } else if (input && input.url) {
+        this.url = input.url;
+      } else {
+        this.url = "https://example.com";
+      }
+
       this.method = init.method || "GET";
       this.headers = new MockHeaders(init.headers || {});
       this.cookies = new MockCookies();
       this.bodyUsed = false;
       this._body = init.body;
+
+      // Create nextUrl instance early to avoid issues
+      this._nextUrl = new MockNextURL(this.url);
     }
 
     json() {
@@ -144,19 +192,7 @@ jest.mock("next/server", () => {
     }
 
     get nextUrl() {
-      const url = new URL(this.url);
-      return {
-        href: url.href,
-        origin: url.origin,
-        protocol: url.protocol,
-        host: url.host,
-        hostname: url.hostname,
-        port: url.port,
-        pathname: url.pathname,
-        search: url.search,
-        searchParams: url.searchParams,
-        hash: url.hash,
-      };
+      return this._nextUrl;
     }
   }
 

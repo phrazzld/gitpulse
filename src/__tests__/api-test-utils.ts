@@ -229,8 +229,8 @@ export const createApiHandlerTestHelper = (
         testUrl.searchParams.append(key, value);
       });
 
-      // Create request object
-      const req = new NextRequest(testUrl, {
+      // Create request object with search parameters explicitly configured
+      const req = new NextRequest(testUrl.toString(), {
         method,
         body: body ? JSON.stringify(body) : undefined,
         headers: {
