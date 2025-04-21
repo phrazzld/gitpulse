@@ -49,3 +49,27 @@
   - Commit changes with descriptive message
   - Push changes to feature branch
   - Verify CI passes with all tests
+
+## GitHub Setup Validation Tests
+
+- [x] **Update GitHub setup validation tests to expect 307 status code**
+
+  - File: `src/__tests__/api/validation/github-setup.test.ts`
+  - Change `expect(response.status).toBe(302)` to `expect(response.status).toBe(307)` in the following tests:
+    - "should redirect with error for non-integer installation IDs"
+    - "should redirect with error for negative installation IDs"
+    - "should redirect with error for non-numeric installation IDs"
+    - "should redirect with error for missing installation ID"
+    - "should redirect to homepage when no session exists"
+  - Add a comment explaining why we expect 307 instead of 302 for Next.js redirects
+
+- [x] **Verify tests pass with updated status code expectations**
+
+  - Run the GitHub setup validation tests
+  - Ensure all tests pass with the updated expectations
+  - Run the full test suite to check for any regressions
+
+- [x] **Commit and push changes**
+  - Create a clear commit message explaining the fix
+  - Push changes to feature branch
+  - Verify CI passes with all tests

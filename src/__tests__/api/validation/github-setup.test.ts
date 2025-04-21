@@ -7,6 +7,10 @@ import { mockSession } from "../../test-utils";
 import { z } from "zod";
 import { installationIdSchema } from "@/lib/validation";
 
+// NOTE: NextResponse.redirect() uses a 307 (Temporary Redirect) status code by default.
+// This is important to understand when writing tests that check redirect behavior.
+// See: https://nextjs.org/docs/app/api-reference/functions/next-response#redirect
+
 // Create a mock handler for GitHub setup validation
 const mockGitHubSetupHandler = async (req: NextRequest) => {
   const session = await mockGetServerSession();
@@ -99,9 +103,13 @@ describe("API Input Validation: /api/github/setup", () => {
       },
     );
 
-    expect(response.status).toBe(302); // Redirect status
-    expect(response.headers.location).toContain(
-      "/dashboard?error=invalid_installation_id",
+    // NextResponse.redirect() returns 307 Temporary Redirect by default in Next.js
+    expect(response.status).toBe(307); // Temporary Redirect status
+
+    // Check that location header contains our expected error path
+    const locationUrl = String(response.headers.location);
+    expect(locationUrl).toContain(
+      "https://example.com/dashboard?error=invalid_installation_id",
     );
   });
 
@@ -114,9 +122,13 @@ describe("API Input Validation: /api/github/setup", () => {
       },
     );
 
-    expect(response.status).toBe(302); // Redirect status
-    expect(response.headers.location).toContain(
-      "/dashboard?error=invalid_installation_id",
+    // NextResponse.redirect() returns 307 Temporary Redirect by default in Next.js
+    expect(response.status).toBe(307); // Temporary Redirect status
+
+    // Check that location header contains our expected error path
+    const locationUrl = String(response.headers.location);
+    expect(locationUrl).toContain(
+      "https://example.com/dashboard?error=invalid_installation_id",
     );
   });
 
@@ -129,9 +141,13 @@ describe("API Input Validation: /api/github/setup", () => {
       },
     );
 
-    expect(response.status).toBe(302); // Redirect status
-    expect(response.headers.location).toContain(
-      "/dashboard?error=invalid_installation_id",
+    // NextResponse.redirect() returns 307 Temporary Redirect by default in Next.js
+    expect(response.status).toBe(307); // Temporary Redirect status
+
+    // Check that location header contains our expected error path
+    const locationUrl = String(response.headers.location);
+    expect(locationUrl).toContain(
+      "https://example.com/dashboard?error=invalid_installation_id",
     );
   });
 
@@ -142,9 +158,13 @@ describe("API Input Validation: /api/github/setup", () => {
       {},
     );
 
-    expect(response.status).toBe(302); // Redirect status
-    expect(response.headers.location).toContain(
-      "/dashboard?error=invalid_installation_id",
+    // NextResponse.redirect() returns 307 Temporary Redirect by default in Next.js
+    expect(response.status).toBe(307); // Temporary Redirect status
+
+    // Check that location header contains our expected error path
+    const locationUrl = String(response.headers.location);
+    expect(locationUrl).toContain(
+      "https://example.com/dashboard?error=invalid_installation_id",
     );
   });
 
@@ -160,7 +180,11 @@ describe("API Input Validation: /api/github/setup", () => {
       },
     );
 
-    expect(response.status).toBe(302); // Redirect status
-    expect(response.headers.location).toBe("https://example.com/");
+    // NextResponse.redirect() returns 307 Temporary Redirect by default in Next.js
+    expect(response.status).toBe(307); // Temporary Redirect status
+
+    // Check that location header contains our expected home path
+    const locationUrl = String(response.headers.location);
+    expect(locationUrl).toBe("https://example.com/");
   });
 });
