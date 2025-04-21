@@ -1,12 +1,5 @@
 # BACKLOG
 
-- Layout and Navigation Redesign
-
-  - Implement new header and footer
-  - Create improved navigation structure
-  - Update responsive menu behavior
-  - Depends on: Core Component Library Creation
-
 - audit whole codebase against dev philosophy, identify key things to hit
 
 - Dashboard Interface Redesign
@@ -33,6 +26,13 @@
 - implement semantic versioning (ideally automatically managed somehow ... conventional commits?)
 
 # COMPLETED
+
+- Layout and Navigation Redesign
+
+  - Implement new header and footer
+  - Create improved navigation structure
+  - Update responsive menu behavior
+  - Depends on: Core Component Library Creation
 
 - Core Component Library Creation
 
