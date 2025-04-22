@@ -146,8 +146,8 @@ export default function Dashboard() {
       data-testid="dashboard-container"
     >
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <DashboardGridContainer className="px-4 py-6 sm:px-0">
-          {/* Authentication Status and Control Panel - full width */}
+        <DashboardGridContainer className="px-4 py-6 sm:px-0 gap-6">
+          {/* Authentication Status and Control Panel - full width at all breakpoints */}
           <div className="col-span-12">
             <Card
               padding="lg"
@@ -201,8 +201,8 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* New Dashboard Summary Metrics Panel - full width */}
-          <div className="col-span-12">
+          {/* Dashboard Summary Metrics Panel - full width on mobile, half width on md and above */}
+          <div className="col-span-12 md:col-span-6 lg:col-span-4">
             <DashboardSummaryPanel
               commits={metrics.commits}
               repositories={metrics.repositories}
@@ -213,8 +213,8 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Activity Overview Panel with AI Insights - full width */}
-          <div className="col-span-12">
+          {/* Activity Overview Panel with AI Insights - full width on mobile, half width on md, two-thirds on lg */}
+          <div className="col-span-12 md:col-span-6 lg:col-span-8">
             <ActivityOverviewPanel
               summary={summary}
               isLoading={isLoading}
@@ -225,7 +225,7 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Activity Feed Timeline - full width */}
+          {/* Activity Feed Timeline - full width at all breakpoints due to content importance */}
           <div className="col-span-12">
             <ActivityFeedPanel
               dateRange={dateRange}
