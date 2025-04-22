@@ -13,6 +13,8 @@ import ActivityOverviewPanel from "@/components/dashboard/ActivityOverviewPanel"
 import ActivityFeedPanel from "@/components/dashboard/ActivityFeedPanel";
 import TerminalHeader from "@/components/dashboard/TerminalHeader";
 import DashboardContainer from "@/components/dashboard/DashboardContainer";
+// T201: Import test component
+import TestStaticComponent from "@/components/dashboard/TestStaticComponent";
 import {
   useErrorHandlers,
   useUIState,
@@ -37,6 +39,9 @@ function getGitHubAppInstallUrl() {
   return `https://github.com/apps/${appName}/installations/new`;
 }
 
+// T201: Add module-level debug log
+console.log("Dashboard page.tsx module is being loaded");
+
 /**
  * Dashboard Page Component
  *
@@ -46,24 +51,52 @@ function getGitHubAppInstallUrl() {
  * @returns The dashboard page component
  */
 export default function Dashboard() {
+  // T201: Add debug log at start of component render
+  console.log("Dashboard page: Component function executing", {
+    timestamp: new Date().toISOString(),
+    renderPhase: "initial",
+  });
+
   const { data: session } = useSession();
+  console.log("Dashboard page: Session data", {
+    hasSession: !!session,
+    user: session?.user?.name,
+  });
 
   // Minimal state needed for the layout component
+  console.log("Dashboard page: About to access state hooks");
   const { error: uiError } = useUIState();
   const { expandedPanels, handlePanelExpand } = usePanelExpansion();
   const { generateSummary } = useSummaryGeneration();
   const { handleAuthError } = useErrorHandlers();
 
+  console.log("Dashboard page: State hooks accessed", {
+    hasUiError: !!uiError,
+    expandedPanelsCount: expandedPanels?.length || 0,
+    hasGenerateSummary: typeof generateSummary === "function",
+    hasHandleAuthError: typeof handleAuthError === "function",
+  });
+
   // Activity mode is hardcoded to 'my-activity' as we no longer support team/org views
   const activityMode: ActivityMode = "my-activity";
 
+  console.log("Dashboard page: About to render component tree");
+
   return (
-    <DashboardContainer>
-      <div
-        className="bg-dark-slate min-h-screen"
-        data-testid="dashboard-container"
-      >
-        {/* 
+    <>
+      {/* T201: Test component outside DashboardContainer to verify rendering issues */}
+      <TestStaticComponent />
+
+      <DashboardContainer>
+        {/* T201: Test component inside DashboardContainer but outside main div */}
+        <TestStaticComponent />
+
+        <div
+          className="min-h-screen w-full overflow-x-hidden"
+          style={{ backgroundColor: "hsl(var(--dark-slate))" }}
+          data-testid="dashboard-container"
+        >
+          {/* 
           Main dashboard container with progressive padding:
           - Consistent vertical padding (py-lg) at all breakpoints
           - Horizontal padding increases at breakpoints:
@@ -73,61 +106,68 @@ export default function Dashboard() {
           - max-w-7xl sets maximum content width to prevent excessive line lengths on large displays
           - mx-auto centers the container when max-width is reached
         */}
-        <div className="max-w-7xl mx-auto py-lg sm:px-lg lg:px-xl">
-          {/* 
+          <div className="max-w-7xl mx-auto py-lg sm:px-lg lg:px-xl">
+            {/* 
             Dashboard grid layout with larger gap (gap-lg) for better visual separation between panels.
             Horizontal padding scales based on screen size:
             - Default: px-md for minimal spacing on mobile
             - sm breakpoint and up: px-0 to maximize content space within container boundaries
             - Maintains py-lg vertical padding consistently across breakpoints
           */}
-          <DashboardGridContainer className="px-md py-lg sm:px-0 gap-lg">
-            {/* 
+            <DashboardGridContainer className="px-md py-lg sm:px-0 gap-lg">
+              {/* T201: Test component inside grid container */}
+              <div className="col-span-12 mb-lg">
+                <TestStaticComponent />
+              </div>
+
+              {/* 
               Authentication Status and Control Panel spans full width (col-span-12) across all breakpoints
               to emphasize importance of authentication state and control options.
               This critical component maintains consistent width to ensure visibility and accessibility.
             */}
-            <div className="col-span-12">
-              <Card
-                padding="lg"
-                radius="md"
-                shadow="lg"
-                className="border border-neon-green bg-dark-slate/70 backdrop-blur-sm"
-                style={{
-                  boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
-                }}
-              >
-                {/* Terminal-like header */}
-                <TerminalHeader />
+              <div className="col-span-12">
+                <Card
+                  padding="lg"
+                  radius="md"
+                  shadow="lg"
+                  className="border backdrop-blur-sm"
+                  style={{
+                    backgroundColor: "hsla(var(--dark-slate), 0.7)",
+                    borderColor: "hsl(var(--neon-green))",
+                    boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
+                  }}
+                >
+                  {/* Terminal-like header */}
+                  <TerminalHeader />
 
-                <div className="mt-lg">
-                  <AuthenticationStatusBanner
-                    getGitHubAppInstallUrl={getGitHubAppInstallUrl}
-                    handleAuthError={handleAuthError}
-                    signOutCallback={signOut}
-                  />
-                </div>
+                  <div className="mt-lg">
+                    <AuthenticationStatusBanner
+                      getGitHubAppInstallUrl={getGitHubAppInstallUrl}
+                      handleAuthError={handleAuthError}
+                      signOutCallback={signOut}
+                    />
+                  </div>
 
-                {/* Filters and Configuration */}
-                <div className="mt-lg">
-                  <FilterControls
-                    activityMode={activityMode}
-                    session={session}
-                  />
-                </div>
+                  {/* Filters and Configuration */}
+                  <div className="mt-lg">
+                    <FilterControls
+                      activityMode={activityMode}
+                      session={session}
+                    />
+                  </div>
 
-                {/* Wrap the controls in a form */}
-                <form onSubmit={generateSummary} className="mt-lg space-y-lg">
-                  {/* Repository information panel */}
-                  <RepositoryInfoPanel />
+                  {/* Wrap the controls in a form */}
+                  <form onSubmit={generateSummary} className="mt-lg space-y-lg">
+                    {/* Repository information panel */}
+                    <RepositoryInfoPanel />
 
-                  {/* Command buttons */}
-                  <ActionButton />
-                </form>
-              </Card>
-            </div>
+                    {/* Command buttons */}
+                    <ActionButton />
+                  </form>
+                </Card>
+              </div>
 
-            {/* 
+              {/* 
               Dashboard Summary Metrics Panel - Responsive width strategy:
               - Mobile (default): Full width (col-span-12) to maximize readability on small screens
               - Tablet (md): Half width (col-span-6) to create side-by-side layout with Activity Overview
@@ -136,11 +176,11 @@ export default function Dashboard() {
               This narrower panel on larger screens creates visual hierarchy emphasizing that this
               contains summary data while preserving readability on all devices.
             */}
-            <div className="col-span-12 md:col-span-6 lg:col-span-4">
-              <DashboardSummaryPanel data-testid="dashboard-summary-panel" />
-            </div>
+              <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <DashboardSummaryPanel data-testid="dashboard-summary-panel" />
+              </div>
 
-            {/* 
+              {/* 
               Activity Overview Panel with AI Insights - Responsive width strategy:
               - Mobile (default): Full width (col-span-12) for maximum readability on small screens
               - Tablet (md): Half width (col-span-6) to create side-by-side layout with Summary Panel
@@ -149,32 +189,33 @@ export default function Dashboard() {
               The panel receives more horizontal space on desktop compared to the Summary Panel 
               because it contains richer content including AI insights that benefit from additional width.
             */}
-            <div className="col-span-12 md:col-span-6 lg:col-span-8">
-              <ActivityOverviewPanel
-                truncated={!expandedPanels.includes("activity-overview")}
-                onViewMore={() => handlePanelExpand("activity-overview")}
-                data-testid="activity-overview-panel"
-              />
-            </div>
+              <div className="col-span-12 md:col-span-6 lg:col-span-8">
+                <ActivityOverviewPanel
+                  truncated={!expandedPanels.includes("activity-overview")}
+                  onViewMore={() => handlePanelExpand("activity-overview")}
+                  data-testid="activity-overview-panel"
+                />
+              </div>
 
-            {/* 
+              {/* 
               Activity Feed Timeline - Full width (col-span-12) at all breakpoints due to:
               1. Content importance - this is the primary interactive element for reviewing commits
               2. Table-like data display that requires sufficient width for readability
               3. Chronological timeline presentation works best as a full-width component
             */}
-            <div className="col-span-12">
-              <ActivityFeedPanel
-                mode={activityMode}
-                showRepository={true}
-                truncated={!expandedPanels.includes("activity-feed")}
-                onViewMore={() => handlePanelExpand("activity-feed")}
-                data-testid="activity-feed-panel"
-              />
-            </div>
-          </DashboardGridContainer>
+              <div className="col-span-12">
+                <ActivityFeedPanel
+                  mode={activityMode}
+                  showRepository={true}
+                  truncated={!expandedPanels.includes("activity-feed")}
+                  onViewMore={() => handlePanelExpand("activity-feed")}
+                  data-testid="activity-feed-panel"
+                />
+              </div>
+            </DashboardGridContainer>
+          </div>
         </div>
-      </div>
-    </DashboardContainer>
+      </DashboardContainer>
+    </>
   );
 }
