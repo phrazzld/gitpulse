@@ -147,20 +147,21 @@ export function useDashboardRepository() {
     // T201: Debug log for useEffect in useDashboardRepository
     console.log("useDashboardRepository: useEffect for initialLoad triggered", {
       loading,
-      repositoriesLength: repositories.length,
+      repositoriesLength: repositories?.length || 0,
       initialLoad,
       timestamp: new Date().toISOString(),
     });
 
     // Check if we should update initialLoad
     const shouldUpdateInitialLoad =
-      !loading && repositories.length > 0 && initialLoad;
+      !loading && repositories && repositories.length > 0 && initialLoad;
 
     console.log("useDashboardRepository: Should update initialLoad?", {
       shouldUpdateInitialLoad,
       conditionDetails: {
         notLoading: !loading,
-        repositoriesNotEmpty: repositories.length > 0,
+        repositoriesExist: !!repositories,
+        repositoriesNotEmpty: repositories?.length > 0,
         isInitialLoad: initialLoad,
       },
     });
@@ -273,7 +274,7 @@ export function useDashboardRepository() {
 
   // Log state for debugging
   console.log("useDashboardRepository state:", {
-    repositoriesCount: repositories.length,
+    repositoriesCount: repositories?.length || 0,
     loading,
     hasError: !!error,
     installationIds,
