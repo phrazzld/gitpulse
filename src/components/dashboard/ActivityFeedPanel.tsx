@@ -73,33 +73,35 @@ export default function ActivityFeedPanel({
   });
 
   return (
-    <Card padding="md" radius="md" shadow="md" className="mb-6">
+    <Card padding="md" radius="md" shadow="md">
       <ActivityFeedHeader isLoading={initialLoading || incrementalLoading} />
 
-      <ActivityFeedContent
-        commits={commits}
-        loading={loading}
-        initialLoading={initialLoading}
-        incrementalLoading={incrementalLoading}
-        hasMore={hasMore}
-        error={error}
-        errorDetails={errorDetails}
-        propsLoading={propsLoading}
-        truncated={truncated}
-        maxItems={maxItems}
-        showRepository={showRepository}
-        newItemsCount={newItemsCount}
-        listWidth={listWidth}
-        itemHeight={itemHeight}
-        canTriggerInfiniteScroll={canTriggerInfiniteScroll}
-        handleIntersect={handleIntersect}
-        onRetry={loadInitialData}
-        listContainerRef={listContainerRef}
-      />
+      <div className="mt-md">
+        <ActivityFeedContent
+          commits={commits}
+          loading={loading}
+          initialLoading={initialLoading}
+          incrementalLoading={incrementalLoading}
+          hasMore={hasMore}
+          error={error}
+          errorDetails={errorDetails}
+          propsLoading={propsLoading}
+          truncated={truncated}
+          maxItems={maxItems}
+          showRepository={showRepository}
+          newItemsCount={newItemsCount}
+          listWidth={listWidth}
+          itemHeight={itemHeight}
+          canTriggerInfiniteScroll={canTriggerInfiniteScroll}
+          handleIntersect={handleIntersect}
+          onRetry={loadInitialData}
+          listContainerRef={listContainerRef}
+        />
+      </div>
 
       {/* View More Button (only in truncated view) */}
       {truncated && commits.length > 0 && onViewMore && (
-        <div className="mt-4 flex justify-center">
+        <div className="mt-md flex justify-center">
           <Button variant="secondary" size="sm" onClick={onViewMore}>
             VIEW FULL TIMELINE
           </Button>

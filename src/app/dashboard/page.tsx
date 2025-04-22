@@ -145,47 +145,48 @@ export default function Dashboard() {
       className="bg-dark-slate min-h-screen"
       data-testid="dashboard-container"
     >
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <DashboardGridContainer className="px-4 py-6 sm:px-0 gap-6">
+      <div className="max-w-7xl mx-auto py-lg sm:px-lg lg:px-xl">
+        <DashboardGridContainer className="px-md py-lg sm:px-0 gap-lg">
           {/* Authentication Status and Control Panel - full width at all breakpoints */}
           <div className="col-span-12">
             <Card
               padding="lg"
               radius="md"
               shadow="lg"
-              className="mb-6"
+              className="border border-neon-green bg-dark-slate/70 backdrop-blur-sm"
               style={{
-                backgroundColor: "rgba(27, 43, 52, 0.7)",
-                backdropFilter: "blur(5px)",
-                borderColor: "var(--neon-green)",
                 boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
               }}
             >
               {/* Terminal-like header */}
               <DashboardHeader />
 
-              <AuthenticationStatusBanner
-                error={error}
-                authMethod={authMethod}
-                needsInstallation={needsInstallation}
-                getGitHubAppInstallUrl={getGitHubAppInstallUrl}
-                handleAuthError={handleAuthError}
-                signOutCallback={signOut}
-              />
+              <div className="mt-lg">
+                <AuthenticationStatusBanner
+                  error={error}
+                  authMethod={authMethod}
+                  needsInstallation={needsInstallation}
+                  getGitHubAppInstallUrl={getGitHubAppInstallUrl}
+                  handleAuthError={handleAuthError}
+                  signOutCallback={signOut}
+                />
+              </div>
 
               {/* Filters and Configuration */}
-              <FilterControls
-                activityMode={activityMode}
-                dateRange={dateRange}
-                activeFilters={activeFilters}
-                installations={installations}
-                loading={isLoading}
-                handleDateRangeChange={handleDateRangeChange}
-                session={session}
-              />
+              <div className="mt-lg">
+                <FilterControls
+                  activityMode={activityMode}
+                  dateRange={dateRange}
+                  activeFilters={activeFilters}
+                  installations={installations}
+                  loading={isLoading}
+                  handleDateRangeChange={handleDateRangeChange}
+                  session={session}
+                />
+              </div>
 
               {/* Wrap the controls in a form */}
-              <form onSubmit={generateSummary} className="space-y-8">
+              <form onSubmit={generateSummary} className="mt-lg space-y-lg">
                 {/* Repository information panel */}
                 <RepositoryInfoPanel
                   repositories={repositories}
@@ -249,27 +250,14 @@ export default function Dashboard() {
 // Dashboard header component
 function DashboardHeader() {
   return (
-    <div className="flex justify-between items-center mb-6">
+    <div className="flex justify-between items-center">
       <div className="flex items-center">
-        <div
-          className="w-2 h-2 rounded-full mr-2"
-          style={{ backgroundColor: "var(--neon-green)" }}
-        ></div>
-        <h2
-          className="text-xl font-bold"
-          style={{ color: "var(--neon-green)" }}
-        >
+        <div className="w-2 h-2 rounded-full mr-sm bg-neon-green"></div>
+        <h2 className="text-xl font-bold text-neon-green">
           COMMIT ANALYSIS MODULE
         </h2>
       </div>
-      <div
-        className="px-2 py-1 text-xs rounded"
-        style={{
-          backgroundColor: "rgba(0, 0, 0, 0.3)",
-          border: "1px solid var(--electric-blue)",
-          color: "var(--electric-blue)",
-        }}
-      >
+      <div className="px-sm py-xs text-xs rounded border border-electric-blue text-electric-blue bg-black/30">
         OPERATIONAL STATUS: ACTIVE
       </div>
     </div>

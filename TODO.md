@@ -146,7 +146,7 @@
     2. Layout adheres to the specific responsive requirements (requires clarification).
   - **Depends‑on:** [T004]
 
-- [ ] **T012 · Refactor · P2: audit and apply consistent spacing/alignment across dashboard**
+- [x] **T012 · Refactor · P2: audit and apply consistent spacing/alignment across dashboard**
   - **Context:** Detailed Build Steps #7
   - **Action:**
     1. Review the entire dashboard layout (`page.tsx` and child components) for spacing and alignment.
