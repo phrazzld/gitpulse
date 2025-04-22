@@ -183,7 +183,7 @@
 
 ## Testing & Verification
 
-- [ ] **T016 · Test · P1: update unit tests for refactored dashboard components and state**
+- [x] **T016 · Test · P1: update unit tests for refactored dashboard components and state**
 
   - **Context:** Detailed Build Steps #10 (Unit Tests), Testing Strategy (Unit Tests)
   - **Action:**
