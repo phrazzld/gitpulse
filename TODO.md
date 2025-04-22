@@ -95,7 +95,7 @@
     3. Component functionality remains unchanged.
   - **Depends‑on:** none
 
-- [ ] **T008 · Refactor · P2: refactor DashboardSummaryPanel internals to use library components**
+- [x] **T008 · Refactor · P2: refactor DashboardSummaryPanel internals to use library components**
 
   - **Context:** Detailed Build Steps #5
   - **Action:**

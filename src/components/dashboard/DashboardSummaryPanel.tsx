@@ -21,48 +21,23 @@ export default function DashboardSummaryPanel({
 }: DashboardSummaryPanelProps) {
   return (
     <Card padding="md" radius="md" shadow="md" className="mb-6">
-      <div
-        className="mb-4 flex items-center justify-between border-b pb-3"
-        style={{ borderColor: "var(--electric-blue)" }}
-      >
+      <div className="mb-4 flex items-center justify-between border-b border-electric-blue pb-3">
         <div className="flex items-center">
-          <div
-            className="w-3 h-3 rounded-full mr-3"
-            style={{ backgroundColor: "var(--neon-green)" }}
-          ></div>
-          <h2
-            className="text-xl font-bold"
-            style={{ color: "var(--neon-green)" }}
-          >
+          <div className="w-3 h-3 rounded-full mr-3 bg-neon-green"></div>
+          <h2 className="text-xl font-bold text-neon-green">
             ACTIVITY METRICS
           </h2>
         </div>
         {isLoading && (
-          <div
-            className="px-2 py-1 text-xs rounded flex items-center"
-            style={{
-              backgroundColor: "rgba(0, 0, 0, 0.3)",
-              border: "1px solid var(--electric-blue)",
-              color: "var(--electric-blue)",
-            }}
-          >
-            <span
-              className="inline-block w-2 h-2 rounded-full mr-2 animate-pulse"
-              style={{ backgroundColor: "var(--electric-blue)" }}
-            ></span>
+          <div className="px-2 py-1 text-xs rounded flex items-center bg-black/30 border border-electric-blue text-electric-blue">
+            <span className="inline-block w-2 h-2 rounded-full mr-2 animate-pulse bg-electric-blue"></span>
             <span>PROCESSING</span>
           </div>
         )}
       </div>
 
       {error ? (
-        <div
-          className="p-4 rounded text-center"
-          style={{
-            backgroundColor: "rgba(255, 59, 48, 0.1)",
-            color: "var(--crimson-red)",
-          }}
-        >
+        <div className="p-4 rounded text-center bg-crimson-red/10 text-crimson-red">
           {error}
         </div>
       ) : (
@@ -70,19 +45,19 @@ export default function DashboardSummaryPanel({
           <MetricCard
             label="COMMIT COUNT"
             value={commits}
-            color="var(--neon-green)"
+            colorToken="neon-green"
             isLoading={isLoading}
           />
           <MetricCard
             label="REPOSITORIES"
             value={repositories}
-            color="var(--electric-blue)"
+            colorToken="electric-blue"
             isLoading={isLoading}
           />
           <MetricCard
             label="ACTIVE DAYS"
             value={activeDays}
-            color="var(--luminous-yellow)"
+            colorToken="luminous-yellow"
             isLoading={isLoading}
           />
         </div>
@@ -94,7 +69,7 @@ export default function DashboardSummaryPanel({
 interface MetricCardProps {
   label: string;
   value: number;
-  color: string;
+  colorToken: "neon-green" | "electric-blue" | "luminous-yellow";
   isLoading?: boolean;
 }
 
@@ -110,40 +85,36 @@ interface MetricCardProps {
 function MetricCard({
   label,
   value,
-  color,
+  colorToken,
   isLoading = false,
 }: MetricCardProps) {
+  const borderColorClass = `border-${colorToken}`;
+  const textColorClass = `text-${colorToken}`;
+  const bgColorClass = `bg-${colorToken}`;
+  const pulseColorClass = `bg-${colorToken}/50`;
+
   return (
-    <div
-      className="p-4 rounded-md border relative"
-      style={{
-        backgroundColor: "rgba(0, 0, 0, 0.3)",
-        borderColor: color,
-        boxShadow: `0 0 10px ${color}10`,
-      }}
+    <Card
+      padding="md"
+      radius="md"
+      shadow="sm"
+      className={cn("relative border bg-black/30", borderColorClass)}
     >
       <div
-        className="absolute top-0 left-0 w-full h-1"
-        style={{ backgroundColor: color }}
+        className={cn("absolute top-0 left-0 w-full h-1", bgColorClass)}
       ></div>
-      <p className="text-xs uppercase mb-1" style={{ color: color }}>
-        {label}
-      </p>
+      <p className={cn("text-xs uppercase mb-1", textColorClass)}>{label}</p>
       {isLoading ? (
         <div className="flex items-center h-8">
           <div
-            className="w-6 h-2 rounded animate-pulse"
-            style={{ backgroundColor: `${color}50` }}
+            className={cn("w-6 h-2 rounded animate-pulse", pulseColorClass)}
           ></div>
         </div>
       ) : (
-        <p
-          className="text-3xl font-mono"
-          style={{ color: "var(--foreground)" }}
-        >
+        <p className="text-3xl font-mono text-foreground">
           {value.toLocaleString()}
         </p>
       )}
-    </div>
+    </Card>
   );
 }
