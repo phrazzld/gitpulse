@@ -105,18 +105,18 @@
     4. ✓ No TypeErrors related to undefined state properties
   - **Depends-on:** [T201, T202, T206]
 
-- [ ] **T208 · Bug · P0: Implement comprehensive error boundaries**
+- [x] **T208 · Bug · P0: Implement comprehensive error boundaries** ✓
   - **Action:**
-    1. Create `DashboardErrorBoundary.tsx` component to catch rendering errors
-    2. Add error boundary around each major dashboard section
-    3. Implement detailed error logging for boundary catches
-    4. Create fallback UI for each boundary to maintain usability
-    5. Add "retry" mechanism to reload components after errors
+    1. ✓ Create `DashboardErrorBoundary.tsx` component to catch rendering errors
+    2. ✓ Add error boundary around each major dashboard section
+    3. ✓ Implement detailed error logging for boundary catches
+    4. ✓ Create fallback UI for each boundary to maintain usability
+    5. ✓ Add "retry" mechanism to reload components after errors
   - **Done-when:**
-    1. Errors in one component don't crash the entire dashboard
-    2. Error details are logged for debugging
-    3. Users see helpful fallback UIs instead of blank screens
-    4. Dashboard maintains minimum functionality despite errors
+    1. ✓ Errors in one component don't crash the entire dashboard
+    2. ✓ Error details are logged for debugging
+    3. ✓ Users see helpful fallback UIs instead of blank screens
+    4. ✓ Dashboard maintains minimum functionality despite errors
   - **Depends-on:** [T201, T203, T204]
 
 ## Bug Fix Tasks

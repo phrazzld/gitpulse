@@ -6,6 +6,7 @@ import DashboardContainer from "@/components/dashboard/DashboardContainer";
 import DashboardContent from "@/components/dashboard/DashboardContent";
 import SimpleDashboard from "@/components/dashboard/SimpleDashboard";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import DashboardErrorBoundary from "@/components/dashboard/DashboardErrorBoundary";
 import { useStore } from "@/state/store";
 import { StateSlice } from "@/state/types";
 import { useDashboardRepository } from "@/state";
@@ -130,18 +131,35 @@ export default function Dashboard() {
       >
         {/* T204: Use DashboardContainer with DashboardContent for better component hierarchy */}
         <DashboardContainer>
-          {/* T204: Replace the inline dashboard with the new DashboardContent component */}
-          <DashboardContent
-            session={session}
-            repositories={repositories}
-            loading={loading}
-            error={error}
-            expandedPanels={expandedPanels}
-            onPanelExpand={handlePanelExpand}
-            generateSummary={generateSummary}
-            handleAuthError={handleAuthError}
-            dateRange={dateRange}
-          />
+          {/* T208: Add comprehensive ErrorBoundary here */}
+          <DashboardErrorBoundary
+            componentId="dashboard-page-root"
+            contextInfo={{
+              hasSession: !!session,
+              repositoryCount: repositories?.length || 0,
+              hasError: !!error,
+              isLoading: loading,
+            }}
+            fallback={(props) => (
+              <SimpleDashboard
+                error={props.error}
+                errorInfo={props.errorInfo?.componentStack || ""}
+              />
+            )}
+          >
+            {/* T204: Replace the inline dashboard with the new DashboardContent component */}
+            <DashboardContent
+              session={session}
+              repositories={repositories}
+              loading={loading}
+              error={error}
+              expandedPanels={expandedPanels}
+              onPanelExpand={handlePanelExpand}
+              generateSummary={generateSummary}
+              handleAuthError={handleAuthError}
+              dateRange={dateRange}
+            />
+          </DashboardErrorBoundary>
         </DashboardContainer>
       </div>
     </ErrorBoundary>

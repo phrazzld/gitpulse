@@ -276,6 +276,7 @@ function DashboardContainer({ children }: DashboardContainerProps) {
           zIndex: 101,
         }}
       >
+        {/* Render children directly - error boundaries are implemented in DashboardContent */}
         {children}
       </div>
     </div>

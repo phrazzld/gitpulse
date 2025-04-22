@@ -13,6 +13,14 @@ import DashboardSummaryPanel from "@/components/dashboard/DashboardSummaryPanel"
 import ActivityOverviewPanel from "@/components/dashboard/ActivityOverviewPanel";
 import ActivityFeedPanel from "@/components/dashboard/ActivityFeedPanel";
 import TerminalHeader from "@/components/dashboard/TerminalHeader";
+import DashboardErrorBoundary from "@/components/dashboard/DashboardErrorBoundary";
+import {
+  ActivityFeedFallback,
+  ActivityOverviewFallback,
+  FilterControlsFallback,
+  RepositoryPanelFallback,
+  GenericPanelFallback,
+} from "@/components/dashboard/ErrorFallbacks";
 import { signOut } from "next-auth/react";
 
 /**
@@ -121,45 +129,76 @@ export default function DashboardContent({
             This critical component maintains consistent width to ensure visibility and accessibility.
           */}
           <div className="col-span-12">
-            <Card
-              padding="lg"
-              radius="md"
-              shadow="lg"
-              className="border backdrop-blur-sm"
-              style={{
-                backgroundColor: "hsla(var(--dark-slate), 0.7)",
-                borderColor: "hsl(var(--neon-green))",
-                boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
-              }}
+            <DashboardErrorBoundary
+              componentId="main-dashboard-card"
+              fallback={(props) => <GenericPanelFallback {...props} />}
+              contextInfo={{ sessionStatus: session ? "active" : "none" }}
             >
-              {/* Terminal-like header */}
-              <TerminalHeader />
+              <Card
+                padding="lg"
+                radius="md"
+                shadow="lg"
+                className="border backdrop-blur-sm"
+                style={{
+                  backgroundColor: "hsla(var(--dark-slate), 0.7)",
+                  borderColor: "hsl(var(--neon-green))",
+                  boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
+                }}
+              >
+                {/* Terminal-like header */}
+                <TerminalHeader />
 
-              <div className="mt-lg">
-                <AuthenticationStatusBanner
-                  getGitHubAppInstallUrl={getGitHubAppInstallUrl}
-                  handleAuthError={handleAuthError}
-                  signOutCallback={signOut}
-                />
-              </div>
+                <div className="mt-lg">
+                  <DashboardErrorBoundary
+                    componentId="auth-status-banner"
+                    contextInfo={{ session: session ? "exists" : "null" }}
+                  >
+                    <AuthenticationStatusBanner
+                      getGitHubAppInstallUrl={getGitHubAppInstallUrl}
+                      handleAuthError={handleAuthError}
+                      signOutCallback={signOut}
+                    />
+                  </DashboardErrorBoundary>
+                </div>
 
-              {/* Filters and Configuration */}
-              <div className="mt-lg">
-                <FilterControls activityMode={activityMode} session={session} />
-              </div>
+                {/* Filters and Configuration */}
+                <div className="mt-lg">
+                  <DashboardErrorBoundary
+                    componentId="filter-controls"
+                    fallback={(props) => <FilterControlsFallback {...props} />}
+                    contextInfo={{ activityMode, dateRange }}
+                  >
+                    <FilterControls
+                      activityMode={activityMode}
+                      session={session}
+                    />
+                  </DashboardErrorBoundary>
+                </div>
 
-              {/* Wrap the controls in a form */}
-              <form onSubmit={generateSummary} className="mt-lg space-y-lg">
-                {/* Repository information panel */}
-                <RepositoryInfoPanel
-                  repositories={repositories}
-                  loading={loading}
-                />
+                {/* Wrap the controls in a form */}
+                <form onSubmit={generateSummary} className="mt-lg space-y-lg">
+                  {/* Repository information panel */}
+                  <DashboardErrorBoundary
+                    componentId="repository-info-panel"
+                    fallback={(props) => <RepositoryPanelFallback {...props} />}
+                    contextInfo={{
+                      repoCount: repositories?.length || 0,
+                      loading,
+                    }}
+                  >
+                    <RepositoryInfoPanel
+                      repositories={repositories}
+                      loading={loading}
+                    />
+                  </DashboardErrorBoundary>
 
-                {/* Command buttons */}
-                <ActionButton />
-              </form>
-            </Card>
+                  {/* Command buttons */}
+                  <DashboardErrorBoundary componentId="action-button">
+                    <ActionButton />
+                  </DashboardErrorBoundary>
+                </form>
+              </Card>
+            </DashboardErrorBoundary>
           </div>
 
           {/* 
@@ -172,10 +211,16 @@ export default function DashboardContent({
             contains summary data while preserving readability on all devices.
           */}
           <div className="col-span-12 md:col-span-6 lg:col-span-4">
-            <DashboardSummaryPanel
-              data-testid="dashboard-summary-panel"
-              repositories={repositories}
-            />
+            <DashboardErrorBoundary
+              componentId="dashboard-summary-panel"
+              fallback={(props) => <GenericPanelFallback {...props} />}
+              contextInfo={{ repoCount: repositories?.length || 0 }}
+            >
+              <DashboardSummaryPanel
+                data-testid="dashboard-summary-panel"
+                repositories={repositories}
+              />
+            </DashboardErrorBoundary>
           </div>
 
           {/* 
@@ -188,12 +233,21 @@ export default function DashboardContent({
             because it contains richer content including AI insights that benefit from additional width.
           */}
           <div className="col-span-12 md:col-span-6 lg:col-span-8">
-            <ActivityOverviewPanel
-              truncated={!expandedPanels.includes("activity-overview")}
-              onViewMore={() => onPanelExpand("activity-overview")}
-              data-testid="activity-overview-panel"
-              repositories={repositories}
-            />
+            <DashboardErrorBoundary
+              componentId="activity-overview-panel"
+              fallback={(props) => <ActivityOverviewFallback {...props} />}
+              contextInfo={{
+                truncated: !expandedPanels.includes("activity-overview"),
+                repoCount: repositories?.length || 0,
+              }}
+            >
+              <ActivityOverviewPanel
+                truncated={!expandedPanels.includes("activity-overview")}
+                onViewMore={() => onPanelExpand("activity-overview")}
+                data-testid="activity-overview-panel"
+                repositories={repositories}
+              />
+            </DashboardErrorBoundary>
           </div>
 
           {/* 
@@ -203,14 +257,24 @@ export default function DashboardContent({
             3. Chronological timeline presentation works best as a full-width component
           */}
           <div className="col-span-12">
-            <ActivityFeedPanel
-              mode={activityMode}
-              showRepository={true}
-              truncated={!expandedPanels.includes("activity-feed")}
-              onViewMore={() => onPanelExpand("activity-feed")}
-              data-testid="activity-feed-panel"
-              repositories={repositories}
-            />
+            <DashboardErrorBoundary
+              componentId="activity-feed-panel"
+              fallback={(props) => <ActivityFeedFallback {...props} />}
+              contextInfo={{
+                mode: activityMode,
+                truncated: !expandedPanels.includes("activity-feed"),
+                repoCount: repositories?.length || 0,
+              }}
+            >
+              <ActivityFeedPanel
+                mode={activityMode}
+                showRepository={true}
+                truncated={!expandedPanels.includes("activity-feed")}
+                onViewMore={() => onPanelExpand("activity-feed")}
+                data-testid="activity-feed-panel"
+                repositories={repositories}
+              />
+            </DashboardErrorBoundary>
           </div>
         </DashboardGridContainer>
       </div>
