@@ -231,16 +231,16 @@
     3. ✓ Test coverage meets project standards for the modified code.
   - **Depends-on:** [T100]
 
-- [ ] **T103 · Test · P1: Add integration test for dashboard loading with incomplete state**
+- [x] **T103 · Test · P1: Add integration test for dashboard loading with incomplete state** ✓
 
   - **Action:**
-    1. Create or update an integration test for the dashboard components.
-    2. Set up test environment with mocked Zustand store having undefined repositories initially.
-    3. Render the dashboard container/page component.
-    4. Assert that the component renders without errors.
+    1. ✓ Create or update an integration test for the dashboard components.
+    2. ✓ Set up test environment with mocked Zustand store having undefined repositories initially.
+    3. ✓ Render the dashboard container/page component.
+    4. ✓ Assert that the component renders without errors.
   - **Done-when:**
-    1. An integration test exists that renders the dashboard with simulated initial state conditions.
-    2. The test passes, confirming the component tree handles undefined state gracefully.
+    1. ✓ An integration test exists that renders the dashboard with simulated initial state conditions.
+    2. ✓ The test passes, confirming the component tree handles undefined state gracefully.
   - **Depends-on:** [T100]
 
 - [ ] **T104 · Bug · P0: Complete repository fix and documentation**
