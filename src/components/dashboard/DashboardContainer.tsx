@@ -6,6 +6,7 @@ import DashboardLoadingState from "@/components/DashboardLoadingState";
 import { useStore } from "@/state/store";
 import { StateSlice } from "@/state/types";
 import { useDashboardRepository } from "@/state";
+import { withZustand } from "@/state/withZustand";
 
 // T201: Add debug logs for component mounting verification
 console.log("DashboardContainer.tsx module is being loaded");
@@ -21,15 +22,20 @@ interface DashboardContainerProps {
  * Acts as a container for the dashboard layout, providing data to child components.
  *
  * Child components can directly access state via hooks rather than receiving props.
+ *
+ * Note: This component is wrapped with withZustand HOC at the bottom of this file
+ * to ensure the store is hydrated before the component renders.
  */
-export default function DashboardContainer({
-  children,
-}: DashboardContainerProps) {
+function DashboardContainer({ children }: DashboardContainerProps) {
   // T201: Debug log at the very top of component render
   console.log("DashboardContainer: Component function executing", {
     timestamp: new Date().toISOString(),
     renderPhase: "initial",
   });
+
+  // T202: Check if store is hydrated
+  const isStoreHydrated = useStore((state) => state.isHydrated);
+  console.log("DashboardContainer: Store hydration check", { isStoreHydrated });
 
   const { data: session, status } = useSession();
   console.log("DashboardContainer: Session status", {
@@ -48,8 +54,10 @@ export default function DashboardContainer({
     hasStore: !!storeState,
     storeKeys: storeState ? Object.keys(storeState) : [],
     hasDashboardSlice: !!storeState?.[StateSlice.Dashboard],
+    isHydrated: storeState?.isHydrated,
   });
 
+  // With withZustand HOC, it's now safe to access dashboard state
   const dashboardState = useStore((state) => state[StateSlice.Dashboard]);
   console.log("DashboardContainer: Retrieved dashboard state", {
     hasDashboardState: !!dashboardState,
@@ -211,3 +219,7 @@ export default function DashboardContainer({
     </div>
   );
 }
+
+// Export the component wrapped with withZustand HOC
+// This ensures the store is hydrated before the component renders
+export default withZustand(DashboardContainer, <DashboardLoadingState />);

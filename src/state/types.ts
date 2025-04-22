@@ -156,6 +156,11 @@ import { RepositoryState, RepositoryActions } from "./slices/repositorySlice";
  * Root state containing all slices
  */
 export interface RootState {
+  // Hydration state tracking
+  isHydrated: boolean;
+  setIsHydrated: (isHydrated: boolean) => void;
+
+  // Store slices
   [StateSlice.Dashboard]: DashboardState;
   [StateSlice.Auth]: AuthState;
   [StateSlice.Settings]: SettingsState;
