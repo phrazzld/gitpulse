@@ -3,9 +3,12 @@ import { Button, Card } from "@/components/library";
 import { cn } from "@/components/library/utils/cn";
 import { useDashboardState, useUIState } from "@/state";
 
+import { Repository } from "@/types/github";
+
 interface ActivityOverviewPanelProps {
   truncated?: boolean;
   onViewMore?: () => void;
+  repositories?: Repository[];
   "data-testid"?: string;
 }
 

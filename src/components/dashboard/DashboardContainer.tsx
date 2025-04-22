@@ -182,9 +182,22 @@ function DashboardContainer({ children }: DashboardContainerProps) {
     dashboardState,
   ]);
 
-  // Show loading state during initial session loading or first data fetch
+  // T204: Show enhanced loading state with more details during initialization
   if (status === "loading" || initialLoad || !isInitialized) {
-    return <DashboardLoadingState />;
+    return (
+      <DashboardLoadingState
+        status={status}
+        isInitialLoad={initialLoad}
+        isStoreInitialized={isInitialized}
+        message={
+          status === "loading"
+            ? "Authenticating..."
+            : initialLoad
+              ? "Loading repositories..."
+              : "Initializing dashboard..."
+        }
+      />
+    );
   }
 
   // Render children (the dashboard layout) once data is loaded
@@ -222,4 +235,10 @@ function DashboardContainer({ children }: DashboardContainerProps) {
 
 // Export the component wrapped with withZustand HOC
 // This ensures the store is hydrated before the component renders
-export default withZustand(DashboardContainer, <DashboardLoadingState />);
+export default withZustand(
+  DashboardContainer,
+  <DashboardLoadingState
+    status="loading"
+    message="Initializing application state..."
+  />,
+);

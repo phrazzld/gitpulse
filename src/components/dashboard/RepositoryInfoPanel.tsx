@@ -2,13 +2,23 @@ import React from "react";
 import { Repository } from "@/types/github";
 import { Button, Card } from "@/components/library";
 import { cn } from "@/components/library/utils/cn";
-import { useDashboardRepository, useFilters, useUIState } from "@/state";
+import { useFilters, useUIState } from "@/state";
 
-export default function RepositoryInfoPanel() {
-  // Get state directly from Zustand hooks
-  const { repositories, loading } = useDashboardRepository();
+interface RepositoryInfoPanelProps {
+  repositories?: Repository[];
+  loading?: boolean;
+}
+
+export default function RepositoryInfoPanel({
+  repositories = [],
+  loading = false,
+}: RepositoryInfoPanelProps) {
+  // Still need some state from Zustand hooks
   const { filters: activeFilters } = useFilters();
   const { showRepoList, setShowRepoList } = useUIState();
+
+  // Add defensive check for repositories
+  const safeRepositories = repositories || [];
 
   return (
     <div className="mt-6">
@@ -27,7 +37,7 @@ export default function RepositoryInfoPanel() {
           </Button>
         </div>
         <div className="text-xs px-2 py-1 rounded flex items-center bg-black/30 border border-neon-green text-neon-green">
-          DETECTED: {repositories.length}
+          DETECTED: {safeRepositories.length}
         </div>
       </div>
 
@@ -38,7 +48,7 @@ export default function RepositoryInfoPanel() {
         shadow="sm"
         className="border-electric-blue bg-black/30"
       >
-        {loading && repositories.length === 0 ? (
+        {loading && safeRepositories.length === 0 ? (
           <div className="flex items-center justify-center p-3 text-foreground">
             <span className="inline-block w-4 h-4 border-2 border-neon-green border-t-transparent rounded-full animate-spin mr-2"></span>
             <span>SCANNING REPOSITORIES...</span>
@@ -68,16 +78,16 @@ export default function RepositoryInfoPanel() {
               )}
 
               {/* Repository stats summary */}
-              {repositories.length > 0 && (
+              {safeRepositories.length > 0 && (
                 <div className="grid grid-cols-2 gap-2 mt-2 text-xs">
                   <div className="border border-electric-blue/30 rounded px-2 py-1 flex flex-col items-center justify-center">
                     <div className="font-bold text-electric-blue">REPOS</div>
-                    <div>{repositories.length}</div>
+                    <div>{safeRepositories.length}</div>
                   </div>
                   <div className="border border-electric-blue/30 rounded px-2 py-1 flex flex-col items-center justify-center">
                     <div className="font-bold text-electric-blue">PRIVATE</div>
                     <div>
-                      {repositories.filter((repo) => repo.private).length}
+                      {safeRepositories.filter((repo) => repo.private).length}
                     </div>
                   </div>
                 </div>
@@ -87,14 +97,14 @@ export default function RepositoryInfoPanel() {
             {/* Repository list (alphabetically sorted) */}
             {showRepoList && (
               <div className="max-h-60 overflow-y-auto text-foreground">
-                {repositories.length > 0 ? (
+                {safeRepositories.length > 0 ? (
                   <div>
                     <div className="px-2 py-1 mb-2 bg-neon-green/10 text-neon-green">
                       <span className="text-xs">ALL REPOSITORIES</span>
                     </div>
                     <ul className="pl-1">
                       {/* Sort repositories alphabetically by full name */}
-                      {[...repositories]
+                      {[...safeRepositories]
                         .sort((a, b) => a.full_name.localeCompare(b.full_name))
                         .map((repo) => (
                           <li
@@ -128,7 +138,7 @@ export default function RepositoryInfoPanel() {
                         ))}
                     </ul>
                   </div>
-                ) : repositories.length === 0 && !loading ? (
+                ) : safeRepositories.length === 0 && !loading ? (
                   <div className="p-3 text-center text-crimson-red">
                     NO REPOSITORIES DETECTED
                   </div>

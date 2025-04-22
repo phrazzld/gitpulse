@@ -2,20 +2,33 @@ import React from "react";
 import { Card } from "@/components/library";
 import { cn } from "@/components/library/utils/cn";
 import { useActivityMetrics, useUIState } from "@/state";
+import { Repository } from "@/types/github";
+
+interface DashboardSummaryPanelProps {
+  repositories?: Repository[];
+  "data-testid"?: string;
+}
 
 /**
  * DashboardSummaryPanel component
  *
  * Displays summary metrics for the dashboard in a grid layout.
  * Shows commit count, repository count, and active days count.
- * Data is accessed directly via Zustand hooks.
+ * Repositories are passed as props, but other metrics are still accessed via hooks.
  *
+ * @param props - Component props
  * @returns A styled dashboard summary panel component
  */
-export default function DashboardSummaryPanel() {
-  // Get data directly from Zustand hooks
-  const { commits, repositories, activeDays } = useActivityMetrics();
-  const { loading, error } = useUIState();
+export default function DashboardSummaryPanel({
+  repositories = [],
+  "data-testid": testId,
+}: DashboardSummaryPanelProps) {
+  // Still get some data directly from Zustand hooks
+  const { commits = 0, activeDays = 0 } = useActivityMetrics();
+  const { loading = false, error = null } = useUIState();
+
+  // Use repository count from props
+  const repositoryCount = repositories?.length || 0;
 
   return (
     <Card padding="md" radius="md" shadow="md">
@@ -48,7 +61,7 @@ export default function DashboardSummaryPanel() {
           />
           <MetricCard
             label="REPOSITORIES"
-            value={repositories}
+            value={repositoryCount}
             colorToken="electric-blue"
             isLoading={loading}
           />

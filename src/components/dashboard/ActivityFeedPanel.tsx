@@ -14,12 +14,15 @@ import {
   useUIState,
 } from "@/state";
 
+import { Repository } from "@/types/github";
+
 interface ActivityFeedPanelProps {
   mode: ActivityMode;
   maxItems?: number;
   showRepository?: boolean;
   truncated?: boolean;
   onViewMore?: () => void;
+  repositories?: Repository[];
   "data-testid"?: string;
 }
 
