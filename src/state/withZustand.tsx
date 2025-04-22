@@ -1,9 +1,8 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
-import { useStore } from "./store";
-import { useIsHydrated } from "@/hooks/useIsHydrated";
+import { ReactNode } from "react";
 import ZustandHydration from "@/components/ZustandHydration";
+import { ZustandProvider } from "./ZustandProvider";
 
 interface WithZustandProps {
   children: ReactNode;
@@ -13,6 +12,8 @@ interface WithZustandProps {
 /**
  * WithZustand Component
  *
+ * @deprecated Use ZustandProvider instead. This component is maintained for backwards compatibility.
+ *
  * Ensures Zustand store is properly initialized and hydrated before rendering children.
  * Shows a fallback component until the store is ready for use.
  */
@@ -20,40 +21,21 @@ export function WithZustand({
   children,
   fallback = <ZustandHydration />,
 }: WithZustandProps) {
-  // Track component hydration (client-side rendering)
-  const isComponentHydrated = useIsHydrated();
+  console.warn(
+    "WithZustand is deprecated and will be removed in a future version. " +
+      "Use ZustandProvider from @/state/ZustandProvider instead.",
+  );
 
-  // Track store hydration state
-  const isStoreHydrated = useStore((state) => state.isHydrated);
-  const setIsHydrated = useStore((state) => state.setIsHydrated);
-
-  // Debug hydration state
-  const isFullyHydrated = isComponentHydrated && isStoreHydrated;
-
-  useEffect(() => {
-    console.log("WithZustand hydration status:", {
-      isComponentHydrated,
-      isStoreHydrated,
-      isFullyHydrated: isComponentHydrated && isStoreHydrated,
-    });
-
-    // If component is hydrated but store isn't, mark store as hydrated
-    if (isComponentHydrated && !isStoreHydrated) {
-      console.log("Manually marking store as hydrated");
-      setIsHydrated(true);
-    }
-  }, [isComponentHydrated, isStoreHydrated, setIsHydrated]);
-
-  // Show fallback until everything is hydrated
-  if (!isFullyHydrated) {
-    return <>{fallback}</>;
-  }
-
-  return <>{children}</>;
+  // Delegate to ZustandProvider for consistency
+  return (
+    <ZustandProvider loadingIndicator={fallback}>{children}</ZustandProvider>
+  );
 }
 
 /**
  * withZustand Higher-Order Component
+ *
+ * @deprecated Use ZustandProvider directly. This HOC is maintained for backwards compatibility.
  *
  * Wraps a component with Zustand hydration guard
  */
@@ -65,10 +47,15 @@ export function withZustand<P extends object>(
   const wrappedName = Component.displayName || Component.name || "Component";
 
   function WithZustandComponent(props: P) {
+    console.warn(
+      `withZustand HOC is deprecated and will be removed in a future version. ` +
+        `Component: ${wrappedName}. Use ZustandProvider from @/state/ZustandProvider instead.`,
+    );
+
     return (
-      <WithZustand fallback={fallback}>
+      <ZustandProvider loadingIndicator={fallback}>
         <Component {...props} />
-      </WithZustand>
+      </ZustandProvider>
     );
   }
 
