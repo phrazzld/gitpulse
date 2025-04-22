@@ -172,7 +172,7 @@
 
 ## Documentation
 
-- [ ] **T015 · Chore · P3: add code comments for complex dashboard layout decisions**
+- [x] **T015 · Chore · P3: add code comments for complex dashboard layout decisions**
   - **Context:** Documentation section
   - **Action:**
     1. Review the responsive grid configuration (Tailwind classes) in `page.tsx` and `DashboardGridContainer`.

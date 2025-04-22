@@ -63,9 +63,30 @@ export default function Dashboard() {
         className="bg-dark-slate min-h-screen"
         data-testid="dashboard-container"
       >
+        {/* 
+          Main dashboard container with progressive padding:
+          - Consistent vertical padding (py-lg) at all breakpoints
+          - Horizontal padding increases at breakpoints:
+            - Default: No horizontal padding for maximum content space on mobile
+            - sm: px-lg medium horizontal padding for improved readability on tablets
+            - lg: px-xl larger horizontal padding on desktops for optimal content width
+          - max-w-7xl sets maximum content width to prevent excessive line lengths on large displays
+          - mx-auto centers the container when max-width is reached
+        */}
         <div className="max-w-7xl mx-auto py-lg sm:px-lg lg:px-xl">
+          {/* 
+            Dashboard grid layout with larger gap (gap-lg) for better visual separation between panels.
+            Horizontal padding scales based on screen size:
+            - Default: px-md for minimal spacing on mobile
+            - sm breakpoint and up: px-0 to maximize content space within container boundaries
+            - Maintains py-lg vertical padding consistently across breakpoints
+          */}
           <DashboardGridContainer className="px-md py-lg sm:px-0 gap-lg">
-            {/* Authentication Status and Control Panel - full width at all breakpoints */}
+            {/* 
+              Authentication Status and Control Panel spans full width (col-span-12) across all breakpoints
+              to emphasize importance of authentication state and control options.
+              This critical component maintains consistent width to ensure visibility and accessibility.
+            */}
             <div className="col-span-12">
               <Card
                 padding="lg"
@@ -106,12 +127,28 @@ export default function Dashboard() {
               </Card>
             </div>
 
-            {/* Dashboard Summary Metrics Panel - full width on mobile, half width on md and above */}
+            {/* 
+              Dashboard Summary Metrics Panel - Responsive width strategy:
+              - Mobile (default): Full width (col-span-12) to maximize readability on small screens
+              - Tablet (md): Half width (col-span-6) to create side-by-side layout with Activity Overview
+              - Desktop (lg): One-third width (col-span-4) to create balanced 1/3 - 2/3 layout
+              
+              This narrower panel on larger screens creates visual hierarchy emphasizing that this
+              contains summary data while preserving readability on all devices.
+            */}
             <div className="col-span-12 md:col-span-6 lg:col-span-4">
               <DashboardSummaryPanel data-testid="dashboard-summary-panel" />
             </div>
 
-            {/* Activity Overview Panel with AI Insights - full width on mobile, half width on md, two-thirds on lg */}
+            {/* 
+              Activity Overview Panel with AI Insights - Responsive width strategy:
+              - Mobile (default): Full width (col-span-12) for maximum readability on small screens
+              - Tablet (md): Half width (col-span-6) to create side-by-side layout with Summary Panel
+              - Desktop (lg): Two-thirds width (col-span-8) to allocate more space for detailed insights
+              
+              The panel receives more horizontal space on desktop compared to the Summary Panel 
+              because it contains richer content including AI insights that benefit from additional width.
+            */}
             <div className="col-span-12 md:col-span-6 lg:col-span-8">
               <ActivityOverviewPanel
                 truncated={!expandedPanels.includes("activity-overview")}
@@ -120,7 +157,12 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* Activity Feed Timeline - full width at all breakpoints due to content importance */}
+            {/* 
+              Activity Feed Timeline - Full width (col-span-12) at all breakpoints due to:
+              1. Content importance - this is the primary interactive element for reviewing commits
+              2. Table-like data display that requires sufficient width for readability
+              3. Chronological timeline presentation works best as a full-width component
+            */}
             <div className="col-span-12">
               <ActivityFeedPanel
                 mode={activityMode}
