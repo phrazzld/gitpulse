@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
+import { useState, useEffect } from "react";
 import { ActivityMode } from "@/types/activity";
 import { DashboardGridContainer } from "@/components/dashboard/layout";
 import { Card } from "@/components/library";
@@ -13,6 +14,10 @@ import ActivityOverviewPanel from "@/components/dashboard/ActivityOverviewPanel"
 import ActivityFeedPanel from "@/components/dashboard/ActivityFeedPanel";
 import TerminalHeader from "@/components/dashboard/TerminalHeader";
 import DashboardContainer from "@/components/dashboard/DashboardContainer";
+import SimpleDashboard from "@/components/dashboard/SimpleDashboard";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { useStore } from "@/state/store";
+import { StateSlice } from "@/state/types";
 // T201: Import test component
 import TestStaticComponent from "@/components/dashboard/TestStaticComponent";
 import {
@@ -57,6 +62,38 @@ export default function Dashboard() {
     renderPhase: "initial",
   });
 
+  // T203: Add state to track initialization errors
+  const [hasStateError, setHasStateError] = useState(false);
+  const [stateError, setStateError] = useState<Error | null>(null);
+
+  // Detect state initialization issues
+  useEffect(() => {
+    try {
+      // Check if store is accessible
+      const storeState = useStore.getState();
+      console.log("Dashboard page: Checking store state", {
+        hasStore: !!storeState,
+        isHydrated: storeState?.isHydrated,
+        hasDashboardSlice: !!storeState?.[StateSlice.Dashboard],
+      });
+
+      // Check for critical conditions that would cause rendering to fail
+      if (!storeState || !storeState[StateSlice.Dashboard]) {
+        console.error("Dashboard state not properly initialized");
+        setStateError(new Error("Dashboard state not properly initialized"));
+        setHasStateError(true);
+      }
+    } catch (err) {
+      console.error("Error checking store state:", err);
+      setStateError(
+        err instanceof Error
+          ? err
+          : new Error("Unknown error checking store state"),
+      );
+      setHasStateError(true);
+    }
+  }, []);
+
   const { data: session } = useSession();
   console.log("Dashboard page: Session data", {
     hasSession: !!session,
@@ -82,15 +119,21 @@ export default function Dashboard() {
 
   console.log("Dashboard page: About to render component tree");
 
+  // T203: If we detected a state error, render the simplified dashboard
+  if (hasStateError) {
+    console.log("Dashboard page: Rendering SimpleDashboard due to state error");
+    return <SimpleDashboard error={stateError} />;
+  }
+
   return (
-    <>
-      {/* T201: Test component outside DashboardContainer to verify rendering issues */}
-      <TestStaticComponent />
-
+    // T203: Wrap with ErrorBoundary that renders SimpleDashboard on error
+    <ErrorBoundary
+      fallback={(error, errorInfo) => (
+        <SimpleDashboard error={error} errorInfo={errorInfo} />
+      )}
+    >
+      {/* Remove test components used for diagnostics in T201 */}
       <DashboardContainer>
-        {/* T201: Test component inside DashboardContainer but outside main div */}
-        <TestStaticComponent />
-
         <div
           className="min-h-screen w-full overflow-x-hidden"
           style={{ backgroundColor: "hsl(var(--dark-slate))" }}
@@ -115,11 +158,6 @@ export default function Dashboard() {
             - Maintains py-lg vertical padding consistently across breakpoints
           */}
             <DashboardGridContainer className="px-md py-lg sm:px-0 gap-lg">
-              {/* T201: Test component inside grid container */}
-              <div className="col-span-12 mb-lg">
-                <TestStaticComponent />
-              </div>
-
               {/* 
               Authentication Status and Control Panel spans full width (col-span-12) across all breakpoints
               to emphasize importance of authentication state and control options.
@@ -216,6 +254,6 @@ export default function Dashboard() {
           </div>
         </div>
       </DashboardContainer>
-    </>
+    </ErrorBoundary>
   );
 }

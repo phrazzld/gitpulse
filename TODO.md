@@ -30,7 +30,7 @@
     3. Console shows no "Cannot read properties of undefined" errors
   - **Depends-on:** [T201]
 
-- [ ] **T203 · Bug · P0: Create simplified dashboard fallback**
+- [x] **T203 · Bug · P0: Create simplified dashboard fallback**
 
   - **Action:**
     1. Create `SimpleDashboard.tsx` component with minimal static content, no state dependencies
