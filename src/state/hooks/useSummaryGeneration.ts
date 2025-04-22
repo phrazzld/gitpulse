@@ -3,48 +3,110 @@
  *
  * This hook provides the functionality to generate activity summaries
  * and stores the results directly in the Zustand store.
+ *
+ * This hook uses the safe store access patterns to ensure proper error handling
+ * and type safety.
  */
 
 import { useCallback } from "react";
-import { useStore } from "../store";
+import { useSafeSelector, useSafeAction } from "./useSafeStore";
 import { StateSlice } from "../types";
 import { useErrorHandlers } from "../hooks";
+import { CommitSummary } from "@/types/summary";
 
 export function useSummaryGeneration() {
-  // Access relevant state directly from Zustand store
-  const dateRange = useStore((state) => state[StateSlice.Dashboard].dateRange);
-  const installationIds = useStore(
-    (state) => state[StateSlice.Dashboard].installationIds,
-  );
-  const activeFilters = useStore(
-    (state) => state[StateSlice.Dashboard].activeFilters,
+  // Safely access state with proper fallbacks
+  const dateRange = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.dateRange,
+    { since: "", until: "" },
   );
 
-  // Access actions from the store
-  const setLoading = useStore(
-    (state) => state[StateSlice.Dashboard].setLoading,
-  );
-  const setError = useStore((state) => state[StateSlice.Dashboard].setError);
-  const setSummary = useStore(
-    (state) => state[StateSlice.Dashboard].setSummary,
-  );
-  const setAuthMethod = useStore(
-    (state) => state[StateSlice.Dashboard].setAuthMethod,
-  );
-  const setInstallationIds = useStore(
-    (state) => state[StateSlice.Dashboard].setInstallationIds,
-  );
-  const setInstallations = useStore(
-    (state) => state[StateSlice.Dashboard].setInstallations,
-  );
-  const setCurrentInstallations = useStore(
-    (state) => state[StateSlice.Dashboard].setCurrentInstallations,
-  );
-  const setNeedsInstallation = useStore(
-    (state) => state[StateSlice.Dashboard].setNeedsInstallation,
+  const installationIds = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.installationIds,
+    [],
   );
 
-  // Get error handlers
+  const activeFilters = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.activeFilters,
+    { repositories: [] },
+  );
+
+  // Safely access actions with fallbacks
+  const setLoading = useSafeAction(
+    StateSlice.Dashboard,
+    "setLoading",
+    (isLoading: boolean) => {
+      console.warn("setLoading action not available, using fallback");
+    },
+  );
+
+  const setError = useSafeAction(
+    StateSlice.Dashboard,
+    "setError",
+    (error: string | null) => {
+      console.warn("setError action not available, using fallback");
+    },
+  );
+
+  const setSummary = useSafeAction<
+    typeof StateSlice.Dashboard,
+    "setSummary",
+    [summary: CommitSummary | null]
+  >(StateSlice.Dashboard, "setSummary", (summary: CommitSummary | null) => {
+    console.warn("setSummary action not available, using fallback");
+  });
+
+  const setAuthMethod = useSafeAction(
+    StateSlice.Dashboard,
+    "setAuthMethod",
+    (method: string | null) => {
+      console.warn("setAuthMethod action not available, using fallback");
+    },
+  );
+
+  const setInstallationIds = useSafeAction(
+    StateSlice.Dashboard,
+    "setInstallationIds",
+    (ids: number[]) => {
+      console.warn("setInstallationIds action not available, using fallback");
+    },
+  );
+
+  const setInstallations = useSafeAction<
+    typeof StateSlice.Dashboard,
+    "setInstallations",
+    [installations: Array<Record<string, unknown>>]
+  >(
+    StateSlice.Dashboard,
+    "setInstallations",
+    (installations: Array<Record<string, unknown>>) => {
+      console.warn("setInstallations action not available, using fallback");
+    },
+  );
+
+  const setCurrentInstallations = useSafeAction<
+    typeof StateSlice.Dashboard,
+    "setCurrentInstallations",
+    [installations: Array<Record<string, unknown>>]
+  >(
+    StateSlice.Dashboard,
+    "setCurrentInstallations",
+    (installations: Array<Record<string, unknown>>) => {
+      console.warn(
+        "setCurrentInstallations action not available, using fallback",
+      );
+    },
+  );
+
+  const setNeedsInstallation = useSafeAction(
+    StateSlice.Dashboard,
+    "setNeedsInstallation",
+    (needs: boolean) => {
+      console.warn("setNeedsInstallation action not available, using fallback");
+    },
+  );
+
+  // Get error handlers with safe fallbacks
   const { handleAuthError, handleAppInstallationNeeded } = useErrorHandlers();
 
   const generateSummary = useCallback(
@@ -210,7 +272,14 @@ export function useSummaryGeneration() {
   return { generateSummary };
 }
 
-// Helper function to build query parameters for summary API
+/**
+ * Build query parameters for summary API
+ *
+ * @param dateRange The date range for the summary
+ * @param installationIds The installation IDs to include
+ * @param activeFilters The active filters to apply
+ * @returns URLSearchParams object with the query parameters
+ */
 function buildSummaryQueryParams(
   dateRange: { since: string; until: string },
   installationIds: number[],
@@ -218,17 +287,17 @@ function buildSummaryQueryParams(
 ): URLSearchParams {
   // Construct query parameters
   const params = new URLSearchParams({
-    since: dateRange.since,
-    until: dateRange.until,
+    since: dateRange.since || "",
+    until: dateRange.until || "",
   });
 
   // Add installation IDs if available
-  if (installationIds.length > 0) {
+  if (installationIds && installationIds.length > 0) {
     params.append("installation_ids", installationIds.join(","));
   }
 
   // Add filter parameters
-  if (activeFilters.repositories.length > 0) {
+  if (activeFilters?.repositories && activeFilters.repositories.length > 0) {
     params.append("repositories", activeFilters.repositories.join(","));
   }
 

@@ -26,17 +26,23 @@ export default function DateRangePicker({
   onChange,
   disabled = false,
 }: DateRangePickerProps) {
+  // Create a safe default if dateRange is undefined
+  const safeDateRange: DateRange = dateRange || {
+    since: "",
+    until: "",
+  };
+
   // Internal state for immediate UI feedback
   const [internalDateRange, setInternalDateRange] =
-    useState<DateRange>(dateRange);
+    useState<DateRange>(safeDateRange);
   // State for validation errors
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Update internal state when props change
   useEffect(() => {
-    setInternalDateRange(dateRange);
+    setInternalDateRange(safeDateRange);
     setValidationError(null);
-  }, [dateRange]);
+  }, [safeDateRange]);
 
   // Create debounced onChange handler (300ms delay)
   const { callback: debouncedOnChange, pending: isDebouncing } =

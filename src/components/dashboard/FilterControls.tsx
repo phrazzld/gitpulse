@@ -18,7 +18,7 @@ interface Props {
 export default function FilterControls({ activityMode, session }: Props) {
   // Get state directly from Zustand hooks
   const { loading: uiLoading } = useUIState();
-  const { dateRange, updateDateRange } = useDateRange();
+  const { dateRange, since, until, updateDateRange } = useDateRange();
   const { filters: activeFilters, updateFilters } = useFilters();
   const { installations, loading: installationsLoading } = useInstallations();
 
@@ -144,7 +144,7 @@ export default function FilterControls({ activityMode, session }: Props) {
         {/* Right column - Date and Analysis Info */}
         <div className="space-y-6">
           <DateRangePicker
-            dateRange={dateRange}
+            dateRange={dateRange || { since: "", until: "" }}
             onChange={handleDateRangeChange}
             disabled={loading}
           />
@@ -206,7 +206,7 @@ export default function FilterControls({ activityMode, session }: Props) {
                   )}
                   style={{ color: "var(--electric-blue)" }}
                 >
-                  {dateRange.since} to {dateRange.until}
+                  {dateRange?.since || ""} to {dateRange?.until || ""}
                 </span>
               </div>
 

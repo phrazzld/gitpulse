@@ -90,19 +90,19 @@
     4. Client-side hydration is properly detected and handled
   - **Depends-on:** [T201, T202]
 
-- [ ] **T207 · Bug · P0: Fix direct store access pattern in components**
+- [x] **T207 · Bug · P0: Fix direct store access pattern in components** ✓
 
   - **Action:**
-    1. Update all components to use the hooks pattern consistently
-    2. Remove direct store access via useStore(state => state[StateSlice.X])
-    3. Ensure all hooks provide safe fallback values for missing state
-    4. Create dedicated safe selector hooks for critical state properties
-    5. Add defensive null checks before any state property access
+    1. ✓ Update all components to use the hooks pattern consistently
+    2. ✓ Remove direct store access via useStore(state => state[StateSlice.X])
+    3. ✓ Ensure all hooks provide safe fallback values for missing state
+    4. ✓ Create dedicated safe selector hooks for critical state properties
+    5. ✓ Add defensive null checks before any state property access
   - **Done-when:**
-    1. No components directly access state slices
-    2. All state access is via safe, defensive hooks
-    3. Missing or undefined state is gracefully handled
-    4. No TypeErrors related to undefined state properties
+    1. ✓ No components directly access state slices
+    2. ✓ All state access is via safe, defensive hooks
+    3. ✓ Missing or undefined state is gracefully handled
+    4. ✓ No TypeErrors related to undefined state properties
   - **Depends-on:** [T201, T202, T206]
 
 - [ ] **T208 · Bug · P0: Implement comprehensive error boundaries**

@@ -5,18 +5,37 @@
  * These hooks encapsulate the repository-related functionality from the Zustand store.
  *
  * This hook has been refactored to use dashboardSlice instead of repositorySlice.
+ * It now uses the safe store access patterns to ensure proper error handling and type safety.
  */
 
 import { useCallback, useEffect } from "react";
-import { useStore } from "../store";
 import { StateSlice } from "../types";
 import { Repository } from "@/types/github";
+import { useSafeSelector, useSafeAction } from "./useSafeStore";
 
 // T201: Add module-level debug log
 console.log("useDashboardRepository.ts module is being loaded");
 
 /**
+ * Default state value for when the store is not available
+ */
+const DEFAULT_STATE = {
+  repositories: [] as Repository[],
+  loading: false,
+  error: null as string | null,
+  installationIds: [] as number[],
+  installations: [] as Array<Record<string, unknown>>,
+  currentInstallations: [] as Array<Record<string, unknown>>,
+  authMethod: null as string | null,
+  needsInstallation: false,
+  initialLoad: true,
+};
+
+/**
  * Hook for accessing and managing repository state
+ *
+ * Uses safe selectors and actions with proper fallbacks to ensure resilience
+ * against undefined or null values.
  */
 export function useDashboardRepository() {
   // T201: Debug log at start of hook
@@ -25,109 +44,123 @@ export function useDashboardRepository() {
     renderPhase: "initial",
   });
 
-  // Check store initialization before accessing
-  const storeState = useStore.getState();
-  console.log("useDashboardRepository: Store state check", {
-    hasStore: !!storeState,
-    storeKeys: storeState ? Object.keys(storeState) : [],
-    hasDashboardSlice: !!storeState?.[StateSlice.Dashboard],
-    timestamp: new Date().toISOString(),
-  });
-
-  // Repository state from dashboard slice
-  console.log(
-    "useDashboardRepository: About to access dashboard slice from store",
+  // Use safe selectors with proper fallbacks for all state properties
+  const repositories = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.repositories,
+    DEFAULT_STATE.repositories,
   );
-  const dashboard = useStore((state) => state[StateSlice.Dashboard]);
-  console.log("useDashboardRepository: Dashboard slice result", {
-    hasDashboard: !!dashboard,
-    dashboardType: typeof dashboard,
-    dashboardKeys: dashboard ? Object.keys(dashboard) : [],
-    timestamp: new Date().toISOString(),
+
+  const loading = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.loading,
+    DEFAULT_STATE.loading,
+  );
+
+  const error = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.error,
+    DEFAULT_STATE.error,
+  );
+
+  const installationIds = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.installationIds,
+    DEFAULT_STATE.installationIds,
+  );
+
+  const installations = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.installations,
+    DEFAULT_STATE.installations,
+  );
+
+  const currentInstallations = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.currentInstallations,
+    DEFAULT_STATE.currentInstallations,
+  );
+
+  const authMethod = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.authMethod,
+    DEFAULT_STATE.authMethod,
+  );
+
+  const needsInstallation = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.needsInstallation,
+    DEFAULT_STATE.needsInstallation,
+  );
+
+  const initialLoad = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.initialLoad,
+    DEFAULT_STATE.initialLoad,
+  );
+
+  // Get actions with safe fallbacks
+  const fetchRepositories = useSafeAction<
+    typeof StateSlice.Dashboard,
+    "fetchRepositories",
+    [installationId?: number, userEmail?: string],
+    Promise<boolean>
+  >(StateSlice.Dashboard, "fetchRepositories", async () => {
+    console.warn("fetchRepositories action not available, using fallback");
+    return false;
   });
 
-  // Log state presence for debugging
-  if (!dashboard) {
-    console.error(
-      "Dashboard state is not available in useDashboardRepository",
-      {
-        storeState: !!storeState,
-        storeStateType: typeof storeState,
-        timestamp: new Date().toISOString(),
-      },
+  const shouldRefreshRepositories = useSafeAction<
+    typeof StateSlice.Dashboard,
+    "shouldRefreshRepositories",
+    [accessToken?: string],
+    boolean
+  >(StateSlice.Dashboard, "shouldRefreshRepositories", () => {
+    console.warn(
+      "shouldRefreshRepositories action not available, using fallback",
     );
+    return false;
+  });
 
-    // Return minimal defaults - container will handle this case
-    return {
-      repositories: [],
-      loading: false,
-      error: null,
-      installationIds: [],
-      installations: [],
-      currentInstallations: [],
-      authMethod: null,
-      needsInstallation: false,
-      initialLoad: true,
-    };
-  }
+  const setInitialLoad = useSafeAction(
+    StateSlice.Dashboard,
+    "setInitialLoad",
+    (value: boolean) => {
+      console.warn("setInitialLoad action not available, using fallback");
+    },
+  );
 
-  // Extract state properties with defensive defaults
-  const {
-    repositories = [],
-    loading = false,
-    error = null,
-    installationIds = [],
-    installations = [],
-    currentInstallations = [],
-    authMethod = null,
-    needsInstallation = false,
-    initialLoad = true,
-  } = dashboard;
+  const handleAuthError = useSafeAction(
+    StateSlice.Dashboard,
+    "handleAuthError",
+    (message?: string) => {
+      console.warn(
+        "handleAuthError action not available, using fallback:",
+        message,
+      );
+    },
+  );
 
-  // Repository actions - get from dashboard slice with null-safety
-  const fetchRepositories =
-    useStore((state) => state[StateSlice.Dashboard]?.fetchRepositories) ||
-    (() => Promise.resolve(false));
-
-  const shouldRefreshRepositories =
-    useStore(
-      (state) => state[StateSlice.Dashboard]?.shouldRefreshRepositories,
-    ) || (() => false);
-
-  const setInitialLoad =
-    useStore((state) => state[StateSlice.Dashboard]?.setInitialLoad) ||
-    (() => {});
-
-  const handleAuthError =
-    useStore((state) => state[StateSlice.Dashboard]?.handleAuthError) ||
-    (() => {});
-
-  const handleAppInstallationNeeded =
-    useStore(
-      (state) => state[StateSlice.Dashboard]?.handleAppInstallationNeeded,
-    ) || (() => {});
+  const handleAppInstallationNeeded = useSafeAction(
+    StateSlice.Dashboard,
+    "handleAppInstallationNeeded",
+    () => {
+      console.warn(
+        "handleAppInstallationNeeded action not available, using fallback",
+      );
+    },
+  );
 
   // Effect to update initialLoad status after first fetch completes
   useEffect(() => {
     // T201: Debug log for useEffect in useDashboardRepository
     console.log("useDashboardRepository: useEffect for initialLoad triggered", {
       loading,
-      hasRepositories: !!repositories,
-      repositoriesLength: repositories ? repositories.length : -1,
+      repositoriesLength: repositories.length,
       initialLoad,
-      hasSetInitialLoad: typeof setInitialLoad === "function",
       timestamp: new Date().toISOString(),
     });
 
     // Check if we should update initialLoad
     const shouldUpdateInitialLoad =
-      !loading && repositories && repositories.length > 0 && initialLoad;
+      !loading && repositories.length > 0 && initialLoad;
+
     console.log("useDashboardRepository: Should update initialLoad?", {
       shouldUpdateInitialLoad,
       conditionDetails: {
         notLoading: !loading,
-        hasRepositoriesArray: !!repositories,
-        repositoriesNotEmpty: repositories && repositories.length > 0,
+        repositoriesNotEmpty: repositories.length > 0,
         isInitialLoad: initialLoad,
       },
     });
@@ -148,19 +181,16 @@ export function useDashboardRepository() {
         sessionToken,
       });
 
-      // Check if fetchRepositories exists
-      if (!fetchRepositories) {
-        console.error("fetchRepositories function is not available");
-        return false;
-      }
-
       // Check for GitHub installation cookie
       const installationId = getInstallationIdFromCookie();
 
       let success = false;
       try {
         if (installationId) {
-          success = await fetchRepositories(installationId, sessionEmail);
+          success = (await fetchRepositories(
+            installationId,
+            sessionEmail,
+          )) as boolean;
 
           if (success) {
             // Update localStorage for legacy code compatibility
@@ -176,7 +206,7 @@ export function useDashboardRepository() {
         }
 
         // No installation cookie found, proceed with normal fetch
-        success = await fetchRepositories(undefined, sessionEmail);
+        success = (await fetchRepositories(undefined, sessionEmail)) as boolean;
 
         if (success) {
           localStorage.setItem("lastRepositoryRefresh", Date.now().toString());
@@ -196,14 +226,6 @@ export function useDashboardRepository() {
    */
   const setupWindowFocusRefresh = useCallback(
     (sessionToken?: string) => {
-      // Check if required functions exist
-      if (!shouldRefreshRepositories || !fetchRepositories) {
-        console.error(
-          "Required functions not available for window focus refresh",
-        );
-        return () => {}; // Return no-op cleanup function
-      }
-
       const handleFocus = () => {
         try {
           // Only refresh if needed
@@ -212,8 +234,9 @@ export function useDashboardRepository() {
               "Window focused, refreshing repositories (due to cache expiration)",
             );
             fetchRepositories()
-              .then((success) => {
+              .then((result) => {
                 // Update the last refresh time
+                const success = result as boolean;
                 if (success) {
                   localStorage.setItem(
                     "lastRepositoryRefresh",
@@ -221,7 +244,7 @@ export function useDashboardRepository() {
                   );
                 }
               })
-              .catch((error) => {
+              .catch((error: Error) => {
                 console.error(
                   "Error refreshing repositories on window focus:",
                   error,
@@ -250,16 +273,15 @@ export function useDashboardRepository() {
 
   // Log state for debugging
   console.log("useDashboardRepository state:", {
-    repositories,
+    repositoriesCount: repositories.length,
     loading,
-    error,
+    hasError: !!error,
     installationIds,
-    installations,
     initialLoad,
   });
 
   return {
-    // State
+    // State properties
     repositories,
     loading,
     error,

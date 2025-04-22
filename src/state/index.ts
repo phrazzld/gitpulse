@@ -38,6 +38,16 @@ export {
   useSummaryGeneration,
 } from "./hooks/index";
 
+// Export safe store access patterns
+export {
+  useSafeSelector,
+  useSafeAction,
+  useSafeObject,
+  useSafeSlice,
+  createSliceHook,
+  createHooksFactory,
+} from "./hooks/useSafeStore";
+
 // Export slice action interfaces
 export type { DashboardSliceActions } from "./slices/dashboardSlice";
 export type { AuthSliceActions } from "./slices/authSlice";

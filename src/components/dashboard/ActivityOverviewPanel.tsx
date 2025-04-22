@@ -1,9 +1,12 @@
 import React from "react";
 import { Button, Card } from "@/components/library";
 import { cn } from "@/components/library/utils/cn";
-import { useDashboardState, useUIState } from "@/state";
+import { useUIState } from "@/state";
+import { useSafeSelector } from "@/state/hooks/useSafeStore";
+import { StateSlice } from "@/state/types";
 
 import { Repository } from "@/types/github";
+import { CommitSummary } from "@/types/summary";
 
 interface ActivityOverviewPanelProps {
   truncated?: boolean;
@@ -27,8 +30,11 @@ export default function ActivityOverviewPanel({
   onViewMore,
   "data-testid": testId,
 }: ActivityOverviewPanelProps) {
-  // Get data directly from Zustand hooks
-  const { summary } = useDashboardState();
+  // Get data with safe selectors and proper fallbacks
+  const summary = useSafeSelector(
+    (state) => state[StateSlice.Dashboard]?.summary,
+    null as CommitSummary | null,
+  );
   const { loading: isLoading, error } = useUIState();
 
   // Early return for loading state
@@ -124,7 +130,7 @@ export default function ActivityOverviewPanel({
         <div className="flex flex-wrap gap-sm">
           {aiSummary.keyThemes
             .slice(0, truncated ? 3 : undefined)
-            .map((theme, index) => (
+            .map((theme: string, index: number) => (
               <span
                 key={index}
                 className="px-sm py-xs rounded-md text-sm bg-neon-green/10 border border-neon-green text-neon-green"
@@ -146,7 +152,7 @@ export default function ActivityOverviewPanel({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
           {aiSummary.technicalAreas
             .slice(0, truncated ? 3 : 6)
-            .map((area, index) => (
+            .map((area: { name: string; count: number }, index: number) => (
               <div
                 key={index}
                 className="flex justify-between items-center p-sm rounded-md bg-black/30 border border-electric-blue"
@@ -171,14 +177,16 @@ export default function ActivityOverviewPanel({
           </div>
           <div className="border rounded-md p-md bg-black/20 border-luminous-yellow">
             <ul className="space-y-sm text-foreground">
-              {aiSummary.accomplishments.map((accomplishment, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="inline-block w-5 flex-shrink-0 mr-xs text-luminous-yellow">
-                    →
-                  </span>
-                  <span>{accomplishment}</span>
-                </li>
-              ))}
+              {aiSummary.accomplishments.map(
+                (accomplishment: string, index: number) => (
+                  <li key={index} className="flex items-start">
+                    <span className="inline-block w-5 flex-shrink-0 mr-xs text-luminous-yellow">
+                      →
+                    </span>
+                    <span>{accomplishment}</span>
+                  </li>
+                ),
+              )}
             </ul>
           </div>
         </div>

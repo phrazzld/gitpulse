@@ -13,6 +13,7 @@ import {
   useStore,
   useUIState,
   StateSlice,
+  useSafeSelector,
 } from "@/state";
 import { Repository } from "@/types/github";
 
@@ -23,8 +24,12 @@ export default function ZustandExample() {
   // Access specific parts of dashboard state
   const { repositories, loading, error } = useRepositories();
 
-  // Access UI state
-  const { expandedPanels, togglePanel } = useUIState();
+  // Access UI state using explicit typing for expandedPanels
+  const { togglePanel } = useUIState();
+  const expandedPanels = useSafeSelector<string[], string[]>(
+    (state) => state[StateSlice.Dashboard]?.expandedPanels,
+    [],
+  );
 
   // Get raw actions from store
   const handleRepositoryFetchSuccess = useStore(

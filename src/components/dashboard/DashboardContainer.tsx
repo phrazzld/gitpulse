@@ -7,6 +7,7 @@ import { useStore } from "@/state/store";
 import { StateSlice } from "@/state/types";
 import { useDashboardRepository } from "@/state";
 import { withZustand } from "@/state/withZustand";
+import { useSafeSelector } from "@/state/hooks/useSafeStore";
 
 // T201: Add debug logs for component mounting verification
 console.log("DashboardContainer.tsx module is being loaded");
@@ -33,8 +34,8 @@ function DashboardContainer({ children }: DashboardContainerProps) {
     renderPhase: "initial",
   });
 
-  // T202: Check if store is hydrated
-  const isStoreHydrated = useStore((state) => state.isHydrated);
+  // T202: Check if store is hydrated - use safe selector with fallback
+  const isStoreHydrated = useSafeSelector((state) => state.isHydrated, false);
   console.log("DashboardContainer: Store hydration check", { isStoreHydrated });
 
   const { data: session, status } = useSession();
@@ -46,7 +47,7 @@ function DashboardContainer({ children }: DashboardContainerProps) {
   const [isInitialized, setIsInitialized] = useState(false);
   console.log("DashboardContainer: isInitialized state", { isInitialized });
 
-  // Access dashboard slice directly first to ensure store is initialized
+  // Access dashboard slice with safe selector to ensure store is initialized
   // T201: Debug store access
   console.log("DashboardContainer: About to access Zustand store");
   const storeState = useStore.getState();
@@ -57,11 +58,33 @@ function DashboardContainer({ children }: DashboardContainerProps) {
     isHydrated: storeState?.isHydrated,
   });
 
-  // With withZustand HOC, it's now safe to access dashboard state
-  const dashboardState = useStore((state) => state[StateSlice.Dashboard]);
+  // With withZustand HOC, it's now safe to access dashboard state with safe selector
+  const dashboardState = useSafeSelector(
+    (state) => state[StateSlice.Dashboard],
+    {
+      // Provide default values for dashboard state to satisfy TypeScript
+      repositories: [],
+      loading: false,
+      error: null,
+      installationIds: [],
+      installations: [],
+      currentInstallations: [],
+      authMethod: null,
+      needsInstallation: false,
+      initialLoad: true,
+      fetchRepositories: async () => false,
+      shouldRefreshRepositories: () => false,
+      setInitialLoad: () => {},
+      setRepositories: () => {},
+      setLoading: () => {},
+      setError: () => {},
+      handleAuthError: () => {},
+      handleAppInstallationNeeded: () => {},
+    },
+  );
   console.log("DashboardContainer: Retrieved dashboard state", {
     hasDashboardState: !!dashboardState,
-    initialLoad: dashboardState?.initialLoad,
+    initialLoad: dashboardState.initialLoad,
   });
 
   // Get repository data and actions from Zustand
