@@ -121,7 +121,7 @@
     3. Component functionality remains unchanged.
   - **Depends‑on:** none
 
-- [ ] **T010 · Refactor · P2: refactor ActivityFeedPanel internals to use library components**
+- [x] **T010 · Refactor · P2: refactor ActivityFeedPanel internals to use library components**
   - **Context:** Detailed Build Steps #5
   - **Action:**
     1. Review internal implementation of `ActivityFeedPanel` component.

@@ -6,6 +6,7 @@ import { ActivityFeedEmpty } from "./ActivityFeedEmpty";
 import { CommitList } from "./CommitList";
 import { LoadMoreSection } from "./LoadMoreSection";
 import { calculateListHeight } from "../utils/activityFeedUtils";
+import { cn } from "@/components/library/utils/cn";
 
 import { ProgressiveLoadingError } from "@/hooks/useProgressiveLoading";
 
@@ -84,10 +85,7 @@ export function ActivityFeedContent({
       {/* Incremental loading indicator at the top */}
       {incrementalLoading && commits.length > 0 && (
         <div className="relative w-full">
-          <div
-            className="h-0.5 absolute top-0 left-0 right-0 animate-pulse"
-            style={{ backgroundColor: "var(--neon-green)" }}
-          ></div>
+          <div className="h-0.5 absolute top-0 left-0 right-0 animate-pulse bg-neon-green"></div>
         </div>
       )}
 
@@ -108,13 +106,7 @@ export function ActivityFeedContent({
             }}
           >
             {/* Global vertical timeline line */}
-            <div
-              className="absolute left-5 top-0 bottom-0 w-0.5 z-0"
-              style={{
-                backgroundColor: "var(--electric-blue)",
-                opacity: 0.2,
-              }}
-            ></div>
+            <div className="absolute left-5 top-0 bottom-0 w-0.5 z-0 bg-electric-blue/20"></div>
 
             {/* Virtualized List */}
             {listWidth > 0 && (

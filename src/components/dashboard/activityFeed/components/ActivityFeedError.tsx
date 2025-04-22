@@ -1,4 +1,6 @@
 import React from "react";
+import { Button } from "@/components/library";
+import { cn } from "@/components/library/utils/cn";
 
 interface ActivityFeedErrorProps {
   error: string;
@@ -22,14 +24,7 @@ export function ActivityFeedError({
   retryFn,
 }: ActivityFeedErrorProps) {
   return (
-    <div
-      className="p-4 rounded-md border"
-      style={{
-        backgroundColor: "rgba(255, 59, 48, 0.1)",
-        borderColor: "var(--crimson-red)",
-        color: "var(--crimson-red)",
-      }}
-    >
+    <div className="p-4 rounded-md border border-crimson-red bg-crimson-red/10 text-crimson-red">
       <div className="flex items-start">
         <svg
           className="h-5 w-5 mt-0.5 mr-2 flex-shrink-0"
@@ -61,12 +56,14 @@ export function ActivityFeedError({
 
           {/* Add retry button if retry function provided */}
           {retryFn && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={retryFn}
-              className="mt-3 px-3 py-1 text-sm rounded-md border border-current hover:bg-red-100"
+              className="mt-3 text-crimson-red border-crimson-red hover:bg-crimson-red/10"
             >
               Try Again
-            </button>
+            </Button>
           )}
         </div>
       </div>

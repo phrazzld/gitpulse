@@ -7,19 +7,12 @@ import React from "react";
  */
 export function ActivityFeedEmpty() {
   return (
-    <div className="py-8 text-center" style={{ color: "var(--foreground)" }}>
-      <div
-        className="inline-block p-3 rounded-md border mb-3"
-        style={{
-          backgroundColor: "rgba(0, 0, 0, 0.3)",
-          borderColor: "var(--electric-blue)",
-        }}
-      >
+    <div className="py-8 text-center text-foreground">
+      <div className="inline-block p-3 rounded-md border border-electric-blue bg-black/30 mb-3">
         <svg
-          className="h-6 w-6 mx-auto mb-2"
+          className="h-6 w-6 mx-auto mb-2 text-electric-blue"
           fill="currentColor"
           viewBox="0 0 20 20"
-          style={{ color: "var(--electric-blue)" }}
         >
           <path
             fillRule="evenodd"

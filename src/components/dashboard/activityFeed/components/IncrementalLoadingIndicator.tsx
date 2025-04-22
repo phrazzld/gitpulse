@@ -7,17 +7,8 @@ import React from "react";
  */
 export function IncrementalLoadingIndicator() {
   return (
-    <div
-      className="text-xs flex items-center"
-      style={{ color: "var(--neon-green)" }}
-    >
-      <div
-        className="w-3 h-3 border-2 border-t-transparent rounded-full animate-spin mr-2"
-        style={{
-          borderColor: "var(--neon-green)",
-          borderTopColor: "transparent",
-        }}
-      ></div>
+    <div className="text-xs flex items-center text-neon-green">
+      <div className="w-3 h-3 border-2 border-neon-green border-t-transparent rounded-full animate-spin mr-2"></div>
       <div>
         Loading
         <span className="inline-block animate-pulse">.</span>
