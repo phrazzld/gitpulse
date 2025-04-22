@@ -108,7 +108,7 @@
     3. Component functionality remains unchanged.
   - **Depends‑on:** none
 
-- [ ] **T009 · Refactor · P2: refactor ActivityOverviewPanel internals to use library components**
+- [x] **T009 · Refactor · P2: refactor ActivityOverviewPanel internals to use library components**
 
   - **Context:** Detailed Build Steps #5
   - **Action:**

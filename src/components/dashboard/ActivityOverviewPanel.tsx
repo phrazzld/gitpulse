@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Card } from "@/components/library";
 import { ActivityOverviewPanelProps } from "@/types/dashboard";
+import { cn } from "@/components/library/utils/cn";
 
 /**
  * ActivityOverviewPanel component
@@ -22,41 +23,23 @@ export default function ActivityOverviewPanel({
   if (isLoading) {
     return (
       <Card padding="md" radius="md" shadow="md" className="mb-6">
-        <div
-          className="mb-4 flex items-center border-b pb-3"
-          style={{ borderColor: "var(--electric-blue)" }}
-        >
-          <div
-            className="w-3 h-3 rounded-full mr-3"
-            style={{ backgroundColor: "var(--electric-blue)" }}
-          ></div>
-          <h2
-            className="text-xl font-bold"
-            style={{ color: "var(--electric-blue)" }}
-          >
+        <div className="mb-4 flex items-center border-b border-electric-blue pb-3">
+          <div className="w-3 h-3 rounded-full mr-3 bg-electric-blue"></div>
+          <h2 className="text-xl font-bold text-electric-blue">
             ACTIVITY OVERVIEW
           </h2>
         </div>
 
         <div className="flex flex-col space-y-4 p-4 items-center justify-center">
           <div className="flex space-x-2 items-center">
-            <div
-              className="w-4 h-4 rounded-full animate-pulse"
-              style={{ backgroundColor: "var(--neon-green)" }}
-            ></div>
-            <p className="text-sm" style={{ color: "var(--neon-green)" }}>
-              ANALYZING COMMIT PATTERNS
-            </p>
+            <div className="w-4 h-4 rounded-full animate-pulse bg-neon-green"></div>
+            <p className="text-sm text-neon-green">ANALYZING COMMIT PATTERNS</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-16 rounded-md animate-pulse"
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0.3)",
-                  border: "1px solid var(--electric-blue)",
-                }}
+                className="h-16 rounded-md animate-pulse bg-black/30 border border-electric-blue"
               ></div>
             ))}
           </div>
@@ -69,29 +52,14 @@ export default function ActivityOverviewPanel({
   if (error) {
     return (
       <Card padding="md" radius="md" shadow="md" className="mb-6">
-        <div
-          className="mb-4 flex items-center border-b pb-3"
-          style={{ borderColor: "var(--electric-blue)" }}
-        >
-          <div
-            className="w-3 h-3 rounded-full mr-3"
-            style={{ backgroundColor: "var(--electric-blue)" }}
-          ></div>
-          <h2
-            className="text-xl font-bold"
-            style={{ color: "var(--electric-blue)" }}
-          >
+        <div className="mb-4 flex items-center border-b border-electric-blue pb-3">
+          <div className="w-3 h-3 rounded-full mr-3 bg-electric-blue"></div>
+          <h2 className="text-xl font-bold text-electric-blue">
             ACTIVITY OVERVIEW
           </h2>
         </div>
 
-        <div
-          className="p-4 rounded text-center"
-          style={{
-            backgroundColor: "rgba(255, 59, 48, 0.1)",
-            color: "var(--crimson-red)",
-          }}
-        >
+        <div className="p-4 rounded text-center bg-crimson-red/10 text-crimson-red">
           {error}
         </div>
       </Card>
@@ -102,23 +70,14 @@ export default function ActivityOverviewPanel({
   if (!summary || !summary.aiSummary) {
     return (
       <Card padding="md" radius="md" shadow="md" className="mb-6">
-        <div
-          className="mb-4 flex items-center border-b pb-3"
-          style={{ borderColor: "var(--electric-blue)" }}
-        >
-          <div
-            className="w-3 h-3 rounded-full mr-3"
-            style={{ backgroundColor: "var(--electric-blue)" }}
-          ></div>
-          <h2
-            className="text-xl font-bold"
-            style={{ color: "var(--electric-blue)" }}
-          >
+        <div className="mb-4 flex items-center border-b border-electric-blue pb-3">
+          <div className="w-3 h-3 rounded-full mr-3 bg-electric-blue"></div>
+          <h2 className="text-xl font-bold text-electric-blue">
             ACTIVITY OVERVIEW
           </h2>
         </div>
 
-        <div className="p-4 text-center" style={{ color: "var(--foreground)" }}>
+        <div className="p-4 text-center text-foreground">
           No activity data available. Generate a summary to see insights.
         </div>
       </Card>
@@ -129,34 +88,15 @@ export default function ActivityOverviewPanel({
 
   return (
     <Card padding="md" radius="md" shadow="md" className="mb-6">
-      <div
-        className="mb-4 flex items-center justify-between border-b pb-3"
-        style={{ borderColor: "var(--electric-blue)" }}
-      >
+      <div className="mb-4 flex items-center justify-between border-b border-electric-blue pb-3">
         <div className="flex items-center">
-          <div
-            className="w-3 h-3 rounded-full mr-3"
-            style={{ backgroundColor: "var(--electric-blue)" }}
-          ></div>
-          <h2
-            className="text-xl font-bold"
-            style={{ color: "var(--electric-blue)" }}
-          >
+          <div className="w-3 h-3 rounded-full mr-3 bg-electric-blue"></div>
+          <h2 className="text-xl font-bold text-electric-blue">
             ACTIVITY OVERVIEW
           </h2>
         </div>
-        <div
-          className="px-2 py-1 text-xs rounded flex items-center"
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.3)",
-            border: "1px solid var(--neon-green)",
-            color: "var(--neon-green)",
-          }}
-        >
-          <span
-            className="inline-block w-2 h-2 rounded-full mr-2"
-            style={{ backgroundColor: "var(--neon-green)" }}
-          ></span>
+        <div className="px-2 py-1 text-xs rounded flex items-center bg-black/30 border border-neon-green text-neon-green">
+          <span className="inline-block w-2 h-2 rounded-full mr-2 bg-neon-green"></span>
           <span>AI ANALYSIS COMPLETE</span>
         </div>
       </div>
@@ -164,14 +104,8 @@ export default function ActivityOverviewPanel({
       {/* Key Themes Section */}
       <div className="mb-6">
         <div className="flex items-center mb-3">
-          <div
-            className="w-2 h-2 rounded-full mr-2"
-            style={{ backgroundColor: "var(--neon-green)" }}
-          ></div>
-          <h3
-            className="text-sm uppercase"
-            style={{ color: "var(--neon-green)" }}
-          >
+          <div className="w-2 h-2 rounded-full mr-2 bg-neon-green"></div>
+          <h3 className="text-sm uppercase text-neon-green">
             IDENTIFIED PATTERNS
           </h3>
         </div>
@@ -181,12 +115,7 @@ export default function ActivityOverviewPanel({
             .map((theme, index) => (
               <span
                 key={index}
-                className="px-3 py-1 rounded-md text-sm"
-                style={{
-                  backgroundColor: "rgba(0, 255, 135, 0.1)",
-                  border: "1px solid var(--neon-green)",
-                  color: "var(--neon-green)",
-                }}
+                className="px-3 py-1 rounded-md text-sm bg-neon-green/10 border border-neon-green text-neon-green"
               >
                 {theme}
               </span>
@@ -197,14 +126,8 @@ export default function ActivityOverviewPanel({
       {/* Technical Areas */}
       <div className="mb-6">
         <div className="flex items-center mb-3">
-          <div
-            className="w-2 h-2 rounded-full mr-2"
-            style={{ backgroundColor: "var(--electric-blue)" }}
-          ></div>
-          <h3
-            className="text-sm uppercase"
-            style={{ color: "var(--electric-blue)" }}
-          >
+          <div className="w-2 h-2 rounded-full mr-2 bg-electric-blue"></div>
+          <h3 className="text-sm uppercase text-electric-blue">
             TECHNICAL FOCUS AREAS
           </h3>
         </div>
@@ -214,20 +137,10 @@ export default function ActivityOverviewPanel({
             .map((area, index) => (
               <div
                 key={index}
-                className="flex justify-between items-center p-3 rounded-md"
-                style={{
-                  backgroundColor: "rgba(0, 0, 0, 0.3)",
-                  border: "1px solid var(--electric-blue)",
-                }}
+                className="flex justify-between items-center p-3 rounded-md bg-black/30 border border-electric-blue"
               >
-                <span style={{ color: "var(--foreground)" }}>{area.name}</span>
-                <span
-                  className="px-2 py-1 rounded text-xs"
-                  style={{
-                    backgroundColor: "rgba(59, 142, 234, 0.2)",
-                    color: "var(--electric-blue)",
-                  }}
-                >
+                <span className="text-foreground">{area.name}</span>
+                <span className="px-2 py-1 rounded text-xs bg-electric-blue/20 text-electric-blue">
                   {area.count}
                 </span>
               </div>
@@ -239,31 +152,16 @@ export default function ActivityOverviewPanel({
       {!truncated && (
         <div className="mb-6">
           <div className="flex items-center mb-3">
-            <div
-              className="w-2 h-2 rounded-full mr-2"
-              style={{ backgroundColor: "var(--luminous-yellow)" }}
-            ></div>
-            <h3
-              className="text-sm uppercase"
-              style={{ color: "var(--luminous-yellow)" }}
-            >
+            <div className="w-2 h-2 rounded-full mr-2 bg-luminous-yellow"></div>
+            <h3 className="text-sm uppercase text-luminous-yellow">
               KEY ACHIEVEMENTS
             </h3>
           </div>
-          <div
-            className="border rounded-md p-4"
-            style={{
-              backgroundColor: "rgba(0, 0, 0, 0.2)",
-              borderColor: "var(--luminous-yellow)",
-            }}
-          >
-            <ul className="space-y-3" style={{ color: "var(--foreground)" }}>
+          <div className="border rounded-md p-4 bg-black/20 border-luminous-yellow">
+            <ul className="space-y-3 text-foreground">
               {aiSummary.accomplishments.map((accomplishment, index) => (
                 <li key={index} className="flex items-start">
-                  <span
-                    className="inline-block w-5 flex-shrink-0 mr-2"
-                    style={{ color: "var(--luminous-yellow)" }}
-                  >
+                  <span className="inline-block w-5 flex-shrink-0 mr-2 text-luminous-yellow">
                     →
                   </span>
                   <span>{accomplishment}</span>
