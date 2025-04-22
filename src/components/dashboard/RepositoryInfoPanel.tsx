@@ -1,24 +1,15 @@
 import React from "react";
-import { DashboardFilterState } from "@/types/dashboard";
 import { Repository } from "@/types/github";
 import { Button, Card } from "@/components/library";
 import { cn } from "@/components/library/utils/cn";
+import { useDashboardRepository, useFilters, useUIState } from "@/state";
 
-interface Props {
-  repositories: Repository[];
-  showRepoList: boolean;
-  loading: boolean;
-  activeFilters: DashboardFilterState;
-  setShowRepoList: (show: boolean) => void;
-}
+export default function RepositoryInfoPanel() {
+  // Get state directly from Zustand hooks
+  const { repositories, loading } = useDashboardRepository();
+  const { filters: activeFilters } = useFilters();
+  const { showRepoList, setShowRepoList } = useUIState();
 
-export default function RepositoryInfoPanel({
-  repositories,
-  showRepoList,
-  loading,
-  activeFilters,
-  setShowRepoList,
-}: Props) {
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-3">

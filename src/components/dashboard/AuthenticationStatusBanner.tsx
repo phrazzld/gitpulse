@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { cn } from "../../components/library/utils/cn";
+import { useUIState, useInstallations } from "@/state";
 
 interface Props {
-  error: string | null;
-  authMethod: string | null;
-  needsInstallation: boolean;
   getGitHubAppInstallUrl: () => string;
   signOutCallback: (options?: { callbackUrl: string }) => void;
-  handleAuthError?: () => void; // Made optional since it's not used
+  handleAuthError?: () => void;
 }
 
 type ButtonType =
@@ -154,12 +152,13 @@ function AuthStatusBanner({
 }
 
 export default function AuthenticationStatusBanner({
-  error,
-  authMethod,
-  needsInstallation,
   getGitHubAppInstallUrl,
   signOutCallback,
 }: Props) {
+  // Get state directly from Zustand hooks
+  const { error } = useUIState();
+  const { needsInstallation, authMethod } = useInstallations();
+
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
 
   const isGitHubAppNotConfigured =

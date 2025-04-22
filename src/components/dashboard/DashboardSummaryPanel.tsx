@@ -1,24 +1,22 @@
 import React from "react";
 import { Card } from "@/components/library";
-import { DashboardSummaryPanelProps } from "@/types/dashboard";
 import { cn } from "@/components/library/utils/cn";
+import { useActivityMetrics, useUIState } from "@/state";
 
 /**
  * DashboardSummaryPanel component
  *
  * Displays summary metrics for the dashboard in a grid layout.
  * Shows commit count, repository count, and active days count.
+ * Data is accessed directly via Zustand hooks.
  *
- * @param props - Component props
  * @returns A styled dashboard summary panel component
  */
-export default function DashboardSummaryPanel({
-  commits = 0,
-  repositories = 0,
-  activeDays = 0,
-  isLoading = false,
-  error = null,
-}: DashboardSummaryPanelProps) {
+export default function DashboardSummaryPanel() {
+  // Get data directly from Zustand hooks
+  const { commits, repositories, activeDays } = useActivityMetrics();
+  const { loading, error } = useUIState();
+
   return (
     <Card padding="md" radius="md" shadow="md">
       <div className="flex items-center justify-between border-b border-electric-blue pb-md mb-md">
@@ -28,7 +26,7 @@ export default function DashboardSummaryPanel({
             ACTIVITY METRICS
           </h2>
         </div>
-        {isLoading && (
+        {loading && (
           <div className="px-sm py-xs text-xs rounded flex items-center bg-black/30 border border-electric-blue text-electric-blue">
             <span className="inline-block w-2 h-2 rounded-full mr-xs animate-pulse bg-electric-blue"></span>
             <span>PROCESSING</span>
@@ -46,19 +44,19 @@ export default function DashboardSummaryPanel({
             label="COMMIT COUNT"
             value={commits}
             colorToken="neon-green"
-            isLoading={isLoading}
+            isLoading={loading}
           />
           <MetricCard
             label="REPOSITORIES"
             value={repositories}
             colorToken="electric-blue"
-            isLoading={isLoading}
+            isLoading={loading}
           />
           <MetricCard
             label="ACTIVE DAYS"
             value={activeDays}
             colorToken="luminous-yellow"
-            isLoading={isLoading}
+            isLoading={loading}
           />
         </div>
       )}

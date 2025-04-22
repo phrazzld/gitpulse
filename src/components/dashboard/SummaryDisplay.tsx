@@ -82,12 +82,6 @@ export default function SummaryDisplay({
           </div>
 
           <ActivityFeedPanel
-            dateRange={{
-              since: dateRange.since,
-              until: dateRange.until,
-            }}
-            filters={activeFilters}
-            installationIds={installationIds}
             mode={activityMode}
             maxItems={30}
             showRepository={true}

@@ -1,30 +1,38 @@
 import React from "react";
-import DateRangePicker, { DateRange } from "@/components/DateRangePicker";
-import { DashboardFilterState } from "@/types/dashboard";
-import { Installation } from "@/types/github";
-import { Session } from "next-auth";
+import DateRangePicker from "@/components/DateRangePicker";
 import { ActivityMode } from "@/types/activity";
+import { Session } from "next-auth";
 import { Button, Card, cn } from "@/components/library";
+import {
+  useDateRange,
+  useFilters,
+  useUIState,
+  useInstallations,
+} from "@/state";
 
 interface Props {
   activityMode: ActivityMode;
-  dateRange: DateRange;
-  activeFilters: DashboardFilterState;
-  installations: Installation[];
-  loading: boolean;
-  handleDateRangeChange: (newDateRange: DateRange) => void;
   session: Session | null;
 }
 
-export default function FilterControls({
-  activityMode,
-  dateRange,
-  activeFilters,
-  installations,
-  loading,
-  handleDateRangeChange,
-  session,
-}: Props) {
+export default function FilterControls({ activityMode, session }: Props) {
+  // Get state directly from Zustand hooks
+  const { loading: uiLoading } = useUIState();
+  const { dateRange, updateDateRange } = useDateRange();
+  const { filters: activeFilters, updateFilters } = useFilters();
+  const { installations, loading: installationsLoading } = useInstallations();
+
+  // Determine loading state
+  const loading = uiLoading || installationsLoading;
+
+  // Function to handle date range changes
+  const handleDateRangeChange = (newDateRange: {
+    since: string;
+    until: string;
+  }) => {
+    updateDateRange(newDateRange.since, newDateRange.until);
+  };
+
   return (
     <Card
       className="mb-8"

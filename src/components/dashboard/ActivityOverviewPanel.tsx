@@ -1,28 +1,37 @@
 import React from "react";
 import { Button, Card } from "@/components/library";
-import { ActivityOverviewPanelProps } from "@/types/dashboard";
 import { cn } from "@/components/library/utils/cn";
+import { useDashboardState, useUIState } from "@/state";
+
+interface ActivityOverviewPanelProps {
+  truncated?: boolean;
+  onViewMore?: () => void;
+  "data-testid"?: string;
+}
 
 /**
  * ActivityOverviewPanel component
  *
  * Displays an overview of user activity with AI-generated insights.
  * Shows key themes, technical areas, and accomplishments.
+ * Data is accessed directly via Zustand hooks.
  *
  * @param props - Component props
  * @returns A styled activity overview panel component
  */
 export default function ActivityOverviewPanel({
-  summary,
-  isLoading = false,
-  error = null,
   truncated = false,
   onViewMore,
+  "data-testid": testId,
 }: ActivityOverviewPanelProps) {
+  // Get data directly from Zustand hooks
+  const { summary } = useDashboardState();
+  const { loading: isLoading, error } = useUIState();
+
   // Early return for loading state
   if (isLoading) {
     return (
-      <Card padding="md" radius="md" shadow="md">
+      <Card padding="md" radius="md" shadow="md" data-testid={testId}>
         <div className="flex items-center border-b border-electric-blue pb-md mb-md">
           <div className="w-3 h-3 rounded-full mr-sm bg-electric-blue"></div>
           <h2 className="text-xl font-bold text-electric-blue">
@@ -51,7 +60,7 @@ export default function ActivityOverviewPanel({
   // Early return for error state
   if (error) {
     return (
-      <Card padding="md" radius="md" shadow="md">
+      <Card padding="md" radius="md" shadow="md" data-testid={testId}>
         <div className="flex items-center border-b border-electric-blue pb-md mb-md">
           <div className="w-3 h-3 rounded-full mr-sm bg-electric-blue"></div>
           <h2 className="text-xl font-bold text-electric-blue">
@@ -69,7 +78,7 @@ export default function ActivityOverviewPanel({
   // Early return if no summary or AI summary available
   if (!summary || !summary.aiSummary) {
     return (
-      <Card padding="md" radius="md" shadow="md">
+      <Card padding="md" radius="md" shadow="md" data-testid={testId}>
         <div className="flex items-center border-b border-electric-blue pb-md mb-md">
           <div className="w-3 h-3 rounded-full mr-sm bg-electric-blue"></div>
           <h2 className="text-xl font-bold text-electric-blue">
@@ -87,7 +96,7 @@ export default function ActivityOverviewPanel({
   const { aiSummary } = summary;
 
   return (
-    <Card padding="md" radius="md" shadow="md">
+    <Card padding="md" radius="md" shadow="md" data-testid={testId}>
       <div className="flex items-center justify-between border-b border-electric-blue pb-md mb-md">
         <div className="flex items-center">
           <div className="w-3 h-3 rounded-full mr-sm bg-electric-blue"></div>

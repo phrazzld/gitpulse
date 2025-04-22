@@ -1,12 +1,27 @@
 import React from "react";
 import { Card, Button } from "@/components/library";
-import { ActivityFeedPanelProps } from "@/types/dashboard";
 import { useActivityData } from "@/hooks/useActivityData";
+import { ActivityMode } from "@/types/activity";
 import {
   ActivityFeedHeader,
   ActivityFeedContent,
   useActivityFeedLayout,
 } from "./activityFeed";
+import {
+  useDateRange,
+  useFilters,
+  useInstallations,
+  useUIState,
+} from "@/state";
+
+interface ActivityFeedPanelProps {
+  mode: ActivityMode;
+  maxItems?: number;
+  showRepository?: boolean;
+  truncated?: boolean;
+  onViewMore?: () => void;
+  "data-testid"?: string;
+}
 
 /**
  * ActivityFeedPanel Component
@@ -14,21 +29,25 @@ import {
  * Enhanced activity feed for showing git commits.
  * Uses virtualization for improved performance with large datasets.
  * Supports infinite scrolling or load-more-button for pagination.
+ * Data is accessed directly via Zustand hooks.
  *
  * @param props - Component props
  * @returns A styled activity feed panel component
  */
 export default function ActivityFeedPanel({
-  dateRange,
-  filters = { repositories: [] },
-  installationIds = [],
   mode = "my-activity",
   maxItems,
-  isLoading: propsLoading,
   showRepository = true,
   truncated = false,
   onViewMore,
+  "data-testid": testId,
 }: ActivityFeedPanelProps) {
+  // Get state directly from Zustand hooks
+  const { dateRange } = useDateRange();
+  const { filters } = useFilters();
+  const { installationIds } = useInstallations();
+  const { loading: propsLoading } = useUIState();
+
   // Fixed settings
   const itemHeight = 120; // Height of each item in pixels
 
@@ -73,7 +92,7 @@ export default function ActivityFeedPanel({
   });
 
   return (
-    <Card padding="md" radius="md" shadow="md">
+    <Card padding="md" radius="md" shadow="md" data-testid={testId}>
       <ActivityFeedHeader isLoading={initialLoading || incrementalLoading} />
 
       <div className="mt-md">

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { cn } from "../../components/library/utils/cn";
+import { useUIState } from "@/state";
 
-interface Props {
-  loading: boolean;
-}
+export default function ActionButton() {
+  // Get loading state directly from Zustand store
+  const { loading } = useUIState();
 
-export default function ActionButton({ loading }: Props) {
   const [isHovered, setIsHovered] = useState(false);
 
   // Base button classes
