@@ -127,7 +127,21 @@ const DashboardGridContainer = React.forwardRef<
   );
 
   return (
-    <div ref={ref} className={gridClasses} {...rest}>
+    <div
+      ref={ref}
+      className={gridClasses}
+      style={{
+        display: "grid !important",
+        visibility: "visible",
+        opacity: "1 !important",
+        backgroundColor: "hsla(var(--dark-slate), 0.9) !important",
+        border: "1px solid hsla(var(--neon-green), 0.1)",
+        boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
+        borderRadius: "4px",
+        padding: "var(--spacing-md) !important",
+      }}
+      {...rest}
+    >
       {children}
     </div>
   );

@@ -115,21 +115,35 @@ export default function Dashboard() {
         <SimpleDashboard error={error} errorInfo={errorInfo} />
       )}
     >
-      {/* T204: Use DashboardContainer with DashboardContent for better component hierarchy */}
-      <DashboardContainer>
-        {/* T204: Replace the inline dashboard with the new DashboardContent component */}
-        <DashboardContent
-          session={session}
-          repositories={repositories}
-          loading={loading}
-          error={error}
-          expandedPanels={expandedPanels}
-          onPanelExpand={handlePanelExpand}
-          generateSummary={generateSummary}
-          handleAuthError={handleAuthError}
-          dateRange={dateRange}
-        />
-      </DashboardContainer>
+      {/* T205: Add debugging styles */}
+      <div
+        style={{
+          position: "relative",
+          display: "block !important",
+          width: "100% !important",
+          minHeight: "100vh !important",
+          visibility: "visible",
+          opacity: "1 !important",
+          backgroundColor: "hsla(var(--dark-slate), 0.95) !important",
+          zIndex: 90,
+        }}
+      >
+        {/* T204: Use DashboardContainer with DashboardContent for better component hierarchy */}
+        <DashboardContainer>
+          {/* T204: Replace the inline dashboard with the new DashboardContent component */}
+          <DashboardContent
+            session={session}
+            repositories={repositories}
+            loading={loading}
+            error={error}
+            expandedPanels={expandedPanels}
+            onPanelExpand={handlePanelExpand}
+            generateSummary={generateSummary}
+            handleAuthError={handleAuthError}
+            dateRange={dateRange}
+          />
+        </DashboardContainer>
+      </div>
     </ErrorBoundary>
   );
 }

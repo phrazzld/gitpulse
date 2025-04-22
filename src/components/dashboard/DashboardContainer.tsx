@@ -211,7 +211,20 @@ function DashboardContainer({ children }: DashboardContainerProps) {
   });
 
   return (
-    <div className="w-full h-full">
+    <div
+      className="w-full h-full"
+      style={{
+        position: "relative",
+        display: "block",
+        backgroundColor: "hsl(var(--dark-slate)) !important",
+        minHeight: "100vh !important",
+        width: "100% !important",
+        overflow: "auto",
+        zIndex: 100,
+        border: "2px solid hsl(var(--neon-green))",
+        boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
+      }}
+    >
       {/* T201: Additional diagnostic div */}
       <div
         style={{
@@ -228,7 +241,20 @@ function DashboardContainer({ children }: DashboardContainerProps) {
         Dashboard Container Rendered: {new Date().toLocaleTimeString()}
       </div>
 
-      {children}
+      {/* Explicit content wrapper with forced visibility */}
+      <div
+        style={{
+          position: "relative",
+          display: "block !important",
+          visibility: "visible",
+          opacity: "1 !important",
+          backgroundColor: "hsl(var(--dark-slate)) !important",
+          overflow: "visible",
+          zIndex: 101,
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

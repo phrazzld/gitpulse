@@ -71,7 +71,14 @@ export default function DashboardContent({
   return (
     <div
       className="min-h-screen w-full overflow-x-hidden"
-      style={{ backgroundColor: "hsl(var(--dark-slate))" }}
+      style={{
+        backgroundColor: "hsl(var(--dark-slate)) !important",
+        display: "block !important",
+        visibility: "visible",
+        opacity: "1 !important",
+        position: "relative",
+        zIndex: 102,
+      }}
       data-testid="dashboard-container"
     >
       {/* 
@@ -84,7 +91,15 @@ export default function DashboardContent({
         - max-w-7xl sets maximum content width to prevent excessive line lengths on large displays
         - mx-auto centers the container when max-width is reached
       */}
-      <div className="max-w-7xl mx-auto py-lg sm:px-lg lg:px-xl">
+      <div
+        className="max-w-7xl mx-auto py-lg sm:px-lg lg:px-xl"
+        style={{
+          position: "relative",
+          display: "block !important",
+          visibility: "visible",
+          backgroundColor: "hsl(var(--dark-slate)) !important",
+        }}
+      >
         {/* 
           Dashboard grid layout with larger gap (gap-lg) for better visual separation between panels.
           Horizontal padding scales based on screen size:
@@ -92,7 +107,14 @@ export default function DashboardContent({
           - sm breakpoint and up: px-0 to maximize content space within container boundaries
           - Maintains py-lg vertical padding consistently across breakpoints
         */}
-        <DashboardGridContainer className="px-md py-lg sm:px-0 gap-lg">
+        <DashboardGridContainer
+          className="px-md py-lg sm:px-0 gap-lg"
+          style={{
+            display: "grid !important",
+            visibility: "visible",
+            opacity: "1 !important",
+          }}
+        >
           {/* 
             Authentication Status and Control Panel spans full width (col-span-12) across all breakpoints
             to emphasize importance of authentication state and control options.
