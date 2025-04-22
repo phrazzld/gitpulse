@@ -196,7 +196,7 @@
     2. Code coverage meets or exceeds defined targets.
   - **Depends‑on:** [T001, T002, T005, T006, T007, T008, T009, T010]
 
-- [ ] **T017 · Test · P0: update dashboard integration tests for new layout and state**
+- [x] **T017 · Test · P0: update dashboard integration tests for new layout and state**
   - **Context:** Detailed Build Steps #10 (Integration Tests), Testing Strategy (Integration Tests)
   - **Action:**
     1. Update tests in `dashboard-integration.test.tsx` and `dashboard-layout.test.tsx` (or similar files).

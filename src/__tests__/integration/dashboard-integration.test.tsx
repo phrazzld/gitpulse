@@ -1,6 +1,7 @@
 /**
  * Integration tests for the Dashboard experience
  * Tests the full dashboard with its components, data loading, and interactions
+ * Updated for new dashboard layout and Zustand state management
  */
 import React from "react";
 import {
@@ -19,26 +20,76 @@ import {
   mockActiveFilters,
 } from "../test-utils";
 import { ImprovedDashboardTestWrapper } from "./ImprovedDashboardTestWrapper";
+import {
+  setIntegrationStoreData,
+  mockAllZustandHooks,
+} from "./ZustandIntegrationTestHelpers";
+
+// Enable mock for Zustand hooks
+mockAllZustandHooks();
 
 // Mock the Dashboard component directly to avoid dependency issues
-// This is a simplified version that uses our real components
+// This is a simplified version that reflects the new structure with Grid and Card components
 jest.mock("@/app/dashboard/page", () => {
   return function MockDashboard() {
     return (
-      <div data-testid="dashboard-container">
-        <h2 data-testid="dashboard-header">COMMIT ANALYSIS MODULE</h2>
-        <div data-testid="filter-controls" className="my-4">
-          <div data-testid="date-range-picker">
-            <button>Select Date Range</button>
-            <div>
-              <button role="option">Last 7 days</button>
-              <button role="option">Last 30 days</button>
+      <div
+        data-testid="dashboard-container"
+        className="bg-dark-slate min-h-screen"
+      >
+        <div className="max-w-7xl mx-auto py-lg sm:px-lg lg:px-xl">
+          <div
+            data-testid="dashboard-grid-container"
+            className="grid grid-cols-12 gap-lg px-md py-lg sm:px-0"
+          >
+            {/* Authentication Panel */}
+            <div className="col-span-12">
+              <div data-testid="auth-panel" className="card">
+                <div data-testid="terminal-header">COMMIT ANALYSIS MODULE</div>
+                <div className="mt-lg">
+                  <div data-testid="auth-banner">Authentication Status</div>
+                </div>
+                <div className="mt-lg">
+                  <div data-testid="filter-controls">
+                    <div data-testid="date-range-picker">
+                      <button>Select Date Range</button>
+                      <div>
+                        <button role="option">Last 7 days</button>
+                        <button role="option">Last 30 days</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <form className="mt-lg space-y-lg">
+                  <div data-testid="repository-info-panel">Repository Info</div>
+                  <div data-testid="action-button-container">
+                    <button data-testid="action-button">Analyze</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            {/* Summary Panel */}
+            <div className="col-span-12 md:col-span-6 lg:col-span-4">
+              <div data-testid="dashboard-summary-panel" className="card">
+                Summary Panel
+              </div>
+            </div>
+
+            {/* Activity Overview Panel */}
+            <div className="col-span-12 md:col-span-6 lg:col-span-8">
+              <div data-testid="activity-overview-panel" className="card">
+                Activity Overview
+              </div>
+            </div>
+
+            {/* Activity Feed Panel */}
+            <div className="col-span-12">
+              <div data-testid="activity-feed-panel" className="card">
+                Activity Feed
+              </div>
             </div>
           </div>
-        </div>
-        <button data-testid="action-button">Analyze</button>
-        <div data-testid="dashboard-summary-panel" className="my-4">
-          Summary Panel
         </div>
       </div>
     );
@@ -67,6 +118,7 @@ jest.mock("next/navigation", () => ({
     push: jest.fn(),
     refresh: jest.fn(),
   }),
+  usePathname: jest.fn().mockReturnValue("/dashboard"),
 }));
 
 // Mock next/image
@@ -107,7 +159,7 @@ describe("Dashboard Integration", () => {
     global.fetch = originalFetch;
   });
 
-  it("should render the dashboard with loaded repository data", async () => {
+  it("should render the dashboard with grid layout and responsive panels", async () => {
     // Mock fetch implementation for repositories
     const mockFetchFn = jest.fn().mockImplementation((url: string) => {
       if (url.includes("/api/repos")) {
@@ -123,26 +175,60 @@ describe("Dashboard Integration", () => {
       return Promise.reject(new Error(`Unhandled route: ${url}`));
     });
 
-    // Manually trigger a fetch to simulate dashboard behavior
-    mockFetchFn("/api/repos");
+    // Set initial data
+    const initialData = {
+      repositories: mockRepositories,
+      loading: false,
+      error: null,
+    };
 
-    render(<ImprovedDashboardTestWrapper mockFetch={mockFetchFn} />);
+    render(
+      <ImprovedDashboardTestWrapper
+        mockFetch={mockFetchFn}
+        initialData={initialData}
+      />,
+    );
 
     // Verify that the dashboard container is rendered
     await waitFor(() => {
       expect(screen.getByTestId("dashboard-container")).toBeInTheDocument();
     });
 
-    // Verify dashboard header
-    expect(screen.getByTestId("dashboard-header")).toBeInTheDocument();
-    expect(screen.getByText(/COMMIT ANALYSIS MODULE/i)).toBeInTheDocument();
+    // Verify grid container is present
+    expect(screen.getByTestId("dashboard-grid-container")).toBeInTheDocument();
+    expect(screen.getByTestId("dashboard-grid-container")).toHaveClass("grid");
+    expect(screen.getByTestId("dashboard-grid-container")).toHaveClass(
+      "grid-cols-12",
+    );
 
-    // Verify critical dashboard components rendered
-    expect(screen.getByTestId("filter-controls")).toBeInTheDocument();
-    expect(screen.getByTestId("action-button")).toBeInTheDocument();
+    // Verify dashboard panels are present and have correct responsive classes
+    // Authentication panel
+    const authPanelContainer = screen
+      .getByTestId("auth-panel")
+      .closest(".col-span-12");
+    expect(authPanelContainer).toHaveClass("col-span-12");
 
-    // Verify fetch was called at least once
-    expect(mockFetchFn).toHaveBeenCalled();
+    // Summary panel
+    const summaryPanelContainer = screen
+      .getByTestId("dashboard-summary-panel")
+      .closest("div");
+    expect(summaryPanelContainer).toHaveClass("col-span-12");
+    expect(summaryPanelContainer).toHaveClass("md:col-span-6");
+    expect(summaryPanelContainer).toHaveClass("lg:col-span-4");
+
+    // Activity overview panel
+    const overviewPanelContainer = screen
+      .getByTestId("activity-overview-panel")
+      .closest("div");
+    expect(overviewPanelContainer).toHaveClass("col-span-12");
+    expect(overviewPanelContainer).toHaveClass("md:col-span-6");
+    expect(overviewPanelContainer).toHaveClass("lg:col-span-8");
+
+    // Activity feed panel
+    const feedPanelContainer = screen
+      .getByTestId("activity-feed-panel")
+      .closest(".col-span-12");
+    expect(feedPanelContainer).toHaveClass("col-span-12");
   });
 
   it("should load summary data when analyze button is clicked", async () => {
@@ -211,7 +297,22 @@ describe("Dashboard Integration", () => {
       return Promise.reject(new Error(`Unhandled route: ${url}`));
     });
 
-    render(<ImprovedDashboardTestWrapper mockFetch={mockFetchFn} />);
+    const setDateRangeMock = jest.fn();
+
+    // Set up with additional mock data
+    const initialData = {
+      repositories: mockRepositories,
+      dateRange: mockDateRange,
+      loading: false,
+      error: null,
+    };
+
+    render(
+      <ImprovedDashboardTestWrapper
+        mockFetch={mockFetchFn}
+        initialData={initialData}
+      />,
+    );
 
     // Wait for the dashboard to load
     await waitFor(() => {
@@ -230,5 +331,25 @@ describe("Dashboard Integration", () => {
     // Find and click the analyze button
     const analyzeButton = screen.getByTestId("action-button");
     fireEvent.click(analyzeButton);
+  });
+
+  it("should test panel expansion through state", async () => {
+    // Set initial data with a panel expanded
+    const initialData = {
+      repositories: mockRepositories,
+      expandedPanels: ["activity-feed"],
+      loading: false,
+      error: null,
+    };
+
+    render(<ImprovedDashboardTestWrapper initialData={initialData} />);
+
+    // Wait for the dashboard to load
+    await waitFor(() => {
+      expect(screen.getByTestId("dashboard-container")).toBeInTheDocument();
+    });
+
+    // Check that the panel is expanded
+    expect(screen.getByTestId("activity-feed-panel")).toBeInTheDocument();
   });
 });

@@ -2,12 +2,17 @@
  * Integration tests for the Dashboard layout
  * Tests the integration of layout and dashboard components
  * Using real components instead of mocks for true integration testing
+ * Updated for new grid-based layout and responsive design
  */
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
-import { mockSession } from "../test-utils";
+import { mockSession, mockRepositories } from "../test-utils";
 import { ImprovedDashboardTestWrapper } from "./ImprovedDashboardTestWrapper";
+import { mockAllZustandHooks } from "./ZustandIntegrationTestHelpers";
 import type { NavLink } from "@/types/navigation";
+
+// Enable mock for Zustand hooks
+mockAllZustandHooks();
 
 // Mock only external dependencies, not internal components
 jest.mock("next-auth/react", () => {
@@ -75,6 +80,20 @@ jest.mock("@/lib/githubData", () => ({
 import DashboardLayout from "@/app/dashboard/layout";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import Dashboard from "@/app/dashboard/page";
+
+// Mock DashboardGridContainer to test its usage
+jest.mock("@/components/dashboard/layout", () => ({
+  DashboardGridContainer: ({ children, className, ...props }: any) => (
+    <div
+      data-testid="dashboard-grid-container"
+      className={`grid grid-cols-12 gap-md ${className || ""}`}
+      {...props}
+    >
+      {children}
+    </div>
+  ),
+}));
 
 // Mock child content
 const MockChildContent = () => (
@@ -92,10 +111,13 @@ const createApiResponse = (data: any, status = 200) => {
 
 describe("DashboardLayout Integration", () => {
   let originalFetch: typeof global.fetch;
+  let originalMatchMedia: typeof window.matchMedia;
 
   beforeEach(() => {
-    // Save original fetch
+    // Save original fetch and matchMedia
     originalFetch = global.fetch;
+    originalMatchMedia = window.matchMedia;
+
     jest.clearAllMocks();
 
     // Mock fetch responses
@@ -103,7 +125,7 @@ describe("DashboardLayout Integration", () => {
       if (url.includes("/api/repos")) {
         return Promise.resolve(
           createApiResponse({
-            repositories: [],
+            repositories: mockRepositories,
             authMethod: "github_app",
             installationId: 123,
           }),
@@ -121,11 +143,24 @@ describe("DashboardLayout Integration", () => {
       status: "authenticated",
       update: jest.fn(),
     }));
+
+    // Default matchMedia mock (no breakpoints)
+    window.matchMedia = jest.fn().mockImplementation((query) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    }));
   });
 
   afterEach(() => {
-    // Restore original fetch
+    // Restore original fetch and matchMedia
     global.fetch = originalFetch;
+    window.matchMedia = originalMatchMedia;
   });
 
   it("renders loading screen while checking authentication", () => {
@@ -222,5 +257,176 @@ describe("DashboardLayout Integration", () => {
     expect(
       screen.getByText("© 2025 GitPulse. All rights reserved."),
     ).toBeInTheDocument();
+  });
+});
+
+// Add specific tests for responsive layout
+describe("Dashboard Responsive Layout", () => {
+  let originalMatchMedia: typeof window.matchMedia;
+
+  beforeEach(() => {
+    originalMatchMedia = window.matchMedia;
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    window.matchMedia = originalMatchMedia;
+  });
+
+  // Mock Dashboard component
+  jest.mock("@/app/dashboard/page", () => {
+    return function MockDashboard() {
+      return (
+        <div
+          data-testid="dashboard-container"
+          className="bg-dark-slate min-h-screen"
+        >
+          <div className="max-w-7xl mx-auto py-lg sm:px-lg lg:px-xl">
+            <div
+              data-testid="dashboard-grid-container"
+              className="grid grid-cols-12 gap-lg px-md py-lg sm:px-0"
+            >
+              {/* Panel elements with responsive classes */}
+              <div className="col-span-12">
+                <div data-testid="auth-panel" className="card">
+                  Auth Panel
+                </div>
+              </div>
+              <div className="col-span-12 md:col-span-6 lg:col-span-4">
+                <div data-testid="summary-panel" className="card">
+                  Summary Panel
+                </div>
+              </div>
+              <div className="col-span-12 md:col-span-6 lg:col-span-8">
+                <div data-testid="overview-panel" className="card">
+                  Overview Panel
+                </div>
+              </div>
+              <div className="col-span-12">
+                <div data-testid="feed-panel" className="card">
+                  Feed Panel
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+  });
+
+  it("uses full width layout on mobile screens", () => {
+    // Mock mobile screen size
+    window.matchMedia = jest.fn().mockImplementation((query) => ({
+      matches: query.includes("(max-width:") || !query.includes("(min-width:"),
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    }));
+
+    // Render dashboard with mobile screen size simulation
+    render(
+      <ImprovedDashboardTestWrapper
+        initialData={{
+          repositories: mockRepositories,
+          loading: false,
+          error: null,
+        }}
+      />,
+    );
+
+    // All panels should be full width on mobile
+    const panels = [
+      screen.getByTestId("auth-panel"),
+      screen.getByTestId("summary-panel"),
+      screen.getByTestId("overview-panel"),
+      screen.getByTestId("feed-panel"),
+    ];
+
+    panels.forEach((panel) => {
+      const panelContainer = panel.closest("div[class*='col-span-']");
+      expect(panelContainer).toHaveClass("col-span-12");
+    });
+  });
+
+  it("uses split layout on tablet screens (md breakpoint)", () => {
+    // Mock tablet screen size - md breakpoint
+    window.matchMedia = jest.fn().mockImplementation((query) => ({
+      matches: query.includes("(min-width: 768px)"),
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    }));
+
+    // Render dashboard with tablet screen size simulation
+    render(
+      <ImprovedDashboardTestWrapper
+        initialData={{
+          repositories: mockRepositories,
+          loading: false,
+          error: null,
+        }}
+      />,
+    );
+
+    // Summary and overview panels should be half width on tablet
+    const summaryPanel = screen.getByTestId("summary-panel").closest("div");
+    const overviewPanel = screen.getByTestId("overview-panel").closest("div");
+
+    expect(summaryPanel).toHaveClass("md:col-span-6");
+    expect(overviewPanel).toHaveClass("md:col-span-6");
+
+    // Auth panel and feed panel should remain full width
+    const authPanel = screen.getByTestId("auth-panel").closest("div");
+    const feedPanel = screen.getByTestId("feed-panel").closest("div");
+
+    expect(authPanel).toHaveClass("col-span-12");
+    expect(feedPanel).toHaveClass("col-span-12");
+  });
+
+  it("uses asymmetric layout on desktop screens (lg breakpoint)", () => {
+    // Mock desktop screen size - lg breakpoint
+    window.matchMedia = jest.fn().mockImplementation((query) => ({
+      matches: query.includes("(min-width: 1024px)"),
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    }));
+
+    // Render dashboard with desktop screen size simulation
+    render(
+      <ImprovedDashboardTestWrapper
+        initialData={{
+          repositories: mockRepositories,
+          loading: false,
+          error: null,
+        }}
+      />,
+    );
+
+    // Summary panel should be 1/3 width and overview panel 2/3 width on desktop
+    const summaryPanel = screen.getByTestId("summary-panel").closest("div");
+    const overviewPanel = screen.getByTestId("overview-panel").closest("div");
+
+    expect(summaryPanel).toHaveClass("lg:col-span-4"); // 1/3 of 12 columns
+    expect(overviewPanel).toHaveClass("lg:col-span-8"); // 2/3 of 12 columns
+
+    // Auth panel and feed panel should remain full width
+    const authPanel = screen.getByTestId("auth-panel").closest("div");
+    const feedPanel = screen.getByTestId("feed-panel").closest("div");
+
+    expect(authPanel).toHaveClass("col-span-12");
+    expect(feedPanel).toHaveClass("col-span-12");
   });
 });

@@ -5,11 +5,20 @@
  * @jest-environment jsdom
  * @jest-file
  */
-import React from "react";
+import React, { useEffect } from "react";
 import { ReactNode } from "react";
 import { SessionProvider } from "next-auth/react";
 import Dashboard from "@/app/dashboard/page";
-import { mockSession, mockRepositories } from "../test-utils";
+import {
+  mockSession,
+  mockRepositories,
+  mockSummary,
+  mockDateRange,
+} from "../test-utils";
+import {
+  ZustandIntegrationProvider,
+  setIntegrationStoreData,
+} from "./ZustandIntegrationTestHelpers";
 
 // This file is a test helper, not a test itself
 export const TEST_SKIP = true;
@@ -18,18 +27,39 @@ interface Props {
   mockFetch?: jest.Mock;
   mockSession?: any;
   children?: ReactNode;
+  initialData?: {
+    repositories?: any[];
+    summary?: any;
+    dateRange?: any;
+    expandedPanels?: string[];
+    showRepoList?: boolean;
+    loading?: boolean;
+    error?: string | null;
+    activeFilters?: any;
+  };
 }
 
 /**
  * Wraps the Dashboard component in necessary providers for testing
  * Only mocks external boundaries (APIs, authentication, etc.)
+ * Now supports Zustand state management with direct hook state access
  */
 export function ImprovedDashboardTestWrapper({
   mockFetch,
   mockSession: sessionOverride = mockSession,
   children,
+  initialData = {
+    repositories: mockRepositories,
+    summary: mockSummary,
+    dateRange: mockDateRange,
+    expandedPanels: [],
+    showRepoList: true,
+    loading: false,
+    error: null,
+  },
 }: Props) {
-  React.useEffect(() => {
+  // Set up mock fetch
+  useEffect(() => {
     const originalFetch = window.fetch;
 
     if (mockFetch) {
@@ -42,7 +72,7 @@ export function ImprovedDashboardTestWrapper({
   }, [mockFetch]);
 
   // Mock localStorage for testing
-  React.useEffect(() => {
+  useEffect(() => {
     const originalLocalStorage = window.localStorage;
     const mockLocalStorage = {
       getItem: jest.fn((key) => {
@@ -73,7 +103,7 @@ export function ImprovedDashboardTestWrapper({
   }, []);
 
   // Mock cache for repositories
-  React.useEffect(() => {
+  useEffect(() => {
     // Mock the getStaleItem function from localStorageCache
     jest.mock(
       "@/lib/localStorageCache",
@@ -96,7 +126,7 @@ export function ImprovedDashboardTestWrapper({
   }, []);
 
   // Mock ResizeObserver
-  React.useEffect(() => {
+  useEffect(() => {
     class MockResizeObserver {
       observe() {}
       unobserve() {}
@@ -112,7 +142,7 @@ export function ImprovedDashboardTestWrapper({
   }, []);
 
   // Mock matchMedia
-  React.useEffect(() => {
+  useEffect(() => {
     const originalMatchMedia = window.matchMedia;
     window.matchMedia = jest.fn().mockImplementation((query) => ({
       matches: false,
@@ -130,9 +160,16 @@ export function ImprovedDashboardTestWrapper({
     };
   }, []);
 
+  // Set initial state data when the component mounts
+  useEffect(() => {
+    setIntegrationStoreData(initialData);
+  }, []);
+
   return (
     <SessionProvider session={sessionOverride}>
-      {children || <Dashboard />}
+      <ZustandIntegrationProvider initialData={initialData}>
+        {children || <Dashboard />}
+      </ZustandIntegrationProvider>
     </SessionProvider>
   );
 }
