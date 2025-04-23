@@ -10,14 +10,33 @@ warning_length=500
 error_length=1000
 has_error=0
 
-for file in $(git diff --cached --name-only --diff-filter=ACMRT | grep -E '\.(ts|tsx|js|jsx)$'); do
-  line_count=$(wc -l < "$file")
-  
-  if [ "$line_count" -gt "$error_length" ]; then
-    echo "ERROR: $file has $line_count lines (exceeds limit of $error_length)"
-    has_error=1
-  elif [ "$line_count" -gt "$warning_length" ]; then
-    echo "WARNING: $file has $line_count lines (exceeds recommended limit of $warning_length)"
+# Check ALL TypeScript/JavaScript files, not just staged ones
+echo "Checking existing files..."
+find src -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) | while read file; do
+  if [ -f "$file" ]; then
+    line_count=$(wc -l < "$file")
+    
+    if [ "$line_count" -gt "$error_length" ]; then
+      echo "ERROR: $file has $line_count lines (exceeds limit of $error_length)"
+      has_error=1
+    elif [ "$line_count" -gt "$warning_length" ]; then
+      echo "WARNING: $file has $line_count lines (exceeds recommended limit of $warning_length)"
+    fi
+  fi
+done
+
+# Check staged files
+echo "Checking staged files..."
+git diff --cached --name-only --diff-filter=ACMRT | grep -E '\.(ts|tsx|js|jsx)$' | while read file; do
+  if [ -f "$file" ]; then
+    line_count=$(wc -l < "$file")
+    
+    if [ "$line_count" -gt "$error_length" ]; then
+      echo "ERROR: $file has $line_count lines (exceeds limit of $error_length)"
+      has_error=1
+    elif [ "$line_count" -gt "$warning_length" ]; then
+      echo "WARNING: $file has $line_count lines (exceeds recommended limit of $warning_length)"
+    fi
   fi
 done
 
