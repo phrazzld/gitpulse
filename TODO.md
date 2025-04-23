@@ -88,7 +88,7 @@ This document outlines the detailed task breakdown for refactoring the GitPulse 
 - Extract commit fetching and handling logic
 - Implement loading and error states
 - Write unit tests for the hook
-- Status: Not Started
+- Status: Completed [x]
 - Estimate: Medium
 - Depends On: T001
 
