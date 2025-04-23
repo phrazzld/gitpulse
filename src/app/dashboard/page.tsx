@@ -5,7 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import ModeSelector, { ActivityMode } from '@/components/ModeSelector';
-import DateRangePicker, { DateRange } from '@/components/DateRangePicker';
+import DateRangePicker from '@/components/DateRangePicker';
 import OrganizationPicker from '@/components/OrganizationPicker';
 import AccountSelector from '@/components/AccountSelector';
 import ActivityFeed from '@/components/ActivityFeed';
@@ -18,127 +18,33 @@ import {
   getStaleItem,
   ClientCacheTTL
 } from '@/lib/localStorageCache';
+import {
+  FilterState,
+  Repository,
+  AISummary,
+  CommitSummary,
+  InstallationAccount,
+  Installation,
+  ReposResponse,
+  DateRange
+} from '@/types/dashboard';
+import {
+  getTodayDate,
+  getLastWeekDate,
+  getGitHubAppInstallUrl
+} from '@/lib/dashboard-utils';
 
-// Preserve the FilterState type from the removed FilterPanel
-export type FilterState = {
-  contributors: string[];
-  organizations: string[];
-  repositories: string[];
-  // Removed groupBy, standardized on chronological view
-};
-
-type Repository = {
-  id: number;
-  full_name: string;
-  name: string;
-  owner: {
-    login: string;
-  };
-  private: boolean;
-  language?: string | null;
-};
-
-interface AISummary {
-  keyThemes: string[];
-  technicalAreas: {
-    name: string;
-    count: number;
-  }[];
-  accomplishments: string[];
-  commitsByType: {
-    type: string;
-    count: number;
-    description: string;
-  }[];
-  timelineHighlights: {
-    date: string;
-    description: string;
-  }[];
-  overallSummary: string;
-}
-
-type CommitSummary = {
-  user?: string;
-  commits: any[];
-  stats: {
-    totalCommits: number;
-    repositories: string[];
-    dates: string[];
-  };
-  aiSummary?: AISummary;
-  authMethod?: string;
-  installationId?: number | null;
-  filterInfo?: {
-    contributors: string[] | null;
-    organizations: string[] | null;
-    repositories: string[] | null;
-    dateRange: { since: string, until: string };
-  };
-  // Removed groupedResults field since we're standardizing on chronological view
-};
-
-// Removed GroupedResult type - no longer needed with chronological view only
-
-type InstallationAccount = {
-  login: string;
-  type: string;
-  avatarUrl?: string;
-};
-
-type Installation = {
-  id: number;
-  account: InstallationAccount;
-  appSlug: string;
-  appId: number;
-  repositorySelection: string;
-  targetType: string;
-};
-
-type ReposResponse = {
-  repositories: Repository[];
-  authMethod?: string;
-  installationId?: number | null;
-  installationIds?: number[];
-  installations?: Installation[];
-  currentInstallation?: Installation | null;
-  currentInstallations?: Installation[];
-};
-
-// Helper functions for date formatting
-function getTodayDate() {
-  const today = new Date();
-  return today.toISOString().split('T')[0];
-}
-
-function getLastWeekDate() {
-  const lastWeek = new Date();
-  lastWeek.setDate(lastWeek.getDate() - 7);
-  return lastWeek.toISOString().split('T')[0];
-}
-
-// Helper function to get GitHub App installation URL
-function getGitHubAppInstallUrl() {
-  // Use the provided app name or a generic message if not configured
-  const appName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME;
-  
-  if (!appName) {
-    // If no app name is configured, we'll create a more informative error
-    console.error("GitHub App name not configured. Please set NEXT_PUBLIC_GITHUB_APP_NAME environment variable.");
-    return "#github-app-not-configured";
-  }
-  
-  // Use the standard GitHub App installation URL - our custom handler will intercept it
-  return `https://github.com/apps/${appName}/installations/new`;
-}
+// Type definitions have been moved to src/types/dashboard.ts
+// Utility functions have been moved to src/lib/dashboard-utils.ts
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   
-  const [repositories, setRepositories] = useState<Repository[]>([]);
+  const [repositories, setRepositories] = useState<Repository[] | readonly Repository[]>([]);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
-  const [dateRange, setDateRange] = useState({
+  const [dateRange, setDateRange] = useState<DateRange>({
     since: getLastWeekDate(),
     until: getTodayDate(),
   });
@@ -147,15 +53,19 @@ export default function Dashboard() {
   const [showRepoList, setShowRepoList] = useState(true);
   const [authMethod, setAuthMethod] = useState<string | null>(null);
   const [needsInstallation, setNeedsInstallation] = useState(false);
-  const [installationIds, setInstallationIds] = useState<number[]>([]);
-  const [installations, setInstallations] = useState<Installation[]>([]);
-  const [currentInstallations, setCurrentInstallations] = useState<Installation[]>([]);
+  const [installationIds, setInstallationIds] = useState<number[] | readonly number[]>([]);
+  const [installations, setInstallations] = useState<Installation[] | readonly Installation[]>([]);
+  const [currentInstallations, setCurrentInstallations] = useState<Installation[] | readonly Installation[]>([]);
   
   // Activity mode state
   const [activityMode, setActivityMode] = useState<ActivityMode>('my-activity');
   
   // New state for filters (removed groupBy, standardized on chronological view)
-  const [activeFilters, setActiveFilters] = useState<FilterState>({
+  const [activeFilters, setActiveFilters] = useState<{
+    contributors: string[];
+    organizations: string[];
+    repositories: string[];
+  }>({
     contributors: [],
     organizations: [],
     repositories: []
@@ -510,7 +420,11 @@ export default function Dashboard() {
   
   // Function to handle legacy filter changes (for backward compatibility)
   const handleFilterChange = useCallback((newFilters: FilterState) => {
-    setActiveFilters(newFilters);
+    setActiveFilters({
+      contributors: [...newFilters.contributors],
+      organizations: [...newFilters.organizations],
+      repositories: [...newFilters.repositories]
+    });
     console.log('Filters updated:', newFilters);
   }, []);
   
@@ -1252,14 +1166,15 @@ export default function Dashboard() {
                           {repositories.length > 0 ? (
                             (() => {
                               // Group repositories by organization/owner
-                              const reposByOrg = repositories.reduce((groups, repo) => {
+                              // Group repositories by organization
+                              const reposByOrg: Record<string, Repository[]> = {};
+                              repositories.forEach(repo => {
                                 const orgName = repo.full_name.split('/')[0];
-                                if (!groups[orgName]) {
-                                  groups[orgName] = [];
+                                if (!reposByOrg[orgName]) {
+                                  reposByOrg[orgName] = [];
                                 }
-                                groups[orgName].push(repo);
-                                return groups;
-                              }, {} as Record<string, Repository[]>);
+                                reposByOrg[orgName].push(repo);
+                              });
                               
                               // Sort organizations by repo count (descending)
                               const sortedOrgs = Object.entries(reposByOrg)
@@ -1280,7 +1195,7 @@ export default function Dashboard() {
                                   </div>
                                   
                                   <ul className="pl-3">
-                                    {repos.map(repo => (
+                                    {repos.map((repo: Repository) => (
                                       <li key={repo.id} className="text-xs py-1 flex items-center justify-between">
                                         <div className="flex items-center">
                                           <span className="inline-block w-2 h-2 mr-2" style={{ 
