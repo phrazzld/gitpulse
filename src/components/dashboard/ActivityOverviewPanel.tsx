@@ -40,25 +40,20 @@ export default function ActivityOverviewPanel({
   // Early return for loading state
   if (isLoading) {
     return (
-      <Card padding="md" radius="md" shadow="md" data-testid={testId}>
-        <div className="flex items-center border-b border-electric-blue pb-md mb-md">
-          <div className="w-3 h-3 rounded-full mr-sm bg-electric-blue"></div>
-          <h2 className="text-xl font-bold text-electric-blue">
-            ACTIVITY OVERVIEW
-          </h2>
+      <Card data-testid={testId}>
+        <div>
+          <div></div>
+          <h2>ACTIVITY OVERVIEW</h2>
         </div>
 
-        <div className="flex flex-col space-y-md p-md items-center justify-center">
-          <div className="flex items-center">
-            <div className="w-4 h-4 rounded-full animate-pulse bg-neon-green mr-sm"></div>
-            <p className="text-sm text-neon-green">ANALYZING COMMIT PATTERNS</p>
+        <div>
+          <div>
+            <div></div>
+            <p>ANALYZING COMMIT PATTERNS</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-md w-full">
+          <div>
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-16 rounded-md animate-pulse bg-black/30 border border-electric-blue"
-              ></div>
+              <div key={i}></div>
             ))}
           </div>
         </div>
@@ -69,17 +64,13 @@ export default function ActivityOverviewPanel({
   // Early return for error state
   if (error) {
     return (
-      <Card padding="md" radius="md" shadow="md" data-testid={testId}>
-        <div className="flex items-center border-b border-electric-blue pb-md mb-md">
-          <div className="w-3 h-3 rounded-full mr-sm bg-electric-blue"></div>
-          <h2 className="text-xl font-bold text-electric-blue">
-            ACTIVITY OVERVIEW
-          </h2>
+      <Card data-testid={testId}>
+        <div>
+          <div></div>
+          <h2>ACTIVITY OVERVIEW</h2>
         </div>
 
-        <div className="p-md rounded text-center bg-crimson-red/10 text-crimson-red">
-          {error}
-        </div>
+        <div>{error}</div>
       </Card>
     );
   }
@@ -87,15 +78,13 @@ export default function ActivityOverviewPanel({
   // Early return if no summary or AI summary available
   if (!summary || !summary.aiSummary) {
     return (
-      <Card padding="md" radius="md" shadow="md" data-testid={testId}>
-        <div className="flex items-center border-b border-electric-blue pb-md mb-md">
-          <div className="w-3 h-3 rounded-full mr-sm bg-electric-blue"></div>
-          <h2 className="text-xl font-bold text-electric-blue">
-            ACTIVITY OVERVIEW
-          </h2>
+      <Card data-testid={testId}>
+        <div>
+          <div></div>
+          <h2>ACTIVITY OVERVIEW</h2>
         </div>
 
-        <div className="p-md text-center text-foreground">
+        <div>
           No activity data available. Generate a summary to see insights.
         </div>
       </Card>
@@ -105,62 +94,46 @@ export default function ActivityOverviewPanel({
   const { aiSummary } = summary;
 
   return (
-    <Card padding="md" radius="md" shadow="md" data-testid={testId}>
-      <div className="flex items-center justify-between border-b border-electric-blue pb-md mb-md">
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full mr-sm bg-electric-blue"></div>
-          <h2 className="text-xl font-bold text-electric-blue">
-            ACTIVITY OVERVIEW
-          </h2>
+    <Card data-testid={testId}>
+      <div>
+        <div>
+          <div></div>
+          <h2>ACTIVITY OVERVIEW</h2>
         </div>
-        <div className="px-sm py-xs text-xs rounded flex items-center bg-black/30 border border-neon-green text-neon-green">
-          <span className="inline-block w-2 h-2 rounded-full mr-xs bg-neon-green"></span>
+        <div>
+          <span></span>
           <span>AI ANALYSIS COMPLETE</span>
         </div>
       </div>
 
       {/* Key Themes Section */}
-      <div className="mb-lg">
-        <div className="flex items-center mb-sm">
-          <div className="w-2 h-2 rounded-full mr-xs bg-neon-green"></div>
-          <h3 className="text-sm uppercase text-neon-green">
-            IDENTIFIED PATTERNS
-          </h3>
+      <div>
+        <div>
+          <div></div>
+          <h3>IDENTIFIED PATTERNS</h3>
         </div>
-        <div className="flex flex-wrap gap-sm">
+        <div>
           {aiSummary.keyThemes
             .slice(0, truncated ? 3 : undefined)
             .map((theme: string, index: number) => (
-              <span
-                key={index}
-                className="px-sm py-xs rounded-md text-sm bg-neon-green/10 border border-neon-green text-neon-green"
-              >
-                {theme}
-              </span>
+              <span key={index}>{theme}</span>
             ))}
         </div>
       </div>
 
       {/* Technical Areas */}
-      <div className="mb-lg">
-        <div className="flex items-center mb-sm">
-          <div className="w-2 h-2 rounded-full mr-xs bg-electric-blue"></div>
-          <h3 className="text-sm uppercase text-electric-blue">
-            TECHNICAL FOCUS AREAS
-          </h3>
+      <div>
+        <div>
+          <div></div>
+          <h3>TECHNICAL FOCUS AREAS</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
+        <div>
           {aiSummary.technicalAreas
             .slice(0, truncated ? 3 : 6)
             .map((area: { name: string; count: number }, index: number) => (
-              <div
-                key={index}
-                className="flex justify-between items-center p-sm rounded-md bg-black/30 border border-electric-blue"
-              >
-                <span className="text-foreground">{area.name}</span>
-                <span className="px-sm py-xs rounded text-xs bg-electric-blue/20 text-electric-blue">
-                  {area.count}
-                </span>
+              <div key={index}>
+                <span>{area.name}</span>
+                <span>{area.count}</span>
               </div>
             ))}
         </div>
@@ -168,21 +141,17 @@ export default function ActivityOverviewPanel({
 
       {/* Accomplishments (only show in full view) */}
       {!truncated && (
-        <div className="mb-lg">
-          <div className="flex items-center mb-sm">
-            <div className="w-2 h-2 rounded-full mr-xs bg-luminous-yellow"></div>
-            <h3 className="text-sm uppercase text-luminous-yellow">
-              KEY ACHIEVEMENTS
-            </h3>
+        <div>
+          <div>
+            <div></div>
+            <h3>KEY ACHIEVEMENTS</h3>
           </div>
-          <div className="border rounded-md p-md bg-black/20 border-luminous-yellow">
-            <ul className="space-y-sm text-foreground">
+          <div>
+            <ul>
               {aiSummary.accomplishments.map(
                 (accomplishment: string, index: number) => (
-                  <li key={index} className="flex items-start">
-                    <span className="inline-block w-5 flex-shrink-0 mr-xs text-luminous-yellow">
-                      →
-                    </span>
+                  <li key={index}>
+                    <span>→</span>
                     <span>{accomplishment}</span>
                   </li>
                 ),
@@ -194,7 +163,7 @@ export default function ActivityOverviewPanel({
 
       {/* View More Button (only in truncated view) */}
       {truncated && onViewMore && (
-        <div className="mt-md flex justify-center">
+        <div>
           <Button variant="secondary" size="sm" onClick={onViewMore}>
             VIEW FULL ANALYSIS
           </Button>

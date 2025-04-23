@@ -1,8 +1,9 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/library";
+import { Button } from "@/components/ui/button";
 import type { Session } from "next-auth";
+import { ChevronDown } from "lucide-react";
 
 /**
  * Props for the UserProfileSection component
@@ -25,51 +26,35 @@ export const UserProfileSection: React.FC<UserProfileSectionProps> = ({
   session,
 }) => {
   return (
-    <div className="ml-auto flex items-center gap-sm md:gap-md">
+    <div className="ml-auto flex items-center gap-2 md:gap-4">
       {session ? (
-        <div className="flex items-center gap-sm">
+        <div className="flex items-center gap-2">
           {session.user?.image && (
             <Image
               src={session.user.image}
               alt=""
               width={32}
               height={32}
-              className="rounded-full w-8 h-8 border border-dark-slate/20 shadow-sm"
+              className="rounded-full w-8 h-8 border border-muted shadow-sm"
               aria-hidden="true"
             />
           )}
-          <span className="text-sm font-medium text-foreground hidden sm:inline-block">
+          <span className="text-sm font-medium hidden sm:inline-block">
             {session.user?.name || "User"}
           </span>
           <Button
-            variant="secondary"
+            variant="ghost"
             size="sm"
             aria-label="Account menu"
-            className="ml-xs md:ml-sm"
+            className="ml-1"
           >
             <span className="sr-only">Account menu</span>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              className="w-5 h-5"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <ChevronDown className="h-4 w-4" />
           </Button>
         </div>
       ) : (
         <Link href="/api/auth/signin" className="no-underline">
-          <Button
-            variant="primary"
-            size="sm"
-            className="shadow-sm hover:shadow-md transition-shadow duration-normal"
-          >
+          <Button variant="default" size="sm">
             Sign In
           </Button>
         </Link>

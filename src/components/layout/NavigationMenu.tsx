@@ -1,16 +1,10 @@
 "use client";
 
-import React, {
-  useRef,
-  useEffect,
-  KeyboardEvent,
-  useState,
-  MouseEvent,
-} from "react";
+import React, { useRef, useEffect, KeyboardEvent, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/library";
+import { Button } from "@/components/ui/button";
 import { NavLink } from "@/types/navigation";
-import { cn } from "@/components/library/utils/cn";
+import { cn } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 import { LogData } from "@/types/common";
 
@@ -203,8 +197,8 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
    * Contains tailwind classes for horizontal and vertical layouts
    */
   const layoutClasses = {
-    horizontal: "flex flex-row items-center flex-wrap gap-sm",
-    vertical: "flex flex-col items-start gap-sm",
+    horizontal: "flex flex-row items-center flex-wrap gap-2",
+    vertical: "flex flex-col items-start gap-2",
   };
 
   /**
@@ -334,8 +328,8 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
         className={cn(
           "list-none p-0 m-0",
           orientation === "horizontal"
-            ? "flex flex-row flex-wrap items-center gap-sm"
-            : "flex flex-col items-start gap-sm w-full",
+            ? "flex flex-row flex-wrap items-center gap-2"
+            : "flex flex-col items-start gap-2 w-full",
         )}
         role="menubar"
         aria-orientation={orientation}
@@ -373,13 +367,11 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
                 }
               >
                 <Button
-                  variant="secondary"
+                  variant={isActive ? "secondary" : "ghost"}
                   size="sm"
                   className={cn(
-                    "flex items-center gap-xs focus:outline-none transition-all duration-normal",
-                    isActive
-                      ? "bg-primary/15 text-primary border-primary/40 shadow-sm font-medium"
-                      : "text-foreground/90 hover:text-primary hover:bg-background-secondary/80",
+                    "flex items-center gap-1 focus:outline-none",
+                    isActive ? "bg-primary/10 text-primary font-medium" : "",
                     orientation === "vertical" && "justify-start w-full",
                   )}
                   tabIndex={-1} // Button shouldn't receive tab focus, as the Link is already focusable
@@ -392,7 +384,7 @@ export const NavigationMenu: React.FC<NavigationMenuProps> = ({
                   <span>{link.label}</span>
                   {isActive && (
                     <span
-                      className="ml-xs w-1.5 h-1.5 rounded-full bg-primary"
+                      className="ml-1 w-1.5 h-1.5 rounded-full bg-primary"
                       aria-hidden="true"
                     />
                   )}

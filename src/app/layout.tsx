@@ -5,14 +5,13 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { NavLink } from "@/types/navigation";
-import "../styles/tokens.css";
-import "./globals.css";
 import Providers from "./providers";
+import "@/app/globals.css";
 
 const robotoMono = Roboto_Mono({
-  variable: "--font-roboto-mono",
   subsets: ["latin"],
-  display: "swap",
+  weight: ["400", "500", "700"],
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -43,15 +42,13 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${robotoMono.variable} antialiased flex flex-col min-h-screen bg-gradient-to-b from-background to-background-secondary`}
+        className={`${robotoMono.variable} font-mono antialiased min-h-screen flex flex-col`}
       >
         <Providers>
-          <Header navLinks={mainNavLinks} session={session} className="mb-md" />
-          <main className="flex-grow container mx-auto px-sm md:px-md pt-sm pb-lg">
-            {children}
-          </main>
+          <Header navLinks={mainNavLinks} session={session} />
+          <main className="flex-grow">{children}</main>
           <Footer
             links={footerLinks}
             copyrightText="© 2025 GitPulse. All rights reserved."

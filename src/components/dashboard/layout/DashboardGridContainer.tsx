@@ -112,36 +112,10 @@ const DashboardGridContainer = React.forwardRef<
   HTMLDivElement,
   DashboardGridContainerProps
 >(({ children, columns = 12, gap = "md", className, ...rest }, ref) => {
-  // Combine base grid classes with variants and custom classes
-  // Order matters here:
-  // 1. Base grid classes first (grid, w-full) - establish the component as a grid container
-  // 2. Column configuration - set the fundamental grid structure
-  // 3. Gap configuration - set the spacing between grid items
-  // 4. Custom className last - allows consumers to override or extend the default styling
-  // This composability pattern enables predictable style inheritance and overrides
-  const gridClasses = cn(
-    "grid w-full",
-    getColumnsClasses(columns),
-    getGapClasses(gap),
-    className,
-  );
+  // All styling has been removed
 
   return (
-    <div
-      ref={ref}
-      className={gridClasses}
-      style={{
-        display: "grid !important",
-        visibility: "visible",
-        opacity: "1 !important",
-        backgroundColor: "hsla(var(--dark-slate), 0.9) !important",
-        border: "1px solid hsla(var(--neon-green), 0.1)",
-        boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
-        borderRadius: "4px",
-        padding: "var(--spacing-md) !important",
-      }}
-      {...rest}
-    >
+    <div ref={ref} className="grid grid-cols-12 gap-4 w-full" {...rest}>
       {children}
     </div>
   );

@@ -451,6 +451,9 @@ jest.mock("next-auth", () => {
   };
 });
 
+// We'll use a different approach for state hooks mocking
+// Each test file will import and use the test helpers directly
+
 // Mock next-auth/next
 jest.mock("next-auth/next", () => {
   return {

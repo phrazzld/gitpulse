@@ -157,103 +157,45 @@ export default function DateRangePicker({
   );
 
   return (
-    <div
-      className="rounded-lg border"
-      style={{
-        backgroundColor: "rgba(27, 43, 52, 0.7)",
-        backdropFilter: "blur(5px)",
-        borderColor: validationError
-          ? "var(--crimson-red)"
-          : "var(--electric-blue)",
-      }}
-    >
-      <div
-        className="p-3 border-b"
-        style={{
-          borderColor: validationError
-            ? "var(--crimson-red)"
-            : "var(--electric-blue)",
-        }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div
-              className="w-2 h-2 rounded-full mr-2"
-              style={{
-                backgroundColor: validationError
-                  ? "var(--crimson-red)"
-                  : "var(--electric-blue)",
-              }}
-            ></div>
-            <h3
-              className="text-sm uppercase"
-              style={{
-                color: validationError
-                  ? "var(--crimson-red)"
-                  : "var(--electric-blue)",
-              }}
-            >
-              DATE RANGE
-            </h3>
+    <div>
+      <div>
+        <div>
+          <div>
+            <div></div>
+            <h3>DATE RANGE</h3>
           </div>
 
           {/* Loading indicator for debounce */}
           {isDebouncing && (
-            <div className="flex items-center">
-              <span
-                className="inline-block w-3 h-3 border-2 border-t-transparent rounded-full animate-spin mr-1"
-                style={{
-                  borderColor: "var(--neon-green)",
-                  borderTopColor: "transparent",
-                }}
-              ></span>
-              <span className="text-xs" style={{ color: "var(--neon-green)" }}>
-                UPDATING
-              </span>
+            <div>
+              <span></span>
+              <span>UPDATING</span>
             </div>
           )}
         </div>
       </div>
 
-      <div className="p-4">
+      <div>
         {/* Validation error message */}
         {validationError && (
-          <div
-            className="mb-4 p-2 rounded-md"
-            style={{
-              backgroundColor: "rgba(220, 38, 38, 0.1)",
-              border: "1px solid var(--crimson-red)",
-            }}
-          >
-            <div className="flex items-center">
-              <svg
-                className="h-4 w-4 mr-2"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                style={{ color: "var(--crimson-red)" }}
-              >
+          <div>
+            <div>
+              <svg fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
                   d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
                   clipRule="evenodd"
                 />
               </svg>
-              <span style={{ color: "var(--crimson-red)" }} className="text-sm">
-                {validationError}
-              </span>
+              <span>{validationError}</span>
             </div>
           </div>
         )}
 
         {/* Preset buttons */}
-        <div className="mb-4">
-          <div
-            className="text-xs mb-2"
-            style={{ color: "var(--electric-blue)" }}
-          >
-            QUICK SELECT
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div>
+          <div>QUICK SELECT</div>
+          <div>
             {[
               { id: "last7Days", label: "LAST 7 DAYS" },
               { id: "last30Days", label: "LAST 30 DAYS" },
@@ -265,30 +207,6 @@ export default function DateRangePicker({
                 type="button"
                 onClick={() => applyPreset(preset.id as keyof typeof presets)}
                 disabled={disabled || isDebouncing}
-                className={`px-3 py-2 text-xs rounded-md transition-all duration-200 ${
-                  isPresetActive(presets[preset.id as keyof typeof presets])
-                    ? "border-2"
-                    : "border"
-                }`}
-                style={{
-                  backgroundColor: isPresetActive(
-                    presets[preset.id as keyof typeof presets],
-                  )
-                    ? "rgba(0, 255, 135, 0.1)"
-                    : "var(--dark-slate)",
-                  borderColor: isPresetActive(
-                    presets[preset.id as keyof typeof presets],
-                  )
-                    ? "var(--neon-green)"
-                    : "var(--electric-blue)",
-                  color: isPresetActive(
-                    presets[preset.id as keyof typeof presets],
-                  )
-                    ? "var(--neon-green)"
-                    : "var(--electric-blue)",
-                  opacity: disabled || isDebouncing ? 0.6 : 1,
-                  cursor: disabled || isDebouncing ? "not-allowed" : "pointer",
-                }}
               >
                 {preset.label}
               </button>
@@ -298,70 +216,18 @@ export default function DateRangePicker({
 
         {/* Manual date inputs */}
         <div>
-          <div
-            className="text-xs mb-2"
-            style={{ color: "var(--electric-blue)" }}
-          >
-            CUSTOM RANGE
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>CUSTOM RANGE</div>
+          <div>
             <div>
-              <label
-                htmlFor="since"
-                className="block text-xs mb-1"
-                style={{ color: "var(--foreground)" }}
-              >
-                START DATE
-              </label>
-              <div className="relative">
-                <div
-                  className="absolute left-0 top-0 h-full w-1"
-                  style={{
-                    backgroundColor: validationError
-                      ? "var(--crimson-red)"
-                      : isDebouncing
-                        ? "var(--neon-green)"
-                        : "var(--electric-blue)",
-                    transition: "background-color 0.2s",
-                  }}
-                ></div>
+              <label htmlFor="since">START DATE</label>
+              <div>
+                <div></div>
                 <input
                   type="date"
                   id="since"
                   value={internalDateRange.since}
                   onChange={(e) => handleDateChange("since", e.target.value)}
                   disabled={disabled}
-                  className="block w-full pl-3 py-2 pr-3 rounded-md focus:outline-none"
-                  style={{
-                    backgroundColor: "rgba(0, 0, 0, 0.3)",
-                    borderLeft: "none",
-                    borderTop: `1px solid ${
-                      validationError
-                        ? "var(--crimson-red)"
-                        : isDebouncing
-                          ? "var(--neon-green)"
-                          : "var(--electric-blue)"
-                    }`,
-                    borderRight: `1px solid ${
-                      validationError
-                        ? "var(--crimson-red)"
-                        : isDebouncing
-                          ? "var(--neon-green)"
-                          : "var(--electric-blue)"
-                    }`,
-                    borderBottom: `1px solid ${
-                      validationError
-                        ? "var(--crimson-red)"
-                        : isDebouncing
-                          ? "var(--neon-green)"
-                          : "var(--electric-blue)"
-                    }`,
-                    color: "var(--foreground)",
-                    paddingLeft: "12px",
-                    opacity: disabled ? 0.6 : 1,
-                    cursor: disabled ? "not-allowed" : "pointer",
-                    transition: "border-color 0.2s",
-                  }}
                   required
                   max={internalDateRange.until}
                   aria-invalid={!!validationError}
@@ -371,62 +237,15 @@ export default function DateRangePicker({
             </div>
 
             <div>
-              <label
-                htmlFor="until"
-                className="block text-xs mb-1"
-                style={{ color: "var(--foreground)" }}
-              >
-                END DATE
-              </label>
-              <div className="relative">
-                <div
-                  className="absolute left-0 top-0 h-full w-1"
-                  style={{
-                    backgroundColor: validationError
-                      ? "var(--crimson-red)"
-                      : isDebouncing
-                        ? "var(--neon-green)"
-                        : "var(--electric-blue)",
-                    transition: "background-color 0.2s",
-                  }}
-                ></div>
+              <label htmlFor="until">END DATE</label>
+              <div>
+                <div></div>
                 <input
                   type="date"
                   id="until"
                   value={internalDateRange.until}
                   onChange={(e) => handleDateChange("until", e.target.value)}
                   disabled={disabled}
-                  className="block w-full pl-3 py-2 pr-3 rounded-md focus:outline-none"
-                  style={{
-                    backgroundColor: "rgba(0, 0, 0, 0.3)",
-                    borderLeft: "none",
-                    borderTop: `1px solid ${
-                      validationError
-                        ? "var(--crimson-red)"
-                        : isDebouncing
-                          ? "var(--neon-green)"
-                          : "var(--electric-blue)"
-                    }`,
-                    borderRight: `1px solid ${
-                      validationError
-                        ? "var(--crimson-red)"
-                        : isDebouncing
-                          ? "var(--neon-green)"
-                          : "var(--electric-blue)"
-                    }`,
-                    borderBottom: `1px solid ${
-                      validationError
-                        ? "var(--crimson-red)"
-                        : isDebouncing
-                          ? "var(--neon-green)"
-                          : "var(--electric-blue)"
-                    }`,
-                    color: "var(--foreground)",
-                    paddingLeft: "12px",
-                    opacity: disabled ? 0.6 : 1,
-                    cursor: disabled ? "not-allowed" : "pointer",
-                    transition: "border-color 0.2s",
-                  }}
                   required
                   min={internalDateRange.since}
                   aria-invalid={!!validationError}

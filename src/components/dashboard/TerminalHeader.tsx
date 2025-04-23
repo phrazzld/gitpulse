@@ -9,13 +9,13 @@ import React from "react";
 export default function TerminalHeader() {
   return (
     <div className="flex justify-between items-center">
-      <div className="flex items-center">
-        <div className="w-2 h-2 rounded-full mr-sm bg-neon-green"></div>
-        <h2 className="text-xl font-bold text-neon-green">
+      <div className="flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-primary"></div>
+        <h2 className="text-xl font-bold text-primary">
           COMMIT ANALYSIS MODULE
         </h2>
       </div>
-      <div className="px-sm py-xs text-xs rounded border border-electric-blue text-electric-blue bg-black/30">
+      <div className="px-2 py-1 text-xs rounded border border-secondary text-secondary bg-muted">
         OPERATIONAL STATUS: ACTIVE
       </div>
     </div>

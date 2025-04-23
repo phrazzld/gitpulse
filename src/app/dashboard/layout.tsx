@@ -36,25 +36,5 @@ export default function DashboardLayout({
   }
 
   // Render dashboard content without duplicate header/footer
-  // Override any parent container styles with important flags and fixed positioning
-  return (
-    <div
-      className="w-full h-full"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 50,
-        margin: "0 !important",
-        padding: "0 !important",
-        overflow: "auto",
-        backgroundColor: "hsl(var(--dark-slate))",
-        border: "1px solid transparent" /* Prevent margin collapse */,
-      }}
-    >
-      {children}
-    </div>
-  );
+  return <div>{children}</div>;
 }

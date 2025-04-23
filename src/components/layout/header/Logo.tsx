@@ -34,7 +34,7 @@ export const Logo: React.FC<LogoProps> = ({
     <div className="flex-shrink-0">
       <Link
         href="/"
-        className="flex items-center gap-sm no-underline transition-transform duration-normal hover:scale-105"
+        className="flex items-center gap-2 no-underline transition-transform hover:scale-105"
         aria-label="Go to homepage"
       >
         {logoImageUrl ? (

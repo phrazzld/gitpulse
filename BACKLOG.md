@@ -7,6 +7,8 @@
   - Apply consistent spacing and alignment
   - Depends on: Layout and Navigation Redesign
 
+- refactor to full shadcn/ui implementation
+
 - Information Panel Redesign
 
   - Redesign repository info panel

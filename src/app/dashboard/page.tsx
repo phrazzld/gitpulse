@@ -116,22 +116,8 @@ export default function Dashboard() {
         <SimpleDashboard error={error} errorInfo={errorInfo} />
       )}
     >
-      {/* T205: Add debugging styles */}
-      <div
-        style={{
-          position: "relative",
-          display: "block !important",
-          width: "100% !important",
-          minHeight: "100vh !important",
-          visibility: "visible",
-          opacity: "1 !important",
-          backgroundColor: "hsla(var(--dark-slate), 0.95) !important",
-          zIndex: 90,
-        }}
-      >
-        {/* T204: Use DashboardContainer with DashboardContent for better component hierarchy */}
+      <div>
         <DashboardContainer>
-          {/* T208: Add comprehensive ErrorBoundary here */}
           <DashboardErrorBoundary
             componentId="dashboard-page-root"
             contextInfo={{
@@ -147,7 +133,6 @@ export default function Dashboard() {
               />
             )}
           >
-            {/* T204: Replace the inline dashboard with the new DashboardContent component */}
             <DashboardContent
               session={session}
               repositories={repositories}

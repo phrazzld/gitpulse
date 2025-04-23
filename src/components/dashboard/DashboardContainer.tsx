@@ -234,51 +234,11 @@ function DashboardContainer({ children }: DashboardContainerProps) {
   });
 
   return (
-    <div
-      className="w-full h-full"
-      style={{
-        position: "relative",
-        display: "block",
-        backgroundColor: "hsl(var(--dark-slate)) !important",
-        minHeight: "100vh !important",
-        width: "100% !important",
-        overflow: "auto",
-        zIndex: 100,
-        border: "2px solid hsl(var(--neon-green))",
-        boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
-      }}
-    >
-      {/* T201: Additional diagnostic div */}
-      <div
-        style={{
-          position: "fixed",
-          top: "10px",
-          right: "10px",
-          padding: "10px",
-          background: "black",
-          color: "lime",
-          border: "1px solid lime",
-          zIndex: 9999,
-        }}
-      >
+    <div className="w-full min-h-screen bg-background">
+      <div className="fixed top-2 right-2 px-2 py-1 rounded bg-muted text-muted-foreground text-xs border">
         Dashboard Container Rendered: {new Date().toLocaleTimeString()}
       </div>
-
-      {/* Explicit content wrapper with forced visibility */}
-      <div
-        style={{
-          position: "relative",
-          display: "block !important",
-          visibility: "visible",
-          opacity: "1 !important",
-          backgroundColor: "hsl(var(--dark-slate)) !important",
-          overflow: "visible",
-          zIndex: 101,
-        }}
-      >
-        {/* Render children directly - error boundaries are implemented in DashboardContent */}
-        {children}
-      </div>
+      <div className="container mx-auto p-4">{children}</div>
     </div>
   );
 }

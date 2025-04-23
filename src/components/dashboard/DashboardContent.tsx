@@ -4,7 +4,14 @@ import { Repository } from "@/types/github";
 import { Session } from "next-auth";
 import { ActivityMode } from "@/types/activity";
 import { DashboardGridContainer } from "@/components/dashboard/layout";
-import { Card } from "@/components/library";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import AuthenticationStatusBanner from "@/components/dashboard/AuthenticationStatusBanner";
 import FilterControls from "@/components/dashboard/FilterControls";
 import RepositoryInfoPanel from "@/components/dashboard/RepositoryInfoPanel";
@@ -77,139 +84,81 @@ export default function DashboardContent({
   const activityMode: ActivityMode = "my-activity";
 
   return (
-    <div
-      className="min-h-screen w-full overflow-x-hidden"
-      style={{
-        backgroundColor: "hsl(var(--dark-slate)) !important",
-        display: "block !important",
-        visibility: "visible",
-        opacity: "1 !important",
-        position: "relative",
-        zIndex: 102,
-      }}
-      data-testid="dashboard-container"
-    >
-      {/* 
-        Main dashboard container with progressive padding:
-        - Consistent vertical padding (py-lg) at all breakpoints
-        - Horizontal padding increases at breakpoints:
-          - Default: No horizontal padding for maximum content space on mobile
-          - sm: px-lg medium horizontal padding for improved readability on tablets
-          - lg: px-xl larger horizontal padding on desktops for optimal content width
-        - max-w-7xl sets maximum content width to prevent excessive line lengths on large displays
-        - mx-auto centers the container when max-width is reached
-      */}
-      <div
-        className="max-w-7xl mx-auto py-lg sm:px-lg lg:px-xl"
-        style={{
-          position: "relative",
-          display: "block !important",
-          visibility: "visible",
-          backgroundColor: "hsl(var(--dark-slate)) !important",
-        }}
-      >
-        {/* 
-          Dashboard grid layout with larger gap (gap-lg) for better visual separation between panels.
-          Horizontal padding scales based on screen size:
-          - Default: px-md for minimal spacing on mobile
-          - sm breakpoint and up: px-0 to maximize content space within container boundaries
-          - Maintains py-lg vertical padding consistently across breakpoints
-        */}
-        <DashboardGridContainer
-          className="px-md py-lg sm:px-0 gap-lg"
-          style={{
-            display: "grid !important",
-            visibility: "visible",
-            opacity: "1 !important",
-          }}
-        >
-          {/* 
-            Authentication Status and Control Panel spans full width (col-span-12) across all breakpoints
-            to emphasize importance of authentication state and control options.
-            This critical component maintains consistent width to ensure visibility and accessibility.
-          */}
+    <div className="w-full min-h-screen bg-background text-foreground">
+      <div className="container mx-auto py-6 px-4">
+        <DashboardGridContainer>
+          {/* Main Card - span full width */}
           <div className="col-span-12">
             <DashboardErrorBoundary
               componentId="main-dashboard-card"
               fallback={(props) => <GenericPanelFallback {...props} />}
               contextInfo={{ sessionStatus: session ? "active" : "none" }}
             >
-              <Card
-                padding="lg"
-                radius="md"
-                shadow="lg"
-                className="border backdrop-blur-sm"
-                style={{
-                  backgroundColor: "hsla(var(--dark-slate), 0.7)",
-                  borderColor: "hsl(var(--neon-green))",
-                  boxShadow: "0 0 15px rgba(0, 255, 135, 0.15)",
-                }}
-              >
-                {/* Terminal-like header */}
-                <TerminalHeader />
+              <Card className="border-primary/20">
+                <CardHeader className="border-b border-primary/10">
+                  <TerminalHeader />
+                </CardHeader>
 
-                <div className="mt-lg">
-                  <DashboardErrorBoundary
-                    componentId="auth-status-banner"
-                    contextInfo={{ session: session ? "exists" : "null" }}
-                  >
-                    <AuthenticationStatusBanner
-                      getGitHubAppInstallUrl={getGitHubAppInstallUrl}
-                      handleAuthError={handleAuthError}
-                      signOutCallback={signOut}
-                    />
-                  </DashboardErrorBoundary>
-                </div>
+                <CardContent className="p-6 space-y-6">
+                  <div className="space-y-4">
+                    <DashboardErrorBoundary
+                      componentId="auth-status-banner"
+                      contextInfo={{ session: session ? "exists" : "null" }}
+                    >
+                      <AuthenticationStatusBanner
+                        getGitHubAppInstallUrl={getGitHubAppInstallUrl}
+                        handleAuthError={handleAuthError}
+                        signOutCallback={signOut}
+                      />
+                    </DashboardErrorBoundary>
+                  </div>
 
-                {/* Filters and Configuration */}
-                <div className="mt-lg">
-                  <DashboardErrorBoundary
-                    componentId="filter-controls"
-                    fallback={(props) => <FilterControlsFallback {...props} />}
-                    contextInfo={{ activityMode, dateRange }}
-                  >
-                    <FilterControls
-                      activityMode={activityMode}
-                      session={session}
-                    />
-                  </DashboardErrorBoundary>
-                </div>
+                  {/* Filters and Configuration */}
+                  <div className="pt-4">
+                    <DashboardErrorBoundary
+                      componentId="filter-controls"
+                      fallback={(props) => (
+                        <FilterControlsFallback {...props} />
+                      )}
+                      contextInfo={{ activityMode, dateRange }}
+                    >
+                      <FilterControls
+                        activityMode={activityMode}
+                        session={session}
+                      />
+                    </DashboardErrorBoundary>
+                  </div>
 
-                {/* Wrap the controls in a form */}
-                <form onSubmit={generateSummary} className="mt-lg space-y-lg">
-                  {/* Repository information panel */}
-                  <DashboardErrorBoundary
-                    componentId="repository-info-panel"
-                    fallback={(props) => <RepositoryPanelFallback {...props} />}
-                    contextInfo={{
-                      repoCount: repositories?.length || 0,
-                      loading,
-                    }}
-                  >
-                    <RepositoryInfoPanel
-                      repositories={repositories}
-                      loading={loading}
-                    />
-                  </DashboardErrorBoundary>
+                  {/* Wrap the controls in a form */}
+                  <form onSubmit={generateSummary} className="pt-4 space-y-6">
+                    {/* Repository information panel */}
+                    <DashboardErrorBoundary
+                      componentId="repository-info-panel"
+                      fallback={(props) => (
+                        <RepositoryPanelFallback {...props} />
+                      )}
+                      contextInfo={{
+                        repoCount: repositories?.length || 0,
+                        loading,
+                      }}
+                    >
+                      <RepositoryInfoPanel
+                        repositories={repositories}
+                        loading={loading}
+                      />
+                    </DashboardErrorBoundary>
 
-                  {/* Command buttons */}
-                  <DashboardErrorBoundary componentId="action-button">
-                    <ActionButton />
-                  </DashboardErrorBoundary>
-                </form>
+                    {/* Command buttons */}
+                    <DashboardErrorBoundary componentId="action-button">
+                      <ActionButton />
+                    </DashboardErrorBoundary>
+                  </form>
+                </CardContent>
               </Card>
             </DashboardErrorBoundary>
           </div>
 
-          {/* 
-            Dashboard Summary Metrics Panel - Responsive width strategy:
-            - Mobile (default): Full width (col-span-12) to maximize readability on small screens
-            - Tablet (md): Half width (col-span-6) to create side-by-side layout with Activity Overview
-            - Desktop (lg): One-third width (col-span-4) to create balanced 1/3 - 2/3 layout
-            
-            This narrower panel on larger screens creates visual hierarchy emphasizing that this
-            contains summary data while preserving readability on all devices.
-          */}
+          {/* Summary Metrics Panel */}
           <div className="col-span-12 md:col-span-6 lg:col-span-4">
             <DashboardErrorBoundary
               componentId="dashboard-summary-panel"
@@ -223,15 +172,7 @@ export default function DashboardContent({
             </DashboardErrorBoundary>
           </div>
 
-          {/* 
-            Activity Overview Panel with AI Insights - Responsive width strategy:
-            - Mobile (default): Full width (col-span-12) for maximum readability on small screens
-            - Tablet (md): Half width (col-span-6) to create side-by-side layout with Summary Panel
-            - Desktop (lg): Two-thirds width (col-span-8) to allocate more space for detailed insights
-            
-            The panel receives more horizontal space on desktop compared to the Summary Panel 
-            because it contains richer content including AI insights that benefit from additional width.
-          */}
+          {/* Activity Overview Panel */}
           <div className="col-span-12 md:col-span-6 lg:col-span-8">
             <DashboardErrorBoundary
               componentId="activity-overview-panel"
@@ -250,12 +191,7 @@ export default function DashboardContent({
             </DashboardErrorBoundary>
           </div>
 
-          {/* 
-            Activity Feed Timeline - Full width (col-span-12) at all breakpoints due to:
-            1. Content importance - this is the primary interactive element for reviewing commits
-            2. Table-like data display that requires sufficient width for readability
-            3. Chronological timeline presentation works best as a full-width component
-          */}
+          {/* Activity Feed Timeline - Full width */}
           <div className="col-span-12">
             <DashboardErrorBoundary
               componentId="activity-feed-panel"

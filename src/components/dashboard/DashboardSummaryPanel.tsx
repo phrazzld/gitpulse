@@ -1,8 +1,7 @@
 import React from "react";
-import { Card } from "@/components/library";
-import { cn } from "@/components/library/utils/cn";
 import { useActivityMetrics, useUIState } from "@/state";
 import { Repository } from "@/types/github";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface DashboardSummaryPanelProps {
   repositories?: Repository[];
@@ -12,12 +11,9 @@ interface DashboardSummaryPanelProps {
 /**
  * DashboardSummaryPanel component
  *
- * Displays summary metrics for the dashboard in a grid layout.
+ * Displays summary metrics for the dashboard.
  * Shows commit count, repository count, and active days count.
  * Repositories are passed as props, but other metrics are still accessed via hooks.
- *
- * @param props - Component props
- * @returns A styled dashboard summary panel component
  */
 export default function DashboardSummaryPanel({
   repositories = [],
@@ -31,47 +27,49 @@ export default function DashboardSummaryPanel({
   const repositoryCount = repositories?.length || 0;
 
   return (
-    <Card padding="md" radius="md" shadow="md">
-      <div className="flex items-center justify-between border-b border-electric-blue pb-md mb-md">
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full mr-sm bg-neon-green"></div>
-          <h2 className="text-xl font-bold text-neon-green">
-            ACTIVITY METRICS
-          </h2>
+    <Card className="h-full" data-testid={testId}>
+      <CardHeader className="border-b pb-4 border-primary/10">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-primary"></div>
+          <CardTitle className="text-primary">ACTIVITY METRICS</CardTitle>
         </div>
         {loading && (
-          <div className="px-sm py-xs text-xs rounded flex items-center bg-black/30 border border-electric-blue text-electric-blue">
-            <span className="inline-block w-2 h-2 rounded-full mr-xs animate-pulse bg-electric-blue"></span>
+          <div className="flex items-center gap-1 text-xs text-secondary border border-secondary/30 bg-muted px-2 py-0.5 rounded">
+            <div className="w-2 h-2 animate-pulse bg-secondary rounded-full"></div>
             <span>PROCESSING</span>
           </div>
         )}
-      </div>
+      </CardHeader>
 
       {error ? (
-        <div className="p-md rounded text-center bg-crimson-red/10 text-crimson-red">
-          {error}
-        </div>
+        <CardContent className="pt-4">
+          <div className="p-3 rounded-md text-destructive border border-destructive/20 bg-destructive/10">
+            {error}
+          </div>
+        </CardContent>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
-          <MetricCard
-            label="COMMIT COUNT"
-            value={commits}
-            colorToken="neon-green"
-            isLoading={loading}
-          />
-          <MetricCard
-            label="REPOSITORIES"
-            value={repositoryCount}
-            colorToken="electric-blue"
-            isLoading={loading}
-          />
-          <MetricCard
-            label="ACTIVE DAYS"
-            value={activeDays}
-            colorToken="luminous-yellow"
-            isLoading={loading}
-          />
-        </div>
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <MetricCard
+              label="COMMIT COUNT"
+              value={commits}
+              isLoading={loading}
+              color="primary"
+            />
+            <MetricCard
+              label="REPOSITORIES"
+              value={repositoryCount}
+              isLoading={loading}
+              color="secondary"
+            />
+            <MetricCard
+              label="ACTIVE DAYS"
+              value={activeDays}
+              isLoading={loading}
+              color="accent"
+            />
+          </div>
+        </CardContent>
       )}
     </Card>
   );
@@ -80,8 +78,8 @@ export default function DashboardSummaryPanel({
 interface MetricCardProps {
   label: string;
   value: number;
-  colorToken: "neon-green" | "electric-blue" | "luminous-yellow";
   isLoading?: boolean;
+  color: "primary" | "secondary" | "accent";
 }
 
 /**
@@ -89,43 +87,37 @@ interface MetricCardProps {
  *
  * Displays a single metric card with a label and value.
  * Used within the DashboardSummaryPanel to display individual metrics.
- *
- * @param props - Component props
- * @returns A styled metric card component
  */
 function MetricCard({
   label,
   value,
-  colorToken,
   isLoading = false,
+  color,
 }: MetricCardProps) {
-  const borderColorClass = `border-${colorToken}`;
-  const textColorClass = `text-${colorToken}`;
-  const bgColorClass = `bg-${colorToken}`;
-  const pulseColorClass = `bg-${colorToken}/50`;
+  const colorMap = {
+    primary: "border-primary/30 bg-primary/5",
+    secondary: "border-secondary/30 bg-secondary/5",
+    accent: "border-accent/30 bg-accent/5",
+  };
+
+  const textColorMap = {
+    primary: "text-primary",
+    secondary: "text-secondary",
+    accent: "text-accent",
+  };
 
   return (
-    <Card
-      padding="md"
-      radius="md"
-      shadow="sm"
-      className={cn("relative border bg-black/30", borderColorClass)}
-    >
-      <div
-        className={cn("absolute top-0 left-0 w-full h-1", bgColorClass)}
-      ></div>
-      <p className={cn("text-xs uppercase mb-xs", textColorClass)}>{label}</p>
+    <div className={`rounded-md border p-3 ${colorMap[color]}`}>
+      <p className={`text-xs font-medium mb-1 ${textColorMap[color]}`}>
+        {label}
+      </p>
       {isLoading ? (
-        <div className="flex items-center h-8">
-          <div
-            className={cn("w-6 h-2 rounded animate-pulse", pulseColorClass)}
-          ></div>
+        <div className="h-8 flex items-center">
+          <div className="w-8 h-2 rounded animate-pulse bg-muted-foreground/50"></div>
         </div>
       ) : (
-        <p className="text-3xl font-mono text-foreground">
-          {value.toLocaleString()}
-        </p>
+        <p className="text-2xl font-mono">{value.toLocaleString()}</p>
       )}
-    </Card>
+    </div>
   );
 }

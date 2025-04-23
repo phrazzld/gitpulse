@@ -1,6 +1,5 @@
 import React from "react";
-import { Card } from "@/components/library";
-import { cn } from "@/components/library/utils/cn";
+import { cn } from "@/lib/utils";
 
 /**
  * Props for the HeaderContainer component
@@ -27,19 +26,15 @@ export const HeaderContainer: React.FC<HeaderContainerProps> = ({
   className,
 }) => {
   return (
-    <header className={cn("w-full sticky top-0 z-10", className)}>
-      <Card
-        padding="md"
-        radius="sm"
-        shadow="md"
-        className="w-full bg-background-secondary/95 backdrop-blur-sm transition-all duration-normal"
-      >
-        <div className="container mx-auto px-sm md:px-md">
-          <div className="flex items-center justify-between h-16">
-            {children}
-          </div>
-        </div>
-      </Card>
+    <header
+      className={cn(
+        "w-full sticky top-0 z-50 border-b border-muted bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
+        className,
+      )}
+    >
+      <div className="container flex h-14 max-w-screen-2xl items-center">
+        {children}
+      </div>
     </header>
   );
 };
