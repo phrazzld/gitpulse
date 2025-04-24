@@ -58,8 +58,13 @@ export function createActivityFetcher(baseUrl: string, params: Record<string, st
     const response = await fetch(`${baseUrl}?${queryParams.toString()}`);
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch activity data');
+      try {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch activity data');
+      } catch (jsonError) {
+        // Handle case where response is not JSON
+        throw new Error(`Error ${response.status}: ${response.statusText || 'Failed to fetch activity data'}`);
+      }
     }
     
     const data = await response.json();

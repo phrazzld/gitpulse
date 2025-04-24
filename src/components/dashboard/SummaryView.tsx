@@ -86,34 +86,40 @@ const SummaryView: React.FC<SummaryViewProps> = ({
           </div>
           
           <ActivityFeed
-            loadCommits={(cursor, limit) => {
-              // Build appropriate parameters based on current mode
-              const params: Record<string, string> = {
-                since: dateRange.since,
-                until: dateRange.until
-              };
-              
-              // Add organization filter if applicable
-              if (activeFilters.organizations.length > 0) {
-                params.organizations = activeFilters.organizations.join(',');
+            loadCommits={async (cursor, limit) => {
+              try {
+                // Build appropriate parameters based on current mode
+                const params: Record<string, string> = {
+                  since: dateRange.since,
+                  until: dateRange.until
+                };
+                
+                // Add organization filter if applicable
+                if (activeFilters.organizations.length > 0) {
+                  params.organizations = activeFilters.organizations.join(',');
+                }
+                
+                // If installation IDs available, include them
+                if (installationIds.length > 0) {
+                  params.installation_ids = installationIds.join(',');
+                }
+                
+                // Determine which API endpoint to use based on the current mode
+                let apiEndpoint = '/api/my-activity';
+                
+                if (activityMode === 'my-work-activity') {
+                  apiEndpoint = '/api/my-org-activity';
+                } else if (activityMode === 'team-activity') {
+                  apiEndpoint = '/api/team-activity';
+                }
+                
+                // Create and use the fetcher with additional error handling
+                const fetcher = createActivityFetcher(apiEndpoint, params);
+                return await fetcher(cursor, limit);
+              } catch (error) {
+                console.error('Error loading commits:', error);
+                throw error instanceof Error ? error : new Error('Failed to load activity data');
               }
-              
-              // If installation IDs available, include them
-              if (installationIds.length > 0) {
-                params.installation_ids = installationIds.join(',');
-              }
-              
-              // Determine which API endpoint to use based on the current mode
-              let apiEndpoint = '/api/my-activity';
-              
-              if (activityMode === 'my-work-activity') {
-                apiEndpoint = '/api/my-org-activity';
-              } else if (activityMode === 'team-activity') {
-                apiEndpoint = '/api/team-activity';
-              }
-              
-              // Create and return the fetcher
-              return createActivityFetcher(apiEndpoint, params)(cursor, limit);
             }}
             useInfiniteScroll={true}
             initialLimit={30}

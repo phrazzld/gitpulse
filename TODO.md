@@ -173,7 +173,7 @@ This document outlines the detailed task breakdown for refactoring the GitPulse 
 - Update `src/app/dashboard/page.tsx` to use new hooks and components
 - Ensure proper prop passing and state management
 - Verify page functionality remains unchanged
-- Status: Not Started
+- Status: Completed [x]
 - Estimate: Large
 - Depends On: T006, T007, T008, T009, T010, T011, T012, T013, T014, T015, T016, T017, T018
 
@@ -266,3 +266,11 @@ This document outlines the detailed task breakdown for refactoring the GitPulse 
 - Status: Not Started
 - Estimate: Medium
 - Depends On: T029
+
+**T031 - Fix ActivityFeed Error Handling**
+- Improve error handling in ActivityFeed component
+- Fix "Cannot read properties of undefined (reading 'message')" error
+- Ensure all error states are properly handled
+- Status: In Progress [~]
+- Estimate: Small
+- Depends On: None
