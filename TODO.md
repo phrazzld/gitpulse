@@ -271,7 +271,7 @@ This document outlines the detailed task breakdown for refactoring the GitPulse 
 - Improve error handling in ActivityFeed component
 - Fix "Cannot read properties of undefined (reading 'message')" error
 - Ensure all error states are properly handled
-- Status: In Progress [~]
+- Status: Completed [x]
 - Estimate: Small
 - Depends On: None
 
@@ -319,6 +319,6 @@ This document outlines the detailed task breakdown for refactoring the GitPulse 
 - Create a safe error message formatter that never fails even if the error object is malformed
 - Test the component with various error states to ensure it always displays properly
 - Mark T031 as Completed [x] when done
-- Status: Not Started
+- Status: Completed [x]
 - Estimate: Small
 - Depends On: T035

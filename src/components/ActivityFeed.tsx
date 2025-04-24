@@ -4,6 +4,9 @@ import { useProgressiveLoading } from '@/hooks/useProgressiveLoading';
 import { FixedSizeList as List } from 'react-window';
 import IntersectionObserver from './IntersectionObserver';
 import LoadMoreButton from './LoadMoreButton';
+import { logger } from '@/lib/logger';
+
+const MODULE_NAME = 'components:ActivityFeed';
 
 // Define the structure of a commit for the activity feed
 export type ActivityCommit = {
@@ -251,7 +254,16 @@ export default function ActivityFeed({
   // Load initial data when component mounts
   useEffect(() => {
     if (initialLoad) {
-      loadInitialData();
+      logger.debug(MODULE_NAME, 'Initial load triggered', {
+        initialLimit,
+        useInfiniteScroll
+      });
+      
+      loadInitialData()
+        .catch(initialError => {
+          // Extra safety to log initial load errors
+          logger.error(MODULE_NAME, 'Error during initial data load', { initialError });
+        });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialLoad]);
@@ -274,13 +286,24 @@ export default function ActivityFeed({
   // Handler for intersection observer callback
   const handleIntersect = useCallback(() => {
     if (canTriggerInfiniteScroll && hasMore && !loading) {
-      setCanTriggerInfiniteScroll(false);
-      loadMore().finally(() => {
-        // Re-enable infinite scroll trigger after loading completes
-        setTimeout(() => setCanTriggerInfiniteScroll(true), 300);
+      logger.debug(MODULE_NAME, 'Intersection triggered, loading more items', {
+        currentItemCount: commits.length,
+        canLoadMore: hasMore,
+        isCurrentlyLoading: loading
       });
+      
+      setCanTriggerInfiniteScroll(false);
+      loadMore()
+        .catch(loadError => {
+          // Extra safety to ensure errors in loadMore are logged
+          logger.error(MODULE_NAME, 'Error while loading more items in intersection handler', { loadError });
+        })
+        .finally(() => {
+          // Re-enable infinite scroll trigger after loading completes
+          setTimeout(() => setCanTriggerInfiniteScroll(true), 300);
+        });
     }
-  }, [canTriggerInfiniteScroll, hasMore, loading, loadMore]);
+  }, [canTriggerInfiniteScroll, hasMore, loading, loadMore, commits.length]);
 
   // Reset component when filters change
   useEffect(() => {
@@ -298,11 +321,83 @@ export default function ActivityFeed({
     return maxHeight;
   };
 
+  /**
+   * Safely formats any error message for display
+   * Ensures we never have "Cannot read properties of undefined" errors
+   * 
+   * @param errorValue - The error value from the hook (could be any type)
+   * @param defaultMessage - Fallback message if error can't be processed
+   * @returns A safe string to display to the user
+   */
+  const getSafeErrorMessage = (errorValue: unknown, defaultMessage: string): string => {
+    try {
+      // Handle null/undefined case
+      if (errorValue === null || errorValue === undefined) {
+        return defaultMessage;
+      }
+
+      // Handle string case directly
+      if (typeof errorValue === 'string') {
+        return errorValue.trim() || defaultMessage;
+      }
+
+      // Handle Error instance
+      if (errorValue instanceof Error) {
+        return errorValue.message || defaultMessage;
+      }
+
+      // Handle object with message property
+      if (typeof errorValue === 'object') {
+        const errObj = errorValue as Record<string, unknown>;
+        
+        // Try to get .message property
+        if ('message' in errObj && typeof errObj.message === 'string') {
+          return errObj.message.trim() || defaultMessage;
+        }
+        
+        // Try to stringify (with safety checks)
+        try {
+          const serialized = JSON.stringify(errObj);
+          if (serialized && serialized !== '{}' && serialized !== '[]') {
+            // Truncate if needed for UI display
+            if (serialized.length > 50) {
+              return serialized.substring(0, 50) + '...';
+            }
+            return serialized;
+          }
+        } catch (jsonError) {
+          logger.warn(MODULE_NAME, 'Failed to stringify error for display', { jsonError });
+        }
+      }
+
+      // Fallback for any other case
+      return defaultMessage;
+    } catch (formattingError) {
+      // Log any unexpected errors in our error formatter itself
+      logger.error(MODULE_NAME, 'Error while formatting error message', { 
+        formattingError,
+        originalError: errorValue 
+      });
+      
+      // Always return something safe
+      return defaultMessage;
+    }
+  };
+
   // Handle error states
   if (error) {
-    // Sanitize the error message to prevent the "Cannot read properties of undefined" issue
-    const displayError = error || '';
-    const fullErrorMessage = `${errorMessage}${displayError ? `: ${displayError}` : ''}`;
+    // Safely format the error message to prevent any "Cannot read properties of undefined" issues
+    const safeErrorMessage = getSafeErrorMessage(error, 'An unknown error occurred');
+    
+    // Log the error with additional context
+    logger.warn(MODULE_NAME, 'Displaying error in ActivityFeed', {
+      errorType: typeof error,
+      originalError: error,
+      formattedMessage: safeErrorMessage
+    });
+    
+    // Combine with the component's default error message
+    const fullErrorMessage = `${errorMessage}${safeErrorMessage ? `: ${safeErrorMessage}` : ''}`;
     
     return (
       <div className="p-4 rounded-md border" style={{
