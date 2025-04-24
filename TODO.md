@@ -309,7 +309,7 @@ This document outlines the detailed task breakdown for refactoring the GitPulse 
 - Remove redundant `try/catch` around the fetcher call in `SummaryView.tsx`
 - Allow errors to propagate directly from the fetcher to the hook
 - Remove any custom error message formatting that might interfere with the established chain
-- Status: Not Started
+- Status: Completed [x]
 - Estimate: Small
 - Depends On: T034
 

@@ -87,67 +87,35 @@ const SummaryView: React.FC<SummaryViewProps> = ({
           
           <ActivityFeed
             loadCommits={async (cursor, limit) => {
-              try {
-                // Build appropriate parameters based on current mode
-                const params: Record<string, string> = {
-                  since: dateRange.since,
-                  until: dateRange.until
-                };
-                
-                // Add organization filter if applicable
-                if (activeFilters.organizations.length > 0) {
-                  params.organizations = activeFilters.organizations.join(',');
-                }
-                
-                // If installation IDs available, include them
-                if (installationIds.length > 0) {
-                  params.installation_ids = installationIds.join(',');
-                }
-                
-                // Determine which API endpoint to use based on the current mode
-                let apiEndpoint = '/api/my-activity';
-                
-                if (activityMode === 'my-work-activity') {
-                  apiEndpoint = '/api/my-org-activity';
-                } else if (activityMode === 'team-activity') {
-                  apiEndpoint = '/api/team-activity';
-                }
-                
-                // Create and use the fetcher with additional error handling
-                const fetcher = createActivityFetcher(apiEndpoint, params);
-                return await fetcher(cursor, limit);
-              } catch (error) {
-                // Enhanced error handling with more detailed logging
-                console.error('Error loading commits in SummaryView:', error);
-                
-                // Format different types of errors consistently
-                let errorMessage = 'Failed to load activity data';
-                
-                if (error instanceof Error) {
-                  // Keep the original error message if it exists
-                  errorMessage = error.message || errorMessage;
-                  
-                  // Log additional error details if available
-                  if ('cause' in error) {
-                    console.error('Error cause:', error.cause);
-                  }
-                  if ('stack' in error) {
-                    console.error('Error stack:', error.stack);
-                  }
-                } else if (error && typeof error === 'object') {
-                  // Try to extract message from object
-                  const errObj = error as Record<string, unknown>;
-                  if ('message' in errObj && typeof errObj.message === 'string') {
-                    errorMessage = errObj.message;
-                  } else {
-                    // Log the entire object for debugging
-                    console.error('Unknown error object:', JSON.stringify(errObj));
-                  }
-                }
-                
-                // Throw a well-formed error
-                throw new Error(errorMessage);
+              // Build appropriate parameters based on current mode
+              const params: Record<string, string> = {
+                since: dateRange.since,
+                until: dateRange.until
+              };
+              
+              // Add organization filter if applicable
+              if (activeFilters.organizations.length > 0) {
+                params.organizations = activeFilters.organizations.join(',');
               }
+              
+              // If installation IDs available, include them
+              if (installationIds.length > 0) {
+                params.installation_ids = installationIds.join(',');
+              }
+              
+              // Determine which API endpoint to use based on the current mode
+              let apiEndpoint = '/api/my-activity';
+              
+              if (activityMode === 'my-work-activity') {
+                apiEndpoint = '/api/my-org-activity';
+              } else if (activityMode === 'team-activity') {
+                apiEndpoint = '/api/team-activity';
+              }
+              
+              // Create the fetcher and use it directly - errors will propagate to useProgressiveLoading
+              // which has robust error handling already implemented
+              const fetcher = createActivityFetcher(apiEndpoint, params);
+              return fetcher(cursor, limit);
             }}
             useInfiniteScroll={true}
             initialLimit={30}
