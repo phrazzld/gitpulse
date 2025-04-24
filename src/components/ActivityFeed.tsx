@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Image from 'next/image';
 import { useProgressiveLoading } from '@/hooks/useProgressiveLoading';
 import { FixedSizeList as List } from 'react-window';
 import IntersectionObserver from './IntersectionObserver';
 import LoadMoreButton from './LoadMoreButton';
+import { logger } from '@/lib/logger';
+import CommitItem from './dashboard/activityFeed/components/CommitItem';
+
+const MODULE_NAME = 'components:ActivityFeed';
 
 // Define the structure of a commit for the activity feed
 export type ActivityCommit = {
@@ -47,146 +50,8 @@ interface ActivityFeedProps {
   maxHeight?: number | string;
 }
 
-// Component to render an individual commit item
-const CommitItem = React.memo(({ 
-  commit, 
-  showRepository, 
-  showContributor,
-  style,
-  isNew = false
-}: { 
-  commit: ActivityCommit; 
-  showRepository: boolean; 
-  showContributor: boolean;
-  style?: React.CSSProperties;
-  isNew?: boolean;
-}) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Extract first line of commit message for the title
-  const commitTitle = commit.commit.message.split('\n')[0];
-
-  return (
-    <div 
-      className={`pl-12 relative ${isNew ? 'animate-fadeIn' : ''}`}
-      style={{
-        ...style,
-        // Adding some left padding for the timeline element
-        paddingLeft: '3.5rem',
-      }}
-    >
-      {/* Timeline dot */}
-      <div className="absolute left-4 top-3 w-3 h-3 rounded-full border-2" style={{ 
-        backgroundColor: 'var(--dark-slate)',
-        borderColor: 'var(--electric-blue)',
-        zIndex: 1
-      }}></div>
-      
-      {/* Vertical timeline line */}
-      <div className="absolute left-5 top-0 bottom-0 w-0.5" style={{ 
-        backgroundColor: 'var(--electric-blue)',
-        opacity: 0.4
-      }}></div>
-      
-      {/* Commit card with simplified design */}
-      <div className={`border rounded-md p-3 mb-3 ${isNew ? 'animate-pulse-highlight animate-border-pulse' : ''}`} style={{ 
-        backgroundColor: 'rgba(27, 43, 52, 0.7)',
-        backdropFilter: 'blur(5px)',
-        borderColor: 'var(--electric-blue)',
-        boxShadow: '0 0 10px rgba(59, 142, 234, 0.1)'
-      }}>
-        {/* Commit header with author and date */}
-        <div className="flex justify-between items-start mb-2 flex-wrap">
-          <div className="flex items-center mr-2">
-            {showContributor && commit.contributor && (
-              <div className="flex items-center">
-                {commit.contributor.avatarUrl ? (
-                  <Image 
-                    src={commit.contributor.avatarUrl}
-                    alt={commit.contributor.displayName}
-                    width={20}
-                    height={20}
-                    className="rounded-full mr-2"
-                  />
-                ) : (
-                  <div className="w-5 h-5 rounded-full mr-2 flex items-center justify-center" style={{ 
-                    backgroundColor: 'var(--electric-blue)',
-                    color: 'var(--dark-slate)',
-                    fontSize: '0.75rem'
-                  }}>
-                    {commit.contributor.displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span className="font-bold text-sm truncate max-w-48" style={{ color: 'var(--electric-blue)' }}>
-                  {commit.contributor.displayName}
-                </span>
-              </div>
-            )}
-            
-            {!showContributor && (
-              <div className="flex items-center">
-                <span className="font-bold text-sm truncate max-w-48" style={{ color: 'var(--electric-blue)' }}>
-                  {commit.commit.author.name}
-                </span>
-              </div>
-            )}
-          </div>
-          
-          <div className="text-xs" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
-            {formatDate(commit.commit.author.date)}
-          </div>
-        </div>
-        
-        {/* Repository info if needed - condensed */}
-        {showRepository && commit.repository && (
-          <div className="mb-2">
-            <a 
-              href={commit.repository.html_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-1.5 py-0.5 rounded inline-flex items-center"
-              style={{ 
-                backgroundColor: 'rgba(0, 255, 135, 0.1)',
-                color: 'var(--neon-green)',
-                border: '1px solid var(--neon-green)',
-                textDecoration: 'none'
-              }}
-            >
-              <svg className="h-2.5 w-2.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14a6 6 0 110-12 6 6 0 010 12z" clipRule="evenodd" />
-              </svg>
-              {commit.repository.full_name}
-            </a>
-          </div>
-        )}
-        
-        {/* Commit message */}
-        <div className="text-sm" style={{ color: 'var(--foreground)' }}>
-          <a 
-            href={commit.html_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: 'inherit', textDecoration: 'none' }}
-            className="hover:underline"
-          >
-            {commitTitle}
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-});
-
-CommitItem.displayName = 'CommitItem';
+// CommitItem component has been moved to a separate file:
+// src/components/dashboard/activityFeed/components/CommitItem.tsx
 
 export default function ActivityFeed({
   loadCommits,
@@ -251,7 +116,16 @@ export default function ActivityFeed({
   // Load initial data when component mounts
   useEffect(() => {
     if (initialLoad) {
-      loadInitialData();
+      logger.debug(MODULE_NAME, 'Initial load triggered', {
+        initialLimit,
+        useInfiniteScroll
+      });
+      
+      loadInitialData()
+        .catch(initialError => {
+          // Extra safety to log initial load errors
+          logger.error(MODULE_NAME, 'Error during initial data load', { initialError });
+        });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialLoad]);
@@ -274,13 +148,24 @@ export default function ActivityFeed({
   // Handler for intersection observer callback
   const handleIntersect = useCallback(() => {
     if (canTriggerInfiniteScroll && hasMore && !loading) {
-      setCanTriggerInfiniteScroll(false);
-      loadMore().finally(() => {
-        // Re-enable infinite scroll trigger after loading completes
-        setTimeout(() => setCanTriggerInfiniteScroll(true), 300);
+      logger.debug(MODULE_NAME, 'Intersection triggered, loading more items', {
+        currentItemCount: commits.length,
+        canLoadMore: hasMore,
+        isCurrentlyLoading: loading
       });
+      
+      setCanTriggerInfiniteScroll(false);
+      loadMore()
+        .catch(loadError => {
+          // Extra safety to ensure errors in loadMore are logged
+          logger.error(MODULE_NAME, 'Error while loading more items in intersection handler', { loadError });
+        })
+        .finally(() => {
+          // Re-enable infinite scroll trigger after loading completes
+          setTimeout(() => setCanTriggerInfiniteScroll(true), 300);
+        });
     }
-  }, [canTriggerInfiniteScroll, hasMore, loading, loadMore]);
+  }, [canTriggerInfiniteScroll, hasMore, loading, loadMore, commits.length]);
 
   // Reset component when filters change
   useEffect(() => {
@@ -298,8 +183,84 @@ export default function ActivityFeed({
     return maxHeight;
   };
 
+  /**
+   * Safely formats any error message for display
+   * Ensures we never have "Cannot read properties of undefined" errors
+   * 
+   * @param errorValue - The error value from the hook (could be any type)
+   * @param defaultMessage - Fallback message if error can't be processed
+   * @returns A safe string to display to the user
+   */
+  const getSafeErrorMessage = (errorValue: unknown, defaultMessage: string): string => {
+    try {
+      // Handle null/undefined case
+      if (errorValue === null || errorValue === undefined) {
+        return defaultMessage;
+      }
+
+      // Handle string case directly
+      if (typeof errorValue === 'string') {
+        return errorValue.trim() || defaultMessage;
+      }
+
+      // Handle Error instance
+      if (errorValue instanceof Error) {
+        return errorValue.message || defaultMessage;
+      }
+
+      // Handle object with message property
+      if (typeof errorValue === 'object') {
+        const errObj = errorValue as Record<string, unknown>;
+        
+        // Try to get .message property
+        if ('message' in errObj && typeof errObj.message === 'string') {
+          return errObj.message.trim() || defaultMessage;
+        }
+        
+        // Try to stringify (with safety checks)
+        try {
+          const serialized = JSON.stringify(errObj);
+          if (serialized && serialized !== '{}' && serialized !== '[]') {
+            // Truncate if needed for UI display
+            if (serialized.length > 50) {
+              return serialized.substring(0, 50) + '...';
+            }
+            return serialized;
+          }
+        } catch (jsonError) {
+          logger.warn(MODULE_NAME, 'Failed to stringify error for display', { jsonError });
+        }
+      }
+
+      // Fallback for any other case
+      return defaultMessage;
+    } catch (formattingError) {
+      // Log any unexpected errors in our error formatter itself
+      logger.error(MODULE_NAME, 'Error while formatting error message', { 
+        formattingError,
+        originalError: errorValue 
+      });
+      
+      // Always return something safe
+      return defaultMessage;
+    }
+  };
+
   // Handle error states
   if (error) {
+    // Safely format the error message to prevent any "Cannot read properties of undefined" issues
+    const safeErrorMessage = getSafeErrorMessage(error, 'An unknown error occurred');
+    
+    // Log the error with additional context
+    logger.warn(MODULE_NAME, 'Displaying error in ActivityFeed', {
+      errorType: typeof error,
+      originalError: error,
+      formattedMessage: safeErrorMessage
+    });
+    
+    // Combine with the component's default error message
+    const fullErrorMessage = `${errorMessage}${safeErrorMessage ? `: ${safeErrorMessage}` : ''}`;
+    
     return (
       <div className="p-4 rounded-md border" style={{
         backgroundColor: 'rgba(255, 59, 48, 0.1)',
@@ -310,7 +271,7 @@ export default function ActivityFeed({
           <svg className="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
           </svg>
-          <div>{errorMessage}: {error}</div>
+          <div>{fullErrorMessage}</div>
         </div>
       </div>
     );

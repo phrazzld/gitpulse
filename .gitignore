@@ -43,6 +43,11 @@ next-env.d.ts
 AESTHETIC.md
 AESTHETIC_*.jpeg
 CONTEXT.md
-PLAN.md
 DEV-REF.md
 **/glance.md
+thinktank_output/
+thinktank_output_tasks/
+consultation-report/
+*-plan.md
+diff.md
+CODE_REVIEW.md

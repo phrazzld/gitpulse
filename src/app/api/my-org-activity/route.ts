@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { 
-  fetchAllRepositories, 
-  fetchCommitsForRepositories, 
   Commit,
   Repository,
   AppInstallation 
-} from "@/lib/github";
+} from "@/lib/github/types";
+import { fetchAllRepositories } from "@/lib/github/repositories";
+import { fetchCommitsForRepositories } from "@/lib/github/commits";
 import { logger } from "@/lib/logger";
 
 const MODULE_NAME = "api:my-org-activity";

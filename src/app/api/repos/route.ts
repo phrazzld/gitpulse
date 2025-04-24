@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchAllRepositories, checkAppInstallation, getAllAppInstallations, AppInstallation, Repository } from "@/lib/github";
+import { AppInstallation, Repository } from "@/lib/github/types";
+import { fetchAllRepositories } from "@/lib/github/repositories";
+import { checkAppInstallation, getAllAppInstallations } from "@/lib/github/auth";
 import { logger } from "@/lib/logger";
 import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl } from "@/lib/cache";
 import { withAuthValidation } from "@/lib/auth/apiAuth";

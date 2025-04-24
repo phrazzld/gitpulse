@@ -10,8 +10,9 @@ GitPulse is a web application that generates summaries of GitHub commits for ind
 - **Configurable Time Frames**: Set custom date ranges for your summary
 - **AI-Powered Analysis**: Gemini AI generates insights from your commit history
 - **No Local Storage**: All data is fetched on-demand from GitHub, ensuring data privacy
-- **Comprehensive Logging**: Detailed logging for debugging and monitoring
-- **Graceful Error Handling**: Clear user feedback for authentication issues with easy recovery options
+- **Comprehensive Logging**: Detailed structured logging for debugging and monitoring
+- **Robust Error Handling**: Comprehensive error handling chain from API to UI with graceful degradation
+- **Responsive UI**: Clean, modern interface that works on both mobile and desktop
 
 ## Tech Stack
 
@@ -19,9 +20,58 @@ GitPulse is a web application that generates summaries of GitHub commits for ind
 - **Authentication**: next-auth with GitHub OAuth
 - **GitHub API Client**: octokit for interacting with the GitHub API
 - **AI Analysis**: Google's Gemini AI for commit analysis
+- **Data Fetching**: Custom progressive loading pattern for efficient data retrieval
+- **State Management**: React hooks with context for local state management
 - **Styling**: TailwindCSS for responsive design
-- **Logging**: Custom logging system with rotation
+- **Error Handling**: Structured error handling chain with fallbacks
+- **Logging**: Structured JSON logging with correlation IDs
 - **Deployment**: Vercel (recommended)
+
+## Architecture
+
+GitPulse follows a modular architecture with clear separation of concerns:
+
+### Core Architecture Principles
+
+- **TypeScript First**: Strong typing throughout the codebase
+- **Component-Based UI**: Modular React components with clear responsibilities
+- **Custom Hooks for Logic**: Business logic extracted into custom hooks
+- **API Routes for Data**: Next.js API routes as a backend layer
+- **Comprehensive Testing**: Unit and integration tests for critical paths
+- **Defensive Programming**: Robust error handling with graceful degradation
+
+### Directory Structure
+
+```
+src/
+├── app/                  # Next.js App Router pages and API routes
+│   ├── api/              # API endpoints (GitHub data, auth, etc.)
+│   └── dashboard/        # Main application pages
+├── components/           # Reusable UI components
+│   ├── dashboard/        # Dashboard-specific components
+│   ├── layout/           # Layout components (header, etc.)
+│   ├── library/          # Generic, reusable components
+│   └── ui/               # Basic UI primitives
+├── hooks/                # Custom React hooks
+│   └── dashboard/        # Dashboard-specific hooks
+├── lib/                  # Core utilities and services
+│   ├── auth/             # Authentication utilities
+│   ├── github/           # GitHub API integration
+│   └── ...               # Other utilities (logging, caching, etc.)
+├── state/                # State management (when needed)
+├── styles/               # Global styles and themes
+└── types/                # TypeScript type definitions
+```
+
+### Error Handling Strategy
+
+GitPulse implements a comprehensive error handling strategy:
+
+1. **API Level**: Structured error responses with appropriate status codes
+2. **Data Fetching**: Safe error handling in data fetcher functions
+3. **Data Processing**: Defensive coding with fallbacks for missing data
+4. **UI Components**: Graceful degradation with helpful error states
+5. **Logging**: Structured error logging with context for debugging
 
 ## Getting Started
 
@@ -105,9 +155,47 @@ The easiest way to deploy GitPulse is using Vercel:
 3. Set the environment variables in the Vercel project settings
 4. Deploy the application
 
+## Development Guidelines
+
+### Code Organization
+
+When adding new features or making changes, follow these guidelines:
+
+1. **Types First**: Always define types in dedicated type modules first
+2. **Hooks for Logic**: Extract business logic into custom hooks
+3. **Component Separation**: Keep components focused and single-responsibility
+4. **Defensive Programming**: Always handle error cases and edge conditions
+5. **Tests Required**: Write tests for all new functionality
+
+### Coding Standards
+
+- Use TypeScript with strict mode enabled
+- Follow ESLint and TypeScript guidelines (run `npm run lint` and `npm run typecheck`)
+- Keep files under 500 lines (warning threshold)
+- Use immutable patterns where possible (readonly modifiers, const, etc.)
+- Document the "why" not just the "how" in comments
+
+### Error Handling Principles
+
+When implementing error handling, follow this pattern:
+
+1. Use try/catch blocks around API calls and data transformations
+2. Log errors with context using the structured logger
+3. Transform errors into user-friendly messages
+4. Ensure UI components can handle and display error states gracefully
+5. Provide recovery paths when possible
+
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! To contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes following the development guidelines
+4. Run tests and linting (`npm run lint && npm run typecheck`)
+5. Commit your changes using [Conventional Commits](https://www.conventionalcommits.org/) format
+6. Push to your branch
+7. Submit a Pull Request
 
 ## License
 
