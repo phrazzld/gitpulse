@@ -25,6 +25,30 @@ type FetchFunction<T> = (
 }>;
 
 /**
+ * Helper function to safely extract error messages from various error types
+ */
+function getErrorMessage(error: unknown): string {
+  // Default error message if we can't extract a specific one
+  let errorMessage = 'An error occurred while loading data';
+  
+  if (error instanceof Error) {
+    // Standard Error objects
+    errorMessage = error.message || errorMessage;
+  } else if (error && typeof error === 'object' && 'message' in error) {
+    // Objects with a message property
+    const errObj = error as { message?: string };
+    if (errObj.message && typeof errObj.message === 'string') {
+      errorMessage = errObj.message;
+    }
+  } else if (typeof error === 'string') {
+    // String errors
+    errorMessage = error;
+  }
+  
+  return errorMessage;
+}
+
+/**
  * Custom hook for progressive data loading with pagination
  * 
  * @param fetchFn - Function that fetches paginated data
@@ -82,13 +106,19 @@ export function useProgressiveLoading<T>(
       
       nextCursorRef.current = nextCursor || null;
     } catch (error) {
+      // Enhanced error handling with proper message extraction
+      const errorMessage = getErrorMessage(error);
+      
       setState(prev => ({
         ...prev,
         loading: false,
         initialLoading: false,
         incrementalLoading: false,
-        error: error instanceof Error ? error.message : 'An error occurred'
+        error: errorMessage
       }));
+      
+      // Log the error for debugging
+      console.error('Error in loadInitialData:', error);
     } finally {
       loadingRef.current = false;
     }
@@ -124,13 +154,19 @@ export function useProgressiveLoading<T>(
       
       nextCursorRef.current = nextCursor || null;
     } catch (error) {
+      // Enhanced error handling with proper message extraction
+      const errorMessage = getErrorMessage(error);
+      
       setState(prev => ({
         ...prev,
         loading: false,
         initialLoading: false,
         incrementalLoading: false,
-        error: error instanceof Error ? error.message : 'An error occurred'
+        error: errorMessage
       }));
+      
+      // Log the error for debugging
+      console.error('Error in loadMore:', error);
     } finally {
       loadingRef.current = false;
     }

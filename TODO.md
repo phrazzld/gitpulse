@@ -274,3 +274,51 @@ This document outlines the detailed task breakdown for refactoring the GitPulse 
 - Status: In Progress [~]
 - Estimate: Small
 - Depends On: None
+
+**T032 - Enhance `formatActivityCommits` with Defensive Coding**
+- Open `lib/activity.ts` and locate the `formatActivityCommits` function
+- Use optional chaining (e.g. `commit.commit?.message`) for all nested property accesses
+- Normalize incoming commit shapes with explicit handling when `commit.commit` is missing
+- Provide fallback values (e.g. "No commit message available", "Unknown Author") for all potentially missing properties
+- Add JSDoc comments explaining the expected structure and defensive measures
+- Status: Completed [x]
+- Estimate: Medium
+- Depends On: None
+
+**T033 - Add Error Handling in `createActivityFetcher`**
+- Wrap the call to `formatActivityCommits` in its own `try...catch` block
+- Import the project's `logger` module into `lib/activity.ts` if not already present
+- Log detailed ERROR entries with context when formatting fails
+- Replace raw TypeError with user-friendly message (e.g., "Invalid data format for activity commits")
+- Add comprehensive error handling for network and parsing issues
+- Status: Not Started
+- Estimate: Small
+- Depends On: T032
+
+**T034 - Implement Robust Error Handling in `useProgressiveLoading`**
+- Create a `getErrorMessage(error: unknown): string` helper function that extracts a safe error message
+- Handle various error types: Error instances, objects with message properties, strings, etc.
+- Provide fallback messages for unexpected error formats
+- Add detailed logging for all error conditions
+- Update the `catch` blocks to ensure error state is always a valid string
+- Status: Not Started
+- Estimate: Medium
+- Depends On: T033
+
+**T035 - Simplify Error Flow in `SummaryView`**
+- Remove redundant `try/catch` around the fetcher call in `SummaryView.tsx`
+- Allow errors to propagate directly from the fetcher to the hook
+- Remove any custom error message formatting that might interfere with the established chain
+- Status: Not Started
+- Estimate: Small
+- Depends On: T034
+
+**T036 - Ensure Safe Error Display in `ActivityFeed`**
+- Update error display logic in `ActivityFeed.tsx` to safely handle all error formats
+- Add null/undefined checks before accessing error properties
+- Create a safe error message formatter that never fails even if the error object is malformed
+- Test the component with various error states to ensure it always displays properly
+- Mark T031 as Completed [x] when done
+- Status: Not Started
+- Estimate: Small
+- Depends On: T035

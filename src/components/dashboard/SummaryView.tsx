@@ -117,8 +117,36 @@ const SummaryView: React.FC<SummaryViewProps> = ({
                 const fetcher = createActivityFetcher(apiEndpoint, params);
                 return await fetcher(cursor, limit);
               } catch (error) {
-                console.error('Error loading commits:', error);
-                throw error instanceof Error ? error : new Error('Failed to load activity data');
+                // Enhanced error handling with more detailed logging
+                console.error('Error loading commits in SummaryView:', error);
+                
+                // Format different types of errors consistently
+                let errorMessage = 'Failed to load activity data';
+                
+                if (error instanceof Error) {
+                  // Keep the original error message if it exists
+                  errorMessage = error.message || errorMessage;
+                  
+                  // Log additional error details if available
+                  if ('cause' in error) {
+                    console.error('Error cause:', error.cause);
+                  }
+                  if ('stack' in error) {
+                    console.error('Error stack:', error.stack);
+                  }
+                } else if (error && typeof error === 'object') {
+                  // Try to extract message from object
+                  const errObj = error as Record<string, unknown>;
+                  if ('message' in errObj && typeof errObj.message === 'string') {
+                    errorMessage = errObj.message;
+                  } else {
+                    // Log the entire object for debugging
+                    console.error('Unknown error object:', JSON.stringify(errObj));
+                  }
+                }
+                
+                // Throw a well-formed error
+                throw new Error(errorMessage);
               }
             }}
             useInfiniteScroll={true}
