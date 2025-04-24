@@ -1,5 +1,6 @@
 # BACKLOG
 
+- Investigate missing "My Activity" data issue - data isn't displaying despite existing (Priority: High) 
 - move ui implementation to shadcn/ui
 
 - Clarify the "Generate Summary" button to show what it summarizes (e.g., "Generate Team Summary for Last Week").
