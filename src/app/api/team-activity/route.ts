@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { 
-  fetchAllRepositories, 
-  fetchCommitsForRepositories, 
   Commit,
   Repository,
   AppInstallation 
-} from "@/lib/github";
+} from "@/lib/github/types";
+import { fetchAllRepositories } from "@/lib/github/repositories";
+import { fetchCommitsForRepositories } from "@/lib/github/commits";
 import { logger } from "@/lib/logger";
 import { optimizedJsonResponse, isCacheValid, notModifiedResponse, CacheTTL, generateETag } from "@/lib/cache";
 import { optimizeCommit, optimizeRepository, optimizeContributor, MinimalCommit, MinimalRepository, MinimalContributor } from "@/lib/optimize";

@@ -227,3 +227,4 @@ export function formatGitHubError(error: unknown): string {
   // If error is a string or other primitive
   return `GitHub error: ${String(error)}`;
 }
+

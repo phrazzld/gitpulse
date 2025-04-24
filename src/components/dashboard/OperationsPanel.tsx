@@ -3,7 +3,7 @@ import ModeSelector, { ActivityMode } from '@/components/ModeSelector';
 import OrganizationPicker from '@/components/OrganizationPicker';
 import { DateRange, FilterState, Installation } from '@/types/dashboard';
 import { getGitHubAppInstallUrl } from '@/lib/dashboard-utils';
-import { getInstallationManagementUrl } from '@/lib/github';
+import { getInstallationManagementUrl } from '@/lib/github/auth';
 
 export interface OperationsPanelProps {
   /**

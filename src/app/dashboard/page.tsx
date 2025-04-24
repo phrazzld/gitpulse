@@ -10,7 +10,7 @@ import OrganizationPicker from '@/components/OrganizationPicker';
 import AccountSelector from '@/components/AccountSelector';
 import ActivityFeed from '@/components/ActivityFeed';
 import DashboardLoadingState from '@/components/DashboardLoadingState';
-import { getInstallationManagementUrl } from '@/lib/github';
+import { getInstallationManagementUrl } from '@/lib/github/auth';
 import { createActivityFetcher } from '@/lib/activity';
 import { 
   setCacheItem, 

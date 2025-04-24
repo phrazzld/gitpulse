@@ -2,7 +2,7 @@
  * Utility functions for the GitPulse API
  */
 
-import { Commit } from "./github";
+import { Commit } from "./github/types";
 import { CommitStats } from "@/types/api";
 import { logger } from "./logger";
 

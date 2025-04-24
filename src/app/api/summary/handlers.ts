@@ -8,12 +8,12 @@
 
 import { logger } from "@/lib/logger";
 import { 
-  fetchAllRepositories, 
-  fetchCommitsForRepositories, 
   AppInstallation,
   Repository,
   Commit
-} from "@/lib/github";
+} from "@/lib/github/types";
+import { fetchAllRepositories } from "@/lib/github/repositories"; 
+import { fetchCommitsForRepositories } from "@/lib/github/commits";
 import { generateCommitSummary } from "@/lib/gemini";
 import { 
   FilterInfo, 
