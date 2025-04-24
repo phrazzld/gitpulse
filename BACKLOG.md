@@ -1,5 +1,7 @@
 # BACKLOG
 
+- move ui implementation to shadcn/ui
+
 - Clarify the "Generate Summary" button to show what it summarizes (e.g., "Generate Team Summary for Last Week").
 - Add a simple bar chart to the commit classification UI to visualize commit types and their proportions.
 - Implement basic temporal analysis to show activity trends over time using a line graph.
