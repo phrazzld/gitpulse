@@ -2,128 +2,288 @@
 
 ## High Priority
 
-### Testing Infrastructure
-- Add Jest configuration and test scripts to package.json
-  ```json
-  "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
-  }
-  ```
-- Add a `jest.config.js` file to standardize testing configuration:
-  ```javascript
-  module.exports = {
-    testEnvironment: 'jsdom',
-    testPathIgnorePatterns: ['/node_modules/', '/.next/'],
-    collectCoverageFrom: [
-      'src/**/*.{js,jsx,ts,tsx}',
-      '!src/**/*.d.ts',
-      '!src/**/*test*/**',
-    ],
-    setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-    moduleNameMapper: {
-      '^@/(.*)$': '<rootDir>/src/$1',
-    },
-  };
-  ```
-- Improve test coverage for critical paths
+### Core Functionality & Testing
 
-### Bug Investigations
-- Investigate missing "My Activity" data issue - data isn't displaying despite existing
-- Continue monitoring ActivityFeed error handling after B001 fix - track error rates in production
+- **Feature**: Configure and validate Jest testing framework
+  - **Complexity**: Simple
+  - **Rationale**: Establishes baseline test infrastructure for reliable code validation
+  - **Expected Outcome**: `npm test`, `npm run test:watch`, and `npm run test:coverage` run successfully; Jest configuration and test scripts in place
+  - **Dependencies**: None
+
+- **Enhancement**: Improve test coverage for critical paths
+  - **Complexity**: Medium
+  - **Rationale**: Prevent regressions in core workflows (summary generation, activity feed)
+  - **Expected Outcome**: Addition of unit tests for `createActivityFetcher`, `useProgressiveLoading`, summary API handlers, raising coverage to ≥ 90% on those modules
+  - **Dependencies**: Jest configuration
+
+- **Fix**: Investigate and resolve missing "My Activity" data issue
+  - **Complexity**: Medium
+  - **Rationale**: Critical bug impacting core user value proposition (viewing personal activity)
+  - **Expected Outcome**: Users can reliably see their activity data; verified with automated tests
+  - **Dependencies**: None
+
+- **Enhancement**: Implement production error monitoring for ActivityFeed
+  - **Complexity**: Medium
+  - **Rationale**: Proactively catch and track runtime errors post B001 fix
+  - **Expected Outcome**: Errors logged to monitoring service with context; dashboard of real-time error trends
+  - **Dependencies**: None
+
+### Technical Foundation
+
+- **Refactor**: Decompose `src/lib/github.ts` (853 lines) into focused service modules
+  - **Complexity**: Medium
+  - **Rationale**: Improves maintainability, testability, and code readability
+  - **Expected Outcome**: Multiple focused modules under `src/lib/github/` with clear responsibilities; existing functionality preserved
+  - **Dependencies**: None
+
+- **Refactor**: Break down `OperationsPanel.tsx` (470 lines) into smaller sub-components
+  - **Complexity**: Medium
+  - **Rationale**: Large component slows feature delivery; modular components speed up UI iterations
+  - **Expected Outcome**: Clear separation into smaller, focused components with single responsibilities
+  - **Dependencies**: None
+
+- **Enhancement**: Centralize error handling logic in `src/lib/error.ts`
+  - **Complexity**: Simple
+  - **Rationale**: Avoid duplicated logic; consistent user messaging across the application
+  - **Expected Outcome**: Common error utilities used consistently throughout the codebase
+  - **Dependencies**: None
+
+- **Enhancement**: Replace loose typings (`any[]`, `Record<string, any>`) with strict types
+  - **Complexity**: Medium
+  - **Rationale**: Prevent runtime errors; improve developer experience via auto-completion
+  - **Expected Outcome**: All exported functions and modules use explicit TypeScript types; `tsc` passes with no `any` warnings
+  - **Dependencies**: None
+
+### Data Collection & Infrastructure
+
+- **Feature**: Expand data collection to include pull requests and link to commits
+  - **Complexity**: Medium
+  - **Rationale**: Provides a fuller picture of team activity; enables richer insights
+  - **Expected Outcome**: PRs are fetched, displayed, and linked to their relevant commits in the UI
+  - **Dependencies**: None
+
+- **Enhancement**: Implement robust server-side caching for GitHub API calls
+  - **Complexity**: Medium
+  - **Rationale**: Reduces GitHub API rate limit consumption, improves application performance
+  - **Expected Outcome**: Repeated requests for the same data return cached results quickly; observable reduction in API calls
+  - **Dependencies**: None
+
+### Security & Compliance
+
+- **Enhancement**: Encrypt GitHub tokens in storage and transit
+  - **Complexity**: Medium
+  - **Rationale**: Protects user credentials; complies with security best practices
+  - **Expected Outcome**: Tokens stored in secure vault; HTTPS enforced; no tokens in logs
+  - **Dependencies**: None
+
+- **Enhancement**: Limit data access to match GitHub permissions per user
+  - **Complexity**: Medium
+  - **Rationale**: Prevents unauthorized data access; maintains proper security boundaries
+  - **Expected Outcome**: Users can only access data from repositories they have GitHub permissions for
+  - **Dependencies**: None
 
 ## Medium Priority
 
-### Technical Debt - Code Organization
-- Further break down `src/lib/github.ts` (853 lines) into smaller modules
-- Decompose `OperationsPanel.tsx` (470 lines) into smaller sub-components
-- Break down `src/app/api/summary/__tests__/handlers.test.ts` (502 lines) into logical test groups
-- Centralize error handling logic by extracting `getErrorMessage`/`getSafeErrorMessage` to `src/lib/error.ts`
+### User Interface & Experience
 
-### Type Safety Improvements
-- Replace `any[]` in `formatActivityCommits` with more specific union types
-- Create a comprehensive ErrorType hierarchy for better type safety
-- Improve type safety in areas with loose typing (e.g., Record<string, any>)
+- **Enhancement**: Migrate to shadcn/ui design system
+  - **Complexity**: Medium
+  - **Rationale**: Consistent styling, accessible components, faster UI development
+  - **Expected Outcome**: All core UI components use shadcn primitives; theme tokens applied
+  - **Dependencies**: None
+
+- **Enhancement**: Make the UI fully responsive for mobile and desktop
+  - **Complexity**: Medium
+  - **Rationale**: Ensures usability across different devices, broadening accessibility
+  - **Expected Outcome**: Application layout adapts gracefully to various screen widths
+  - **Dependencies**: shadcn/ui migration
+
+- **Enhancement**: Ensure WCAG 2.1 compliance for accessibility
+  - **Complexity**: Medium
+  - **Rationale**: Makes the application usable for people with disabilities; meets compliance standards
+  - **Expected Outcome**: Application passes accessibility audits (keyboard navigation, screen readers, color contrast)
+  - **Dependencies**: shadcn/ui migration
+
+- **Enhancement**: Clarify the "Generate Summary" button context
+  - **Complexity**: Simple
+  - **Rationale**: Improves usability by making the action clear based on current context
+  - **Expected Outcome**: Button text dynamically updates (e.g., "Generate Team Summary for Last Week")
+  - **Dependencies**: None
 
 ### Performance Optimization
-- Identify and fix performance bottlenecks in data fetching and rendering
-- Add appropriate memoization for computed values and components
 
-## Standard Priority
+- **Enhancement**: Fetch only new GitHub data since the last update
+  - **Complexity**: Medium
+  - **Rationale**: Significantly reduces API usage, speeds up data refresh times
+  - **Expected Outcome**: Incremental data fetching implemented; faster refresh performance
+  - **Dependencies**: None
 
-### Testing Enhancements
-- Add integration tests for data fetching and UI display
-- Add end-to-end tests with a tool like Cypress or Playwright for critical user flows
-- Add end-to-end tests for the summary generation workflow
+- **Enhancement**: Add appropriate memoization for computed values and components
+  - **Complexity**: Simple
+  - **Rationale**: Prevent unnecessary re-renders and recalculations
+  - **Expected Outcome**: Key selectors and components wrapped in `useMemo`/`React.memo`; reduced CPU usage
+  - **Dependencies**: None
 
-### UI Improvements
-- Move UI implementation to shadcn/ui
-- Clarify the "Generate Summary" button to show what it summarizes (e.g., "Generate Team Summary for Last Week")
-- Add a simple bar chart to the commit classification UI to visualize commit types and their proportions
-- Implement basic temporal analysis to show activity trends over time using a line graph
-- Update the comprehensive analysis to list specific projects included in the summary
-- Highlight key achievements in the analysis output with the projects they relate to
-- Make the UI fully responsive for mobile and desktop
-- Ensure the UI meets basic accessibility standards (e.g., keyboard navigation, color contrast)
-- Ensure WCAG 2.1 compliance for accessibility (e.g., screen reader support)
+- **Enhancement**: Profile and optimize data fetching and rendering performance
+  - **Complexity**: Medium
+  - **Rationale**: Improves user experience with faster UI and data loading
+  - **Expected Outcome**: Identified and resolved performance bottlenecks; measurable improvement in loading times
+  - **Dependencies**: None
 
-### Feature Enhancements
-- Add server-side caching for GitHub API calls to speed up frequent queries
-- Add basic logging for errors and user actions to monitor system health
-- Expand data collection to include pull requests alongside commits
-- Create a simple entity recognition service to tag people and repositories in commit messages
-- Link commits to their related pull requests in the analysis output
-- Track basic temporal metadata (e.g., commit times by day) for activity patterns
-- Build a basic insight generation pipeline to process data and display results
-- Calculate simple stats like commit frequency and active contributors in a stats module
-- Analyze basic code complexity (e.g., lines of code per commit) in repositories
-- Set up a hosting service for one AI model with basic access for analysis tasks
-- Create a dynamic insight dashboard with a few interactive cards (e.g., recent activity, top contributors)
-- Use Chart.js to add a time-series chart of commit activity to the UI
-- Add a clickable summary in the UI to drill down to specific commits
-- Show role-based insights (e.g., developer vs. manager) based on a user role dropdown
-- Add a natural language query box for basic questions like "What did I do this week?"
-- Build a "Daily Standup Prep" recap showing recent commits for developers
-- Create a "Sprint Reflection" report with commit trends and top active projects
-- Flag unusual activity (e.g., no commits in 3 days) as a basic risk alert
-- Track individual commit counts over time as a simple "Personal Growth" feature
-- Analyze PR review frequency to show basic team collaboration stats
-- Predict feature completion dates using commit rates and a simple formula
-- Summarize repository history and top contributors for an "Onboarding Accelerator" page
-- Add a "Custom Insight" form to set basic alerts (e.g., "Notify me if commits drop below 5/day")
-- Award a "Commit Streak" badge for 5 consecutive days of commits
-- Design a simple plugin system with a sample plugin for a new stat
-- Send a Slack notification for new insights or alerts
-- Link GitHub commits to Jira tickets using basic ID matching
-- Split data fetching, analysis, and UI into separate code modules
-- Process insights in the background and email them daily
-- Fetch only new GitHub data since the last update to reduce API calls
-- Encrypt GitHub tokens in storage and transit
-- Limit data access to match GitHub permissions for each user
-- Check GDPR compliance for storing GitHub usernames and commit data
-- Add a "Demo Mode" with fake data to preview the dashboard
-- Enhance logging with performance metrics (e.g., API response times)
-- Fine-tune the AI model for better commit analysis accuracy
-- Use D3.js to add a heatmap of commit activity by hour and day
-- Collect GitHub issues and comments for broader activity tracking
-- Normalize feature names from PR titles in the entity recognition service
-- Aggregate activity across repositories into a unified timeline
-- Track seasonal commit trends (e.g., monthly patterns) in the temporal module
-- Add a specialized AI model for code quality scoring
-- Calculate code churn (added vs. removed lines) in the stats module
-- Assess technical debt using commit message keywords (e.g., "fix", "hack")
-- Build a network graph of PR reviews and comments for collaboration insights
-- Suggest skill growth areas based on commit types (e.g., "Try more refactors")
-- Recommend process tweaks (e.g., "Speed up PR reviews") from collaboration data
-- Generate automated onboarding docs from repository summaries
-- Add a no-code rule builder for custom insights (e.g., "Alert if PRs > 3 days old")
-- Integrate with Trello to map commits to tasks
+### Testing & Quality Assurance
+
+- **Feature**: Add integration tests for data fetching and UI display
+  - **Complexity**: Medium
+  - **Rationale**: Ensure end-to-end reliability across the stack
+  - **Expected Outcome**: Test suite covering key API endpoints and UI interactions
+  - **Dependencies**: Jest configuration
+
+- **Feature**: Implement end-to-end tests for critical user flows
+  - **Complexity**: Medium
+  - **Rationale**: Verifies that different parts of the system work together correctly
+  - **Expected Outcome**: Playwright/Cypress tests for login, summary generation, and activity viewing
+  - **Dependencies**: Integration tests
+
+- **Refactor**: Break down `src/app/api/summary/__tests__/handlers.test.ts` (502 lines)
+  - **Complexity**: Simple
+  - **Rationale**: Improves test maintainability and readability
+  - **Expected Outcome**: Large test file split into logical groups by functionality
+  - **Dependencies**: None
+
+### Data Visualization & Insights
+
+- **Feature**: Add basic visualizations for commit activity
+  - **Complexity**: Medium
+  - **Rationale**: Makes trends and patterns easier to spot; enhances data comprehension
+  - **Expected Outcome**: Bar charts for commit types and line graphs for activity trends
+  - **Dependencies**: None
+
+- **Feature**: Calculate and display simple statistics
+  - **Complexity**: Medium
+  - **Rationale**: Provides immediate, quantifiable value from the collected data
+  - **Expected Outcome**: Stats module with metrics like commit frequency and active contributors
+  - **Dependencies**: None
+
+- **Feature**: Implement a "Daily Standup Prep" view
+  - **Complexity**: Medium
+  - **Rationale**: Provides a direct, practical use case for developers
+  - **Expected Outcome**: View showing recent commits/PRs for quick standup preparation
+  - **Dependencies**: PR data collection
+
+### Observability & Reliability
+
+- **Enhancement**: Implement structured logging for critical events
+  - **Complexity**: Medium
+  - **Rationale**: Essential for monitoring system health and debugging production issues
+  - **Expected Outcome**: Key application events logged with context (timestamps, IDs, error details)
+  - **Dependencies**: None
+
+- **Enhancement**: Implement monitoring for key application metrics
+  - **Complexity**: Medium
+  - **Rationale**: Provides visibility into application health and performance
+  - **Expected Outcome**: Dashboard tracking error rates, API latency, and request volume
+  - **Dependencies**: Structured logging
+
+## Low Priority
+
+### Advanced Features
+
+- **Feature**: Create a "Sprint Reflection" report
+  - **Complexity**: Medium
+  - **Rationale**: Provides value for agile teams during retrospectives
+  - **Expected Outcome**: Report summarizing activity and trends over a sprint period
+  - **Dependencies**: Stats module
+
+- **Feature**: Link GitHub commits to Jira/Trello tickets
+  - **Complexity**: Medium
+  - **Rationale**: Connects development activity to project management tasks
+  - **Expected Outcome**: Commits and PRs linked to their corresponding tickets
+  - **Dependencies**: PR data collection
+
+- **Feature**: Implement basic entity recognition in commit messages
+  - **Complexity**: Complex
+  - **Rationale**: Allows for tagging and filtering based on mentioned people or repositories
+  - **Expected Outcome**: Service identifying @mentions and repo references in text content
+  - **Dependencies**: None
+
+- **Feature**: Add clickable drill-downs for commits and PRs
+  - **Complexity**: Simple
+  - **Rationale**: Improves navigability and allows users to investigate details
+  - **Expected Outcome**: Summary items link to detailed views of specific commits or PRs
+  - **Dependencies**: None
+
+### Visualization Enhancements
+
+- **Feature**: Add temporal heatmap for commit activity by hour/day
+  - **Complexity**: Medium
+  - **Rationale**: Reveals productivity patterns and working schedules
+  - **Expected Outcome**: D3.js heatmap visualization showing activity concentration
+  - **Dependencies**: None
+
+- **Feature**: Highlight key achievements with projects they relate to
+  - **Complexity**: Medium
+  - **Rationale**: Provides context and importance to activity summaries
+  - **Expected Outcome**: Analysis output connects achievements to specific projects
+  - **Dependencies**: Entity recognition
+
+### User Engagement
+
+- **Feature**: Add a "Demo Mode" with fake data
+  - **Complexity**: Medium
+  - **Rationale**: Allows preview of features without GitHub integration
+  - **Expected Outcome**: Realistic demo data for showcasing application capabilities
+  - **Dependencies**: None
+
+- **Feature**: Implement "Commit Streak" badge
+  - **Complexity**: Simple
+  - **Rationale**: Increases engagement through gamification
+  - **Expected Outcome**: Badge awarded for consecutive days of commits
+  - **Dependencies**: None
+
+### Integration & Extensibility
+
+- **Feature**: Send Slack notifications for insights and alerts
+  - **Complexity**: Medium
+  - **Rationale**: Improves workflow integration and increases engagement
+  - **Expected Outcome**: Configurable Slack notifications for important insights
+  - **Dependencies**: None
+
+- **Research**: Design plugin system for custom insights
+  - **Complexity**: Complex
+  - **Rationale**: Allows for extensibility and third-party integrations
+  - **Expected Outcome**: Architecture document and prototype for plugin system
+  - **Dependencies**: None
+
+## Future Considerations
+
+### Advanced Analytics
+
+- **Feature**: Predict feature completion dates using commit rates
+- **Feature**: Calculate code churn (added vs. removed lines) metrics
+- **Feature**: Assess technical debt using commit message keywords
+- **Feature**: Build network graph of PR reviews and comments for collaboration insights
+- **Feature**: Track seasonal commit trends (monthly patterns)
+
+### AI and Machine Learning
+
+- **Feature**: Fine-tune AI model for better commit analysis accuracy
+- **Feature**: Add specialized model for code quality scoring
+- **Feature**: Enable natural language queries about development activity
+- **Feature**: Generate automated onboarding docs from repository summaries
+- **Feature**: Suggest skill growth areas based on commit types
+
+### Integration and Scaling
+
+- **Feature**: Process insights in background and email daily summaries
+- **Feature**: Add no-code rule builder for custom insights and alerts
+- **Feature**: Recommend process improvements from collaboration data
+- **Feature**: Aggregate activity across repositories into unified timeline
+- **Feature**: Integrate with additional project management tools
 
 ## Resolved Issues
 
 ### B001 - ActivityFeed Error Handling Issue
-**Description:** When loading commits in the activity feed, users sometimes saw the error: "Failed to load activity data. Please try again.: Cannot read properties of undefined (reading 'message')". 
+**Description:** When loading commits in the activity feed, users sometimes saw the error: "Failed to load activity data. Please try again.: Cannot read properties of undefined (reading 'message')".
 
 **Fix Implemented:**
 1. Refactored error handling in `createActivityFetcher`
