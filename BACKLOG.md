@@ -84,6 +84,20 @@
 
 ## Medium Priority
 
+### Monetization & Pricing
+
+- **Feature**: Design and implement pricing tiers
+  - **Complexity**: Medium
+  - **Rationale**: Establishes revenue model for sustainable product development
+  - **Expected Outcome**: Clear pricing page with feature comparison table for Free, Pro, and Team tiers
+  - **Dependencies**: None
+
+- **Feature**: Integrate Stripe payment processing
+  - **Complexity**: Medium
+  - **Rationale**: Industry-standard payment solution for subscription management
+  - **Expected Outcome**: Complete checkout flow for subscription creation and management
+  - **Dependencies**: Pricing tier design
+
 ### User Interface & Experience
 
 - **Enhancement**: Migrate to shadcn/ui design system
@@ -253,6 +267,20 @@
   - **Rationale**: Allows for extensibility and third-party integrations
   - **Expected Outcome**: Architecture document and prototype for plugin system
   - **Dependencies**: None
+
+### Alternative Payment Methods
+
+- **Feature**: Accept Bitcoin payments
+  - **Complexity**: Complex
+  - **Rationale**: Expand payment options for privacy-conscious users and crypto enthusiasts
+  - **Expected Outcome**: Bitcoin payment option in checkout flow with invoicing
+  - **Dependencies**: Stripe integration, pricing tiers
+
+- **Feature**: Implement Lightning Network payments
+  - **Complexity**: Complex
+  - **Rationale**: Offer fast, low-fee Bitcoin payments for micro-transactions
+  - **Expected Outcome**: Lightning payment option with QR code generation and payment verification
+  - **Dependencies**: Bitcoin payment support
 
 ## Future Considerations
 
