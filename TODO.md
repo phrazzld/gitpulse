@@ -174,7 +174,7 @@
     1. Both commands report no errors after annotations are added.
   - **Depends‑on:** [T013], [T014]
 
-- [ ] **T017 · Refactor · P1: audit and refine jest coverage exclusion patterns in `jest.config.js`**
+- [x] **T017 · Refactor · P1: audit and refine jest coverage exclusion patterns in `jest.config.js`**
 
   - **Context:** PLAN.md / cr‑06 Refine Jest Coverage Exclusion Patterns
   - **Action:**

@@ -17,12 +17,19 @@ const customJestConfig = {
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   // Coverage configuration
   collectCoverageFrom: [
+    // Include all TS/TSX source files
     'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/**/index.ts',
-    '!src/types/**',
-    '!**/node_modules/**',
-    '!<rootDir>/.next/**',
+
+    // --- Standard Exclusions ---
+    '!src/**/*.d.ts', // Type declaration files (no executable code)
+    '!**/node_modules/**', // External dependencies
+    '!<rootDir>/.next/**', // Build artifacts
+
+    // --- Type-only folder ---
+    '!src/types/**', // Type definition files
+
+    // --- Pure re-export barrels (from audit) ---
+    '!src/lib/github/index.ts', // Pure re-export barrel (verified by audit)
   ],
   coverageThreshold: {
     global: {
@@ -32,51 +39,51 @@ const customJestConfig = {
       statements: 85,
     },
     // Core API logic - critical business logic
-    "src/app/api/summary/handlers.ts": {
+    'src/app/api/summary/handlers.ts': {
       statements: 95,
       branches: 95,
       functions: 95,
-      lines: 95
+      lines: 95,
     },
     // Utility functions that are central to the application
-    "src/lib/api-utils.ts": {
+    'src/lib/api-utils.ts': {
       statements: 95,
       branches: 95,
       functions: 95,
-      lines: 95
+      lines: 95,
     },
-    "src/lib/dashboard-utils.ts": {
+    'src/lib/dashboard-utils.ts': {
       statements: 95,
       branches: 95,
       functions: 95,
-      lines: 95
+      lines: 95,
     },
-    "src/lib/github/utils.ts": {
+    'src/lib/github/utils.ts': {
       statements: 95,
       branches: 95,
       functions: 95,
-      lines: 95
+      lines: 95,
     },
     // GitHub API interaction modules - core functionality
-    "src/lib/github/commits.ts": {
+    'src/lib/github/commits.ts': {
       statements: 95,
       branches: 95,
       functions: 95,
-      lines: 95
+      lines: 95,
     },
-    "src/lib/github/repositories.ts": {
+    'src/lib/github/repositories.ts': {
       statements: 95,
       branches: 95,
       functions: 95,
-      lines: 95
+      lines: 95,
     },
     // Critical hooks for dashboard functionality
-    "src/hooks/dashboard/useSummary.ts": {
+    'src/hooks/dashboard/useSummary.ts': {
       statements: 95,
       branches: 95,
       functions: 95,
-      lines: 95
-    }
+      lines: 95,
+    },
   },
   coverageReporters: ['json', 'lcov', 'text', 'text-summary'],
 }
