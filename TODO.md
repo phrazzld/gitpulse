@@ -11,7 +11,7 @@
         2. CI pipeline step running tests starts successfully.
     - **Depends‑on:** none
 
-- [ ] **T002 · Refactor · P0: configure `tsconfig.json` to include test files**
+- [x] **T002 · Refactor · P0: configure `tsconfig.json` to include test files**
     - **Context:** PLAN.md / cr‑03 Enforce Type Safety for All Test Files / Step 1
     - **Action:**
         1. Review and modify the `include` array in `tsconfig.json`.
