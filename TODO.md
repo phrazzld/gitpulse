@@ -10,7 +10,7 @@
         2. `node_modules` contains the installed packages
     - **Depends-on:** none
 
-- [ ] **T002 · Chore · P1: create jest configuration file**
+- [x] **T002 · Chore · P1: create jest configuration file**
     - **Context:** Jest Testing Framework Implementation > Configuration Files > jest.config.js
     - **Action:**
         1. Create `jest.config.js` at the project root
@@ -98,7 +98,7 @@
     - **Context:** Jest Testing Framework Implementation > Modules / Packages lists `@types/jest`, ensuring it's included in installation
     - **Blocking?:** yes
 
-- [ ] **Issue:** decide on test configuration structure
+- [x] **Issue:** decide on test configuration structure
     - **Context:** Jest Testing Framework Implementation > Open Questions about separate vs. unified configs
     - **Blocking?:** no (Implementation plan recommends unified to start)
 
