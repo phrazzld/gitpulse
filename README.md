@@ -239,6 +239,18 @@ The project enforces a minimum coverage threshold of 85% globally and 95% for co
 - Functions
 - Lines
 
+The following critical core logic files require the higher 95% coverage threshold:
+
+- `src/app/api/summary/handlers.ts` - Core API logic for summary generation
+- `src/lib/api-utils.ts` - Central API utility functions
+- `src/lib/dashboard-utils.ts` - Critical dashboard functionality
+- `src/lib/github/utils.ts` - GitHub integration utilities
+- `src/lib/github/commits.ts` - GitHub commits functionality
+- `src/lib/github/repositories.ts` - GitHub repositories functionality
+- `src/hooks/dashboard/useSummary.ts` - Core data hook for dashboard summaries
+
+These requirements are automatically enforced by the CI pipeline, which will fail if coverage drops below these thresholds. When implementing new features or modifying existing ones, ensure your changes maintain or improve the coverage levels.
+
 Coverage reports are generated in the following formats:
 
 - Console summary

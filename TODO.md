@@ -204,7 +204,7 @@
     1. `README.md` clearly documents the security audit requirement.
   - **Depends‑on:** [T006]
 
-- [ ] **T020 · Chore · P2: document coverage requirements in readme and contributing docs**
+- [x] **T020 · Chore · P2: document coverage requirements in readme and contributing docs**
 
   - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Step 3
   - **Action:**
