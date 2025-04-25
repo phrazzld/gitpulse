@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Lint
+      run: npm run lint
+      
+    - name: Type check
+      run: npm run typecheck
+      # This step specifically ensures that all source and test files are type-checked
+      # It will fail if there are any type errors in the code, enforcing type safety
+      
+    - name: Run tests
+      run: npm test

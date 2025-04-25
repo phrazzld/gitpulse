@@ -30,7 +30,7 @@
         2. Any existing type errors in test files cause the command to fail.
     - **Depends‑on:** [T002]
 
-- [ ] **T004 · Chore · P0: integrate typecheck script execution into ci pipeline**
+- [x] **T004 · Chore · P0: integrate typecheck script execution into ci pipeline**
     - **Context:** PLAN.md / cr‑03 Enforce Type Safety for All Test Files / Step 4
     - **Action:**
         1. Add a step to the CI pipeline configuration that executes `npm run typecheck`.
