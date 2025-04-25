@@ -15,6 +15,24 @@ const customJestConfig = {
   },
   // Test paths to include
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
+  // Coverage configuration
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/**/index.ts',
+    '!src/types/**',
+    '!**/node_modules/**',
+    '!<rootDir>/.next/**',
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+  },
+  coverageReporters: ['json', 'lcov', 'text', 'text-summary'],
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config

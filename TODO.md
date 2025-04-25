@@ -22,7 +22,7 @@
         3. Key settings are properly configured for Next.js compatibility
     - **Depends-on:** [T001]
 
-- [ ] **T003 · Chore · P1: configure coverage settings**
+- [x] **T003 · Chore · P1: configure coverage settings**
     - **Context:** Jest Testing Framework Implementation > Coverage Targets
     - **Action:**
         1. Add coverage-related settings to `jest.config.js`: `collectCoverageFrom`, `coverageThreshold`, and `coverageReporters`
@@ -102,7 +102,7 @@
     - **Context:** Jest Testing Framework Implementation > Open Questions about separate vs. unified configs
     - **Blocking?:** no (Implementation plan recommends unified to start)
 
-- [ ] **Issue:** prioritize coverage areas
+- [x] **Issue:** prioritize coverage areas
     - **Context:** Jest Testing Framework Implementation > Open Questions about coverage prioritization
     - **Blocking?:** no (Implementation plan suggests src/lib as initial focus)
 
