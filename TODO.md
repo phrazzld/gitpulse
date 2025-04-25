@@ -32,7 +32,7 @@
         2. Settings match the specifications in the implementation plan
     - **Depends-on:** [T002]
 
-- [ ] **T004 · Chore · P1: create setup file**
+- [x] **T004 · Chore · P1: create setup file**
     - **Context:** Jest Testing Framework Implementation > Configuration Files > jest.setup.js
     - **Action:**
         1. Create `jest.setup.js` at the project root

@@ -7,8 +7,7 @@ const createJestConfig = nextJest({
 
 // Add custom config to be passed to Jest
 const customJestConfig = {
-  // Will uncomment this when jest.setup.js is created in ticket T004
-  // setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     // Handle module aliases
