@@ -133,7 +133,7 @@
     2. CI pipeline fails if any files violate Prettier formatting rules.
   - **Depends‑on:** [T010]
 
-- [ ] **T013 · Refactor · P1: add explicit type annotations to `example.test.ts`**
+- [x] **T013 · Refactor · P1: add explicit type annotations to `example.test.ts`**
 
   - **Context:** PLAN.md / cr‑07 Add Type Annotations in Example Test / Step 1
   - **Action:**
