@@ -26,6 +26,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
+    - name: Security audit
+      run: npm run audit
+      # This step checks for high-severity vulnerabilities in dependencies
+      # It will fail the build if any high-severity issues are found
+    
     - name: Lint
       run: npm run lint
       

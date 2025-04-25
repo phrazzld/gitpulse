@@ -49,7 +49,7 @@
         2. `npm run audit` executes successfully locally.
     - **Depends‑on:** none
 
-- [ ] **T006 · Chore · P0: integrate `npm audit` script execution into ci pipeline**
+- [x] **T006 · Chore · P0: integrate `npm audit` script execution into ci pipeline**
     - **Context:** PLAN.md / cr‑04 Automate Security Audit of Dependencies / Step 2
     - **Action:**
         1. Add a step to the CI pipeline configuration that executes `npm run audit`.
