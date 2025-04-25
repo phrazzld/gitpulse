@@ -83,7 +83,7 @@
         3. Current coverage meets or is baselined against the thresholds
     - **Depends-on:** [T003, T007]
 
-- [ ] **T009 · Chore · P2: document testing procedures**
+- [x] **T009 · Chore · P2: document testing procedures**
     - **Context:** Jest Testing Framework Implementation > Documentation
     - **Action:**
         1. Add a "Testing" section to `README.md`

@@ -175,6 +175,51 @@ When adding new features or making changes, follow these guidelines:
 - Use immutable patterns where possible (readonly modifiers, const, etc.)
 - Document the "why" not just the "how" in comments
 
+### Testing
+
+GitPulse uses Jest for testing, configured for Next.js compatibility with the following setup:
+
+#### Running Tests
+
+- Run all tests: `npm test`
+- Run tests in watch mode (for development): `npm run test:watch`
+- Generate coverage report: `npm run test:coverage`
+
+#### Test Organization
+
+Tests are organized following the project structure:
+
+```
+src/
+├── __tests__/            # Top-level tests
+├── components/
+│   └── __tests__/        # Component tests
+├── hooks/
+│   └── __tests__/        # Hook tests
+└── lib/
+    └── __tests__/        # Utility and service tests
+```
+
+#### Coverage Requirements
+
+The project enforces a minimum coverage threshold of 70% for:
+- Statements
+- Branches
+- Functions
+- Lines
+
+Coverage reports are generated in the following formats:
+- Console summary
+- Detailed HTML report (in `coverage/lcov-report/index.html`)
+- JSON and LCOV formats for tooling integration
+
+#### Writing Tests
+
+When writing tests:
+- Focus on testing behavior, not implementation details
+- Mock only true external dependencies (APIs, etc.)
+- Use descriptive test and assertion names
+
 ### Error Handling Principles
 
 When implementing error handling, follow this pattern:
