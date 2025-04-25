@@ -42,7 +42,7 @@
         2. File is properly referenced in `jest.config.js`
     - **Depends-on:** [T002]
 
-- [ ] **T005 · Chore · P1: add test scripts**
+- [x] **T005 · Chore · P1: add test scripts**
     - **Context:** Jest Testing Framework Implementation > Detailed Build Steps
     - **Action:**
         1. Add scripts for test execution: `"test": "jest"`, `"test:watch": "jest --watch"`, and `"test:coverage": "jest --coverage"`
