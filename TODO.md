@@ -144,7 +144,7 @@
     2. Test passes with strict type checking enabled.
   - **Depends‑on:** none
 
-- [ ] **T014 · Chore · P1: configure eslint to enforce type annotations in tests**
+- [x] **T014 · Chore · P1: configure eslint to enforce type annotations in tests**
 
   - **Context:** PLAN.md / cr‑07 Add Type Annotations in Example Test / Step 2
   - **Action:**

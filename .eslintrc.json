@@ -1,0 +1,62 @@
+{
+  "extends": "next/core-web-vitals",
+  "overrides": [
+    {
+      "files": ["src/lib/__tests__/example.test.ts"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint"],
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": [
+          "error",
+          {
+            "allowExpressions": false,
+            "allowTypedFunctionExpressions": false,
+            "allowHigherOrderFunctions": false
+          }
+        ],
+        "@typescript-eslint/typedef": [
+          "error",
+          {
+            "arrayDestructuring": false,
+            "arrowParameter": true,
+            "memberVariableDeclaration": true,
+            "objectDestructuring": false,
+            "parameter": true,
+            "propertyDeclaration": true,
+            "variableDeclaration": true,
+            "variableDeclarationIgnoreFunction": false
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/__tests__/**/*.ts", "**/__tests__/**/*.tsx"],
+      "excludedFiles": ["src/lib/__tests__/example.test.ts"],
+      "parser": "@typescript-eslint/parser",
+      "plugins": ["@typescript-eslint"],
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": [
+          "warn",
+          {
+            "allowExpressions": false,
+            "allowTypedFunctionExpressions": false,
+            "allowHigherOrderFunctions": false
+          }
+        ],
+        "@typescript-eslint/typedef": [
+          "warn",
+          {
+            "arrayDestructuring": false,
+            "arrowParameter": true,
+            "memberVariableDeclaration": true,
+            "objectDestructuring": false,
+            "parameter": true,
+            "propertyDeclaration": true,
+            "variableDeclaration": true,
+            "variableDeclarationIgnoreFunction": false
+          }
+        ]
+      }
+    }
+  ]
+}
