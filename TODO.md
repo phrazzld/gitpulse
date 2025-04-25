@@ -51,7 +51,7 @@
         2. Scripts execute without errors
     - **Depends-on:** [T001]
 
-- [ ] **T006 · Test · P1: create verification test**
+- [x] **T006 · Test · P1: create verification test**
     - **Context:** Jest Testing Framework Implementation > Detailed Build Steps
     - **Action:**
         1. Create the directory `src/lib/__tests__` if it doesn't exist
