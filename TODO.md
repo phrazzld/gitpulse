@@ -40,7 +40,7 @@
         2. CI pipeline fails if `npm run typecheck` fails.
     - **Depends‑on:** [T003]
 
-- [ ] **T005 · Feature · P0: add `npm audit` script to `package.json`**
+- [x] **T005 · Feature · P0: add `npm audit` script to `package.json`**
     - **Context:** PLAN.md / cr‑04 Automate Security Audit of Dependencies / Step 1
     - **Action:**
         1. Add `"audit": "npm audit --audit-level=high"` to the `scripts` section in `package.json`.
