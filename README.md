@@ -179,6 +179,29 @@ When adding new features or making changes, follow these guidelines:
 - Use immutable patterns where possible (readonly modifiers, const, etc.)
 - Document the "why" not just the "how" in comments
 
+### Code Formatting
+
+GitPulse uses Prettier for consistent code formatting:
+
+#### Prettier Configuration
+
+- No semicolons at line endings
+- Single quotes for strings
+- ES5-style trailing commas
+- 100 character print width
+- 2 space indentation (no tabs)
+- Line feed (LF) line endings
+
+#### Format Workflow
+
+- **Automatic Formatting**: Pre-commit hooks automatically format staged files using Prettier
+- **Manual Formatting**: Run `npm run format` to format the entire codebase
+- **CI Validation**: The CI pipeline includes a formatting check to ensure consistent style
+
+The pre-commit hook runs `lint-staged` which formats code using Prettier, followed by linting and type checking to ensure high code quality. This means your code will be automatically formatted when you commit, ensuring consistent style across the codebase.
+
+For large changes or new files, consider running `npm run format` manually before committing to ensure proper formatting.
+
 ### Security
 
 GitPulse employs automated security measures to ensure dependency safety:

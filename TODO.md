@@ -403,7 +403,7 @@ The following tickets address specific areas in the codebase that need additiona
     3. Pre-commit hook (`T011`) runs without errors on subsequent commits.
   - **Depends‑on:** [T011], [T012], [T022]
 
-- [ ] **T024 · Chore · P2: document formatting workflow in readme**
+- [x] **T024 · Chore · P2: document formatting workflow in readme**
 
   - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Step 8
   - **Action:**
