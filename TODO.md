@@ -155,7 +155,7 @@
     2. The example test passes linting after adding proper annotations.
   - **Depends‑on:** [T013]
 
-- [ ] **T015 · Chore · P1: add mocking policy comment to `jest.setup.js`**
+- [x] **T015 · Chore · P1: add mocking policy comment to `jest.setup.js`**
 
   - **Context:** PLAN.md / cr‑08 Reinforce Mocking Policy in Docs/Setup / Step 1
   - **Action:**
