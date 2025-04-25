@@ -90,7 +90,7 @@
 
 ## Code Formatting
 
-- [ ] **T010 · Chore · P1: install prettier and create base `.prettierrc` / `.prettierignore` files**
+- [x] **T010 · Chore · P1: install prettier and create base `.prettierrc` / `.prettierignore` files**
     - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Steps 1, 2, 3
     - **Action:**
         1. Run `npm install --save-dev prettier`.
