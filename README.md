@@ -94,17 +94,20 @@ GitPulse implements a comprehensive error handling strategy:
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/phrazzld/gitpulse.git
 cd gitpulse
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Create a `.env.local` file in the project root (use `.env.local.example` as a template):
+
 ```
 # GitHub OAuth
 GITHUB_OAUTH_CLIENT_ID=your_github_client_id
@@ -119,6 +122,7 @@ GEMINI_API_KEY=your_gemini_api_key
 ```
 
 4. Run the development server:
+
 ```bash
 # Standard development server
 npm run dev
@@ -185,6 +189,18 @@ GitPulse uses Jest for testing, configured for Next.js compatibility with the fo
 - Run tests in watch mode (for development): `npm run test:watch`
 - Generate coverage report: `npm run test:coverage`
 
+#### Type Safety in Tests
+
+All test files are fully type-checked with TypeScript:
+
+- Test files are included in the TypeScript configuration (`tsconfig.json`)
+- Type checking is enforced via the `npm run typecheck` command
+- Tests must pass type checking to be accepted in the CI pipeline
+- Type checking ensures consistent interfaces and prevents type-related bugs
+- Test files follow the same strict typing requirements as application code
+
+Running `npm run typecheck` will validate types across both application and test code.
+
 #### Test Organization
 
 Tests are organized following the project structure:
@@ -202,13 +218,15 @@ src/
 
 #### Coverage Requirements
 
-The project enforces a minimum coverage threshold of 70% for:
+The project enforces a minimum coverage threshold of 85% globally and 95% for core logic files:
+
 - Statements
 - Branches
 - Functions
 - Lines
 
 Coverage reports are generated in the following formats:
+
 - Console summary
 - Detailed HTML report (in `coverage/lcov-report/index.html`)
 - JSON and LCOV formats for tooling integration
@@ -216,9 +234,11 @@ Coverage reports are generated in the following formats:
 #### Writing Tests
 
 When writing tests:
+
 - Focus on testing behavior, not implementation details
 - Mock only true external dependencies (APIs, etc.)
 - Use descriptive test and assertion names
+- Include proper TypeScript type annotations
 
 ### Error Handling Principles
 

@@ -186,7 +186,7 @@
     3. Coverage report accuracy is confirmed.
   - **Depends‑on:** [T009]
 
-- [ ] **T018 · Chore · P2: document test file type checking requirement in readme**
+- [x] **T018 · Chore · P2: document test file type checking requirement in readme**
 
   - **Context:** PLAN.md / cr‑03 Enforce Type Safety for All Test Files / Step 5
   - **Action:**
