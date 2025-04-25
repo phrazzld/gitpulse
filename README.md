@@ -179,6 +179,20 @@ When adding new features or making changes, follow these guidelines:
 - Use immutable patterns where possible (readonly modifiers, const, etc.)
 - Document the "why" not just the "how" in comments
 
+### Security
+
+GitPulse employs automated security measures to ensure dependency safety:
+
+#### Dependency Security Audit
+
+- The project includes an `npm audit` script that checks for known vulnerabilities
+- Security audits are configured with a `high` severity threshold
+- Audits run automatically as part of the CI pipeline
+- Builds will fail if any high or critical severity vulnerabilities are found
+- To run security checks locally: `npm run audit`
+
+This ensures that security issues are identified and addressed early in the development cycle, preventing vulnerable dependencies from being merged into production code.
+
 ### Testing
 
 GitPulse uses Jest for testing, configured for Next.js compatibility with the following setup:

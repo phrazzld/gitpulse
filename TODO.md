@@ -195,7 +195,7 @@
     1. `README.md` clearly documents the type checking requirement for tests.
   - **Depends‑on:** [T004]
 
-- [ ] **T019 · Chore · P2: document security audit process in readme**
+- [x] **T019 · Chore · P2: document security audit process in readme**
 
   - **Context:** PLAN.md / cr‑04 Automate Security Audit of Dependencies / Step 3
   - **Action:**
