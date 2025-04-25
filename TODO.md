@@ -72,7 +72,7 @@
         3. Test output is displayed correctly in the console
     - **Depends-on:** [T005, T006]
 
-- [ ] **T008 · Test · P1: validate coverage reporting**
+- [x] **T008 · Test · P1: validate coverage reporting**
     - **Context:** Jest Testing Framework Implementation > Detailed Build Steps
     - **Action:**
         1. Run `npm run test:coverage` to generate a coverage report
@@ -106,6 +106,6 @@
     - **Context:** Jest Testing Framework Implementation > Open Questions about coverage prioritization
     - **Blocking?:** no (Implementation plan suggests src/lib as initial focus)
 
-- [ ] **Issue:** plan for CI integration
+- [x] **Issue:** plan for CI integration
     - **Context:** Jest Testing Framework Implementation > Open Questions about CI configuration
     - **Blocking?:** no (Future consideration)
