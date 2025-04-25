@@ -259,9 +259,9 @@ The following tickets address specific areas in the codebase that need additiona
     1. All metrics reach at least 95% coverage.
   - **Depends‑on:** none
 
-- [ ] **TC003 · Test · P2: improve test coverage for `src/lib/github/utils.ts`**
+- [x] **TC003 · Test · P2: improve test coverage for `src/lib/github/utils.ts`**
 
-  - **Current Coverage:** Statements: 92.30%, Branches: 76.92%, Functions: 100%, Lines: 91.93%
+  - **Current Coverage:** Statements: 100%, Branches: 100%, Functions: 100%, Lines: 100%
   - **Target:** 95% for all metrics
   - **Action:**
     1. Add tests focusing on branch coverage.

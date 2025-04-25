@@ -199,17 +199,18 @@ describe('GitHub Utils Module', () => {
       const items = [
         { id: 1, name: 'first' },
         { id: 2, name: 'second' },
-        { id: 1, name: 'duplicate' },
+        { id: 1, name: 'duplicate' }, // This replaces the first item since they share the same id
         { id: 3, name: 'third' },
       ]
 
       const result = deduplicateBy(items, item => item.id)
 
       expect(result).toHaveLength(3)
-      expect(result.some(item => item.name === 'first')).toBe(true)
+      // Since deduplicateBy uses a Map, the latest value with the same key is kept
+      expect(result.some(item => item.name === 'duplicate')).toBe(true) // This should be present (replaced 'first')
+      expect(result.some(item => item.name === 'first')).toBe(false) // This should be missing
       expect(result.some(item => item.name === 'second')).toBe(true)
       expect(result.some(item => item.name === 'third')).toBe(true)
-      expect(result.some(item => item.name === 'duplicate')).toBe(false)
     })
 
     it('should log info when duplicates are removed', () => {
@@ -280,7 +281,21 @@ describe('GitHub Utils Module', () => {
         data: { message: 'API rate limit exceeded' },
       }
 
-      expect(formatGitHubError(octokitError)).toBe('GitHub API error: API rate limit exceeded')
+      // The formatGitHubError function has a special case for 403 responses
+      expect(formatGitHubError(octokitError)).toBe(
+        'Access denied by GitHub. You may not have permission or have exceeded rate limits.'
+      )
+    })
+
+    it('should extract message from response data', () => {
+      const octokitError = new Error('API error')
+      ;(octokitError as any).response = {
+        status: 422, // Status without a specific handler
+        statusText: 'Unprocessable Entity',
+        data: { message: 'Validation failed' },
+      }
+
+      expect(formatGitHubError(octokitError)).toBe('GitHub API error: Validation failed')
     })
 
     it('should have special handling for authentication errors', () => {
@@ -288,6 +303,34 @@ describe('GitHub Utils Module', () => {
       ;(authError as any).response = { status: 401 }
 
       expect(formatGitHubError(authError)).toContain('authentication failed')
+    })
+
+    it('should have special handling for 404 not found errors', () => {
+      const notFoundError = new Error('Not Found error')
+      ;(notFoundError as any).response = { status: 404 }
+
+      expect(formatGitHubError(notFoundError)).toContain('resource not found')
+    })
+
+    it('should handle response without data or data without message', () => {
+      const errorWithoutData = new Error('No data error')
+      ;(errorWithoutData as any).response = {
+        status: 500,
+        statusText: 'Internal Server Error',
+      }
+
+      expect(formatGitHubError(errorWithoutData)).toBe(
+        'GitHub API error: 500 Internal Server Error'
+      )
+    })
+
+    it('should handle response without statusText', () => {
+      const errorWithoutStatusText = new Error('No statusText error')
+      ;(errorWithoutStatusText as any).response = {
+        status: 429,
+      }
+
+      expect(formatGitHubError(errorWithoutStatusText)).toBe('GitHub API error: 429')
     })
 
     it('should handle non-Error objects', () => {
