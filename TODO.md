@@ -213,7 +213,7 @@
     1. Documentation accurately reflects the enforced coverage thresholds.
   - **Depends‑on:** [T009]
 
-- [ ] **T021 · Chore · P2: create follow-up tasks for missing test coverage**
+- [x] **T021 · Chore · P2: create follow-up tasks for missing test coverage**
 
   - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Step 4
   - **Action:**
@@ -223,6 +223,163 @@
   - **Done‑when:**
     1. A list or set of tickets exists outlining specific areas requiring test additions to meet coverage.
   - **Depends‑on:** [T009]
+
+## Test Coverage Improvement Tickets
+
+The following tickets address specific areas in the codebase that need additional test coverage to meet the established thresholds:
+
+- Global coverage threshold: 85% for statements, branches, functions, and lines
+- Core logic files threshold: 95% for statements, branches, functions, and lines
+
+### Critical Files (95% Coverage Required)
+
+- [ ] **TC001 · Test · P1: improve test coverage for `src/lib/github/commits.ts`**
+
+  - **Current Coverage:** Statements: 51.21%, Branches: 63.41%, Functions: 41.66%, Lines: 55.40%
+  - **Target:** 95% for all metrics
+  - **Action:**
+    1. Add tests for error handling and edge cases.
+    2. Test pagination functionality.
+    3. Test different parameter combinations.
+    4. Focus on missing coverage in lines 131-135, 222-310.
+  - **Done‑when:**
+    1. All metrics reach at least 95% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC002 · Test · P1: improve test coverage for `src/lib/github/repositories.ts`**
+
+  - **Current Coverage:** Statements: 70.73%, Branches: 42.85%, Functions: 42.85%, Lines: 71.60%
+  - **Target:** 95% for all metrics
+  - **Action:**
+    1. Add tests for error conditions.
+    2. Test repository filtering functionality.
+    3. Test pagination and response handling.
+    4. Focus on missing coverage in lines 40-46, 70-74, 80-88, 117, 121-147, 164-165, 194, 212-213, 218-221.
+  - **Done‑when:**
+    1. All metrics reach at least 95% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC003 · Test · P2: improve test coverage for `src/lib/github/utils.ts`**
+
+  - **Current Coverage:** Statements: 92.30%, Branches: 76.92%, Functions: 100%, Lines: 91.93%
+  - **Target:** 95% for all metrics
+  - **Action:**
+    1. Add tests focusing on branch coverage.
+    2. Test edge cases for utility functions.
+    3. Focus on missing coverage in lines 210-219.
+  - **Done‑when:**
+    1. All metrics reach at least 95% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC004 · Test · P1: add tests for `src/app/api/summary/handlers.ts`**
+
+  - **Current Coverage:** Insufficient
+  - **Target:** 95% for all metrics
+  - **Action:**
+    1. Test all handler functions.
+    2. Cover error handling cases.
+    3. Test data transformation logic.
+  - **Done‑when:**
+    1. All metrics reach at least 95% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC005 · Test · P1: improve test coverage for `src/hooks/dashboard/useSummary.ts`**
+
+  - **Current Coverage:** Close to target (96.72% statements, 78.12% branches, 100% functions, 96.72% lines)
+  - **Target:** 95% for all metrics
+  - **Action:**
+    1. Add tests to improve branch coverage.
+    2. Test remaining edge cases.
+  - **Done‑when:**
+    1. All metrics reach at least 95% coverage.
+  - **Depends‑on:** none
+
+### Core Functionality (85% Coverage Required)
+
+- [ ] **TC006 · Test · P1: add tests for GitHub authentication (`src/lib/github/auth.ts`)**
+
+  - **Current Coverage:** 0% (completely untested)
+  - **Target:** 85% for all metrics
+  - **Action:**
+    1. Create comprehensive test suite.
+    2. Mock external dependencies.
+    3. Test both success and failure paths.
+  - **Done‑when:**
+    1. All metrics reach at least 85% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC007 · Test · P1: improve test coverage for dashboard hooks**
+
+  - **Current Coverage:** Very low (useInstallations: 12.72%, useRepositories: 10.71%)
+  - **Target:** 85% for all metrics
+  - **Action:**
+    1. Test hook initialization and state updates.
+    2. Test data fetching behavior.
+    3. Test error handling.
+    4. Focus on `useInstallations.ts` and `useRepositories.ts`.
+  - **Done‑when:**
+    1. All metrics reach at least 85% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC008 · Test · P1: add tests for AI functionality (`src/lib/gemini.ts`)**
+
+  - **Current Coverage:** 0% (completely untested)
+  - **Target:** 85% for all metrics
+  - **Action:**
+    1. Mock AI service responses.
+    2. Test response parsing.
+    3. Test error handling.
+  - **Done‑when:**
+    1. All metrics reach at least 85% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC009 · Test · P1: add tests for activity data processing (`src/lib/activity.ts`)**
+
+  - **Current Coverage:** 0% (completely untested)
+  - **Target:** 85% for all metrics
+  - **Action:**
+    1. Test activity data processing.
+    2. Test filtering and grouping logic.
+    3. Test edge cases with empty data.
+  - **Done‑when:**
+    1. All metrics reach at least 85% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC010 · Test · P1: add tests for authentication modules**
+
+  - **Current Coverage:** 0% (completely untested)
+  - **Target:** 85% for all metrics
+  - **Action:**
+    1. Create tests for `src/lib/auth/apiAuth.ts`.
+    2. Create tests for `src/lib/auth/clientAuth.ts`.
+    3. Create tests for `src/lib/auth/tokenValidator.ts`.
+    4. Mock external auth services and test token validation.
+  - **Done‑when:**
+    1. All metrics reach at least 85% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC011 · Test · P2: add tests for utility hooks**
+
+  - **Current Coverage:** 0% (completely untested)
+  - **Target:** 85% for all metrics
+  - **Action:**
+    1. Create tests for `src/hooks/useDebounce.ts`.
+    2. Create tests for `src/hooks/useProgressiveLoading.ts`.
+    3. Create tests for `src/hooks/useProtectedRoute.ts`.
+  - **Done‑when:**
+    1. All metrics reach at least 85% coverage.
+  - **Depends‑on:** none
+
+- [ ] **TC012 · Test · P2: improve test coverage for React components**
+
+  - **Current Coverage:** Varies by component
+  - **Target:** 85% for all metrics
+  - **Action:**
+    1. Create or enhance tests for key dashboard and UI components.
+    2. Test component rendering, user interactions, and error states.
+  - **Done‑when:**
+    1. All metrics reach at least 85% coverage.
+  - **Depends‑on:** none
 
 - [x] **T022 · Chore · P2: add `format` script to `package.json`**
 
