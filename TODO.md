@@ -164,7 +164,7 @@
     1. `jest.setup.js` contains the specified comment block.
   - **Depends‑on:** [T001]
 
-- [ ] **T016 · Test · P1: run type check and linting to confirm test type enforcement**
+- [x] **T016 · Test · P1: run type check and linting to confirm test type enforcement**
 
   - **Context:** PLAN.md / cr‑07 Add Type Annotations in Example Test / Step 3
   - **Action:**
