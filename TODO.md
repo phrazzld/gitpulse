@@ -20,7 +20,7 @@
         1. `tsconfig.json`'s `include` array correctly targets all project test files.
     - **Depends‑on:** none
 
-- [ ] **T003 · Test · P0: verify `typecheck` script includes test files**
+- [x] **T003 · Test · P0: verify `typecheck` script includes test files**
     - **Context:** PLAN.md / cr‑03 Enforce Type Safety for All Test Files / Step 2 & 3
     - **Action:**
         1. Confirm the `typecheck` script in `package.json` (e.g., `"typecheck": "tsc --noEmit"`) uses the root `tsconfig.json`.
