@@ -39,5 +39,8 @@ jobs:
       # This step specifically ensures that all source and test files are type-checked
       # It will fail if there are any type errors in the code, enforcing type safety
       
-    - name: Run tests
-      run: npm test
+    - name: Run tests with coverage
+      run: npm test -- --coverage
+      # This step runs tests and enforces the coverage thresholds
+      # defined in jest.config.js (global 85%, critical paths 95%)
+      # It will fail the build if coverage falls below these thresholds

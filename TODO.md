@@ -79,7 +79,7 @@
         2. Coverage report reflects these path-specific requirements.
     - **Depends‑on:** [T007]
 
-- [ ] **T009 · Chore · P0: integrate coverage threshold enforcement into ci pipeline**
+- [x] **T009 · Chore · P0: integrate coverage threshold enforcement into ci pipeline**
     - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Done-When
     - **Action:**
         1. Ensure the CI pipeline runs tests with the `--coverage` flag.
