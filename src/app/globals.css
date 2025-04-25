@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Cybernetic Command Interface Color Palette */
@@ -45,7 +45,7 @@
 body {
   background: var(--gradient-bg);
   color: var(--foreground);
-  font-family: "Roboto Mono", "Courier New", monospace;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
   line-height: 1.5;
   letter-spacing: 0.05em;
   min-height: 100vh;
@@ -133,7 +133,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Roboto Mono", "Courier New", monospace;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
   font-weight: bold;
 }
 
@@ -171,21 +171,25 @@ h6 {
 }
 
 /* Custom Scrollbars */
-::-webkit-scrollbar, .scrollbar-custom::-webkit-scrollbar {
+::-webkit-scrollbar,
+.scrollbar-custom::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-::-webkit-scrollbar-track, .scrollbar-custom::-webkit-scrollbar-track {
+::-webkit-scrollbar-track,
+.scrollbar-custom::-webkit-scrollbar-track {
   background: var(--dark-slate);
 }
 
-::-webkit-scrollbar-thumb, .scrollbar-custom::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb,
+.scrollbar-custom::-webkit-scrollbar-thumb {
   background: var(--neon-green);
   border-radius: var(--border-radius);
 }
 
-::-webkit-scrollbar-thumb:hover, .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover,
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
   background: var(--electric-blue);
 }
 

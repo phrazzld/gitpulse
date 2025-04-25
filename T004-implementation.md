@@ -17,6 +17,7 @@ I created a new GitHub Actions CI workflow since there was no existing CI pipeli
 ## Key Implementation Details
 
 The type checking step:
+
 - Is positioned after dependency installation (required for it to work)
 - Is positioned before the test step (to fail fast if there are type errors)
 - Executes `npm run typecheck` which uses the root tsconfig.json we configured in T002
@@ -36,6 +37,7 @@ The workflow file is located at `.github/workflows/ci.yml`. The specific type ch
 ## Validation
 
 This CI configuration:
+
 - Ensures type checking of all files (including test files) as configured in T002 and T003
 - Fails the build if any type errors are found
 - Runs in the correct sequence (after deps, before tests)

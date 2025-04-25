@@ -2,23 +2,23 @@
  * Types for test mocking - since we're not actually running tests right now
  * This helps with TypeScript checks during development
  */
-declare function describe(name: string, fn: () => void): void;
-declare function beforeEach(fn: () => void): void;
-declare function afterEach(fn: () => void): void;
-declare function it(name: string, fn: () => void): void;
-declare function expect(actual: any): any;
+declare function describe(name: string, fn: () => void): void
+declare function beforeEach(fn: () => void): void
+declare function afterEach(fn: () => void): void
+declare function it(name: string, fn: () => void): void
+declare function expect(actual: any): any
 declare namespace jest {
-  function resetModules(): void;
-  function clearAllMocks(): void;
-  function spyOn(object: any, methodName: string): any;
-  function fn(implementation?: (...args: any[]) => any): any;
-  function mock(moduleName: string, factory?: () => any): void;
+  function resetModules(): void
+  function clearAllMocks(): void
+  function spyOn(object: any, methodName: string): any
+  function fn(implementation?: (...args: any[]) => any): any
+  function mock(moduleName: string, factory?: () => any): void
 }
 
-import { generateBasicStats, extractUniqueRepositories, extractUniqueDates } from '../api-utils';
-import { Commit } from '../github';
-import { CommitStats } from '@/types/api';
-import { logger } from '../logger';
+import { generateBasicStats, extractUniqueRepositories, extractUniqueDates } from '../api-utils'
+import { Commit } from '../github'
+import { CommitStats } from '@/types/api'
+import { logger } from '../logger'
 
 // Mock dependencies
 jest.mock('../logger', () => ({
@@ -28,7 +28,7 @@ jest.mock('../logger', () => ({
     warn: jest.fn(),
     error: jest.fn(),
   },
-}));
+}))
 
 describe('api-utils', () => {
   // Sample test data
@@ -107,87 +107,81 @@ describe('api-utils', () => {
         avatar_url: 'https://example.com/avatar3.png',
       },
     },
-  ];
+  ]
 
   describe('generateBasicStats', () => {
     beforeEach(() => {
-      jest.clearAllMocks();
-    });
+      jest.clearAllMocks()
+    })
 
     it('should generate correct statistics for commits', () => {
-      const result = generateBasicStats(mockCommits);
+      const result = generateBasicStats(mockCommits)
 
       // Check structure and types
-      expect(result).toHaveProperty('totalCommits');
-      expect(result).toHaveProperty('repositories');
-      expect(result).toHaveProperty('dates');
+      expect(result).toHaveProperty('totalCommits')
+      expect(result).toHaveProperty('repositories')
+      expect(result).toHaveProperty('dates')
 
       // Check values
-      expect(result.totalCommits).toBe(4);
-      expect(result.repositories).toHaveLength(3);
-      expect(result.repositories).toContain('org1/repo1');
-      expect(result.repositories).toContain('org2/repo2');
-      expect(result.repositories).toContain('org3/repo3');
-      expect(result.dates).toHaveLength(3);
-      expect(result.dates).toContain('2023-01-01');
-      expect(result.dates).toContain('2023-01-02');
-      expect(result.dates).toContain('2023-01-03');
+      expect(result.totalCommits).toBe(4)
+      expect(result.repositories).toHaveLength(3)
+      expect(result.repositories).toContain('org1/repo1')
+      expect(result.repositories).toContain('org2/repo2')
+      expect(result.repositories).toContain('org3/repo3')
+      expect(result.dates).toHaveLength(3)
+      expect(result.dates).toContain('2023-01-01')
+      expect(result.dates).toContain('2023-01-02')
+      expect(result.dates).toContain('2023-01-03')
 
       // Verify logging
-      expect(logger.debug).toHaveBeenCalledWith(
-        'api-utils',
-        'Generating basic stats',
-        { commitCount: 4 }
-      );
-      expect(logger.debug).toHaveBeenCalledWith(
-        'api-utils',
-        'Basic stats generated',
-        {
-          totalCommits: 4,
-          uniqueRepos: 3,
-          uniqueDates: 3,
-        }
-      );
-    });
+      expect(logger.debug).toHaveBeenCalledWith('api-utils', 'Generating basic stats', {
+        commitCount: 4,
+      })
+      expect(logger.debug).toHaveBeenCalledWith('api-utils', 'Basic stats generated', {
+        totalCommits: 4,
+        uniqueRepos: 3,
+        uniqueDates: 3,
+      })
+    })
 
     it('should handle empty commit array', () => {
-      const result = generateBasicStats([]);
+      const result = generateBasicStats([])
 
-      expect(result.totalCommits).toBe(0);
-      expect(result.repositories).toHaveLength(0);
-      expect(result.dates).toHaveLength(0);
-    });
-  });
+      expect(result.totalCommits).toBe(0)
+      expect(result.repositories).toHaveLength(0)
+      expect(result.dates).toHaveLength(0)
+    })
+  })
 
   describe('extractUniqueRepositories', () => {
     it('should extract unique repository names from commits', () => {
-      const result = extractUniqueRepositories(mockCommits);
+      const result = extractUniqueRepositories(mockCommits)
 
-      expect(result).toHaveLength(3);
-      expect(result).toContain('org1/repo1');
-      expect(result).toContain('org2/repo2');
-      expect(result).toContain('org3/repo3');
-    });
+      expect(result).toHaveLength(3)
+      expect(result).toContain('org1/repo1')
+      expect(result).toContain('org2/repo2')
+      expect(result).toContain('org3/repo3')
+    })
 
     it('should handle empty commit array', () => {
-      const result = extractUniqueRepositories([]);
-      expect(result).toHaveLength(0);
-    });
-  });
+      const result = extractUniqueRepositories([])
+      expect(result).toHaveLength(0)
+    })
+  })
 
   describe('extractUniqueDates', () => {
     it('should extract unique dates from commits', () => {
-      const result = extractUniqueDates(mockCommits);
+      const result = extractUniqueDates(mockCommits)
 
-      expect(result).toHaveLength(3);
-      expect(result).toContain('2023-01-01');
-      expect(result).toContain('2023-01-02');
-      expect(result).toContain('2023-01-03');
-    });
+      expect(result).toHaveLength(3)
+      expect(result).toContain('2023-01-01')
+      expect(result).toContain('2023-01-02')
+      expect(result).toContain('2023-01-03')
+    })
 
     it('should handle empty commit array', () => {
-      const result = extractUniqueDates([]);
-      expect(result).toHaveLength(0);
-    });
-  });
-});
+      const result = extractUniqueDates([])
+      expect(result).toHaveLength(0)
+    })
+  })
+})

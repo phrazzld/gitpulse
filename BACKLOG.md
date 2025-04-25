@@ -5,18 +5,21 @@
 ### Core Functionality & Testing
 
 - **Feature**: Configure and validate Jest testing framework
+
   - **Complexity**: Simple
   - **Rationale**: Establishes baseline test infrastructure for reliable code validation
   - **Expected Outcome**: `npm test`, `npm run test:watch`, and `npm run test:coverage` run successfully; Jest configuration and test scripts in place
   - **Dependencies**: None
 
 - **Enhancement**: Improve test coverage for critical paths
+
   - **Complexity**: Medium
   - **Rationale**: Prevent regressions in core workflows (summary generation, activity feed)
   - **Expected Outcome**: Addition of unit tests for `createActivityFetcher`, `useProgressiveLoading`, summary API handlers, raising coverage to ≥ 90% on those modules
   - **Dependencies**: Jest configuration
 
 - **Fix**: Investigate and resolve missing "My Activity" data issue
+
   - **Complexity**: Medium
   - **Rationale**: Critical bug impacting core user value proposition (viewing personal activity)
   - **Expected Outcome**: Users can reliably see their activity data; verified with automated tests
@@ -31,18 +34,21 @@
 ### Technical Foundation
 
 - **Refactor**: Decompose `src/lib/github.ts` (853 lines) into focused service modules
+
   - **Complexity**: Medium
   - **Rationale**: Improves maintainability, testability, and code readability
   - **Expected Outcome**: Multiple focused modules under `src/lib/github/` with clear responsibilities; existing functionality preserved
   - **Dependencies**: None
 
 - **Refactor**: Break down `OperationsPanel.tsx` (470 lines) into smaller sub-components
+
   - **Complexity**: Medium
   - **Rationale**: Large component slows feature delivery; modular components speed up UI iterations
   - **Expected Outcome**: Clear separation into smaller, focused components with single responsibilities
   - **Dependencies**: None
 
 - **Enhancement**: Centralize error handling logic in `src/lib/error.ts`
+
   - **Complexity**: Simple
   - **Rationale**: Avoid duplicated logic; consistent user messaging across the application
   - **Expected Outcome**: Common error utilities used consistently throughout the codebase
@@ -57,6 +63,7 @@
 ### Data Collection & Infrastructure
 
 - **Feature**: Expand data collection to include pull requests and link to commits
+
   - **Complexity**: Medium
   - **Rationale**: Provides a fuller picture of team activity; enables richer insights
   - **Expected Outcome**: PRs are fetched, displayed, and linked to their relevant commits in the UI
@@ -71,6 +78,7 @@
 ### Security & Compliance
 
 - **Enhancement**: Encrypt GitHub tokens in storage and transit
+
   - **Complexity**: Medium
   - **Rationale**: Protects user credentials; complies with security best practices
   - **Expected Outcome**: Tokens stored in secure vault; HTTPS enforced; no tokens in logs
@@ -87,6 +95,7 @@
 ### Monetization & Pricing
 
 - **Feature**: Design and implement pricing tiers
+
   - **Complexity**: Medium
   - **Rationale**: Establishes revenue model for sustainable product development
   - **Expected Outcome**: Clear pricing page with feature comparison table for Free, Pro, and Team tiers
@@ -101,18 +110,21 @@
 ### User Interface & Experience
 
 - **Enhancement**: Migrate to shadcn/ui design system
+
   - **Complexity**: Medium
   - **Rationale**: Consistent styling, accessible components, faster UI development
   - **Expected Outcome**: All core UI components use shadcn primitives; theme tokens applied
   - **Dependencies**: None
 
 - **Enhancement**: Make the UI fully responsive for mobile and desktop
+
   - **Complexity**: Medium
   - **Rationale**: Ensures usability across different devices, broadening accessibility
   - **Expected Outcome**: Application layout adapts gracefully to various screen widths
   - **Dependencies**: shadcn/ui migration
 
 - **Enhancement**: Ensure WCAG 2.1 compliance for accessibility
+
   - **Complexity**: Medium
   - **Rationale**: Makes the application usable for people with disabilities; meets compliance standards
   - **Expected Outcome**: Application passes accessibility audits (keyboard navigation, screen readers, color contrast)
@@ -127,12 +139,14 @@
 ### Performance Optimization
 
 - **Enhancement**: Fetch only new GitHub data since the last update
+
   - **Complexity**: Medium
   - **Rationale**: Significantly reduces API usage, speeds up data refresh times
   - **Expected Outcome**: Incremental data fetching implemented; faster refresh performance
   - **Dependencies**: None
 
 - **Enhancement**: Add appropriate memoization for computed values and components
+
   - **Complexity**: Simple
   - **Rationale**: Prevent unnecessary re-renders and recalculations
   - **Expected Outcome**: Key selectors and components wrapped in `useMemo`/`React.memo`; reduced CPU usage
@@ -147,12 +161,14 @@
 ### Testing & Quality Assurance
 
 - **Feature**: Add integration tests for data fetching and UI display
+
   - **Complexity**: Medium
   - **Rationale**: Ensure end-to-end reliability across the stack
   - **Expected Outcome**: Test suite covering key API endpoints and UI interactions
   - **Dependencies**: Jest configuration
 
 - **Feature**: Implement end-to-end tests for critical user flows
+
   - **Complexity**: Medium
   - **Rationale**: Verifies that different parts of the system work together correctly
   - **Expected Outcome**: Playwright/Cypress tests for login, summary generation, and activity viewing
@@ -163,16 +179,24 @@
   - **Rationale**: Improves test maintainability and readability
   - **Expected Outcome**: Large test file split into logical groups by functionality
   - **Dependencies**: None
+- **Enhancement**: Improve test coverage to meet requirements
+  - **Complexity**: Medium
+  - **Rationale**: Critical files must maintain 95% coverage, global coverage must reach 85%
+  - **Expected Outcome**: All files meet their required coverage thresholds
+  - **Dependencies**: None
+  - **Details**: See `COVERAGE_TICKETS.md` for specific test coverage improvement tasks (TC-001 through TC-012)
 
 ### Data Visualization & Insights
 
 - **Feature**: Add basic visualizations for commit activity
+
   - **Complexity**: Medium
   - **Rationale**: Makes trends and patterns easier to spot; enhances data comprehension
   - **Expected Outcome**: Bar charts for commit types and line graphs for activity trends
   - **Dependencies**: None
 
 - **Feature**: Calculate and display simple statistics
+
   - **Complexity**: Medium
   - **Rationale**: Provides immediate, quantifiable value from the collected data
   - **Expected Outcome**: Stats module with metrics like commit frequency and active contributors
@@ -187,6 +211,7 @@
 ### Observability & Reliability
 
 - **Enhancement**: Implement structured logging for critical events
+
   - **Complexity**: Medium
   - **Rationale**: Essential for monitoring system health and debugging production issues
   - **Expected Outcome**: Key application events logged with context (timestamps, IDs, error details)
@@ -203,18 +228,21 @@
 ### Advanced Features
 
 - **Feature**: Create a "Sprint Reflection" report
+
   - **Complexity**: Medium
   - **Rationale**: Provides value for agile teams during retrospectives
   - **Expected Outcome**: Report summarizing activity and trends over a sprint period
   - **Dependencies**: Stats module
 
 - **Feature**: Link GitHub commits to Jira/Trello tickets
+
   - **Complexity**: Medium
   - **Rationale**: Connects development activity to project management tasks
   - **Expected Outcome**: Commits and PRs linked to their corresponding tickets
   - **Dependencies**: PR data collection
 
 - **Feature**: Implement basic entity recognition in commit messages
+
   - **Complexity**: Complex
   - **Rationale**: Allows for tagging and filtering based on mentioned people or repositories
   - **Expected Outcome**: Service identifying @mentions and repo references in text content
@@ -229,6 +257,7 @@
 ### Visualization Enhancements
 
 - **Feature**: Add temporal heatmap for commit activity by hour/day
+
   - **Complexity**: Medium
   - **Rationale**: Reveals productivity patterns and working schedules
   - **Expected Outcome**: D3.js heatmap visualization showing activity concentration
@@ -243,6 +272,7 @@
 ### User Engagement
 
 - **Feature**: Add a "Demo Mode" with fake data
+
   - **Complexity**: Medium
   - **Rationale**: Allows preview of features without GitHub integration
   - **Expected Outcome**: Realistic demo data for showcasing application capabilities
@@ -257,6 +287,7 @@
 ### Integration & Extensibility
 
 - **Feature**: Send Slack notifications for insights and alerts
+
   - **Complexity**: Medium
   - **Rationale**: Improves workflow integration and increases engagement
   - **Expected Outcome**: Configurable Slack notifications for important insights
@@ -271,6 +302,7 @@
 ### Alternative Payment Methods
 
 - **Feature**: Accept Bitcoin payments
+
   - **Complexity**: Complex
   - **Rationale**: Expand payment options for privacy-conscious users and crypto enthusiasts
   - **Expected Outcome**: Bitcoin payment option in checkout flow with invoicing
@@ -311,9 +343,11 @@
 ## Resolved Issues
 
 ### B001 - ActivityFeed Error Handling Issue
+
 **Description:** When loading commits in the activity feed, users sometimes saw the error: "Failed to load activity data. Please try again.: Cannot read properties of undefined (reading 'message')".
 
 **Fix Implemented:**
+
 1. Refactored error handling in `createActivityFetcher`
 2. Enhanced `useProgressiveLoading` hook with safe error message extraction
 3. Updated `ActivityFeed` to sanitize error messages

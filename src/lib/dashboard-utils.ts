@@ -7,8 +7,8 @@
  * @returns The current date as an ISO string (YYYY-MM-DD)
  */
 export function getTodayDate(): string {
-  const today = new Date();
-  return formatDateToISOString(today);
+  const today = new Date()
+  return formatDateToISOString(today)
 }
 
 /**
@@ -16,9 +16,9 @@ export function getTodayDate(): string {
  * @returns The date from 7 days ago as an ISO string (YYYY-MM-DD)
  */
 export function getLastWeekDate(): string {
-  const lastWeek = new Date();
-  lastWeek.setDate(lastWeek.getDate() - 7);
-  return formatDateToISOString(lastWeek);
+  const lastWeek = new Date()
+  lastWeek.setDate(lastWeek.getDate() - 7)
+  return formatDateToISOString(lastWeek)
 }
 
 /**
@@ -27,7 +27,7 @@ export function getLastWeekDate(): string {
  * @returns The formatted date string
  */
 export function formatDateToISOString(date: Date): string {
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split('T')[0]
 }
 
 /**
@@ -36,29 +36,31 @@ export function formatDateToISOString(date: Date): string {
  */
 export function getGitHubAppInstallUrl(): string {
   // Use the provided app name or a generic message if not configured
-  const appName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME;
-  
+  const appName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME
+
   if (!appName) {
     // If no app name is configured, create a more informative error
-    console.error("GitHub App name not configured. Please set NEXT_PUBLIC_GITHUB_APP_NAME environment variable.");
-    return "#github-app-not-configured";
+    console.error(
+      'GitHub App name not configured. Please set NEXT_PUBLIC_GITHUB_APP_NAME environment variable.'
+    )
+    return '#github-app-not-configured'
   }
-  
+
   // Use the standard GitHub App installation URL
-  return `https://github.com/apps/${appName}/installations/new`;
+  return `https://github.com/apps/${appName}/installations/new`
 }
 
 /**
  * Creates a date range object with the specified since and until dates
  * @param since - The start date (YYYY-MM-DD)
- * @param until - The end date (YYYY-MM-DD) 
+ * @param until - The end date (YYYY-MM-DD)
  * @returns An object with since and until properties
  */
 export function createDateRange(since: string, until: string): { since: string; until: string } {
   return {
     since,
-    until
-  };
+    until,
+  }
 }
 
 /**
@@ -68,6 +70,6 @@ export function createDateRange(since: string, until: string): { since: string; 
 export function getDefaultDateRange(): { since: string; until: string } {
   return {
     since: getLastWeekDate(),
-    until: getTodayDate()
-  };
+    until: getTodayDate(),
+  }
 }

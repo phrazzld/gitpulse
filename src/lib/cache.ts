@@ -1,12 +1,12 @@
 // Utility functions for API caching and ETag handling
 
-import { createHash } from 'crypto';
-import { logger } from './logger';
-import { NextRequest, NextResponse } from 'next/server';
-import { compressedJsonResponse } from './compress';
-import { optimizedJSONStringify } from './optimize';
+import { createHash } from 'crypto'
+import { logger } from './logger'
+import { NextRequest, NextResponse } from 'next/server'
+import { compressedJsonResponse } from './compress'
+import { optimizedJSONStringify } from './optimize'
 
-const MODULE_NAME = 'cache';
+const MODULE_NAME = 'cache'
 
 /**
  * Generates a consistent ETag for response data
@@ -15,15 +15,15 @@ const MODULE_NAME = 'cache';
  */
 export function generateETag(data: any): string {
   try {
-    const jsonString = JSON.stringify(data);
+    const jsonString = JSON.stringify(data)
     // Use MD5 as it's fast and sufficient for ETag purposes
     // In a production environment, consider using a more secure hash for sensitive data
-    const hash = createHash('md5').update(jsonString).digest('hex');
-    return `"${hash}"`;
+    const hash = createHash('md5').update(jsonString).digest('hex')
+    return `"${hash}"`
   } catch (error) {
-    logger.warn(MODULE_NAME, 'Error generating ETag', { error });
+    logger.warn(MODULE_NAME, 'Error generating ETag', { error })
     // Fallback to a timestamp-based ETag if stringification fails
-    return `"${Date.now().toString(36)}"`;
+    return `"${Date.now().toString(36)}"`
   }
 }
 
@@ -34,15 +34,15 @@ export function generateETag(data: any): string {
  * @returns True if the ETags match (cache is valid)
  */
 export function isCacheValid(request: NextRequest, etag: string): boolean {
-  const ifNoneMatch = request.headers.get('if-none-match');
-  if (!ifNoneMatch) return false;
-  
+  const ifNoneMatch = request.headers.get('if-none-match')
+  if (!ifNoneMatch) return false
+
   // Simple exact match check
-  if (ifNoneMatch === etag) return true;
-  
+  if (ifNoneMatch === etag) return true
+
   // Handle multiple ETags in the header (comma-separated list)
-  const etags = ifNoneMatch.split(',').map(e => e.trim());
-  return etags.includes(etag);
+  const etags = ifNoneMatch.split(',').map(e => e.trim())
+  return etags.includes(etag)
 }
 
 /**
@@ -53,17 +53,17 @@ export function isCacheValid(request: NextRequest, etag: string): boolean {
  */
 export function notModifiedResponse(etag: string, cacheControl?: string): NextResponse {
   const headers: Record<string, string> = {
-    'ETag': etag,
-  };
-  
-  if (cacheControl) {
-    headers['Cache-Control'] = cacheControl;
+    ETag: etag,
   }
-  
+
+  if (cacheControl) {
+    headers['Cache-Control'] = cacheControl
+  }
+
   return new NextResponse(null, {
     status: 304,
     headers,
-  });
+  })
 }
 
 /**
@@ -74,43 +74,44 @@ export function notModifiedResponse(etag: string, cacheControl?: string): NextRe
  * @returns A NextResponse with the data and caching headers
  */
 export function cachedJsonResponse(
-  data: any, 
+  data: any,
   status: number = 200,
   options: {
-    etag?: string,
-    cacheControl?: string,
-    maxAge?: number,
-    staleWhileRevalidate?: number,
-    isPrivate?: boolean,
+    etag?: string
+    cacheControl?: string
+    maxAge?: number
+    staleWhileRevalidate?: number
+    isPrivate?: boolean
     extraHeaders?: Record<string, string>
   } = {}
 ): NextResponse {
-  const etag = options.etag || generateETag(data);
-  
+  const etag = options.etag || generateETag(data)
+
   // Use provided cache control or generate one with optional parameters
-  const cacheControl = options.cacheControl || 
+  const cacheControl =
+    options.cacheControl ||
     generateCacheControl(
       options.maxAge || CacheTTL.SHORT,
       options.staleWhileRevalidate,
       options.isPrivate !== undefined ? options.isPrivate : true
-    );
-  
+    )
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'ETag': etag,
+    ETag: etag,
     'Cache-Control': cacheControl,
-    ...options.extraHeaders
-  };
-  
+    ...options.extraHeaders,
+  }
+
   return NextResponse.json(data, {
     status,
     headers,
-  });
+  })
 }
 
 /**
  * Creates an optimized and possibly compressed JSON response with caching headers
- * 
+ *
  * @param request - The original NextRequest to check for compression support
  * @param data - The data to return and potentially compress
  * @param status - HTTP status code
@@ -119,47 +120,48 @@ export function cachedJsonResponse(
  */
 export async function optimizedJsonResponse(
   request: NextRequest,
-  data: any, 
+  data: any,
   status: number = 200,
   options: {
-    etag?: string,
-    cacheControl?: string,
-    maxAge?: number,
-    staleWhileRevalidate?: number,
-    isPrivate?: boolean,
-    compress?: boolean,
+    etag?: string
+    cacheControl?: string
+    maxAge?: number
+    staleWhileRevalidate?: number
+    isPrivate?: boolean
+    compress?: boolean
     extraHeaders?: Record<string, string>
   } = {}
 ): Promise<NextResponse> {
-  const etag = options.etag || generateETag(data);
-  
+  const etag = options.etag || generateETag(data)
+
   // Use provided cache control or generate one with optional parameters
-  const cacheControl = options.cacheControl || 
+  const cacheControl =
+    options.cacheControl ||
     generateCacheControl(
       options.maxAge || CacheTTL.SHORT,
       options.staleWhileRevalidate,
       options.isPrivate !== undefined ? options.isPrivate : true
-    );
-  
+    )
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'ETag': etag,
+    ETag: etag,
     'Cache-Control': cacheControl,
-    ...options.extraHeaders
-  };
-  
+    ...options.extraHeaders,
+  }
+
   // Apply compression if enabled (default to true)
-  const shouldCompress = options.compress !== false;
-  
+  const shouldCompress = options.compress !== false
+
   if (shouldCompress) {
     // Use compressed response function if compression is enabled
-    return await compressedJsonResponse(data, request, status, headers);
+    return await compressedJsonResponse(data, request, status, headers)
   } else {
     // Fall back to standard response without compression
     return NextResponse.json(data, {
       status,
       headers,
-    });
+    })
   }
 }
 
@@ -171,7 +173,7 @@ export const CacheTTL = {
   MEDIUM: 900, // 15 minutes - for semi-dynamic data
   LONG: 3600, // 1 hour - for relatively static data
   VERY_LONG: 86400, // 24 hours - for very static data
-};
+}
 
 /**
  * Generates a Cache-Control header value with appropriate directives
@@ -185,6 +187,6 @@ export function generateCacheControl(
   staleWhileRevalidate: number = maxAge * 2,
   isPrivate: boolean = true
 ): string {
-  const privacy = isPrivate ? 'private' : 'public';
-  return `${privacy}, max-age=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`;
+  const privacy = isPrivate ? 'private' : 'public'
+  return `${privacy}, max-age=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`
 }

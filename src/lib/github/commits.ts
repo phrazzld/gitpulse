@@ -1,16 +1,16 @@
 /**
  * GitHub commits module
- * 
+ *
  * Provides functions for fetching and interacting with GitHub commits
  * using both OAuth tokens and GitHub App installations.
  */
 
-import { Octokit } from "octokit";
-import { logger } from "../logger";
-import { Commit } from "./types";
-import { createOAuthOctokit, getInstallationOctokit } from "./auth";
+import { Octokit } from 'octokit'
+import { logger } from '../logger'
+import { Commit } from './types'
+import { createOAuthOctokit, getInstallationOctokit } from './auth'
 
-const MODULE_NAME = "github:commits";
+const MODULE_NAME = 'github:commits'
 
 /**
  * Fetch repository commits using OAuth token
@@ -28,25 +28,18 @@ export async function fetchRepositoryCommitsOAuth(
   repo: string,
   since: string,
   until: string,
-  author?: string,
+  author?: string
 ): Promise<Commit[]> {
-  logger.debug(
-    MODULE_NAME,
-    `fetchRepositoryCommitsOAuth called for ${owner}/${repo}`,
-    {
-      since,
-      until,
-      author: author || "not specified",
-    },
-  );
+  logger.debug(MODULE_NAME, `fetchRepositoryCommitsOAuth called for ${owner}/${repo}`, {
+    since,
+    until,
+    author: author || 'not specified',
+  })
 
-  const octokit = createOAuthOctokit(accessToken);
+  const octokit = createOAuthOctokit(accessToken)
 
   try {
-    logger.debug(
-      MODULE_NAME,
-      `Starting pagination for ${owner}/${repo} commits`,
-    );
+    logger.debug(MODULE_NAME, `Starting pagination for ${owner}/${repo} commits`)
     const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
       owner,
       repo,
@@ -54,30 +47,29 @@ export async function fetchRepositoryCommitsOAuth(
       until,
       author,
       per_page: 100,
-    });
+    })
 
     logger.info(MODULE_NAME, `Fetched commits for ${owner}/${repo}`, {
       count: commits.length,
       firstCommitSha: commits.length > 0 ? commits[0].sha : null,
-      lastCommitSha:
-        commits.length > 0 ? commits[commits.length - 1].sha : null,
-    });
+      lastCommitSha: commits.length > 0 ? commits[commits.length - 1].sha : null,
+    })
 
     // attach repository info
-    const commitsWithRepoInfo = commits.map((commit) => ({
+    const commitsWithRepoInfo = commits.map(commit => ({
       ...commit,
       repository: {
         full_name: `${owner}/${repo}`,
       },
-    }));
+    }))
 
-    return commitsWithRepoInfo as unknown as Commit[];
+    return commitsWithRepoInfo as unknown as Commit[]
   } catch (error) {
     logger.error(MODULE_NAME, `Error fetching commits for ${owner}/${repo}`, {
       error,
-    });
+    })
     // return empty array if there's an access or other error
-    return [];
+    return []
   }
 }
 
@@ -97,26 +89,19 @@ export async function fetchRepositoryCommitsApp(
   repo: string,
   since: string,
   until: string,
-  author?: string,
+  author?: string
 ): Promise<Commit[]> {
-  logger.debug(
-    MODULE_NAME,
-    `fetchRepositoryCommitsApp called for ${owner}/${repo}`,
-    {
-      installationId,
-      since,
-      until,
-      author: author || "not specified",
-    },
-  );
+  logger.debug(MODULE_NAME, `fetchRepositoryCommitsApp called for ${owner}/${repo}`, {
+    installationId,
+    since,
+    until,
+    author: author || 'not specified',
+  })
 
   try {
-    const octokit = await getInstallationOctokit(installationId);
+    const octokit = await getInstallationOctokit(installationId)
 
-    logger.debug(
-      MODULE_NAME,
-      `Starting pagination for ${owner}/${repo} commits via GitHub App`,
-    );
+    logger.debug(MODULE_NAME, `Starting pagination for ${owner}/${repo} commits via GitHub App`)
 
     const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
       owner,
@@ -125,38 +110,29 @@ export async function fetchRepositoryCommitsApp(
       until,
       author,
       per_page: 100,
-    });
+    })
 
-    logger.info(
-      MODULE_NAME,
-      `Fetched commits for ${owner}/${repo} via GitHub App`,
-      {
-        count: commits.length,
-        firstCommitSha: commits.length > 0 ? commits[0].sha : null,
-        lastCommitSha:
-          commits.length > 0 ? commits[commits.length - 1].sha : null,
-      },
-    );
+    logger.info(MODULE_NAME, `Fetched commits for ${owner}/${repo} via GitHub App`, {
+      count: commits.length,
+      firstCommitSha: commits.length > 0 ? commits[0].sha : null,
+      lastCommitSha: commits.length > 0 ? commits[commits.length - 1].sha : null,
+    })
 
     // attach repository info
-    const commitsWithRepoInfo = commits.map((commit) => ({
+    const commitsWithRepoInfo = commits.map(commit => ({
       ...commit,
       repository: {
         full_name: `${owner}/${repo}`,
       },
-    }));
+    }))
 
-    return commitsWithRepoInfo as unknown as Commit[];
+    return commitsWithRepoInfo as unknown as Commit[]
   } catch (error) {
-    logger.error(
-      MODULE_NAME,
-      `Error fetching commits for ${owner}/${repo} via GitHub App`,
-      {
-        error,
-      },
-    );
+    logger.error(MODULE_NAME, `Error fetching commits for ${owner}/${repo} via GitHub App`, {
+      error,
+    })
     // return empty array if there's an access or other error
-    return [];
+    return []
   }
 }
 
@@ -174,69 +150,40 @@ export async function fetchRepositoryCommitsApp(
 export async function fetchRepositoryCommits(
   accessToken?: string,
   installationId?: number,
-  owner: string = "",
-  repo: string = "",
-  since: string = "",
-  until: string = "",
-  author?: string,
+  owner: string = '',
+  repo: string = '',
+  since: string = '',
+  until: string = '',
+  author?: string
 ): Promise<Commit[]> {
-  logger.debug(
-    MODULE_NAME,
-    `fetchRepositoryCommits called for ${owner}/${repo}`,
-    {
-      hasAccessToken: !!accessToken,
-      hasInstallationId: !!installationId,
-      since,
-      until,
-      author: author || "not specified",
-    },
-  );
+  logger.debug(MODULE_NAME, `fetchRepositoryCommits called for ${owner}/${repo}`, {
+    hasAccessToken: !!accessToken,
+    hasInstallationId: !!installationId,
+    since,
+    until,
+    author: author || 'not specified',
+  })
 
   try {
     // Prefer GitHub App installation if available
     if (installationId) {
-      logger.info(
-        MODULE_NAME,
-        "Using GitHub App installation for commit access",
-        {
-          installationId,
-        },
-      );
-      return await fetchRepositoryCommitsApp(
+      logger.info(MODULE_NAME, 'Using GitHub App installation for commit access', {
         installationId,
-        owner,
-        repo,
-        since,
-        until,
-        author,
-      );
+      })
+      return await fetchRepositoryCommitsApp(installationId, owner, repo, since, until, author)
     } else if (accessToken) {
-      logger.info(MODULE_NAME, "Using OAuth token for commit access");
-      return await fetchRepositoryCommitsOAuth(
-        accessToken,
-        owner,
-        repo,
-        since,
-        until,
-        author,
-      );
+      logger.info(MODULE_NAME, 'Using OAuth token for commit access')
+      return await fetchRepositoryCommitsOAuth(accessToken, owner, repo, since, until, author)
     } else {
       // Neither authentication method is available
-      logger.error(
-        MODULE_NAME,
-        "No authentication method available for commit access",
-      );
-      throw new Error(
-        "No GitHub authentication available. Please sign in again.",
-      );
+      logger.error(MODULE_NAME, 'No authentication method available for commit access')
+      throw new Error('No GitHub authentication available. Please sign in again.')
     }
   } catch (error) {
-    logger.error(
-      MODULE_NAME,
-      `Error in unified fetchRepositoryCommits for ${owner}/${repo}`,
-      { error },
-    );
-    return [];
+    logger.error(MODULE_NAME, `Error in unified fetchRepositoryCommits for ${owner}/${repo}`, {
+      error,
+    })
+    return []
   }
 }
 
@@ -254,45 +201,38 @@ export async function fetchCommitsForRepositories(
   accessToken?: string,
   installationId?: number,
   repositories: string[] = [],
-  since: string = "",
-  until: string = "",
-  author?: string,
+  since: string = '',
+  until: string = '',
+  author?: string
 ): Promise<Commit[]> {
-  logger.debug(MODULE_NAME, "fetchCommitsForRepositories called", {
+  logger.debug(MODULE_NAME, 'fetchCommitsForRepositories called', {
     repositoriesCount: repositories.length,
     hasAccessToken: !!accessToken,
     hasInstallationId: !!installationId,
     since,
     until,
-    author: author || "not specified",
-  });
+    author: author || 'not specified',
+  })
 
   if (!accessToken && !installationId) {
-    logger.error(
-      MODULE_NAME,
-      "No authentication method provided for fetching commits",
-    );
-    throw new Error(
-      "No GitHub authentication available. Please sign in again.",
-    );
+    logger.error(MODULE_NAME, 'No authentication method provided for fetching commits')
+    throw new Error('No GitHub authentication available. Please sign in again.')
   }
 
-  const allCommits: Commit[] = [];
-  let githubUsername = author;
-  const batchSize = 5;
+  const allCommits: Commit[] = []
+  let githubUsername = author
+  const batchSize = 5
 
   // first pass with "author" if provided
   for (let i = 0; i < repositories.length; i += batchSize) {
-    const batch = repositories.slice(i, i + batchSize);
-    logger.debug(
-      MODULE_NAME,
-      `processing batch ${Math.floor(i / batchSize) + 1}`,
-      { batchRepos: batch },
-    );
+    const batch = repositories.slice(i, i + batchSize)
+    logger.debug(MODULE_NAME, `processing batch ${Math.floor(i / batchSize) + 1}`, {
+      batchRepos: batch,
+    })
 
     const results = await Promise.all(
-      batch.map((repoFullName) => {
-        const [owner, repo] = repoFullName.split("/");
+      batch.map(repoFullName => {
+        const [owner, repo] = repoFullName.split('/')
         return fetchRepositoryCommits(
           accessToken,
           installationId,
@@ -300,28 +240,28 @@ export async function fetchCommitsForRepositories(
           repo,
           since,
           until,
-          githubUsername,
-        );
-      }),
-    );
-    results.forEach((commits) => allCommits.push(...commits));
+          githubUsername
+        )
+      })
+    )
+    results.forEach(commits => allCommits.push(...commits))
   }
 
   // if we found no commits with that author, try with owner name or no author
   if (allCommits.length === 0 && author) {
     logger.info(
       MODULE_NAME,
-      "No commits found with provided author name; retrying with the repo owner as author",
-    );
+      'No commits found with provided author name; retrying with the repo owner as author'
+    )
 
     if (repositories.length > 0) {
-      const [fallbackOwner] = repositories[0].split("/");
-      githubUsername = fallbackOwner;
+      const [fallbackOwner] = repositories[0].split('/')
+      githubUsername = fallbackOwner
       for (let i = 0; i < repositories.length; i += batchSize) {
-        const batch = repositories.slice(i, i + batchSize);
+        const batch = repositories.slice(i, i + batchSize)
         const results = await Promise.all(
-          batch.map((repoFullName) => {
-            const [owner, repo] = repoFullName.split("/");
+          batch.map(repoFullName => {
+            const [owner, repo] = repoFullName.split('/')
             return fetchRepositoryCommits(
               accessToken,
               installationId,
@@ -329,25 +269,22 @@ export async function fetchCommitsForRepositories(
               repo,
               since,
               until,
-              githubUsername,
-            );
-          }),
-        );
-        results.forEach((commits) => allCommits.push(...commits));
+              githubUsername
+            )
+          })
+        )
+        results.forEach(commits => allCommits.push(...commits))
       }
     }
   }
 
   if (allCommits.length === 0 && author) {
-    logger.info(
-      MODULE_NAME,
-      "Still no commits found, retrying without author filter",
-    );
+    logger.info(MODULE_NAME, 'Still no commits found, retrying without author filter')
     for (let i = 0; i < repositories.length; i += batchSize) {
-      const batch = repositories.slice(i, i + batchSize);
+      const batch = repositories.slice(i, i + batchSize)
       const results = await Promise.all(
-        batch.map((repoFullName) => {
-          const [owner, repo] = repoFullName.split("/");
+        batch.map(repoFullName => {
+          const [owner, repo] = repoFullName.split('/')
           return fetchRepositoryCommits(
             accessToken,
             installationId,
@@ -355,20 +292,20 @@ export async function fetchCommitsForRepositories(
             repo,
             since,
             until,
-            undefined,
-          );
-        }),
-      );
-      results.forEach((commits) => allCommits.push(...commits));
+            undefined
+          )
+        })
+      )
+      results.forEach(commits => allCommits.push(...commits))
     }
   }
 
-  logger.info(MODULE_NAME, "All repository commits fetched", {
+  logger.info(MODULE_NAME, 'All repository commits fetched', {
     totalRepositories: repositories.length,
     totalCommits: allCommits.length,
-    finalAuthorFilter: githubUsername || "none",
-    authMethod: installationId ? "GitHub App" : "OAuth",
-  });
+    finalAuthorFilter: githubUsername || 'none',
+    authMethod: installationId ? 'GitHub App' : 'OAuth',
+  })
 
-  return allCommits;
+  return allCommits
 }

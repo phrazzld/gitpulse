@@ -6,22 +6,23 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 
 ## Strike List
 
-| Seq | CR‑ID     | Title                                        | Effort | Owner  |
-|-----|-----------|----------------------------------------------|--------|--------|
-| 1   | cr‑01     | Fix non-idiomatic import in Jest setup       | xs     | core   |
-| 2   | cr‑03     | Enforce type safety for all test files       | s      | core   |
-| 3   | cr‑04     | Automate security audit of dependencies      | xs     | core   |
-| 4   | cr‑12     | Add `engines` field to package.json          | xs     | core   |
-| 5   | cr‑02     | Raise and enforce test coverage thresholds   | s      | core   |
-| 6   | cr‑05     | Add Prettier and code format enforcement     | s      | core   |
-| 7   | cr‑07     | Add type annotations in example test         | xs     | core   |
-| 8   | cr‑08     | Reinforce mocking policy in docs/setup       | xs     | core   |
-| 9   | cr‑06     | Refine Jest coverage exclusion patterns      | m      | core   |
-| 10  | cr‑09     | Improve example test with real functionality | s      | core   |
+| Seq | CR‑ID | Title                                        | Effort | Owner |
+| --- | ----- | -------------------------------------------- | ------ | ----- |
+| 1   | cr‑01 | Fix non-idiomatic import in Jest setup       | xs     | core  |
+| 2   | cr‑03 | Enforce type safety for all test files       | s      | core  |
+| 3   | cr‑04 | Automate security audit of dependencies      | xs     | core  |
+| 4   | cr‑12 | Add `engines` field to package.json          | xs     | core  |
+| 5   | cr‑02 | Raise and enforce test coverage thresholds   | s      | core  |
+| 6   | cr‑05 | Add Prettier and code format enforcement     | s      | core  |
+| 7   | cr‑07 | Add type annotations in example test         | xs     | core  |
+| 8   | cr‑08 | Reinforce mocking policy in docs/setup       | xs     | core  |
+| 9   | cr‑06 | Refine Jest coverage exclusion patterns      | m      | core  |
+| 10  | cr‑09 | Improve example test with real functionality | s      | core  |
 
 ## Detailed Remedies
 
 ### cr‑01 Fix Non‑idiomatic Import in Jest Setup
+
 - **Problem:** `jest.setup.js` uses ESModule `import` syntax, which is invalid in Node.js CJS config context.
 - **Impact:** Jest setup fails to run, breaking all test execution in JS context (BLOCKER).
 - **Chosen Fix:** Switch to `require()` in `jest.setup.js` and document rationale.
@@ -33,6 +34,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 - **Effort:** xs
 
 ### cr‑03 Enforce Type Safety for All Test Files
+
 - **Problem:** Test files are not type-checked; type errors in tests can silently pass to CI.
 - **Impact:** Type errors in tests can cause runtime failures, break test reliability, and undermine TypeScript's value (BLOCKER).
 - **Chosen Fix:** Add `tsc --noEmit` for test files and integrate with CI.
@@ -46,6 +48,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 - **Effort:** s
 
 ### cr‑04 Automate Security Audit of Dependencies
+
 - **Problem:** No automated check for vulnerable dependencies.
 - **Impact:** Vulnerabilities in dependencies may go undetected, risking exploits or compliance failures (BLOCKER).
 - **Chosen Fix:** Add `npm audit` script and integrate with CI.
@@ -57,6 +60,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 - **Effort:** xs
 
 ### cr‑12 Add `engines` Field to package.json
+
 - **Problem:** `package.json` lacks `engines` field to enforce Node.js version requirements.
 - **Impact:** Potential runtime issues due to incorrect Node.js versions (LOW).
 - **Chosen Fix:** Add `engines` field with appropriate Node.js version constraint.
@@ -68,6 +72,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 - **Effort:** xs
 
 ### cr‑02 Raise and Enforce Test Coverage Thresholds
+
 - **Problem:** Jest coverage thresholds are set below the documented minimums (current: 70%; required: 85%/95%).
 - **Impact:** Low coverage allows untested logic to slip into production, increasing defect rate and maintenance cost (BLOCKER).
 - **Chosen Fix:** Update thresholds in `jest.config.js` to meet or exceed requirements.
@@ -80,6 +85,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 - **Effort:** s
 
 ### cr‑05 Add Prettier and Code Format Enforcement
+
 - **Problem:** No Prettier config or auto-formatting; formatting drift is unchecked.
 - **Impact:** Inconsistent code style, noisy diffs, and code review friction (HIGH).
 - **Chosen Fix:** Add Prettier, configuration, and pre-commit hooks.
@@ -96,6 +102,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 - **Effort:** s
 
 ### cr‑07 Add Type Annotations in Example Test
+
 - **Problem:** Example test (`example.test.ts`) lacks explicit type annotations.
 - **Impact:** Weakens type safety discipline, sets poor precedent for future tests (HIGH).
 - **Chosen Fix:** Add explicit types and configure linting to enforce.
@@ -107,6 +114,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 - **Effort:** xs
 
 ### cr‑08 Reinforce Mocking Policy in Docs/Setup
+
 - **Problem:** Mocking policy (no internal mocking) is not enforced in test setup or documentation.
 - **Impact:** Internal mocks may creep in, violating test philosophy and risking brittle tests (HIGH).
 - **Chosen Fix:** Add clear policy statements to setup files and documentation.
@@ -118,6 +126,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 - **Effort:** xs
 
 ### cr‑06 Refine Jest Coverage Exclusion Patterns
+
 - **Problem:** Coverage exclusion patterns are overly broad (`!src/**/index.ts`), potentially hiding untested logic.
 - **Impact:** Real logic in excluded files can escape coverage checks, producing false confidence (HIGH).
 - **Chosen Fix:** Audit all excluded files and narrow exclusion patterns.
@@ -130,6 +139,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 - **Effort:** m
 
 ### cr‑09 Improve Example Test with Real Functionality
+
 - **Problem:** Example test only verifies Jest setup with trivial assertion (`1 + 1 = 2`).
 - **Impact:** Doesn't demonstrate proper testing practices or provide value in verifying actual code (MEDIUM).
 - **Chosen Fix:** Replace or supplement with test of actual project functionality.
@@ -144,6 +154,7 @@ This remediation plan targets critical and high-severity flaws in the Jest testi
 ## Standards Alignment
 
 - Each remedy directly supports the project's core principles:
+
   - **Simplicity**: Making config clear and consistent (cr‑01, cr‑05)
   - **Modularity**: Ensuring coverage includes all important logic (cr‑06)
   - **Testability**: Enforcing coverage, type safety, and mocking policy (cr‑02, cr‑03, cr‑08)

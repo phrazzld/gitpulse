@@ -391,7 +391,7 @@ The following tickets address specific areas in the codebase that need additiona
     2. `npm run format` command successfully formats the codebase using Prettier.
   - **Depends‑on:** [T010]
 
-- [ ] **T023 · Chore · P2: run initial `prettier --write` on codebase**
+- [x] **T023 · Chore · P2: run initial `prettier --write` on codebase**
 
   - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Step 7
   - **Action:**

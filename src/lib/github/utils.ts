@@ -1,23 +1,23 @@
 /**
  * GitHub utilities module
- * 
+ *
  * Provides common utility functions for working with GitHub APIs,
  * including rate limit handling, data transformation, and error formatting.
  */
 
-import { Octokit } from "octokit";
-import { logger } from "../logger";
+import { Octokit } from 'octokit'
+import { logger } from '../logger'
 
-const MODULE_NAME = "github:utils";
+const MODULE_NAME = 'github:utils'
 
 /**
  * GitHub API rate limit information
  */
 export interface RateLimitInfo {
-  readonly limit: number;
-  readonly remaining: number;
-  readonly reset: Date;
-  readonly usedPercent: number;
+  readonly limit: number
+  readonly remaining: number
+  readonly reset: Date
+  readonly usedPercent: number
 }
 
 /**
@@ -28,41 +28,41 @@ export interface RateLimitInfo {
  */
 export async function checkRateLimit(
   octokit: Octokit,
-  authMethod: string = ""
+  authMethod: string = ''
 ): Promise<RateLimitInfo | null> {
-  const authLabel = authMethod ? ` (${authMethod})` : "";
-  
+  const authLabel = authMethod ? ` (${authMethod})` : ''
+
   try {
-    const rateLimit = await octokit.rest.rateLimit.get();
-    const core = rateLimit.data.resources.core;
-    
+    const rateLimit = await octokit.rest.rateLimit.get()
+    const core = rateLimit.data.resources.core
+
     const rateLimitInfo: RateLimitInfo = {
       limit: core.limit,
       remaining: core.remaining,
       reset: new Date(core.reset * 1000),
       usedPercent: 100 - Number(((core.remaining / core.limit) * 100).toFixed(1)),
-    };
-    
+    }
+
     logger.info(MODULE_NAME, `GitHub API rate limit status${authLabel}`, {
       limit: rateLimitInfo.limit,
       remaining: rateLimitInfo.remaining,
       reset: rateLimitInfo.reset.toISOString(),
       usedPercent: rateLimitInfo.usedPercent,
-    });
-    
+    })
+
     if (rateLimitInfo.remaining < 100) {
       logger.warn(MODULE_NAME, `GitHub API rate limit is running low${authLabel}`, {
         remaining: rateLimitInfo.remaining,
         resetTime: rateLimitInfo.reset.toISOString(),
-      });
+      })
     }
-    
-    return rateLimitInfo;
+
+    return rateLimitInfo
   } catch (error) {
     logger.warn(MODULE_NAME, `Failed to check GitHub API rate limits${authLabel}`, {
       error,
-    });
-    return null;
+    })
+    return null
   }
 }
 
@@ -71,8 +71,8 @@ export async function checkRateLimit(
  * @param scopesHeader The x-oauth-scopes header value
  * @returns Array of scope strings
  */
-export function parseTokenScopes(scopesHeader: string = ""): string[] {
-  return scopesHeader ? scopesHeader.split(", ") : [];
+export function parseTokenScopes(scopesHeader: string = ''): string[] {
+  return scopesHeader ? scopesHeader.split(', ') : []
 }
 
 /**
@@ -83,16 +83,16 @@ export function parseTokenScopes(scopesHeader: string = ""): string[] {
  */
 export function validateTokenScopes(
   scopes: string[],
-  requiredScopes: string[] = ["repo"]
-): { 
-  isValid: boolean;
-  missingScopes: string[];
+  requiredScopes: string[] = ['repo']
+): {
+  isValid: boolean
+  missingScopes: string[]
 } {
-  const missingScopes = requiredScopes.filter(scope => !scopes.includes(scope));
+  const missingScopes = requiredScopes.filter(scope => !scopes.includes(scope))
   return {
     isValid: missingScopes.length === 0,
-    missingScopes
-  };
+    missingScopes,
+  }
 }
 
 /**
@@ -102,7 +102,7 @@ export function validateTokenScopes(
  * @returns Repository identifier string (owner/repo)
  */
 export function getRepoIdentifier(owner: string, repo: string): string {
-  return `${owner}/${repo}`;
+  return `${owner}/${repo}`
 }
 
 /**
@@ -112,15 +112,15 @@ export function getRepoIdentifier(owner: string, repo: string): string {
  */
 export function splitRepoFullName(fullName: string): [string, string] {
   if (!fullName || typeof fullName !== 'string') {
-    return ['', ''];
+    return ['', '']
   }
-  
-  const parts = fullName.split('/');
+
+  const parts = fullName.split('/')
   if (parts.length !== 2) {
-    return ['', ''];
+    return ['', '']
   }
-  
-  return [parts[0], parts[1]];
+
+  return [parts[0], parts[1]]
 }
 
 /**
@@ -130,24 +130,22 @@ export function splitRepoFullName(fullName: string): [string, string] {
  * @returns Deduplicated array of items
  */
 export function deduplicateBy<T>(items: T[], keyFn: (item: T) => string | number): T[] {
-  logger.debug(MODULE_NAME, "Deduplicating items", {
+  logger.debug(MODULE_NAME, 'Deduplicating items', {
     count: items.length,
-  });
-  
-  const uniqueItems = Array.from(
-    new Map(items.map(item => [keyFn(item), item])).values()
-  );
-  
-  const duplicatesRemoved = items.length - uniqueItems.length;
+  })
+
+  const uniqueItems = Array.from(new Map(items.map(item => [keyFn(item), item])).values())
+
+  const duplicatesRemoved = items.length - uniqueItems.length
   if (duplicatesRemoved > 0) {
-    logger.info(MODULE_NAME, "Removed duplicate items", {
+    logger.info(MODULE_NAME, 'Removed duplicate items', {
       before: items.length,
       after: uniqueItems.length,
-      removed: duplicatesRemoved
-    });
+      removed: duplicatesRemoved,
+    })
   }
-  
-  return uniqueItems;
+
+  return uniqueItems
 }
 
 /**
@@ -162,31 +160,31 @@ export async function processBatches<T, R>(
   batchSize: number,
   processBatch: (batch: T[]) => Promise<R[]>
 ): Promise<R[]> {
-  logger.debug(MODULE_NAME, "Processing items in batches", {
+  logger.debug(MODULE_NAME, 'Processing items in batches', {
     totalItems: items.length,
-    batchSize
-  });
-  
-  const results: R[] = [];
-  
+    batchSize,
+  })
+
+  const results: R[] = []
+
   for (let i = 0; i < items.length; i += batchSize) {
-    const batch = items.slice(i, i + batchSize);
+    const batch = items.slice(i, i + batchSize)
     logger.debug(MODULE_NAME, `Processing batch ${Math.floor(i / batchSize) + 1}`, {
       batchSize: batch.length,
       itemsProcessed: i,
-      totalItems: items.length
-    });
-    
-    const batchResults = await processBatch(batch);
-    results.push(...batchResults);
+      totalItems: items.length,
+    })
+
+    const batchResults = await processBatch(batch)
+    results.push(...batchResults)
   }
-  
-  logger.debug(MODULE_NAME, "Completed batch processing", {
+
+  logger.debug(MODULE_NAME, 'Completed batch processing', {
     totalItems: items.length,
-    totalResults: results.length
-  });
-  
-  return results;
+    totalResults: results.length,
+  })
+
+  return results
 }
 
 /**
@@ -196,35 +194,34 @@ export async function processBatches<T, R>(
  */
 export function formatGitHubError(error: unknown): string {
   if (!error) {
-    return "Unknown GitHub API error";
+    return 'Unknown GitHub API error'
   }
-  
+
   if (error instanceof Error) {
     // Check for Octokit errors with response data
     if ('response' in error && typeof (error as any).response === 'object') {
-      const response = (error as any).response;
+      const response = (error as any).response
       if (response.status === 401) {
-        return "GitHub authentication failed. Please sign in again.";
+        return 'GitHub authentication failed. Please sign in again.'
       }
       if (response.status === 403) {
-        return "Access denied by GitHub. You may not have permission or have exceeded rate limits.";
+        return 'Access denied by GitHub. You may not have permission or have exceeded rate limits.'
       }
       if (response.status === 404) {
-        return "GitHub resource not found. The repository or resource may not exist or you lack permission.";
+        return 'GitHub resource not found. The repository or resource may not exist or you lack permission.'
       }
-      
+
       // Extract message from response data if available
       if (response.data && response.data.message) {
-        return `GitHub API error: ${response.data.message}`;
+        return `GitHub API error: ${response.data.message}`
       }
-      
-      return `GitHub API error: ${response.status} ${response.statusText || ''}`.trim();
-    }
-    
-    return `GitHub error: ${error.message}`;
-  }
-  
-  // If error is a string or other primitive
-  return `GitHub error: ${String(error)}`;
-}
 
+      return `GitHub API error: ${response.status} ${response.statusText || ''}`.trim()
+    }
+
+    return `GitHub error: ${error.message}`
+  }
+
+  // If error is a string or other primitive
+  return `GitHub error: ${String(error)}`
+}
