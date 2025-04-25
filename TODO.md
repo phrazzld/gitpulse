@@ -1,111 +1,272 @@
 # Todo
 
-## Jest Testing Framework
-- [x] **T001 · Chore · P1: install jest and related dependencies**
-    - **Context:** Jest Testing Framework Implementation > Modules / Packages
+## Jest Configuration
+- [x] **T001 · Bugfix · P0: fix jest setup import syntax**
+    - **Context:** PLAN.md / cr‑01 Fix Non‑idiomatic Import in Jest Setup
     - **Action:**
-        1. Run `npm install --save-dev jest @types/jest jest-environment-jsdom @testing-library/jest-dom`
-    - **Done-when:**
-        1. Dependencies are added to `devDependencies` in `package.json`
-        2. `node_modules` contains the installed packages
-    - **Depends-on:** none
+        1. Replace `import '@testing-library/jest-dom'` with `require('@testing-library/jest-dom')` in `jest.setup.js`.
+        2. Add a comment explaining the CommonJS requirement for this file.
+    - **Done‑when:**
+        1. `npm test` command starts execution without syntax errors related to `jest.setup.js`.
+        2. CI pipeline step running tests starts successfully.
+    - **Depends‑on:** none
 
-- [x] **T002 · Chore · P1: create jest configuration file**
-    - **Context:** Jest Testing Framework Implementation > Configuration Files > jest.config.js
+- [ ] **T002 · Refactor · P0: configure `tsconfig.json` to include test files**
+    - **Context:** PLAN.md / cr‑03 Enforce Type Safety for All Test Files / Step 1
     - **Action:**
-        1. Create `jest.config.js` at the project root
-        2. Implement the configuration using `next/jest` preset with the structure in the implementation plan
-        3. Configure essential settings: `testEnvironment`, `setupFilesAfterEnv`, and `moduleNameMapper`
-    - **Done-when:**
-        1. `jest.config.js` exists and exports configuration using `next/jest`
-        2. File passes validation with `npx jest --showConfig`
-        3. Key settings are properly configured for Next.js compatibility
-    - **Depends-on:** [T001]
+        1. Review and modify the `include` array in `tsconfig.json`.
+        2. Ensure patterns like `**/*.test.ts`, `**/*.spec.ts`, `src/__tests__/**/*.ts` are included.
+    - **Done‑when:**
+        1. `tsconfig.json`'s `include` array correctly targets all project test files.
+    - **Depends‑on:** none
 
-- [x] **T003 · Chore · P1: configure coverage settings**
-    - **Context:** Jest Testing Framework Implementation > Coverage Targets
+- [ ] **T003 · Test · P0: verify `typecheck` script includes test files**
+    - **Context:** PLAN.md / cr‑03 Enforce Type Safety for All Test Files / Step 2 & 3
     - **Action:**
-        1. Add coverage-related settings to `jest.config.js`: `collectCoverageFrom`, `coverageThreshold`, and `coverageReporters`
-        2. Set global threshold to 70% for branches, functions, lines, and statements
-    - **Done-when:**
-        1. `jest.config.js` includes properly configured coverage settings
-        2. Settings match the specifications in the implementation plan
-    - **Depends-on:** [T002]
+        1. Confirm the `typecheck` script in `package.json` (e.g., `"typecheck": "tsc --noEmit"`) uses the root `tsconfig.json`.
+        2. Run `npm run typecheck` locally.
+    - **Done‑when:**
+        1. `npm run typecheck` executes successfully and checks types in both source and test files.
+        2. Any existing type errors in test files cause the command to fail.
+    - **Depends‑on:** [T002]
 
-- [x] **T004 · Chore · P1: create setup file**
-    - **Context:** Jest Testing Framework Implementation > Configuration Files > jest.setup.js
+- [ ] **T004 · Chore · P0: integrate typecheck script execution into ci pipeline**
+    - **Context:** PLAN.md / cr‑03 Enforce Type Safety for All Test Files / Step 4
     - **Action:**
-        1. Create `jest.setup.js` at the project root
-        2. Import `@testing-library/jest-dom` to extend Jest with DOM matchers
-    - **Done-when:**
-        1. `jest.setup.js` exists with the correct imports
-        2. File is properly referenced in `jest.config.js`
-    - **Depends-on:** [T002]
+        1. Add a step to the CI pipeline configuration that executes `npm run typecheck`.
+        2. Ensure this step runs after dependency installation and before tests.
+    - **Done‑when:**
+        1. CI pipeline includes a typecheck step.
+        2. CI pipeline fails if `npm run typecheck` fails.
+    - **Depends‑on:** [T003]
 
-- [x] **T005 · Chore · P1: add test scripts**
-    - **Context:** Jest Testing Framework Implementation > Detailed Build Steps
+- [ ] **T005 · Feature · P0: add `npm audit` script to `package.json`**
+    - **Context:** PLAN.md / cr‑04 Automate Security Audit of Dependencies / Step 1
     - **Action:**
-        1. Add scripts for test execution: `"test": "jest"`, `"test:watch": "jest --watch"`, and `"test:coverage": "jest --coverage"`
-    - **Done-when:**
-        1. Scripts are added to `package.json`
-        2. Scripts execute without errors
-    - **Depends-on:** [T001]
+        1. Add `"audit": "npm audit --audit-level=high"` to the `scripts` section in `package.json`.
+    - **Done‑when:**
+        1. `package.json` contains the `audit` script.
+        2. `npm run audit` executes successfully locally.
+    - **Depends‑on:** none
 
-- [x] **T006 · Test · P1: create verification test**
-    - **Context:** Jest Testing Framework Implementation > Detailed Build Steps
+- [ ] **T006 · Chore · P0: integrate `npm audit` script execution into ci pipeline**
+    - **Context:** PLAN.md / cr‑04 Automate Security Audit of Dependencies / Step 2
     - **Action:**
-        1. Create the directory `src/lib/__tests__` if it doesn't exist
-        2. Create a file named `example.test.ts` with a basic test case that verifies Jest is working
-    - **Done-when:**
-        1. Test file exists with the specified test case
-        2. Directory structure follows project conventions
-    - **Depends-on:** [T004]
+        1. Add a step to the CI pipeline configuration that executes `npm run audit`.
+        2. Ensure this step runs after dependency installation.
+    - **Done‑when:**
+        1. CI pipeline includes an `npm audit` step.
+        2. CI pipeline fails if `npm run audit` finds vulnerabilities at or above the specified level (high).
+    - **Depends‑on:** [T005]
 
-- [x] **T007 · Test · P1: execute verification test**
-    - **Context:** Jest Testing Framework Implementation > Detailed Build Steps
+- [ ] **T007 · Refactor · P0: set global coverage thresholds in `jest.config.js`**
+    - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Step 1
     - **Action:**
-        1. Run `npm test` to verify Jest discovers and executes tests
-        2. Address any configuration or discovery issues
-    - **Done-when:**
-        1. Tests run without configuration errors
-        2. Example test passes
-        3. Test output is displayed correctly in the console
-    - **Depends-on:** [T005, T006]
+        1. Edit `jest.config.js`.
+        2. Set `coverageThreshold.global` values for `statements`, `branches`, `functions`, `lines` to at least 85%.
+    - **Done‑when:**
+        1. `jest.config.js` reflects the new global thresholds (>= 85%).
+        2. `npm run test:coverage` command uses these thresholds.
+    - **Depends‑on:** [T001]
 
-- [x] **T008 · Test · P1: validate coverage reporting**
-    - **Context:** Jest Testing Framework Implementation > Detailed Build Steps
+- [ ] **T008 · Refactor · P0: identify core logic paths and set stricter per-path coverage thresholds**
+    - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Step 2
     - **Action:**
-        1. Run `npm run test:coverage` to generate a coverage report
-        2. Verify coverage metrics and thresholds are properly applied
-    - **Done-when:**
-        1. Coverage report is generated without errors
-        2. Report includes the metrics defined in the configuration
-        3. Current coverage meets or is baselined against the thresholds
-    - **Depends-on:** [T003, T007]
+        1. Analyze `src/lib/` and `src/app/api/summary/handlers.ts` (and other core areas) to identify specific files/paths needing higher coverage.
+        2. Add per-path entries under `coverageThreshold` in `jest.config.js`, setting thresholds to 95%.
+    - **Done‑when:**
+        1. `jest.config.js` includes specific path thresholds set to 95%.
+        2. Coverage report reflects these path-specific requirements.
+    - **Depends‑on:** [T007]
 
-- [x] **T009 · Chore · P2: document testing procedures**
-    - **Context:** Jest Testing Framework Implementation > Documentation
+- [ ] **T009 · Chore · P0: integrate coverage threshold enforcement into ci pipeline**
+    - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Done-When
     - **Action:**
-        1. Add a "Testing" section to `README.md`
-        2. Document how to run tests, watch mode, and coverage reporting
-    - **Done-when:**
-        1. README contains clear instructions for running tests
-        2. Documentation follows project conventions
-    - **Depends-on:** [T007, T008]
+        1. Ensure the CI pipeline runs tests with the `--coverage` flag.
+        2. Verify CI pipeline fails if coverage drops below the thresholds defined in `jest.config.js`.
+    - **Done‑when:**
+        1. CI job fails when code coverage does not meet configured global or per-path thresholds.
+    - **Depends‑on:** [T008]
+
+## Code Formatting
+
+- [ ] **T010 · Chore · P1: install prettier and create base `.prettierrc` / `.prettierignore` files**
+    - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Steps 1, 2, 3
+    - **Action:**
+        1. Run `npm install --save-dev prettier`.
+        2. Create `.prettierrc.json` (or chosen format) with sensible defaults or project-specific rules.
+        3. Create `.prettierignore` listing files/directories to exclude (e.g., `node_modules`, `dist`, lock files).
+    - **Done‑when:**
+        1. `prettier` is listed in `devDependencies`.
+        2. `.prettierrc.json` and `.prettierignore` files exist and are configured.
+    - **Depends‑on:** none
+
+- [ ] **T011 · Chore · P1: configure husky/lint-staged for pre-commit formatting**
+    - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Step 4
+    - **Action:**
+        1. Install `husky` and `lint-staged` as dev dependencies.
+        2. Configure `husky` to set up pre-commit hooks.
+        3. Configure `lint-staged` in `package.json` or its own config file to run `prettier --write` on staged files.
+    - **Done‑when:**
+        1. `husky` and `lint-staged` are installed and configured.
+        2. Attempting to commit incorrectly formatted staged files triggers automatic formatting via `prettier`.
+    - **Depends‑on:** [T010]
+
+- [ ] **T012 · Chore · P1: integrate prettier check into ci pipeline**
+    - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Step 6
+    - **Action:**
+        1. Add a step to the CI pipeline that runs a Prettier check command (e.g., `prettier --check .`).
+    - **Done‑when:**
+        1. CI pipeline includes a Prettier check step.
+        2. CI pipeline fails if any files violate Prettier formatting rules.
+    - **Depends‑on:** [T010]
+
+- [ ] **T013 · Refactor · P1: add explicit type annotations to `example.test.ts`**
+    - **Context:** PLAN.md / cr‑07 Add Type Annotations in Example Test / Step 1
+    - **Action:**
+        1. Update `src/lib/__tests__/example.test.ts` to use explicit type annotations for all variables and functions.
+        2. Ensure all test functions have return type annotations.
+    - **Done‑when:**
+        1. Example test includes proper TypeScript annotations.
+        2. Test passes with strict type checking enabled.
+    - **Depends‑on:** none
+
+- [ ] **T014 · Chore · P1: configure eslint to enforce type annotations in tests**
+    - **Context:** PLAN.md / cr‑07 Add Type Annotations in Example Test / Step 2
+    - **Action:**
+        1. Update ESLint configuration to enable rules that enforce type annotations in test files.
+        2. Configure rules like `@typescript-eslint/explicit-function-return-type` for test files.
+    - **Done‑when:**
+        1. ESLint reports errors when test functions lack return type annotations.
+        2. The example test passes linting after adding proper annotations.
+    - **Depends‑on:** [T013]
+
+- [ ] **T015 · Chore · P1: add mocking policy comment to `jest.setup.js`**
+    - **Context:** PLAN.md / cr‑08 Reinforce Mocking Policy in Docs/Setup / Step 1
+    - **Action:**
+        1. Add a prominent comment block in `jest.setup.js` stating the policy against mocking internal modules.
+    - **Done‑when:**
+        1. `jest.setup.js` contains the specified comment block.
+    - **Depends‑on:** [T001]
+
+- [ ] **T016 · Test · P1: run type check and linting to confirm test type enforcement**
+    - **Context:** PLAN.md / cr‑07 Add Type Annotations in Example Test / Step 3
+    - **Action:**
+        1. Run `npm run typecheck` to verify test file types are enforced.
+        2. Run `npm run lint` to verify linting rules are enforced.
+    - **Done‑when:**
+        1. Both commands report no errors after annotations are added.
+    - **Depends‑on:** [T013], [T014]
+
+- [ ] **T017 · Refactor · P1: audit and refine jest coverage exclusion patterns in `jest.config.js`**
+    - **Context:** PLAN.md / cr‑06 Refine Jest Coverage Exclusion Patterns
+    - **Action:**
+        1. Audit all files currently excluded by patterns like `!src/**/index.ts` to identify any containing executable logic.
+        2. Update the `collectCoverageFrom` patterns in `jest.config.js` to be more specific, excluding only files that are purely re-exports or otherwise justifiable.
+    - **Done‑when:**
+        1. `collectCoverageFrom` in `jest.config.js` uses precise patterns or specific file paths for exclusions.
+        2. No files containing non-trivial logic are excluded from coverage tracking.
+        3. Coverage report accuracy is confirmed.
+    - **Depends‑on:** [T009]
+
+- [ ] **T018 · Chore · P2: document test file type checking requirement in readme**
+    - **Context:** PLAN.md / cr‑03 Enforce Type Safety for All Test Files / Step 5
+    - **Action:**
+        1. Update `README.md` to state that all test files are type-checked via `npm run typecheck` and enforced by CI.
+    - **Done‑when:**
+        1. `README.md` clearly documents the type checking requirement for tests.
+    - **Depends‑on:** [T004]
+
+- [ ] **T019 · Chore · P2: document security audit process in readme**
+    - **Context:** PLAN.md / cr‑04 Automate Security Audit of Dependencies / Step 3
+    - **Action:**
+        1. Update `README.md` to explain the automated security audit process and CI enforcement.
+    - **Done‑when:**
+        1. `README.md` clearly documents the security audit requirement.
+    - **Depends‑on:** [T006]
+
+- [ ] **T020 · Chore · P2: document coverage requirements in readme and contributing docs**
+    - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Step 3
+    - **Action:**
+        1. Update `README.md` and any contribution guidelines (`CONTRIBUTING.md`?) to clearly state the 85% global and 95% core logic coverage requirements.
+    - **Done‑when:**
+        1. Documentation accurately reflects the enforced coverage thresholds.
+    - **Depends‑on:** [T009]
+
+- [ ] **T021 · Chore · P2: create follow-up tasks for missing test coverage**
+    - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Step 4
+    - **Action:**
+        1. Run the coverage report after thresholds are enforced (`T009`).
+        2. Identify areas failing to meet the new thresholds.
+        3. Create specific new tickets (or add to a backlog) detailing the files/modules needing improved test coverage.
+    - **Done‑when:**
+        1. A list or set of tickets exists outlining specific areas requiring test additions to meet coverage.
+    - **Depends‑on:** [T009]
+
+- [ ] **T022 · Chore · P2: add `format` script to `package.json`**
+    - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Step 5
+    - **Action:**
+        1. Add a script like `"format": "prettier --write ."` to the `scripts` section in `package.json`.
+    - **Done‑when:**
+        1. `package.json` contains the `format` script.
+        2. `npm run format` command successfully formats the codebase using Prettier.
+    - **Depends‑on:** [T010]
+
+- [ ] **T023 · Chore · P2: run initial `prettier --write` on codebase**
+    - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Step 7
+    - **Action:**
+        1. Execute `npm run format` (or `prettier --write .`) once to format all existing code.
+        2. Commit the formatting changes.
+    - **Done‑when:**
+        1. The entire codebase conforms to the Prettier rules defined in `T010`.
+        2. CI check (`T012`) passes after this commit.
+        3. Pre-commit hook (`T011`) runs without errors on subsequent commits.
+    - **Depends‑on:** [T011], [T012], [T022]
+
+- [ ] **T024 · Chore · P2: document formatting workflow in readme**
+    - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Step 8
+    - **Action:**
+        1. Update `README.md` to explain the use of Prettier, pre-commit hooks, and the `npm run format` script.
+    - **Done‑when:**
+        1. `README.md` clearly documents the code formatting setup and workflow.
+    - **Depends‑on:** [T023]
+
+- [ ] **T025 · Chore · P2: update readme with mocking policy**
+    - **Context:** PLAN.md / cr‑08 Reinforce Mocking Policy in Docs/Setup / Step 2
+    - **Action:**
+        1. Update the testing section of `README.md` to match the language in DEVELOPMENT_PHILOSOPHY.md regarding mocking.
+        2. Add examples of what can and cannot be mocked.
+    - **Done‑when:**
+        1. README mocking policy is explicit and matches the core philosophy.
+        2. Examples clarify the policy for developers.
+    - **Depends‑on:** [T015]
+
+- [ ] **T026 · Chore · P3: add `engines` field to `package.json`**
+    - **Context:** PLAN.md / cr‑12 Add `engines` Field to package.json
+    - **Action:**
+        1. Edit `package.json`.
+        2. Add the `engines` field specifying the required Node.js version (e.g., `{ "node": ">=18.17.0" }`).
+    - **Done‑when:**
+        1. `package.json` includes the `engines` field with the appropriate Node.js version constraint.
+    - **Depends‑on:** none
+
+- [ ] **T027 · Feature · P3: create example test for real functionality**
+    - **Context:** PLAN.md / cr‑09 Improve Example Test with Real Functionality
+    - **Action:**
+        1. Identify a simple utility function in `src/lib/` suitable for testing.
+        2. Create a new test file with proper type annotations, multiple test cases including edge cases and error scenarios.
+        3. Add comments explaining the testing approach and best practices.
+    - **Done‑when:**
+        1. New test file exists, passes type checking, and demonstrates best testing practices.
+        2. Test coverage for the chosen utility function is high.
+        3. Test contains proper documentation of testing approach.
+    - **Depends‑on:** [T013]
 
 ### Clarifications & Assumptions
-- [x] **Issue:** resolve installation dependencies
-    - **Context:** Jest Testing Framework Implementation > Modules / Packages lists `@types/jest`, ensuring it's included in installation
-    - **Blocking?:** yes
+- [ ] **Issue:** Node.js version for `engines` field
+    - **Context:** PLAN.md / cr‑12 Add `engines` Field to package.json
+    - **Blocking?:** no (can use suggested 18.17.0 LTS version unless project has specific needs)
 
-- [x] **Issue:** decide on test configuration structure
-    - **Context:** Jest Testing Framework Implementation > Open Questions about separate vs. unified configs
-    - **Blocking?:** no (Implementation plan recommends unified to start)
-
-- [x] **Issue:** prioritize coverage areas
-    - **Context:** Jest Testing Framework Implementation > Open Questions about coverage prioritization
-    - **Blocking?:** no (Implementation plan suggests src/lib as initial focus)
-
-- [x] **Issue:** plan for CI integration
-    - **Context:** Jest Testing Framework Implementation > Open Questions about CI configuration
-    - **Blocking?:** no (Future consideration)
+- [ ] **Issue:** Prettier configuration preferences
+    - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Step 2
+    - **Blocking?:** no (can use standard defaults like single quotes, trailing commas in ES5 mode, etc.)

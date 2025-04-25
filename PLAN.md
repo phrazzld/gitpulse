@@ -1,186 +1,167 @@
-# Configure Jest Testing Framework
+# Remediation Plan – Sprint 1
 
-## Chosen Approach (One-liner)
+## Executive Summary
 
-Configure Jest with Next.js support using the official `next/jest` preset to ensure seamless integration with TypeScript and the existing project structure, while maintaining alignment with our development philosophy of simplicity, modularity, and testability.
+This remediation plan targets critical and high-severity flaws in the Jest testing framework implementation, as identified in the recent code review. The strike order prioritizes foundational fixes (fixing broken imports, enforcing type safety, security auditing) before addressing configuration, documentation, and coverage concerns. This ensures that the testing infrastructure functions correctly, adheres to project standards, and future development cannot regress on these fronts. Each fix is traced to a specific code review ID for accountability.
 
-## Architecture Blueprint
+## Strike List
 
-- **Modules / Packages**
-  - `jest`: Core testing framework
-  - `@types/jest`: TypeScript definitions for Jest
-  - `jest-environment-jsdom`: DOM environment for React component testing
-  - `@testing-library/react`: Testing utilities for React components (already present)
-  - `@testing-library/jest-dom`: Custom DOM matchers for assertions
-  
-- **Configuration Files**
-  - `jest.config.js`: Main Jest configuration leveraging `next/jest` preset
-  - `jest.setup.js`: Setup file for extending Jest with additional matchers and global setup
+| Seq | CR‑ID     | Title                                        | Effort | Owner  |
+|-----|-----------|----------------------------------------------|--------|--------|
+| 1   | cr‑01     | Fix non-idiomatic import in Jest setup       | xs     | core   |
+| 2   | cr‑03     | Enforce type safety for all test files       | s      | core   |
+| 3   | cr‑04     | Automate security audit of dependencies      | xs     | core   |
+| 4   | cr‑12     | Add `engines` field to package.json          | xs     | core   |
+| 5   | cr‑02     | Raise and enforce test coverage thresholds   | s      | core   |
+| 6   | cr‑05     | Add Prettier and code format enforcement     | s      | core   |
+| 7   | cr‑07     | Add type annotations in example test         | xs     | core   |
+| 8   | cr‑08     | Reinforce mocking policy in docs/setup       | xs     | core   |
+| 9   | cr‑06     | Refine Jest coverage exclusion patterns      | m      | core   |
+| 10  | cr‑09     | Improve example test with real functionality | s      | core   |
 
-- **Data Flow Diagram**
-```
-┌─────────────────┐      ┌──────────────┐      ┌───────────────────┐
-│ npm test script │ ──→ │  Jest Runner  │ ──→ │ jest.config.js    │
-└─────────────────┘      └──────────────┘      │ (next/jest preset)│
-                                │              └───────────────────┘
-                                ↓                        │
-                        ┌───────────────┐               │
-                        │ Test Discovery│               │
-                        │ *.test.ts(x)  │ ←─────────────┘
-                        └───────────────┘
-                                │
-                                ↓
-┌────────────────┐     ┌───────────────┐     ┌───────────────────┐
-│ Jest Execution │ ←── │ SWC Transpiler│ ←── │ jest.setup.js     │
-│ & Reporting    │     │ (TypeScript)  │     │ (global setup)    │
-└────────────────┘     └───────────────┘     └───────────────────┘
-```
+## Detailed Remedies
 
-- **Error & Edge-Case Strategy**
-  - Jest will report test failures with detailed stack traces
-  - Configuration errors will be surfaced during setup
-  - Type errors in tests will fail fast (via TypeScript/SWC)
-  - Coverage thresholds will enforce minimum test coverage
+### cr‑01 Fix Non‑idiomatic Import in Jest Setup
+- **Problem:** `jest.setup.js` uses ESModule `import` syntax, which is invalid in Node.js CJS config context.
+- **Impact:** Jest setup fails to run, breaking all test execution in JS context (BLOCKER).
+- **Chosen Fix:** Switch to `require()` in `jest.setup.js` and document rationale.
+- **Steps:**
+  1. Replace `import '@testing-library/jest-dom'` with `require('@testing-library/jest-dom')` in `jest.setup.js`.
+  2. Add a comment explaining the CJS/Node.js requirement.
+  3. Verify tests can now start execution with `npm test`.
+- **Done-When:** Jest runs setup without syntax errors in both local and CI environments.
+- **Effort:** xs
 
-## Detailed Build Steps
+### cr‑03 Enforce Type Safety for All Test Files
+- **Problem:** Test files are not type-checked; type errors in tests can silently pass to CI.
+- **Impact:** Type errors in tests can cause runtime failures, break test reliability, and undermine TypeScript's value (BLOCKER).
+- **Chosen Fix:** Add `tsc --noEmit` for test files and integrate with CI.
+- **Steps:**
+  1. Ensure all test files (`*.test.ts`, `__tests__`) are included in `tsconfig.json` (check and modify the `include` array).
+  2. Verify the `"typecheck": "tsc --noEmit"` script in `package.json` uses this configuration.
+  3. Run `npm run typecheck` to verify all test files are checked.
+  4. Ensure CI pipeline executes the typecheck script and fails on errors.
+  5. Update README to clearly document this requirement.
+- **Done-When:** Type errors in test files cause the typecheck command to fail; CI enforces type checks.
+- **Effort:** s
 
-1. **Install Required Dependencies**
-   ```bash
-   npm install --save-dev jest jest-environment-jsdom @testing-library/jest-dom
-   ```
-   
-2. **Create Jest Configuration File (`jest.config.js`)**
-   ```javascript
-   const nextJest = require('next/jest')
+### cr‑04 Automate Security Audit of Dependencies
+- **Problem:** No automated check for vulnerable dependencies.
+- **Impact:** Vulnerabilities in dependencies may go undetected, risking exploits or compliance failures (BLOCKER).
+- **Chosen Fix:** Add `npm audit` script and integrate with CI.
+- **Steps:**
+  1. Add `"audit": "npm audit --audit-level=high"` to the `scripts` section in `package.json`.
+  2. Update CI pipeline configuration to run this script and fail on issues.
+  3. Document security audit expectations in README.
+- **Done-When:** CI fails on new high/critical vulnerabilities; developers can run the audit locally.
+- **Effort:** xs
 
-   const createJestConfig = nextJest({
-     // Provide the path to your Next.js app
-     dir: './',
-   })
+### cr‑12 Add `engines` Field to package.json
+- **Problem:** `package.json` lacks `engines` field to enforce Node.js version requirements.
+- **Impact:** Potential runtime issues due to incorrect Node.js versions (LOW).
+- **Chosen Fix:** Add `engines` field with appropriate Node.js version constraint.
+- **Steps:**
+  1. Edit `package.json`.
+  2. Add `"engines": { "node": ">=18.17.0" }` (adjust version based on project needs).
+  3. Commit change and verify it's applied.
+- **Done-When:** `package.json` includes the `engines` field with appropriate version constraint.
+- **Effort:** xs
 
-   // Add custom config to be passed to Jest
-   const customJestConfig = {
-     setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-     testEnvironment: 'jest-environment-jsdom',
-     moduleNameMapper: {
-       // Handle module aliases
-       '^@/(.*)$': '<rootDir>/src/$1',
-     },
-     // Test paths to include
-     testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
-     // Coverage configuration
-     collectCoverageFrom: [
-       'src/**/*.{ts,tsx}',
-       '!src/**/*.d.ts',
-       '!src/**/index.ts',
-       '!src/types/**',
-       '!**/node_modules/**',
-       '!<rootDir>/.next/**',
-     ],
-     coverageThreshold: {
-       global: {
-         branches: 70,
-         functions: 70,
-         lines: 70,
-         statements: 70,
-       },
-     },
-     coverageReporters: ['json', 'lcov', 'text', 'text-summary'],
-   }
+### cr‑02 Raise and Enforce Test Coverage Thresholds
+- **Problem:** Jest coverage thresholds are set below the documented minimums (current: 70%; required: 85%/95%).
+- **Impact:** Low coverage allows untested logic to slip into production, increasing defect rate and maintenance cost (BLOCKER).
+- **Chosen Fix:** Update thresholds in `jest.config.js` to meet or exceed requirements.
+- **Steps:**
+  1. In `jest.config.js`, set `coverageThreshold.global` to at least 85% for statements, branches, functions, and lines.
+  2. Identify core logic paths (e.g., `src/lib/`, `src/app/api/summary/handlers.ts`) and add stricter per-path thresholds (95%).
+  3. Update README and contribution docs to reflect coverage requirements.
+  4. Create follow-up tasks to write tests needed to meet these thresholds.
+- **Done-When:** `jest.config.js` reflects the 85%/95% thresholds; CI enforces these thresholds; follow-up tasks created.
+- **Effort:** s
 
-   // createJestConfig is exported this way to ensure that next/jest can load the Next.js config
-   module.exports = createJestConfig(customJestConfig)
-   ```
+### cr‑05 Add Prettier and Code Format Enforcement
+- **Problem:** No Prettier config or auto-formatting; formatting drift is unchecked.
+- **Impact:** Inconsistent code style, noisy diffs, and code review friction (HIGH).
+- **Chosen Fix:** Add Prettier, configuration, and pre-commit hooks.
+- **Steps:**
+  1. Run `npm install --save-dev prettier` to add the dependency.
+  2. Create `.prettierrc.json` with appropriate formatting rules.
+  3. Create `.prettierignore` to exclude appropriate files/directories.
+  4. Configure Husky and lint-staged to format staged files before commit.
+  5. Add a `format` script to `package.json`.
+  6. Ensure CI runs Prettier check and fails on violations.
+  7. Run `prettier --write .` once to format the codebase.
+  8. Document formatting workflow in README.
+- **Done-When:** Pre-commit hooks auto-format code; CI fails on format violations; documentation is clear.
+- **Effort:** s
 
-3. **Create Jest Setup File (`jest.setup.js`)**
-   ```javascript
-   // Import @testing-library/jest-dom to extend Jest with DOM matchers
-   import '@testing-library/jest-dom'
+### cr‑07 Add Type Annotations in Example Test
+- **Problem:** Example test (`example.test.ts`) lacks explicit type annotations.
+- **Impact:** Weakens type safety discipline, sets poor precedent for future tests (HIGH).
+- **Chosen Fix:** Add explicit types and configure linting to enforce.
+- **Steps:**
+  1. Update `example.test.ts` to use explicit type annotations, even in trivial tests.
+  2. Ensure ESLint is configured to check test files and enforce typing rules.
+  3. Run typecheck and lint to confirm enforcement.
+- **Done-When:** All tests have explicit types; lint/typecheck catch violations.
+- **Effort:** xs
 
-   // Add any custom global setup needed for tests
-   ```
+### cr‑08 Reinforce Mocking Policy in Docs/Setup
+- **Problem:** Mocking policy (no internal mocking) is not enforced in test setup or documentation.
+- **Impact:** Internal mocks may creep in, violating test philosophy and risking brittle tests (HIGH).
+- **Chosen Fix:** Add clear policy statements to setup files and documentation.
+- **Steps:**
+  1. Add a prominent comment to `jest.setup.js` stating: "Mocking of internal modules is strictly forbidden. Only mock true external boundaries."
+  2. Update README's testing section to match the language in DEVELOPMENT_PHILOSOPHY.md regarding mocking policy.
+  3. Add clear examples of what can and cannot be mocked.
+- **Done-When:** Policy is explicit in setup files and README; reviewers can cite specific guidance.
+- **Effort:** xs
 
-4. **Add Test Scripts to `package.json`**
-   ```json
-   {
-     "scripts": {
-       // existing scripts...
-       "test": "jest",
-       "test:watch": "jest --watch",
-       "test:coverage": "jest --coverage"
-     }
-   }
-   ```
+### cr‑06 Refine Jest Coverage Exclusion Patterns
+- **Problem:** Coverage exclusion patterns are overly broad (`!src/**/index.ts`), potentially hiding untested logic.
+- **Impact:** Real logic in excluded files can escape coverage checks, producing false confidence (HIGH).
+- **Chosen Fix:** Audit all excluded files and narrow exclusion patterns.
+- **Steps:**
+  1. Audit all `src/**/index.ts` files to identify those containing executable logic.
+  2. Update `collectCoverageFrom` in `jest.config.js` to exclude only pure re-export files.
+  3. Replace broad patterns with specific file exclusions where appropriate.
+  4. Run coverage report to confirm improved accuracy.
+- **Done-When:** No logic-containing files are excluded from coverage; exclusion patterns are precise.
+- **Effort:** m
 
-5. **Verify Configuration**
-   - Run `npm test` to ensure Jest can discover and run existing tests
-   - Review any configuration or test failures and adjust as needed
-   - Ensure test output is clear and informative
+### cr‑09 Improve Example Test with Real Functionality
+- **Problem:** Example test only verifies Jest setup with trivial assertion (`1 + 1 = 2`).
+- **Impact:** Doesn't demonstrate proper testing practices or provide value in verifying actual code (MEDIUM).
+- **Chosen Fix:** Replace or supplement with test of actual project functionality.
+- **Steps:**
+  1. Identify a simple utility function in `src/lib/` that can be tested easily.
+  2. Create a proper test file demonstrating best practices (type annotations, multiple test cases, edge cases).
+  3. Include both happy path and error case testing.
+  4. Add comments explaining the testing approach.
+- **Done-When:** Project contains an exemplary test that demonstrates proper practices and tests real functionality.
+- **Effort:** s
 
-6. **Create a Simple Test (if needed)**
-   Create a basic test for an existing utility function to verify the setup:
-   ```typescript
-   // src/lib/__tests__/example.test.ts
-   describe('Jest Setup Verification', () => {
-     it('verifies Jest is configured correctly', () => {
-       expect(1 + 1).toBe(2);
-     });
-   });
-   ```
+## Standards Alignment
 
-7. **Validate Coverage Reporting**
-   - Run `npm run test:coverage` to generate a coverage report
-   - Review the report to ensure it's correctly tracking covered and uncovered code
-   - Adjust coverage configuration as needed based on results
+- Each remedy directly supports the project's core principles:
+  - **Simplicity**: Making config clear and consistent (cr‑01, cr‑05)
+  - **Modularity**: Ensuring coverage includes all important logic (cr‑06)
+  - **Testability**: Enforcing coverage, type safety, and mocking policy (cr‑02, cr‑03, cr‑08)
+  - **Coding Standards**: Proper formatting, typing, and documentation (cr‑05, cr‑07)
+  - **Security**: Detecting vulnerable dependencies (cr‑04)
 
-## Testing Strategy
+- These fixes align with requirements in:
+  - `DEVELOPMENT_PHILOSOPHY.md` (coverage requirements, mocking policy)
+  - `DEVELOPMENT_PHILOSOPHY_APPENDIX_TYPESCRIPT.md` (typing, formatting)
+  - Project tooling standards (Jest, Prettier, ESLint)
 
-- **Test Layers**
-  - **Unit Tests:** Focus on testing individual functions, hooks, and components in isolation
-  - **Integration Tests:** Test interactions between related components, modules, and API endpoints
-  - **Future E2E Tests:** Will be implemented later with Playwright or Cypress (out of scope for this task)
+## Validation Checklist
 
-- **What to Mock (Only True Externals)**
-  - **YES:** External HTTP requests, GitHub API, database calls (if any), filesystem operations
-  - **YES:** Browser APIs not provided by jsdom (when needed)
-  - **YES:** Date/time functions for deterministic test output
-  - **NO:** Internal functions, classes, or modules (refactor for testability instead)
-  - **NO:** React components when testing parent components (test actual rendering)
-
-- **Coverage Targets**
-  - Initial global thresholds: 70% for lines, functions, branches, and statements
-  - Core business logic modules should aim for 90%+ coverage
-  - UI components should prioritize testing critical functionality and edge cases
-
-## Logging & Observability
-
-- **Test Output:** Jest provides detailed test results in the console
-- **Coverage Reports:** HTML, JSON, and text-summary reports for observing test coverage
-- **CI Integration:** Test failures will be reported in the CI pipeline (future work)
-
-## Security & Config
-
-- **Secrets Handling:** Tests should never use real secrets or credentials
-- **Mock External Services:** Use mocks for external services to avoid actual API calls
-- **Environment Variables:** Use `.env.test` or similar for any test-specific configuration
-
-## Documentation
-
-- **Update README.md:** Add a section about running tests with the new setup
-- **Code Comments:** Ensure test files are well-commented, especially for complex test scenarios
-- **Self-Documentation:** Use descriptive test names that explain the behavior being tested
-
-## Risk Matrix
-
-| Risk | Severity | Mitigation |
-|------|----------|------------|
-| Incompatibility with Next.js configuration | Medium | Use official `next/jest` preset; verify with simple tests |
-| Missing module mappings (`@/` imports) | Medium | Configure moduleNameMapper to match tsconfig paths |
-| Slow test execution | Low | Start with minimal configuration; optimize later |
-| Insufficient initial coverage | Medium | Start with achievable thresholds; gradually increase as tests are added |
-
-## Open Questions
-
-- Should we implement separate configurations for unit vs integration tests? (Recommendation: start with a unified config)
-- What specific code areas should be prioritized for test coverage after setup? (Likely core logic in `src/lib`)
-- Future consideration: Should we add CI-specific test configuration? (Yes, as part of CI/CD implementation)
+- [ ] `npm test` runs without errors, syntax issues, or type errors
+- [ ] `npm run typecheck` passes for both production and test code
+- [ ] `npm run audit` passes without high/critical vulnerabilities
+- [ ] `npm run test:coverage` report meets coverage thresholds
+- [ ] Prettier configuration is working (pre-commit hooks format code)
+- [ ] Documentation (README, setup comments) clearly explains requirements
+- [ ] CI pipeline executes and enforces all quality gates
+- [ ] No regressions in existing functionality
