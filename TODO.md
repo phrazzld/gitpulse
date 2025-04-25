@@ -59,7 +59,7 @@
         2. CI pipeline fails if `npm run audit` finds vulnerabilities at or above the specified level (high).
     - **Depends‑on:** [T005]
 
-- [ ] **T007 · Refactor · P0: set global coverage thresholds in `jest.config.js`**
+- [x] **T007 · Refactor · P0: set global coverage thresholds in `jest.config.js`**
     - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Step 1
     - **Action:**
         1. Edit `jest.config.js`.
