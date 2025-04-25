@@ -31,6 +31,52 @@ const customJestConfig = {
       lines: 85,
       statements: 85,
     },
+    // Core API logic - critical business logic
+    "src/app/api/summary/handlers.ts": {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95
+    },
+    // Utility functions that are central to the application
+    "src/lib/api-utils.ts": {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95
+    },
+    "src/lib/dashboard-utils.ts": {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95
+    },
+    "src/lib/github/utils.ts": {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95
+    },
+    // GitHub API interaction modules - core functionality
+    "src/lib/github/commits.ts": {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95
+    },
+    "src/lib/github/repositories.ts": {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95
+    },
+    // Critical hooks for dashboard functionality
+    "src/hooks/dashboard/useSummary.ts": {
+      statements: 95,
+      branches: 95,
+      functions: 95,
+      lines: 95
+    }
   },
   coverageReporters: ['json', 'lcov', 'text', 'text-summary'],
 }

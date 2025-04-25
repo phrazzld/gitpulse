@@ -69,7 +69,7 @@
         2. `npm run test:coverage` command uses these thresholds.
     - **Depends‑on:** [T001]
 
-- [ ] **T008 · Refactor · P0: identify core logic paths and set stricter per-path coverage thresholds**
+- [x] **T008 · Refactor · P0: identify core logic paths and set stricter per-path coverage thresholds**
     - **Context:** PLAN.md / cr‑02 Raise and Enforce Test Coverage Thresholds / Step 2
     - **Action:**
         1. Analyze `src/lib/` and `src/app/api/summary/handlers.ts` (and other core areas) to identify specific files/paths needing higher coverage.
