@@ -2,6 +2,9 @@
   "name": "gitpulse",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=18.17.0"
+  },
   "scripts": {
     "dev": "NEXTAUTH_URL=http://localhost:3000 NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer next dev --turbopack",
     "dev:log": "npm run logs:rotate && NEXTAUTH_URL=http://localhost:3000 NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer LOG_LEVEL=debug next dev --turbopack 2>&1 | tee -a ./logs/app.log",

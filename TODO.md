@@ -423,7 +423,7 @@ The following tickets address specific areas in the codebase that need additiona
     2. Examples clarify the policy for developers.
   - **Depends‑on:** [T015]
 
-- [ ] **T026 · Chore · P3: add `engines` field to `package.json`**
+- [x] **T026 · Chore · P3: add `engines` field to `package.json`**
 
   - **Context:** PLAN.md / cr‑12 Add `engines` Field to package.json
   - **Action:**
