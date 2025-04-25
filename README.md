@@ -285,9 +285,49 @@ Coverage reports are generated in the following formats:
 When writing tests:
 
 - Focus on testing behavior, not implementation details
-- Mock only true external dependencies (APIs, etc.)
 - Use descriptive test and assertion names
 - Include proper TypeScript type annotations
+
+#### Mocking Policy
+
+GitPulse strictly enforces the following mocking policy in all tests:
+
+- **NO mocking internal collaborators**: Mocking classes, functions, or modules within the same application is **strictly forbidden**
+- **Mock only at external boundaries**: Mocking is only permitted for interfaces representing genuinely external systems:
+  - Network I/O (external APIs)
+  - Databases
+  - Filesystem access
+  - System clock
+  - External message brokers
+- **Abstract before mocking**: Always access external dependencies via interfaces defined within our codebase, then mock these local abstractions
+- **Refactor if you need internal mocks**: If you feel the need to mock an internal component, this indicates a design issue. The required action is to refactor the code under test first:
+  - Extract pure functions
+  - Introduce proper interfaces
+  - Use dependency injection
+  - Break down large components
+
+**Examples:**
+
+✅ **Permitted mocking**:
+
+```typescript
+// GitHub API client is a true external dependency
+jest.mock('@/lib/github/client', () => ({
+  getRepositories: jest.fn().mockResolvedValue([
+    /* test data */
+  ]),
+}))
+```
+
+❌ **Forbidden mocking**:
+
+```typescript
+// DO NOT mock internal services or utilities
+jest.mock('@/lib/formatters/dateFormatter')
+jest.mock('@/services/userService')
+```
+
+The need to mock internal modules is a strong indicator that the code needs refactoring for better testability.
 
 ### Error Handling Principles
 

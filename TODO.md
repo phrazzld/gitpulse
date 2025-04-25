@@ -412,7 +412,7 @@ The following tickets address specific areas in the codebase that need additiona
     1. `README.md` clearly documents the code formatting setup and workflow.
   - **Depends‑on:** [T023]
 
-- [ ] **T025 · Chore · P2: update readme with mocking policy**
+- [x] **T025 · Chore · P2: update readme with mocking policy**
 
   - **Context:** PLAN.md / cr‑08 Reinforce Mocking Policy in Docs/Setup / Step 2
   - **Action:**
