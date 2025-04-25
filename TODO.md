@@ -224,7 +224,7 @@
     1. A list or set of tickets exists outlining specific areas requiring test additions to meet coverage.
   - **Depends‑on:** [T009]
 
-- [ ] **T022 · Chore · P2: add `format` script to `package.json`**
+- [x] **T022 · Chore · P2: add `format` script to `package.json`**
 
   - **Context:** PLAN.md / cr‑05 Add Prettier and Code Format Enforcement / Step 5
   - **Action:**
