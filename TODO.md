@@ -433,7 +433,7 @@ The following tickets address specific areas in the codebase that need additiona
     1. `package.json` includes the `engines` field with the appropriate Node.js version constraint.
   - **Depends‑on:** none
 
-- [ ] **T027 · Feature · P3: create example test for real functionality**
+- [x] **T027 · Feature · P3: create example test for real functionality**
   - **Context:** PLAN.md / cr‑09 Improve Example Test with Real Functionality
   - **Action:**
     1. Identify a simple utility function in `src/lib/` suitable for testing.
