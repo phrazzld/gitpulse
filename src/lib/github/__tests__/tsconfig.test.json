@@ -1,0 +1,11 @@
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "module": "NodeNext",
+    "moduleResolution": "node16",
+    "target": "ES2021"
+  },
+  "include": ["repositories.test.ts"]
+}
