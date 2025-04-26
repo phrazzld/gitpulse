@@ -233,9 +233,9 @@ The following tickets address specific areas in the codebase that need additiona
 
 ### Critical Files (95% Coverage Required)
 
-- [ ] **TC001 · Test · P1: improve test coverage for `src/lib/github/commits.ts`**
+- [x] **TC001 · Test · P1: improve test coverage for `src/lib/github/commits.ts`**
 
-  - **Current Coverage:** Statements: 51.21%, Branches: 63.41%, Functions: 41.66%, Lines: 55.40%
+  - **Current Coverage:** Statements: 100%, Branches: 100%, Functions: 100%, Lines: 100%
   - **Target:** 95% for all metrics
   - **Action:**
     1. Add tests for error handling and edge cases.
@@ -243,12 +243,13 @@ The following tickets address specific areas in the codebase that need additiona
     3. Test different parameter combinations.
     4. Focus on missing coverage in lines 131-135, 222-310.
   - **Done‑when:**
-    1. All metrics reach at least 95% coverage.
+    1. All metrics reach at least 95% coverage. ✓ Achieved 100% coverage for all metrics.
   - **Depends‑on:** none
+  - **Completed:** Added comprehensive tests for all functions in the module. Tests now cover all error conditions, fallback paths, and pagination strategies. Fixed TypeScript typing issues in the test module.
 
-- [ ] **TC002 · Test · P1: improve test coverage for `src/lib/github/repositories.ts`**
+- [x] **TC002 · Test · P1: improve test coverage for `src/lib/github/repositories.ts`**
 
-  - **Current Coverage:** Statements: 70.73%, Branches: 42.85%, Functions: 42.85%, Lines: 71.60%
+  - **Current Coverage:** Statements: 100%, Branches: 100%, Functions: 100%, Lines: 100%
   - **Target:** 95% for all metrics
   - **Action:**
     1. Add tests for error conditions.
@@ -256,8 +257,9 @@ The following tickets address specific areas in the codebase that need additiona
     3. Test pagination and response handling.
     4. Focus on missing coverage in lines 40-46, 70-74, 80-88, 117, 121-147, 164-165, 194, 212-213, 218-221.
   - **Done‑when:**
-    1. All metrics reach at least 95% coverage.
+    1. All metrics reach at least 95% coverage. ✓ Achieved 100% coverage for all metrics.
   - **Depends‑on:** none
+  - **Completed:** Added comprehensive tests for all functions in the module with a flexible mock structure. Tests now cover all code paths including error handling, branch conditions, and edge cases.
 
 - [x] **TC003 · Test · P2: improve test coverage for `src/lib/github/utils.ts`**
 
@@ -271,9 +273,9 @@ The following tickets address specific areas in the codebase that need additiona
     1. All metrics reach at least 95% coverage.
   - **Depends‑on:** none
 
-- [ ] **TC004 · Test · P1: add tests for `src/app/api/summary/handlers.ts`**
+- [x] **TC004 · Test · P1: add tests for `src/app/api/summary/handlers.ts`**
 
-  - **Current Coverage:** Insufficient
+  - **Current Coverage:** 100% for statements, branches, functions, and lines
   - **Target:** 95% for all metrics
   - **Action:**
     1. Test all handler functions.
@@ -282,6 +284,7 @@ The following tickets address specific areas in the codebase that need additiona
   - **Done‑when:**
     1. All metrics reach at least 95% coverage.
   - **Depends‑on:** none
+  - **Completed:** Added comprehensive tests for all handler functions, focusing on edge cases, error handling, and all code paths. Achieved 100% coverage across all metrics, exceeding the 95% coverage goal. Added proper TypeScript type annotations to all test functions.
 
 - [ ] **TC005 · Test · P1: improve test coverage for `src/hooks/dashboard/useSummary.ts`**
 
