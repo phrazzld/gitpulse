@@ -40,7 +40,7 @@
         1. Run `npm run storybook` and check terminal/browser console for config errors.
     - **Depends‑on:** [T002]
 
-- [ ] **T004 · Feature · P1: configure `.storybook/preview.ts` for global styles and parameters**
+- [x] **T004 · Feature · P1: configure `.storybook/preview.ts` for global styles and parameters**
     - **Context:** PLAN.md - Step 3.3, Action 2
     - **Action:**
         1. Import `../src/app/globals.css` in `.storybook/preview.ts`.
@@ -55,7 +55,7 @@
         3. Check browser console for errors related to style loading.
     - **Depends‑on:** [T002]
 
-- [ ] **T005 · Bugfix · P1: add basic next.js mocks to `preview.ts` if needed**
+- [x] **T005 · Bugfix · P1: add basic next.js mocks to `preview.ts` if needed**
     - **Context:** PLAN.md - Step 3.3, Action 2; Pitfall 1
     - **Action:**
         1. If example stories fail to render correctly during T004 verification due to `next/image` or `next/router`, implement basic mocks in `.storybook/preview.ts` as shown in the plan.
@@ -70,7 +70,7 @@
         3. Check browser console for related errors.
     - **Depends‑on:** [T004]
 
-- [ ] **T006 · Test · P1: verify storybook static build completes successfully**
+- [x] **T006 · Test · P1: verify storybook static build completes successfully**
     - **Context:** PLAN.md - Step 3.4: Verify Storybook Build
     - **Action:**
         1. Run `npm run build-storybook` in the project root.
