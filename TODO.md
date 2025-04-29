@@ -12,7 +12,7 @@
         1. Review the document for clarity and coverage of topics mentioned in PLAN.md Step 3.1.
     - **Depends‑on:** none
 
-- [ ] **T002 · Feature · P1: initialize storybook with vite builder**
+- [x] **T002 · Feature · P1: initialize storybook with vite builder**
     - **Context:** PLAN.md - Step 3.2: Initialize Storybook
     - **Action:**
         1. Run `npx storybook@latest init --builder vite` in the project root.
