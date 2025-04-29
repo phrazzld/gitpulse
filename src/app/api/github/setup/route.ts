@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { createAuthOptions } from "@/lib/auth/authConfig";
 import { logger } from "@/lib/logger";
 
 const MODULE_NAME = "api:github:setup";
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     searchParams: Object.fromEntries(request.nextUrl.searchParams.entries())
   });
   
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(createAuthOptions());
   
   // Check if there's a valid session
   if (!session) {

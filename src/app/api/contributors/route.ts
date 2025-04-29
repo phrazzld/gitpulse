@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { createAuthOptions } from "@/lib/auth/authConfig";
 import { Commit } from "@/lib/github/types";
 import { fetchAllRepositories } from "@/lib/github/repositories";
 import { fetchCommitsForRepositories } from "@/lib/github/commits";
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     headers: Object.fromEntries([...request.headers.entries()])
   });
   
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(createAuthOptions());
   
   if (!session) {
     logger.warn(MODULE_NAME, "Unauthorized request - no valid session", { 

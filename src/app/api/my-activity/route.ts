@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { createAuthOptions } from "@/lib/auth/authConfig";
 import { 
   Commit,
   Repository,
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     headers: Object.fromEntries(request.headers)
   });
   
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(createAuthOptions());
   
   if (!session || !session.user) {
     logger.warn(MODULE_NAME, "Unauthorized request - no valid session", { 

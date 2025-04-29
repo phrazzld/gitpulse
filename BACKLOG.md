@@ -2,6 +2,34 @@
 
 ## High Priority
 
+### Technical Foundation
+
+- **Tooling**: Initialize Storybook and baseline component library
+
+- **Refactor**: Decompose `src/lib/github.ts` (853 lines) into focused service modules
+  - **Complexity**: Medium
+  - **Rationale**: Improves maintainability, testability, and code readability
+  - **Expected Outcome**: Multiple focused modules under `src/lib/github/` with clear responsibilities; existing functionality preserved
+  - **Dependencies**: None
+
+- **Refactor**: Break down `OperationsPanel.tsx` (470 lines) into smaller sub-components
+  - **Complexity**: Medium
+  - **Rationale**: Large component slows feature delivery; modular components speed up UI iterations
+  - **Expected Outcome**: Clear separation into smaller, focused components with single responsibilities
+  - **Dependencies**: None
+
+- **Enhancement**: Centralize error handling logic in `src/lib/error.ts`
+  - **Complexity**: Simple
+  - **Rationale**: Avoid duplicated logic; consistent user messaging across the application
+  - **Expected Outcome**: Common error utilities used consistently throughout the codebase
+  - **Dependencies**: None
+
+- **Enhancement**: Replace loose typings (`any[]`, `Record<string, any>`) with strict types
+  - **Complexity**: Medium
+  - **Rationale**: Prevent runtime errors; improve developer experience via auto-completion
+  - **Expected Outcome**: All exported functions and modules use explicit TypeScript types; `tsc` passes with no `any` warnings
+  - **Dependencies**: None
+
 ### Core Functionality & Testing
 
 - **Feature**: Configure and validate Jest testing framework
@@ -26,32 +54,6 @@
   - **Complexity**: Medium
   - **Rationale**: Proactively catch and track runtime errors post B001 fix
   - **Expected Outcome**: Errors logged to monitoring service with context; dashboard of real-time error trends
-  - **Dependencies**: None
-
-### Technical Foundation
-
-- **Refactor**: Decompose `src/lib/github.ts` (853 lines) into focused service modules
-  - **Complexity**: Medium
-  - **Rationale**: Improves maintainability, testability, and code readability
-  - **Expected Outcome**: Multiple focused modules under `src/lib/github/` with clear responsibilities; existing functionality preserved
-  - **Dependencies**: None
-
-- **Refactor**: Break down `OperationsPanel.tsx` (470 lines) into smaller sub-components
-  - **Complexity**: Medium
-  - **Rationale**: Large component slows feature delivery; modular components speed up UI iterations
-  - **Expected Outcome**: Clear separation into smaller, focused components with single responsibilities
-  - **Dependencies**: None
-
-- **Enhancement**: Centralize error handling logic in `src/lib/error.ts`
-  - **Complexity**: Simple
-  - **Rationale**: Avoid duplicated logic; consistent user messaging across the application
-  - **Expected Outcome**: Common error utilities used consistently throughout the codebase
-  - **Dependencies**: None
-
-- **Enhancement**: Replace loose typings (`any[]`, `Record<string, any>`) with strict types
-  - **Complexity**: Medium
-  - **Rationale**: Prevent runtime errors; improve developer experience via auto-completion
-  - **Expected Outcome**: All exported functions and modules use explicit TypeScript types; `tsc` passes with no `any` warnings
   - **Dependencies**: None
 
 ### Data Collection & Infrastructure

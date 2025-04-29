@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { createAuthOptions } from "@/lib/auth/authConfig";
 import { isGitHubTokenValid } from "./tokenValidator";
 import { logger } from "../logger";
 
@@ -20,7 +20,7 @@ export type ApiRouteHandler = (
 export function withAuthValidation(handler: ApiRouteHandler) {
   return async (req: NextRequest): Promise<NextResponse> => {
     // Get the session from the request
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(createAuthOptions());
 
     // If no session, return unauthorized response
     if (!session) {
