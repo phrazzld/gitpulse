@@ -15,6 +15,7 @@
 
 # production
 /build
+/storybook-static
 
 # misc
 .DS_Store
@@ -52,3 +53,5 @@ consultation-report/
 diff.md
 CODE_REVIEW.md
 GROOM-PROMPT.md
+
+*storybook.log
