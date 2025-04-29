@@ -6,12 +6,6 @@
 
 - **Tooling**: Initialize Storybook and baseline component library
 
-- **Refactor**: Decompose `src/lib/github.ts` (853 lines) into focused service modules
-  - **Complexity**: Medium
-  - **Rationale**: Improves maintainability, testability, and code readability
-  - **Expected Outcome**: Multiple focused modules under `src/lib/github/` with clear responsibilities; existing functionality preserved
-  - **Dependencies**: None
-
 - **Refactor**: Break down `OperationsPanel.tsx` (470 lines) into smaller sub-components
   - **Complexity**: Medium
   - **Rationale**: Large component slows feature delivery; modular components speed up UI iterations
@@ -322,3 +316,20 @@
 4. Added comprehensive error handling to `SummaryView`'s `loadCommits` function
 
 **Status:** Fixed in tasks T031-T036
+
+## Completed Tasks
+
+### C001 - GitHub Service Module Refactoring
+**Description:** Decomposition of the monolithic `src/lib/github.ts` (853 lines) into discrete, focused service modules.
+
+**Implementation:**
+1. Created modular architecture with separate files for different concerns
+2. Extracted types to `types.ts`
+3. Extracted utilities to `utils.ts`
+4. Extracted authentication logic to `auth.ts`
+5. Extracted repository operations to `repositories.ts`
+6. Extracted commit operations to `commits.ts`
+7. Created barrel file `index.ts` for backward compatibility
+8. Added comprehensive documentation and tests
+
+**Status:** Completed
