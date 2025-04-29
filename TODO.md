@@ -79,7 +79,7 @@
         2. A `storybook-static` directory is created.
     - **Depends‑on:** [T003, T004, T005] # Depends on all config and potential fixes being in place
 
-- [ ] **T007 · Chore · P2: update readme.md with storybook usage instructions**
+- [x] **T007 · Chore · P2: update readme.md with storybook usage instructions**
     - **Context:** PLAN.md - Step 3.5: Initial Documentation Update; Section 5
     - **Action:**
         1. Add a new section to `README.md` explaining Storybook's purpose in the project (UI component dev & docs).
