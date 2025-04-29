@@ -23,6 +23,7 @@ GitPulse is a web application that generates summaries of GitHub commits for ind
 - **Data Fetching**: Custom progressive loading pattern for efficient data retrieval
 - **State Management**: React hooks with context for local state management
 - **Styling**: TailwindCSS for responsive design
+- **Component Development**: Storybook for UI component development and documentation
 - **Error Handling**: Structured error handling chain with fallbacks
 - **Logging**: Structured JSON logging with correlation IDs
 - **Deployment**: Vercel (recommended)
@@ -128,6 +129,27 @@ npm run dev:log
 ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+### Storybook
+
+GitPulse uses Storybook for UI component development and documentation:
+
+```bash
+# Run Storybook development server
+npm run storybook
+
+# Build static Storybook site
+npm run build-storybook
+```
+
+Storybook provides an isolated environment for developing and testing UI components without needing to run the full application. It helps with:
+
+- Component development in isolation
+- Visual testing of component states
+- Documentation of component usage
+- Showcasing the component library
+
+After running `npm run storybook`, open the displayed URL in your browser (typically http://localhost:6006) to view the component library.
 
 ## Usage
 
