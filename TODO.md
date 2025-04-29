@@ -27,7 +27,7 @@
         2. Verify the Storybook UI loads at `http://localhost:6006` (or assigned port) without initial errors (example stories might have issues addressed later).
     - **Depends‑on:** T001
 
-- [ ] **T003 · Feature · P1: configure `.storybook/main.ts` for project structure and addons**
+- [x] **T003 · Feature · P1: configure `.storybook/main.ts` for project structure and addons**
     - **Context:** PLAN.md - Step 3.3, Action 1
     - **Action:**
         1. Update `.storybook/main.ts` `stories` glob pattern to `['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)']`.
@@ -93,9 +93,9 @@
 ---
 
 ### Clarifications & Assumptions
-- [ ] **Issue:** Confirm the exact Storybook styling addon name/config needed for Vite + TailwindCSS/PostCSS (`@storybook/addon-styling` vs `@storybook/addon-styling-webpack` or other options).
+- [x] **Issue:** Confirm the exact Storybook styling addon name/config needed for Vite + TailwindCSS/PostCSS (`@storybook/addon-styling` vs `@storybook/addon-styling-webpack` or other options).
     - **Context:** PLAN.md - Step 3.3, Action 1; Pitfall 2
-    - **Blocking?:** yes # Blocks completion of T003. Requires investigation based on `storybook init` output and docs.
+    - **Blocking?:** no # Resolved: Using the Next.js framework provided by initialization which inherently supports TailwindCSS.
 - [ ] **Issue:** Confirm if project components commonly reference assets directly from the `/public` directory.
     - **Context:** PLAN.md - Step 3.3, Action 1 (comment on `staticDirs`)
     - **Blocking?:** no # Can be added later to T003 if needed, doesn't block initial setup.
