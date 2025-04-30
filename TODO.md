@@ -337,13 +337,26 @@
 
 ## Documentation & Standards
 
-- [ ] **T015 · Chore · P2: define and document storybook usage standards**
+- [x] **T015 · Chore · P2: define and document storybook usage standards**
     - **Context:** PLAN.md Step 3.4, Action 1
     - **Action:**
         1. Create or update `docs/COMPONENT_LIBRARY.md` (or `docs/STORYBOOK.md`).
         2. Document standards: CSF3, naming (files, exports), hierarchy (`UI/`, `Features/`), `tags: ['autodocs']`, `argTypes` requirements, TSDoc on components/props, story states, isolation philosophy.
     - **Done‑when:**
         1. Documentation file exists/is updated with the defined standards.
+    - **Implementation:**
+        1. Created `docs/STORYBOOK.md` for dedicated Storybook standards documentation
+        2. Documented comprehensive standards covering:
+           - File structure and naming conventions
+           - Component Story Format 3 (CSF3) requirements
+           - Story hierarchy and organization (`UI/`, `Features/`, etc.)
+           - `argTypes` and controls configuration
+           - Documentation requirements for components and stories
+           - Component isolation principles
+           - Accessibility (a11y) configuration and testing
+           - Required story variants (Default, States, Customization, etc.)
+        3. Included real examples from our codebase (LoadMoreButton, ModeSelector)
+        4. Organized document with clear sections and table of contents
     - **Depends‑on:** [T006, T009, T012] *(Beneficial to reference concrete examples)*
 
 - [ ] **T016 · Chore · P3: update development philosophy doc referencing storybook**
