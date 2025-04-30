@@ -1,6 +1,6 @@
 import React from 'react';
 import OperationsPanel from '../OperationsPanel';
-import { ActivityMode } from '@/components/ModeSelector';
+import { ActivityMode } from '@/components/ui/ModeSelector';
 
 // Mock the dashboard-utils module
 jest.mock('@/lib/dashboard-utils', () => ({
@@ -13,7 +13,7 @@ jest.mock('@/lib/github', () => ({
 }));
 
 // Mock components used by OperationsPanel
-jest.mock('@/components/ModeSelector', () => ({
+jest.mock('@/components/ui/ModeSelector', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(({ selectedMode, onChange, disabled }) => (
     <div data-testid="mode-selector" data-selected-mode={selectedMode} data-disabled={disabled}>

@@ -217,7 +217,7 @@
         4. Documentation is updated to reflect the new design
     - **Depends‑on:** [T010, T011, T012] (Complete simpler components first)
 
-- [ ] **T010 · Refactor · P2: move ModeSelector component to ui library directory**
+- [x] **T010 · Refactor · P2: move ModeSelector component to ui library directory**
     - **Context:** PLAN.md Step 3.2, Action 2 (Assumes `ModeSelector` selected in T001 and T002 decision was Yes)
     - **Action:**
         1. Move the `ModeSelector` component files to the directory created in T003.
@@ -225,6 +225,11 @@
     - **Done‑when:**
         1. Component files are in the new directory.
         2. Application builds and runs correctly after path updates.
+    - **Implementation:**
+        1. Created ModeSelector.tsx in the src/components/ui/ directory
+        2. Updated imports in OperationsPanel.tsx, OperationsPanel.test.tsx, and OrganizationPicker.tsx to use the new location
+        3. Verified application builds correctly with npm run typecheck and npm run lint
+        4. Removed the original ModeSelector.tsx file
     - **Depends‑on:** [T001, T003] *(Skip if T002 decision is No or component not selected in T001)*
 
 - [ ] **T011 · Refactor · P2: refactor ModeSelector for improved isolation if necessary**
