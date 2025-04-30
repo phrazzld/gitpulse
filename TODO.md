@@ -306,7 +306,7 @@
         4. Confirmed no negative impacts on existing component stories
     - **Depends‑on:** none *(Logically done after T006, T009, T012 are complete)*
 
-- [ ] **T014 · Bugfix · P2: address accessibility violations found in initial stories**
+- [x] **T014 · Bugfix · P2: address accessibility violations found in initial stories**
     - **Context:** PLAN.md Step 3.3 Verification & Section 4 Testing Strategy
     - **Action:**
         1. Review Accessibility panel results for stories created in T006, T009, T012.
@@ -314,6 +314,22 @@
     - **Done‑when:**
         1. Accessibility violations in the initial component stories are reviewed and straightforward fixes implemented.
         2. Complex issues requiring larger changes are documented for separate tracking.
+    - **Implementation:**
+        1. Enhanced LoadMoreButton component with:
+           - Proper ARIA attributes (aria-busy, aria-hidden)
+           - Keyboard focus styles with high contrast outlines
+           - Fallback colors for CSS variables to ensure contrast
+           - Added aria-label to SVG icon
+           - Added loadText and loadingText props for better customization
+        2. Improved ModeSelector component with:
+           - Stable, unique IDs using React's useId() hook
+           - Enhanced keyboard navigation with arrow keys
+           - Proper focus management for better accessibility
+           - Added aria-disabled and other ARIA attributes
+           - Improved role semantics for the radio group pattern
+        3. Added a11y configuration to story files to enable specific accessibility rule checking
+        4. Added documentation about accessibility features and keyboard navigation
+        5. Verified builds successfully and passes TypeScript type checking
     - **Verification:**
         1. Run `npm run storybook`.
         2. Re-check Accessibility panel for the relevant stories to confirm fixes.

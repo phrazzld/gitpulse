@@ -11,6 +11,7 @@ import ModeSelector, { ActivityMode, DEFAULT_MODES, ModeOption } from './ModeSel
  * - Customizable appearance through theming props
  * - Accessibility support with ARIA attributes
  * - Disabled state support
+ * - Keyboard navigation
  */
 const meta: Meta<typeof ModeSelector> = {
   title: 'UI/Selectors/Mode Selector',
@@ -72,6 +73,27 @@ const meta: Meta<typeof ModeSelector> = {
       description: {
         component: 'A radio group component for selecting between different activity modes with customizable appearance and accessibility features.'
       }
+    },
+    a11y: {
+      config: {
+        rules: [
+          {
+            // Ensure proper contrast ratio
+            id: 'color-contrast',
+            enabled: true
+          },
+          {
+            // Ensure proper ARIA roles
+            id: 'aria-valid-attr-value',
+            enabled: true
+          },
+          {
+            // Ensure interactive elements are keyboard accessible
+            id: 'interactive-supports-focus',
+            enabled: true
+          }
+        ]
+      }
     }
   }
 };
@@ -81,11 +103,23 @@ type Story = StoryObj<typeof ModeSelector>;
 
 /**
  * Default state of the ModeSelector with the "my-activity" mode selected.
+ * 
+ * Keyboard navigation:
+ * - Use Tab to focus the component
+ * - Use Arrow keys to navigate between options
+ * - Use Space or Enter to select an option
  */
 export const Default: Story = {
   args: {
     selectedMode: 'my-activity',
     disabled: false,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'Default state with "my-activity" selected. This component supports full keyboard navigation using tab, arrow keys, space, and enter.'
+      }
+    }
   }
 };
 
@@ -111,11 +145,20 @@ export const TeamModeSelected: Story = {
 
 /**
  * ModeSelector in disabled state - cannot be interacted with.
+ * The component visually indicates its disabled state and is properly
+ * marked with aria-disabled attribute.
  */
 export const Disabled: Story = {
   args: {
     selectedMode: 'my-activity',
     disabled: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'The disabled state is visually indicated and properly communicated to assistive technologies.'
+      }
+    }
   }
 };
 
@@ -155,6 +198,8 @@ export const CustomModes: Story = {
 
 /**
  * ModeSelector with custom theme colors.
+ * These colors have been selected to maintain proper contrast ratios
+ * for accessibility.
  */
 export const CustomTheme: Story = {
   args: {
@@ -169,7 +214,7 @@ export const CustomTheme: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'This example demonstrates how to customize the component\'s appearance with different colors.'
+        story: 'This example demonstrates how to customize the component\'s appearance with different colors while maintaining accessibility standards.'
       }
     }
   }
@@ -188,7 +233,7 @@ export const CustomLabel: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'This example shows how to customize the label and add CSS classes.'
+        story: 'This example shows how to customize the label for better accessibility and add CSS classes for styling.'
       }
     }
   }

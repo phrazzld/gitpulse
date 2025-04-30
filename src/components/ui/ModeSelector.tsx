@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 /**
  * Activity mode options for data display filtering
  */
@@ -84,19 +86,19 @@ export interface ModeSelectorProps {
   
   /**
    * Primary color for accents (selected items, indicators)
-   * @default 'var(--neon-green)'
+   * @default 'var(--neon-green, #00ff87)'
    */
   accentColor?: string;
   
   /**
    * Text color for descriptions
-   * @default 'var(--electric-blue)'
+   * @default 'var(--electric-blue, #3b8eea)'
    */
   secondaryColor?: string;
   
   /**
    * Main text color
-   * @default 'var(--foreground)'
+   * @default 'var(--foreground, #ffffff)'
    */
   textColor?: string;
   
@@ -117,6 +119,12 @@ export interface ModeSelectorProps {
  * ModeSelector component displays a radio group to select between different 
  * activity modes (personal, work, team).
  * 
+ * Accessibility features:
+ * - Uses proper radiogroup and radio roles
+ * - Supports keyboard navigation with tab, space, and enter
+ * - Uses stable, unique IDs for ARIA attributes
+ * - Provides descriptive labels for all interactive elements
+ * 
  * @example
  * ```tsx
  * <ModeSelector 
@@ -132,12 +140,16 @@ export default function ModeSelector({
   modes = DEFAULT_MODES,
   ariaLabel = 'Activity Mode',
   className = '',
-  accentColor = 'var(--neon-green)',
-  secondaryColor = 'var(--electric-blue)',
-  textColor = 'var(--foreground)',
+  accentColor = 'var(--neon-green, #00ff87)',
+  secondaryColor = 'var(--electric-blue, #3b8eea)',
+  textColor = 'var(--foreground, #ffffff)',
   backgroundColor = 'rgba(27, 43, 52, 0.7)',
   selectedBackgroundColor = 'rgba(0, 255, 135, 0.1)',
 }: ModeSelectorProps) {
+  // Use stable IDs
+  const headerId = useId();
+  const groupId = useId();
+  
   // Handle mode change
   const handleModeChange = (mode: ActivityMode) => {
     if (!disabled) {
@@ -145,8 +157,32 @@ export default function ModeSelector({
     }
   };
 
-  // Generate a unique ID for ARIA labelling
-  const headerId = `mode-selector-heading-${Math.floor(Math.random() * 10000)}`;
+  // Handle keyboard navigation between radio options
+  const handleKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
+    if (disabled) return;
+    
+    // Get all selectable mode IDs
+    const modeIds = modes.map(m => m.id);
+    
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      const nextIndex = (currentIndex + 1) % modes.length;
+      onChange(modeIds[nextIndex]);
+      // Focus the next element
+      const nextElement = document.getElementById(`${groupId}-option-${nextIndex}`);
+      nextElement?.focus();
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const prevIndex = (currentIndex - 1 + modes.length) % modes.length;
+      onChange(modeIds[prevIndex]);
+      // Focus the previous element
+      const prevElement = document.getElementById(`${groupId}-option-${prevIndex}`);
+      prevElement?.focus();
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onChange(modeIds[currentIndex]);
+    }
+  };
 
   return (
     <div 
@@ -158,10 +194,15 @@ export default function ModeSelector({
       }}
       role="radiogroup"
       aria-labelledby={headerId}
+      aria-disabled={disabled}
     >
       <div className="p-3 border-b" style={{ borderColor: accentColor }}>
         <div className="flex items-center">
-          <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: accentColor }}></div>
+          <div 
+            className="w-2 h-2 rounded-full mr-2" 
+            style={{ backgroundColor: accentColor }}
+            aria-hidden="true"
+          ></div>
           <h3 
             id={headerId}
             className="text-sm uppercase" 
@@ -174,55 +215,67 @@ export default function ModeSelector({
 
       <div className="p-4">
         <div className="space-y-3">
-          {modes.map((mode) => (
-            <div 
-              key={mode.id}
-              className={`p-3 rounded-md transition-all duration-200 cursor-pointer ${
-                disabled ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              style={{ 
-                backgroundColor: selectedMode === mode.id 
-                  ? selectedBackgroundColor 
-                  : 'rgba(27, 43, 52, 0.5)',
-                borderLeft: `3px solid ${selectedMode === mode.id ? accentColor : 'transparent'}`,
-              }}
-              onClick={() => handleModeChange(mode.id)}
-              role="radio"
-              aria-checked={selectedMode === mode.id}
-              tabIndex={disabled ? -1 : 0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleModeChange(mode.id);
-                }
-              }}
-              aria-label={`${mode.label}: ${mode.description}`}
-            >
-              <div className="flex items-center">
-                <div 
-                  className="w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center"
-                  style={{ 
-                    borderColor: accentColor,
-                  }}
-                >
-                  {selectedMode === mode.id && (
-                    <div 
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: accentColor }}
-                    />
-                  )}
-                </div>
-                <div>
-                  <div className="text-sm font-bold" style={{ color: textColor }}>
-                    {mode.label}
+          {modes.map((mode, index) => {
+            const isSelected = selectedMode === mode.id;
+            const optionId = `${groupId}-option-${index}`;
+            
+            return (
+              <div 
+                id={optionId}
+                key={mode.id}
+                className={`p-3 rounded-md transition-all duration-200 
+                  ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  ${isSelected ? 'ring-2' : ''}
+                  focus:outline-none focus:ring-2 focus:ring-offset-1`}
+                style={{ 
+                  backgroundColor: isSelected ? selectedBackgroundColor : 'rgba(27, 43, 52, 0.5)',
+                  borderLeft: `3px solid ${isSelected ? accentColor : 'transparent'}`,
+                  // Use type assertion for CSS custom properties
+                  ...({"--tw-ring-color": accentColor} as React.CSSProperties),
+                  ...({"--tw-ring-offset-color": backgroundColor} as React.CSSProperties)
+                }}
+                onClick={() => handleModeChange(mode.id)}
+                role="radio"
+                aria-checked={isSelected}
+                tabIndex={disabled ? -1 : (isSelected ? 0 : -1)}
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                data-testid={`mode-option-${mode.id}`}
+                aria-disabled={disabled}
+              >
+                <div className="flex items-center">
+                  <div 
+                    className="w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center"
+                    style={{ borderColor: accentColor }}
+                    aria-hidden="true"
+                  >
+                    {isSelected && (
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: accentColor }}
+                        aria-hidden="true"
+                      />
+                    )}
                   </div>
-                  <div className="text-xs mt-1" style={{ color: secondaryColor }}>
-                    {mode.description}
+                  <div>
+                    <div 
+                      className="text-sm font-bold" 
+                      style={{ color: textColor }}
+                      id={`${optionId}-label`}
+                    >
+                      {mode.label}
+                    </div>
+                    <div 
+                      className="text-xs mt-1" 
+                      style={{ color: secondaryColor }}
+                      id={`${optionId}-description`}
+                    >
+                      {mode.description}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

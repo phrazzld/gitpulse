@@ -26,6 +26,14 @@ const meta: Meta<typeof LoadMoreButton> = {
       description: 'Whether there are more items to load (button is not rendered when false)',
       control: 'boolean' 
     },
+    loadText: {
+      description: 'Text to show in normal state',
+      control: 'text'
+    },
+    loadingText: {
+      description: 'Text to show in loading state',
+      control: 'text'
+    },
     className: { 
       description: 'Additional CSS class names',
       control: 'text' 
@@ -36,6 +44,18 @@ const meta: Meta<typeof LoadMoreButton> = {
     docs: {
       description: {
         component: 'A button component for loading more items in paginated lists with loading and empty states.'
+      }
+    },
+    a11y: {
+      // Optional a11y configuration
+      config: {
+        rules: [
+          {
+            // Rule for ensuring proper contrast ratio
+            id: 'color-contrast',
+            enabled: true
+          }
+        ]
       }
     }
   }
@@ -51,6 +71,8 @@ export const Default: Story = {
   args: {
     loading: false,
     hasMore: true,
+    loadText: 'LOAD MORE',
+    loadingText: 'LOADING',
     className: ''
   }
 };
@@ -62,6 +84,8 @@ export const Loading: Story = {
   args: {
     loading: true,
     hasMore: true,
+    loadText: 'LOAD MORE',
+    loadingText: 'LOADING',
     className: ''
   }
 };
@@ -74,14 +98,29 @@ export const NoMoreItems: Story = {
   args: {
     loading: false,
     hasMore: false,
+    loadText: 'LOAD MORE',
+    loadingText: 'LOADING',
     className: ''
   },
   decorators: [
     (Story) => (
       <div className="border-2 border-dashed border-gray-300 rounded-md p-4 flex justify-center items-center min-h-[100px] w-full">
-        <div className="text-gray-400">Button not rendered when hasMore is false</div>
+        <div className="text-gray-400" aria-label="Empty state message">Button not rendered when hasMore is false</div>
         <Story />
       </div>
     )
   ]
+};
+
+/**
+ * Button with custom text labels.
+ */
+export const CustomLabels: Story = {
+  args: {
+    loading: false,
+    hasMore: true,
+    loadText: 'SHOW MORE ITEMS',
+    loadingText: 'FETCHING DATA',
+    className: ''
+  }
 };
