@@ -90,7 +90,7 @@
         2. No refactoring needed as the component is already suitable for Storybook
     - **Depends‑on:** [T004] (or [T001] if T004 is skipped)
 
-- [ ] **T006 · Feature · P1: create storybook stories for LoadMoreButton**
+- [x] **T006 · Feature · P1: create storybook stories for LoadMoreButton**
     - **Context:** PLAN.md Step 3.3 (Assumes `LoadMoreButton` selected in T001)
     - **Action:**
         1. Create `LoadMoreButton.stories.tsx` adjacent to the component, using CSF3.
@@ -101,6 +101,16 @@
         2. TSDoc comments added/updated for the component and its props.
         3. Storybook runs (`npm run storybook`) and builds (`npm run build-storybook`) successfully.
         4. Docs tab is populated correctly from TSDoc and argTypes.
+    - **Implementation:**
+        1. Enhanced LoadMoreButton TSDoc comments for better documentation
+        2. Created LoadMoreButton.stories.tsx with CSF3 format
+        3. Implemented meta object with title 'UI/Buttons/Load More Button', tags, and argTypes
+        4. Created three stories:
+           - Default: Button in ready state
+           - Loading: Button in loading state with spinner
+           - NoMoreItems: Shows component not rendering when hasMore is false (with decorator)
+        5. Set up actions for the onClick handler
+        6. Verified Storybook builds successfully
     - **Verification:**
         1. Run `npm run storybook`.
         2. Navigate to `UI/Buttons/Load More Button`.

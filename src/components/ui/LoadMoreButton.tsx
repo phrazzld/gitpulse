@@ -1,14 +1,48 @@
 import React from 'react';
 
+/**
+ * Props for the LoadMoreButton component
+ */
 interface LoadMoreButtonProps {
+  /**
+   * Function to call when the button is clicked
+   */
   onClick: () => void;
+  
+  /**
+   * Whether the button is in loading state
+   * When true, the button will show a loading spinner and be disabled
+   */
   loading: boolean;
+  
+  /**
+   * Whether there are more items to load
+   * When false, the button will not be rendered
+   */
   hasMore: boolean;
+  
+  /**
+   * Additional CSS classes to apply to the container
+   */
   className?: string;
 }
 
 /**
- * Button component for loading more items in a paginated list
+ * A button component for loading more items in a paginated list.
+ * 
+ * The button has three states:
+ * - Default: Shows "LOAD MORE" text with an icon
+ * - Loading: Shows a loading spinner with "LOADING..." text and is disabled
+ * - Hidden: Not rendered when there are no more items to load (hasMore is false)
+ * 
+ * @example
+ * ```tsx
+ * <LoadMoreButton
+ *   onClick={() => loadMoreData()}
+ *   loading={isLoading}
+ *   hasMore={hasMoreData}
+ * />
+ * ```
  */
 export default function LoadMoreButton({
   onClick,
