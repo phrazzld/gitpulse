@@ -256,7 +256,7 @@
         3. Verified that the component works with existing code through typecheck and lint
     - **Depends‑on:** [T010] (or [T001] if T010 is skipped)
 
-- [ ] **T012 · Feature · P1: create storybook stories for ModeSelector**
+- [x] **T012 · Feature · P1: create storybook stories for ModeSelector**
     - **Context:** PLAN.md Step 3.3 (Assumes `ModeSelector` selected in T001)
     - **Action:**
         1. Create `ModeSelector.stories.tsx` adjacent to the component, using CSF3.
@@ -267,6 +267,21 @@
         2. TSDoc comments added/updated for the component and its props.
         3. Storybook runs and builds successfully.
         4. Docs tab is populated correctly.
+    - **Implementation:**
+        1. Created ModeSelector.stories.tsx using CSF3 format
+        2. Implemented meta object with title 'UI/Selectors/Mode Selector', tags, and argTypes
+        3. Created seven stories:
+           - Default: With my-activity mode selected
+           - WorkModeSelected: With my-work-activity mode selected
+           - TeamModeSelected: With team-activity mode selected
+           - Disabled: Component in disabled state
+           - CustomModes: With different labels and descriptions
+           - CustomTheme: With custom colors
+           - CustomLabel: With custom aria label and CSS class
+        4. Added comprehensive JSDoc comments for each story
+        5. Set up actions for the onChange handler
+        6. Added parameters for layout and documentation
+        7. Verified stories pass TypeScript checking and ESLint
     - **Verification:**
         1. Run `npm run storybook`.
         2. Navigate to `UI/Selectors/Mode Selector`.
