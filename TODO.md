@@ -58,7 +58,7 @@
         2. Added README.md to document purpose and conventions for UI components in this directory
     - **Depends‑on:** [T002] *(Skip if T002 decision is No)*
 
-- [ ] **T004 · Refactor · P2: move LoadMoreButton component to ui library directory**
+- [x] **T004 · Refactor · P2: move LoadMoreButton component to ui library directory**
     - **Context:** PLAN.md Step 3.2, Action 2 (Assumes `LoadMoreButton` selected in T001 and T002 decision was Yes)
     - **Action:**
         1. Move the `LoadMoreButton` component files to the directory created in T003.
@@ -66,6 +66,11 @@
     - **Done‑when:**
         1. Component files are in the new directory.
         2. Application builds and runs correctly after path updates (`npm run dev`, `npm run build`).
+    - **Implementation:**
+        1. Created LoadMoreButton.tsx in the src/components/ui/ directory
+        2. Updated import in ActivityFeed.tsx to use the new location
+        3. Verified application builds correctly with npm run dev, npm run typecheck, and npm run lint
+        4. Removed the original LoadMoreButton.tsx file
     - **Depends‑on:** [T001, T003] *(Skip if T002 decision is No or component not selected in T001)*
 
 - [ ] **T005 · Refactor · P2: refactor LoadMoreButton for improved isolation if necessary**
