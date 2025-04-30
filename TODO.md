@@ -121,7 +121,7 @@
         7. Check Accessibility tab for violations (address in T014).
     - **Depends‑on:** [T005] (or [T004] or [T001] depending on structure/refactor path)
 
-- [ ] **T007 · Refactor · P2: move AuthLoadingScreen component to ui library directory**
+- [x] **T007 · Refactor · P2: move AuthLoadingScreen component to ui library directory**
     - **Context:** PLAN.md Step 3.2, Action 2 (Assumes `AuthLoadingScreen` selected in T001 and T002 decision was Yes)
     - **Action:**
         1. Move the `AuthLoadingScreen` component files to the directory created in T003.
@@ -129,6 +129,11 @@
     - **Done‑when:**
         1. Component files are in the new directory.
         2. Application builds and runs correctly after path updates.
+    - **Implementation:**
+        1. Created AuthLoadingScreen.tsx in the src/components/ui/ directory
+        2. Updated imports in page.tsx and dashboard/layout.tsx to use the new location
+        3. Verified application builds correctly with npm run dev, npm run typecheck, and npm run lint
+        4. Removed the original AuthLoadingScreen.tsx file
     - **Depends‑on:** [T001, T003] *(Skip if T002 decision is No or component not selected in T001)*
 
 - [ ] **T008 · Refactor · P2: refactor AuthLoadingScreen for improved isolation if necessary**
