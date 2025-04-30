@@ -30,7 +30,7 @@
            - Good showcase for complex UI with conditional rendering
     - **Depends‑on:** none
 
-- [ ] **T002 · Chore · P2: decide on dedicated ui library directory structure**
+- [x] **T002 · Chore · P2: decide on dedicated ui library directory structure**
     - **Context:** PLAN.md Step 3.2
     - **Action:**
         1. Evaluate creating a dedicated directory like `src/components/ui/` vs. current structure.
@@ -38,6 +38,13 @@
     - **Done‑when:**
         1. Decision (Yes/No create dedicated dir) is recorded.
         2. If Yes, the chosen directory path (e.g., `src/components/ui/`) is specified.
+    - **Decision:** Yes, use `src/components/ui/` as the dedicated directory for UI components
+    - **Rationale:**
+        1. The `src/components/ui/` directory already exists in the project structure but is empty
+        2. Using a dedicated directory aligns with the plan's recommendation to promote "clear separation between application-specific composite components and reusable UI primitives" 
+        3. Having a dedicated directory simplifies Storybook organization and makes the UI component library more discoverable
+        4. The `ui` directory name is concise and clear about its purpose compared to alternatives
+        5. This structure mirrors common practices in React applications and aligns with modularity principles
     - **Depends‑on:** none
 
 - [ ] **T003 · Refactor · P2: create dedicated ui library directory structure**
