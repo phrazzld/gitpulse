@@ -1,8 +1,21 @@
 # BACKLOG
 
+- set up e2e tests
+
 ## High Priority
 
 ### Technical Foundation
+
+- **Refactor**: Implement atomic design pattern and Storybook-driven development
+  - **Complexity**: High
+  - **Rationale**: Current component structure lacks clear hierarchy and leads to performance issues in testing environments
+  - **Expected Outcome**: 
+    - Components organized as atoms, molecules, and organisms
+    - Storybook-first development approach for all UI components
+    - Improved component isolation, testability, and performance
+    - Clear separation of presentation and logic
+    - Progressive enhancement of complex components
+  - **Dependencies**: None
 
 - **Tooling**: Initialize Storybook and baseline component library
 

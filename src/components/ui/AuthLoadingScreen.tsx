@@ -53,6 +53,14 @@ interface AuthLoadingScreenProps {
    * Optional CSS class name to apply to the container
    */
   className?: string;
+  
+  /**
+   * Disable animations and performance-intensive effects
+   * Set to true to disable CSS animations and backdrop filters
+   * Recommended for Storybook stories and testing environments
+   * @default false
+   */
+  disableEffects?: boolean;
 }
 
 /**
@@ -78,8 +86,11 @@ export default function AuthLoadingScreen({
   textColor = '#ffffff', // --foreground
   background = 'var(--gradient-bg, linear-gradient(135deg, #121212 0%, #1b2b34 100%))',
   cardBackground = 'rgba(27, 43, 52, 0.7)',
-  className = ''
+  className = '',
+  disableEffects = false
 }: AuthLoadingScreenProps) {
+  // Effects are disabled based solely on the disableEffects prop
+
   return (
     <div 
       className={`min-h-screen flex flex-col items-center justify-center p-4 ${className}`} 
@@ -89,7 +100,8 @@ export default function AuthLoadingScreen({
         className="card w-full max-w-md p-8 space-y-8 border-2 rounded-md" 
         style={{ 
           backgroundColor: cardBackground,
-          backdropFilter: 'blur(10px)',
+          // Only apply backdrop-filter if effects are enabled
+          ...(disableEffects ? {} : { backdropFilter: 'blur(10px)' }),
           boxShadow: `0 0 20px ${primaryColor}33`,
           borderColor: primaryColor
         }}
@@ -124,13 +136,21 @@ export default function AuthLoadingScreen({
           }}
         >
           <div style={{ color: secondaryColor }}>
-            <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg 
+              className={disableEffects ? "h-8 w-8" : "animate-spin h-8 w-8"} 
+              xmlns="http://www.w3.org/2000/svg" 
+              fill="none" 
+              viewBox="0 0 24 24"
+            >
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
           </div>
           <div className="space-y-2 flex-1">
-            <p className="text-sm animate-pulse" style={{ color: secondaryColor }}>
+            <p 
+              className={disableEffects ? "text-sm" : "text-sm animate-pulse"} 
+              style={{ color: secondaryColor }}
+            >
               &gt; {statusMessage}
             </p>
             <p className="text-xs" style={{ color: textColor }}>
@@ -138,7 +158,7 @@ export default function AuthLoadingScreen({
             </p>
             <div className="flex space-x-1 text-xs mt-2" style={{ color: textColor }}>
               <span>&gt;</span>
-              <span className="animate-pulse">|</span>
+              <span className={disableEffects ? "" : "animate-pulse"}>|</span>
             </div>
           </div>
         </div>
