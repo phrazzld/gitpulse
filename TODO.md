@@ -232,7 +232,7 @@
         4. Removed the original ModeSelector.tsx file
     - **Depends‑on:** [T001, T003] *(Skip if T002 decision is No or component not selected in T001)*
 
-- [ ] **T011 · Refactor · P2: refactor ModeSelector for improved isolation if necessary**
+- [x] **T011 · Refactor · P2: refactor ModeSelector for improved isolation if necessary**
     - **Context:** PLAN.md Step 3.2, Action 3 (Assumes `ModeSelector` selected in T001)
     - **Action:**
         1. Review `ModeSelector` for external dependencies (e.g., theme context/hook).
@@ -240,6 +240,20 @@
     - **Done‑when:**
         1. Component is reviewed, and refactoring (if any) is complete and committed.
         2. Component behavior remains unchanged in the application.
+    - **Implementation:**
+        1. Reviewed ModeSelector and identified several areas for improvement:
+           - Hardcoded modes array that should be configurable
+           - Reliance on global CSS variables
+           - Insufficient accessibility attributes for radio group pattern
+           - Limited documentation
+        2. Enhanced component with the following improvements:
+           - Extracted modes to a separate exportable constant
+           - Made modes configurable via props with defaults
+           - Added theming props for colors with CSS variable defaults
+           - Improved accessibility with proper ARIA attributes
+           - Added comprehensive TSDoc documentation
+           - Added className prop for additional styling options
+        3. Verified that the component works with existing code through typecheck and lint
     - **Depends‑on:** [T010] (or [T001] if T010 is skipped)
 
 - [ ] **T012 · Feature · P1: create storybook stories for ModeSelector**
