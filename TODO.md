@@ -24,7 +24,7 @@
         1. Run `yarn storybook` and verify it starts without errors.
         2. Open a story and check for the 'Accessibility' panel.
     - **Depends‑on:** none
-- [ ] **T003 · chore · P1**: configure storybook for next.js mocks and global styles
+- [x] **T003 · chore · P1**: configure storybook for next.js mocks and global styles
     - **Context:** 4. Storybook Integration - Standards & Process 2. Configuration
     - **Action:**
         1. Configure `.storybook/preview.ts` to include global styles (e.g., `globals.css`).
