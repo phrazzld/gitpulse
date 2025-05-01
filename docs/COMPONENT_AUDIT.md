@@ -15,11 +15,11 @@ The component audit helps:
 
 | Component Path | Component Name | Current Location | Proposed Atomic Level | Dependencies | Notes |
 |---------------|----------------|------------------|------------------------|--------------|-------|
-| src/components/ui/AuthLoadingCard.tsx | AuthLoadingCard | ui | | | |
-| src/components/ui/AuthLoadingScreen.tsx | AuthLoadingScreen | ui | | | |
-| src/components/ui/LoadMoreButton.tsx | LoadMoreButton | ui | | | |
-| src/components/ui/ModeSelector.tsx | ModeSelector | ui | | | |
-| src/components/ui/StatusDisplay.tsx | StatusDisplay | ui | | | |
+| src/components/ui/AuthLoadingCard.tsx | AuthLoadingCard | ui | Molecule | StatusDisplay | Presentation component for auth loading UI that composes other UI elements. Relies on StatusDisplay component and uses CSS variables for theming. |
+| src/components/ui/AuthLoadingScreen.tsx | AuthLoadingScreen | ui | Organism | AuthLoadingCard, CSS | Full-screen authentication loading screen that composes the AuthLoadingCard. Uses CSS for styling and animation. Provides comprehensive props for customization. |
+| src/components/ui/LoadMoreButton.tsx | LoadMoreButton | ui | Atom | None | Simple UI button with loading state for pagination. Fully controlled via props with no internal state management. Uses CSS variables for theming. |
+| src/components/ui/ModeSelector.tsx | ModeSelector | ui | Molecule | React (useId) | Radio button group for selecting activity modes. Has complex internal keyboard navigation logic, uses React's useId hook, and provides comprehensive props for customization. |
+| src/components/ui/StatusDisplay.tsx | StatusDisplay | ui | Atom | None | Simple UI component for displaying loading status with animated elements. Controlled entirely through props with no internal state. |
 | src/components/dashboard/AnalysisParameters.tsx | AnalysisParameters | dashboard | | | |
 | src/components/dashboard/Header.tsx | Header | dashboard | | | |
 | src/components/dashboard/OperationsPanel.tsx | OperationsPanel | dashboard | | | |
@@ -74,6 +74,6 @@ Use the Notes column to record:
 
 This document will be completed through the following tasks:
 1. ✅ T007 - Inventory all existing components (completed)
-2. T008 - Analyze and classify UI and library components
+2. ✅ T008 - Analyze and classify UI and library components (completed)
 3. T009 - Analyze and classify dashboard components
 4. T010 - Analyze and classify remaining components
