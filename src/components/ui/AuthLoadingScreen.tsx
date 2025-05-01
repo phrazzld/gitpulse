@@ -1,79 +1,85 @@
 'use client';
 
+import React from 'react';
+import AuthLoadingCard from './AuthLoadingCard'; // Import the composed component
+import './AuthLoadingScreen.css'; // Import the CSS file for default variables
+
 /**
- * Props for the AuthLoadingScreen component
+ * Props for the AuthLoadingScreen component.
+ * Theming is now primarily controlled via CSS custom properties.
  */
 interface AuthLoadingScreenProps {
   /**
-   * Primary message displayed as a title
+   * Primary message displayed as a title within the card.
+   * @default 'Verifying Authentication'
    */
   message?: string;
-  
+
   /**
-   * Secondary message displayed below the status line
+   * Secondary message displayed below the status line within the card.
+   * @default 'Please wait while we verify your credentials'
    */
   subMessage?: string;
-  
+
   /**
-   * Status line message displayed with animation
+   * Status line message displayed with animation (if motion is enabled).
+   * @default 'System access verification in progress...'
    */
   statusMessage?: string;
-  
+
   /**
-   * Footer message displayed at the bottom
+   * Optional footer message displayed at the bottom of the card.
+   * @default 'SECURE CONNECTION ESTABLISHED'
    */
   footerMessage?: string;
-  
+
   /**
-   * Primary accent color (default: #00ff87 - neon green)
-   */
-  primaryColor?: string;
-  
-  /**
-   * Secondary accent color (default: #3b8eea - electric blue)
-   */
-  secondaryColor?: string;
-  
-  /**
-   * Text color (default: #ffffff - white)
-   */
-  textColor?: string;
-  
-  /**
-   * Background for the entire screen (default: var(--gradient-bg) or fallback)
-   */
-  background?: string;
-  
-  /**
-   * Card background color (default: rgba(27, 43, 52, 0.7) - dark slate with opacity)
-   */
-  cardBackground?: string;
-  
-  /**
-   * Optional CSS class name to apply to the container
+   * Optional CSS class name to apply to the container element.
+   * Use this or parent styles to override CSS custom properties for theming.
    */
   className?: string;
-  
-  /**
-   * Disable animations and performance-intensive effects
-   * Set to true to disable CSS animations and backdrop filters
-   * Recommended for Storybook stories and testing environments
-   * @default false
-   */
-  disableEffects?: boolean;
 }
 
 /**
- * A stylized loading screen for authentication transitions
- * 
- * Features a terminal-like interface with configurable colors and messages.
- * 
- * @example
+ * A stylized full-screen loading indicator typically used during authentication flows.
+ *
+ * Features a terminal-inspired aesthetic with configurable messages. Theming (colors,
+ * backgrounds, effects) is controlled via CSS custom properties defined in
+ * `AuthLoadingScreen.css` or overridden by parent styles.
+ *
+ * Animations and effects like backdrop blur respect the user's `prefers-reduced-motion`
+ * setting automatically via Tailwind's `motion-safe`/`motion-reduce` variants.
+ *
+ * @example Basic Usage
  * ```tsx
- * <AuthLoadingScreen 
- *   message="Verifying Authentication"
- *   subMessage="Please wait while we verify your credentials"
+ * <AuthLoadingScreen />
+ * ```
+ *
+ * @example Custom Messages
+ * ```tsx
+ * <AuthLoadingScreen
+ *   message="Initializing Secure Session"
+ *   subMessage="Establishing encrypted connection..."
+ *   statusMessage="Contacting authorization server..."
  * />
+ * ```
+ *
+ * @example Custom Theme (via CSS override)
+ * ```css
+ * // In a global CSS file or parent component's style
+ * .custom-auth-loading {
+ *   --auth-primary-color: #ff00ff;
+ *   --auth-card-bg: rgba(50, 0, 50, 0.6);
+ * }
+ * ```
+ * ```tsx
+ * <div className="custom-auth-loading">
+ *   <AuthLoadingScreen />
+ * </div>
+ * // Or using inline style (less recommended for full themes)
+ * <div style={{ '--auth-primary-color': '#ff00ff' } as React.CSSProperties}>
+ *    <AuthLoadingScreen />
+ * </div>
  * ```
  */
 export default function AuthLoadingScreen({
@@ -81,99 +87,24 @@ export default function AuthLoadingScreen({
   subMessage = 'Please wait while we verify your credentials',
   statusMessage = 'System access verification in progress...',
   footerMessage = 'SECURE CONNECTION ESTABLISHED',
-  primaryColor = '#00ff87', // --neon-green
-  secondaryColor = '#3b8eea', // --electric-blue  
-  textColor = '#ffffff', // --foreground
-  background = 'var(--gradient-bg, linear-gradient(135deg, #121212 0%, #1b2b34 100%))',
-  cardBackground = 'rgba(27, 43, 52, 0.7)',
   className = '',
-  disableEffects = false
 }: AuthLoadingScreenProps) {
-  // Effects are disabled based solely on the disableEffects prop
-
   return (
-    <div 
-      className={`min-h-screen flex flex-col items-center justify-center p-4 ${className}`} 
-      style={{ background }}
+    <div
+      // Apply base class for scoping CSS variables and base styles
+      className={`auth-loading-screen min-h-screen flex flex-col items-center justify-center p-4 ${className}`}
+      // Accessibility attributes indicating busy state
+      role="alert"
+      aria-live="assertive" // Announce changes immediately
+      aria-busy="true"      // Indicate the component is busy
+      aria-label={message}  // Provide context for the alert
     >
-      <div 
-        className="card w-full max-w-md p-8 space-y-8 border-2 rounded-md" 
-        style={{ 
-          backgroundColor: cardBackground,
-          // Only apply backdrop-filter if effects are enabled
-          ...(disableEffects ? {} : { backdropFilter: 'blur(10px)' }),
-          boxShadow: `0 0 20px ${primaryColor}33`,
-          borderColor: primaryColor
-        }}
-      >
-        {/* Terminal-style header */}
-        <div className="flex items-center mb-4">
-          <div className="flex space-x-1 mr-3">
-            {[...Array(3)].map((_, i) => (
-              <div 
-                key={i} 
-                className="w-2 h-2 rounded-full" 
-                style={{ 
-                  backgroundColor: i === 0 
-                    ? primaryColor 
-                    : i === 1 
-                      ? secondaryColor 
-                      : textColor
-                }}
-              />
-            ))}
-          </div>
-          <div className="h-px flex-grow" style={{ backgroundColor: secondaryColor }}></div>
-        </div>
-        
-        <h2 className="text-xl text-center" style={{ color: primaryColor }}>{message}</h2>
-        
-        <div 
-          className="flex justify-center items-start space-x-4 p-4 border border-opacity-30 rounded-md" 
-          style={{ 
-            borderColor: secondaryColor,
-            backgroundColor: 'rgba(0, 0, 0, 0.2)'
-          }}
-        >
-          <div style={{ color: secondaryColor }}>
-            <svg 
-              className={disableEffects ? "h-8 w-8" : "animate-spin h-8 w-8"} 
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
-              viewBox="0 0 24 24"
-            >
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </div>
-          <div className="space-y-2 flex-1">
-            <p 
-              className={disableEffects ? "text-sm" : "text-sm animate-pulse"} 
-              style={{ color: secondaryColor }}
-            >
-              &gt; {statusMessage}
-            </p>
-            <p className="text-xs" style={{ color: textColor }}>
-              &gt; {subMessage}
-            </p>
-            <div className="flex space-x-1 text-xs mt-2" style={{ color: textColor }}>
-              <span>&gt;</span>
-              <span className={disableEffects ? "" : "animate-pulse"}>|</span>
-            </div>
-          </div>
-        </div>
-        
-        {footerMessage && (
-          <div className="text-center text-xs" style={{ color: textColor }}>
-            <p>{footerMessage}</p>
-            <div className="flex justify-center items-center mt-2">
-              <div className="h-px w-8" style={{ backgroundColor: secondaryColor }}></div>
-              <div className="px-2">•</div>
-              <div className="h-px w-8" style={{ backgroundColor: secondaryColor }}></div>
-            </div>
-          </div>
-        )}
-      </div>
+      <AuthLoadingCard
+        message={message}
+        subMessage={subMessage}
+        statusMessage={statusMessage}
+        footerMessage={footerMessage}
+      />
     </div>
   );
 }

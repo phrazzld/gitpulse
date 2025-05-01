@@ -203,7 +203,7 @@
     - **Note:** The addition of the disableEffects prop is considered a temporary solution. Task T025 has been added to properly refactor this component using better design principles.
     - **Depends‑on:** [T017]
 
-- [ ] **T025 · Refactor · P1: Remove disableEffects prop from AuthLoadingScreen and improve architecture**
+- [x] **T025 · Refactor · P1: Remove disableEffects prop from AuthLoadingScreen and improve architecture**
     - **Context:** The disableEffects prop is a design smell indicating deeper architectural issues in the component. The component is trying to handle too many responsibilities and exposing implementation details to consumers.
     - **Action:**
         1. Remove the disableEffects prop from AuthLoadingScreen component
@@ -215,6 +215,18 @@
         2. Component architecture better follows separation of concerns
         3. The component works reliably in all environments without special flags
         4. Documentation is updated to reflect the new design
+    - **Implementation:**
+        1. Removed disableEffects prop completely
+        2. Implemented CSS custom properties approach with variables scoped to auth-loading-screen class
+        3. Split component into three parts:
+           - AuthLoadingScreen: Main container component with accessibility attributes
+           - AuthLoadingCard: Visual card component with terminal style and backdrop blur
+           - StatusDisplay: Spinner and status messages with animations
+        4. Applied progressive enhancement using Tailwind's motion-safe and motion-reduce variants
+        5. Added comprehensive documentation including examples for theming
+        6. Improved accessibility with proper aria attributes and screen reader support
+        7. Added CSS file with default theme variables and styles
+        8. Verified with Typescript type checking and linting
     - **Depends‑on:** [T010, T011, T012] (Complete simpler components first)
 
 - [x] **T010 · Refactor · P2: move ModeSelector component to ui library directory**
