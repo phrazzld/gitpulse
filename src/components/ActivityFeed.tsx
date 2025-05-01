@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useProgressiveLoading } from '@/hooks/useProgressiveLoading';
 import { FixedSizeList as List } from 'react-window';
 import IntersectionObserver from './IntersectionObserver';
-import LoadMoreButton from './LoadMoreButton';
+import LoadMoreButton from '@/components/ui/LoadMoreButton';
 import { logger } from '@/lib/logger';
 import CommitItem from './dashboard/activityFeed/components/CommitItem';
 

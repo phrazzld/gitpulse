@@ -1,7 +1,7 @@
 'use client';
 
 import useProtectedRoute from '@/hooks/useProtectedRoute';
-import AuthLoadingScreen from '@/components/AuthLoadingScreen';
+import AuthLoadingScreen from '@/components/ui/AuthLoadingScreen';
 
 // Protected route layout for dashboard and other authenticated pages
 export default function DashboardLayout({

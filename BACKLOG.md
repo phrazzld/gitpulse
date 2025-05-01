@@ -4,7 +4,20 @@
 
 ### Technical Foundation
 
-- **Tooling**: Initialize Storybook and baseline component library
+- implement rigorous git hooks and github actions ci for quality control
+
+- **Refactor**: Implement atomic design pattern and Storybook-driven development
+  - **Complexity**: High
+  - **Rationale**: Current component structure lacks clear hierarchy and leads to performance issues in testing environments
+  - **Expected Outcome**:
+    - Components organized as atoms, molecules, and organisms
+    - Storybook-first development approach for all UI components
+    - Improved component isolation, testability, and performance
+    - Clear separation of presentation and logic
+    - Progressive enhancement of complex components
+  - **Dependencies**: None
+
+- set up e2e tests
 
 - **Refactor**: Break down `OperationsPanel.tsx` (470 lines) into smaller sub-components
   - **Complexity**: Medium
@@ -304,32 +317,3 @@
 - **Feature**: Aggregate activity across repositories into unified timeline
 - **Feature**: Integrate with additional project management tools
 
-## Resolved Issues
-
-### B001 - ActivityFeed Error Handling Issue
-**Description:** When loading commits in the activity feed, users sometimes saw the error: "Failed to load activity data. Please try again.: Cannot read properties of undefined (reading 'message')".
-
-**Fix Implemented:**
-1. Refactored error handling in `createActivityFetcher`
-2. Enhanced `useProgressiveLoading` hook with safe error message extraction
-3. Updated `ActivityFeed` to sanitize error messages
-4. Added comprehensive error handling to `SummaryView`'s `loadCommits` function
-
-**Status:** Fixed in tasks T031-T036
-
-## Completed Tasks
-
-### C001 - GitHub Service Module Refactoring
-**Description:** Decomposition of the monolithic `src/lib/github.ts` (853 lines) into discrete, focused service modules.
-
-**Implementation:**
-1. Created modular architecture with separate files for different concerns
-2. Extracted types to `types.ts`
-3. Extracted utilities to `utils.ts`
-4. Extracted authentication logic to `auth.ts`
-5. Extracted repository operations to `repositories.ts`
-6. Extracted commit operations to `commits.ts`
-7. Created barrel file `index.ts` for backward compatibility
-8. Added comprehensive documentation and tests
-
-**Status:** Completed

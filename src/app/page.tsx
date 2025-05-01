@@ -3,7 +3,7 @@
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import useProtectedRoute from "@/hooks/useProtectedRoute";
-import AuthLoadingScreen from "@/components/AuthLoadingScreen";
+import AuthLoadingScreen from "@/components/ui/AuthLoadingScreen";
 
 export default function Home() {
   // Use the protected route hook in reverse - redirect to dashboard if authenticated
