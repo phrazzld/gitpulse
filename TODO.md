@@ -37,7 +37,7 @@
         1. View a component that relies on global styles (like typography) in Storybook.
         2. View a component that uses `next/image` or `next/navigation` in Storybook.
     - **Depends‑on:** [T002]
-- [ ] **T004 · chore · P2**: create atomic design directory structure
+- [x] **T004 · chore · P2**: create atomic design directory structure
     - **Context:** 7. Technical Decisions & Standards - Directory Structure
     - **Action:**
         1. Create `src/components/atoms/` directory.
