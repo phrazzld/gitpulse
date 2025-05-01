@@ -1,7 +1,7 @@
 # TODO
 
 ## Setup & Configuration
-- [ ] **T001 · chore · P2**: create initial component audit document
+- [x] **T001 · chore · P2**: create initial component audit document
     - **Context:** 2. Component Audit & Classification - Process 4. Documentation
     - **Action:**
         1. Create `docs/COMPONENT_AUDIT.md`.
