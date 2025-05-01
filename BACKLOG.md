@@ -1,7 +1,5 @@
 # BACKLOG
 
-- set up e2e tests
-
 ## High Priority
 
 ### Technical Foundation
@@ -9,7 +7,7 @@
 - **Refactor**: Implement atomic design pattern and Storybook-driven development
   - **Complexity**: High
   - **Rationale**: Current component structure lacks clear hierarchy and leads to performance issues in testing environments
-  - **Expected Outcome**: 
+  - **Expected Outcome**:
     - Components organized as atoms, molecules, and organisms
     - Storybook-first development approach for all UI components
     - Improved component isolation, testability, and performance
@@ -17,7 +15,7 @@
     - Progressive enhancement of complex components
   - **Dependencies**: None
 
-- **Tooling**: Initialize Storybook and baseline component library
+- set up e2e tests
 
 - **Refactor**: Break down `OperationsPanel.tsx` (470 lines) into smaller sub-components
   - **Complexity**: Medium
