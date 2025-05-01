@@ -10,7 +10,7 @@
         1. `docs/COMPONENT_AUDIT.md` exists with the specified table structure.
     - **Verification:** none
     - **Depends‑on:** none
-- [ ] **T002 · chore · P1**: configure storybook with vite builder and essential addons
+- [x] **T002 · chore · P1**: configure storybook with vite builder and essential addons
     - **Context:** 4. Storybook Integration - Standards & Process 2. Configuration
     - **Action:**
         1. Ensure Storybook is installed with Vite builder.
