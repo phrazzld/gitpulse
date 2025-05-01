@@ -97,7 +97,7 @@
     - **Verification:**
         1. Review `COMPONENT_AUDIT.md` entries for `ui` and `library` components.
     - **Depends‑on:** [T007]
-- [ ] **T009 · chore · P1**: analyze and classify dashboard components
+- [x] **T009 · chore · P1**: analyze and classify dashboard components
     - **Context:** 2. Component Audit & Classification - Process 2. Analysis, 3. Classification Criteria, Initial Focus
     - **Action:**
         1. For each component identified in `src/components/dashboard/` (from T007):

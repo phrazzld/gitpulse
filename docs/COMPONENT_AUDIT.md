@@ -20,14 +20,14 @@ The component audit helps:
 | src/components/ui/LoadMoreButton.tsx | LoadMoreButton | ui | Atom | None | Simple UI button with loading state for pagination. Fully controlled via props with no internal state management. Uses CSS variables for theming. |
 | src/components/ui/ModeSelector.tsx | ModeSelector | ui | Molecule | React (useId) | Radio button group for selecting activity modes. Has complex internal keyboard navigation logic, uses React's useId hook, and provides comprehensive props for customization. |
 | src/components/ui/StatusDisplay.tsx | StatusDisplay | ui | Atom | None | Simple UI component for displaying loading status with animated elements. Controlled entirely through props with no internal state. |
-| src/components/dashboard/AnalysisParameters.tsx | AnalysisParameters | dashboard | | | |
-| src/components/dashboard/Header.tsx | Header | dashboard | | | |
-| src/components/dashboard/OperationsPanel.tsx | OperationsPanel | dashboard | | | |
-| src/components/dashboard/RepositorySection.tsx | RepositorySection | dashboard | | | |
-| src/components/dashboard/SummaryDetails.tsx | SummaryDetails | dashboard | | | |
-| src/components/dashboard/SummaryStats.tsx | SummaryStats | dashboard | | | |
-| src/components/dashboard/SummaryView.tsx | SummaryView | dashboard | | | |
-| src/components/dashboard/activityFeed/components/CommitItem.tsx | CommitItem | dashboard/activityFeed/components | | | |
+| src/components/dashboard/AnalysisParameters.tsx | AnalysisParameters | dashboard | Molecule | Dashboard types | Displays analysis parameters in a styled card, showing mode, date range, and organizations. Pure presentation component with no internal state. |
+| src/components/dashboard/Header.tsx | Header | dashboard | Organism | next/image, next-auth/react | Dashboard header with branding, user info and sign out button. Contains internal logic for handling sign out. |
+| src/components/dashboard/OperationsPanel.tsx | OperationsPanel | dashboard | Organism | ModeSelector, OrganizationPicker, dashboard utils, github auth | Complex panel containing filters, controls, and auth status. Contains multiple sections and conditional rendering logic. Acts as a container for multiple smaller components. Primary focus for refactoring. |
+| src/components/dashboard/RepositorySection.tsx | RepositorySection | dashboard | Organism | React (useState), Dashboard types | Section displaying repository information with interactive collapsible list. Contains internal state for toggle functionality and logic for grouping repositories. |
+| src/components/dashboard/SummaryDetails.tsx | SummaryDetails | dashboard | Organism | React, Dashboard types | Displays detailed AI-generated analysis with multiple sections (key themes, technical areas, accomplishments, etc.). Pure presentation component with complex layout. |
+| src/components/dashboard/SummaryStats.tsx | SummaryStats | dashboard | Molecule | React, Dashboard types | Displays commit activity statistics in a styled grid. Simple presentation component for metrics display. |
+| src/components/dashboard/SummaryView.tsx | SummaryView | dashboard | Template | ActivityFeed, SummaryStats, SummaryDetails, dashboard utils/types | High-level container that composes multiple organisms to form a complete dashboard view. Contains logic for fetching activity data and rendering different sections. |
+| src/components/dashboard/activityFeed/components/CommitItem.tsx | CommitItem | dashboard/activityFeed/components | Molecule | React (memo), next/image, ActivityFeed types | Displays a single commit item with styling and formatting. Uses React.memo for performance optimization. Pure presentation component. |
 | src/components/AccountSelector.tsx | AccountSelector | components | | | |
 | src/components/ActivityFeed.tsx | ActivityFeed | components | | | |
 | src/components/AuthError.tsx | AuthError | components | | | |
@@ -75,5 +75,5 @@ Use the Notes column to record:
 This document will be completed through the following tasks:
 1. ✅ T007 - Inventory all existing components (completed)
 2. ✅ T008 - Analyze and classify UI and library components (completed)
-3. T009 - Analyze and classify dashboard components
+3. ✅ T009 - Analyze and classify dashboard components (completed)
 4. T010 - Analyze and classify remaining components
