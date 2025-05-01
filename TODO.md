@@ -48,7 +48,7 @@
         1. The specified directories exist within `src/components/`.
     - **Verification:** none
     - **Depends‑on:** none
-- [ ] **T005 · chore · P1**: configure ci pipeline for linting, types, and storybook build checks
+- [x] **T005 · chore · P1**: configure ci pipeline for linting, types, and storybook build checks
     - **Context:** 5. Testing Strategy - Approach & Requirements (CI Enforced), 7. Technical Decisions & Standards - Configuration
     - **Action:**
         1. Update CI configuration (e.g., GitHub Actions, GitLab CI) to add jobs/steps for:

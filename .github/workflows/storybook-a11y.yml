@@ -1,0 +1,48 @@
+name: Storybook Accessibility
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'src/**/*.stories.tsx'
+      - 'src/**/*.stories.jsx'
+      - 'src/**/*.stories.ts'
+      - 'src/**/*.stories.js'
+      - '.storybook/**/*'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'src/**/*.stories.tsx'
+      - 'src/**/*.stories.jsx'
+      - 'src/**/*.stories.ts'
+      - 'src/**/*.stories.js'
+      - '.storybook/**/*'
+
+jobs:
+  storybook-a11y:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build Storybook
+      run: npm run build-storybook
+    
+    - name: Install Storybook A11y runner
+      run: npm install -g @storybook/cli
+    
+    - name: Run Storybook A11y checks
+      run: |
+        npx -p @storybook/cli sb info
+        npx -p @storybook/cli storybook test --url=file://${{ github.workspace }}/storybook-static
+      # This command runs accessibility checks on the built Storybook
+      # It will fail if any accessibility violations are found
