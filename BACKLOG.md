@@ -4,6 +4,8 @@
 
 ### Technical Foundation
 
+- implement rigorous git hooks and github actions ci for quality control
+
 - **Refactor**: Implement atomic design pattern and Storybook-driven development
   - **Complexity**: High
   - **Rationale**: Current component structure lacks clear hierarchy and leads to performance issues in testing environments
