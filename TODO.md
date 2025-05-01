@@ -109,7 +109,7 @@
     - **Verification:**
         1. Review `COMPONENT_AUDIT.md` entries for `dashboard` components.
     - **Depends‑on:** [T007]
-- [ ] **T010 · chore · P2**: analyze and classify remaining components
+- [x] **T010 · chore · P2**: analyze and classify remaining components
     - **Context:** 2. Component Audit & Classification - Process 2. Analysis, 3. Classification Criteria
     - **Action:**
         1. For all remaining components identified in `src/components/` (from T007) not covered in T008 or T009:
