@@ -511,4 +511,175 @@ export function CommitListContainer({
    - Deep component nesting without proper prop drilling solutions
    - Tight coupling between hooks and specific components
 
+## Real-World Examples from GitPulse
+
+Here are some concrete examples from our codebase that demonstrate the presentation/logic separation pattern:
+
+### Example 1: Dashboard Implementation
+
+Our dashboard shows the presentation/logic separation in action:
+
+#### Logic Hook: `useSummary.ts`
+
+```typescript
+// src/hooks/dashboard/useSummary.ts
+export function useSummary({
+  dateRange,
+  activityMode,
+  organizations,
+  repositories,
+  contributors,
+  installationIds
+}: SummaryParams) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<Summary | null>(null);
+  
+  // Fetch data logic
+  const generateSummary = useCallback(async () => {
+    if (!session?.accessToken && !installationIds.length) {
+      setError('Authentication required');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // API call and data processing logic
+      const response = await fetch(`/api/summary?${new URLSearchParams(params).toString()}`);
+      
+      // Error handling logic
+      if (!response.ok) {
+        // Handle different error conditions
+      }
+      
+      const data = await response.json();
+      setSummary(data);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [dateRange, activityMode, organizations, repositories, contributors, installationIds]);
+  
+  return {
+    loading,
+    error,
+    summary,
+    generateSummary
+  };
+}
+```
+
+#### Presentation Component: `SummaryView.tsx`
+
+```typescript
+// src/components/dashboard/SummaryView.tsx
+export interface SummaryViewProps {
+  summary: Summary | null;
+  activityMode: ActivityMode;
+  dateRange: DateRange;
+  activeFilters: FilterState;
+  installationIds: readonly number[];
+  loading: boolean;
+}
+
+export default function SummaryView({
+  summary,
+  activityMode,
+  dateRange,
+  activeFilters,
+  installationIds,
+  loading
+}: SummaryViewProps) {
+  // Pure rendering logic - no API calls or complex state management
+  return (
+    <div className="border rounded-lg p-6">
+      {loading && <LoadingIndicator />}
+      {summary && (
+        <div>
+          <SummaryStats stats={summary.stats} />
+          <SummaryDetails details={summary.details} />
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Example 2: Atomic Component - ModeSelector
+
+Even our atomic components follow this separation pattern. The `ModeSelector` component focuses purely on presentation:
+
+```typescript
+// src/components/ui/ModeSelector.tsx
+export interface ModeSelectorProps {
+  selectedMode: ActivityMode;
+  onChange: (mode: ActivityMode) => void;
+  disabled?: boolean;
+  // Other UI-specific props
+}
+
+export default function ModeSelector({ 
+  selectedMode,
+  onChange,
+  disabled = false,
+  // Other props with defaults
+}: ModeSelectorProps) {
+  // Only minimal UI state using hooks
+  const headerId = useId();
+  
+  // UI event handler - no business logic
+  const handleModeChange = (mode: ActivityMode) => {
+    if (!disabled) {
+      onChange(mode);
+    }
+  };
+
+  // Pure rendering logic
+  return (
+    <div className="rounded-lg border">
+      {/* Component UI rendering */}
+    </div>
+  );
+}
+```
+
+### Example 3: Protected Routes Pattern
+
+Our authentication flow demonstrates this pattern with `useProtectedRoute`:
+
+```typescript
+// src/hooks/useProtectedRoute.ts
+export function useProtectedRoute(options: UseProtectedRouteOptions = {}) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Authentication logic and redirection
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    const timer = setTimeout(() => {
+      if ((redirectIfFound && status === 'authenticated') ||
+          (!redirectIfFound && status === 'unauthenticated')) {
+        router.replace(redirectTo);
+      } else {
+        setIsLoading(false);
+      }
+    }, loadingDelay);
+    
+    return () => clearTimeout(timer);
+  }, [status, router, redirectIfFound, redirectTo, loadingDelay]);
+  
+  return {
+    isLoading: isLoading || status === 'loading',
+    isAuthenticated: status === 'authenticated',
+    session,
+    status
+  };
+}
+```
+
+This hook is then used in components that need authentication, keeping the authentication logic separate from rendering.
+
 By following these patterns consistently, we create a codebase that is easier to maintain, test, and evolve over time, while preserving clear separation of concerns.

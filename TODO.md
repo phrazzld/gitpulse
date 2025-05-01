@@ -63,7 +63,7 @@
     - **Verification:**
         1. Introduce a lint error, type error, and break the Storybook build to confirm CI failure.
     - **Depends‑on:** [T002, T003]
-- [ ] **T006 · chore · P2**: document presentation/logic separation pattern
+- [x] **T006 · chore · P2**: document presentation/logic separation pattern
     - **Context:** 3. Component Refactoring Strategy - Approach 2. Separate Presentation and Logic, 7. Technical Decisions & Standards - Component API Best Practices
     - **Action:**
         1. Create a new documentation file (e.g., `docs/UI_PATTERNS.md` or an appendix).
