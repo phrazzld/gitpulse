@@ -203,7 +203,7 @@
     - **Verification:**
         1. Review the code changes in `OperationsPanel.tsx` and the new hook file.
     - **Depends‑on:** [T015]
-- [ ] **T017 · refactor · P2**: update operations panel to be a presentation component
+- [x] **T017 · refactor · P2**: update operations panel to be a presentation component
     - **Context:** 3. Component Refactoring Strategy - Approach 2. Separate Presentation and Logic (Refactoring Pattern), Initial Focus (`OperationsPanel`)
     - **Action:**
         1. Update `src/components/dashboard/OperationsPanel.tsx` to receive all necessary data, derived state, and callbacks via props.

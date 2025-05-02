@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { getDefaultDateRange } from '@/lib/dashboard-utils';
+import { getDefaultDateRange, getGitHubAppInstallUrl } from '@/lib/dashboard-utils';
 import { FilterState, DateRange } from '@/types/dashboard';
 
 // Custom hooks
@@ -229,6 +229,9 @@ export default function Dashboard() {
               repositories: [...filters.repositories]
             }}
             userName={session?.user?.name}
+            installationUrl={getGitHubAppInstallUrl()}
+            isGitHubAppAuth={authMethod === 'github_app'}
+            hasInstallations={installations.length > 0}
             onModeChange={setActivityMode}
             onOrganizationChange={handleOrganizationChange}
             onFilterChange={handleFilterChange}

@@ -23,9 +23,9 @@ export interface AnalysisFiltersPanelProps {
    * Current active filters
    */
   activeFilters: {
-    contributors: string[];
-    organizations: string[];
-    repositories: string[];
+    contributors: readonly string[];
+    organizations: readonly string[];
+    repositories: readonly string[];
   };
   
   /**
@@ -41,7 +41,7 @@ export interface AnalysisFiltersPanelProps {
   /**
    * Function to handle organization selection changes
    */
-  onOrganizationChange: (selectedOrgs: string[]) => void;
+  onOrganizationChange: (selectedOrgs: readonly string[]) => void;
 }
 
 /**

@@ -2,15 +2,12 @@ import React from 'react';
 import { ActivityMode } from '@/components/ui/ModeSelector';
 import { FilterState, Installation } from '@/types/dashboard';
 
-// Import new components
+// Import components
 import TerminalHeader from '@/components/molecules/TerminalHeader';
 import ErrorAlert from '@/components/molecules/ErrorAlert';
 import AuthStatusBanner from '@/components/molecules/AuthStatusBanner';
 import AccountSelectionPanel from '@/components/organisms/AccountSelectionPanel';
 import AnalysisFiltersPanel from '@/components/organisms/AnalysisFiltersPanel';
-
-// Import custom hook
-import { useOperationsPanel } from '@/hooks/dashboard/useOperationsPanel';
 
 export interface OperationsPanelProps {
   /**
@@ -52,15 +49,30 @@ export interface OperationsPanelProps {
    * Current active filters
    */
   activeFilters: {
-    contributors: string[];
-    organizations: string[];
-    repositories: string[];
+    contributors: readonly string[];
+    organizations: readonly string[];
+    repositories: readonly string[];
   };
   
   /**
    * Current user's name
    */
   userName?: string | null;
+  
+  /**
+   * URL for GitHub App installation
+   */
+  installationUrl: string;
+  
+  /**
+   * Whether the authentication method is GitHub App
+   */
+  isGitHubAppAuth: boolean;
+  
+  /**
+   * Whether there are available installations
+   */
+  hasInstallations: boolean;
   
   /**
    * Function to handle activity mode changes
@@ -90,6 +102,12 @@ export interface OperationsPanelProps {
 
 /**
  * Operations Panel component displaying error messages, auth status, and filters
+ * 
+ * This is a pure presentation component that renders various UI sections based on
+ * the provided props. It doesn't contain any business logic or state management.
+ * 
+ * @param props - Component props including all data and callbacks
+ * @returns The rendered Operations Panel component
  */
 export default function OperationsPanel({
   error,
@@ -101,38 +119,15 @@ export default function OperationsPanel({
   activityMode,
   activeFilters,
   userName,
+  installationUrl,
+  isGitHubAppAuth,
+  hasInstallations,
   onModeChange,
   onOrganizationChange,
   onFilterChange,
   onSwitchInstallations,
   onSignOut
 }: OperationsPanelProps) {
-  // Use the custom hook to handle component logic
-  const {
-    isGitHubAppAuth,
-    hasInstallations,
-    installationUrl,
-    handleModeChange,
-    handleOrganizationChange,
-    handleSwitchInstallations,
-    handleSignOut
-  } = useOperationsPanel({
-    error,
-    loading,
-    needsInstallation,
-    authMethod,
-    installations,
-    currentInstallations,
-    activityMode,
-    activeFilters,
-    userName,
-    onModeChange,
-    onOrganizationChange,
-    onFilterChange,
-    onSwitchInstallations,
-    onSignOut
-  });
-
   return (
     <div className="border rounded-lg p-6 mb-8" style={{ 
       backgroundColor: 'rgba(27, 43, 52, 0.7)',
@@ -149,7 +144,7 @@ export default function OperationsPanel({
           message={error} 
           needsInstallation={needsInstallation} 
           installationUrl={installationUrl} 
-          onSignOut={handleSignOut} 
+          onSignOut={onSignOut} 
         />
       )}
       
@@ -168,7 +163,7 @@ export default function OperationsPanel({
         <AccountSelectionPanel 
           installations={installations}
           currentInstallations={currentInstallations}
-          onSwitchInstallations={handleSwitchInstallations}
+          onSwitchInstallations={onSwitchInstallations}
         />
       )}
       
@@ -179,8 +174,8 @@ export default function OperationsPanel({
         installations={installations}
         activeFilters={activeFilters}
         userName={userName}
-        onModeChange={handleModeChange}
-        onOrganizationChange={handleOrganizationChange}
+        onModeChange={onModeChange}
+        onOrganizationChange={onOrganizationChange}
       />
     </div>
   );
