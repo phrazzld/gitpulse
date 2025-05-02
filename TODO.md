@@ -283,6 +283,60 @@
         1. Make a small visual change to a component with a story and open a PR. Verify the VRT tool runs and reports the change.
     - **Depends‑on:** [T003, T005]
 
+- [ ] **T023 · chore · P1**: configure chromatic project token
+    - **Context:** 4. Storybook Integration - Standards & Process 7. Visual Testing, CI Configuration
+    - **Action:**
+        1. Create a Chromatic account and project at chromatic.com/start.
+        2. Obtain project token from the Chromatic dashboard.
+        3. Add token as CHROMATIC_PROJECT_TOKEN in GitHub repository secrets.
+        4. Update chromatic.yml workflow to use the token correctly.
+    - **Done‑when:**
+        1. Chromatic workflow successfully runs in CI without token errors.
+        2. Visual regression tests provide feedback on PRs.
+    - **Verification:**
+        1. Open a PR with a visual change and confirm Chromatic runs and reports the change.
+    - **Depends‑on:** [T022]
+
+- [ ] **T024 · fix · P1**: update github actions to v4
+    - **Context:** CI/CD, Best Practices, Maintenance
+    - **Action:**
+        1. Update actions/upload-artifact from v3 to v4 in ci.yml workflow.
+        2. Update actions/cache from v3 to v4 if present.
+        3. Review and update any other outdated GitHub Actions to latest versions.
+    - **Done‑when:**
+        1. All GitHub Actions references use v4 where available.
+        2. build-and-test job succeeds without errors about missing actions.
+    - **Verification:**
+        1. Run CI workflows and confirm they complete without errors related to actions.
+    - **Depends‑on:** none
+
+- [ ] **T025 · fix · P1**: fix storybook a11y testing workflow
+    - **Context:** 4. Storybook Integration - Standards & Process 6. Accessibility (A11y), CI Configuration
+    - **Action:**
+        1. Remove `npm install -g @storybook/cli` step from storybook-a11y.yml workflow.
+        2. Replace with `npx` usage for running storybook tests.
+        3. Update the command to: `npx storybook test --url=file:///path/to/storybook-static`.
+    - **Done‑when:**
+        1. Storybook a11y workflow runs without errors about missing CLI.
+        2. Accessibility tests run correctly against built Storybook.
+    - **Verification:**
+        1. Run the workflow and verify a11y tests execute successfully.
+    - **Depends‑on:** none
+
+- [ ] **T026 · fix · P2**: implement e2e test authentication for ci
+    - **Context:** 5. Testing Strategy - E2E Tests, CI Configuration
+    - **Action:**
+        1. Create a mock authentication strategy for Playwright tests in CI.
+        2. Update e2e tests to use mock auth when running in CI environment.
+        3. Add conditional test execution for tests requiring authenticated state.
+        4. Add necessary environment variables to e2e-tests.yml workflow.
+    - **Done‑when:**
+        1. E2E tests run successfully in CI without authentication errors.
+        2. Dashboard tests either run with mock auth or are conditionally skipped in CI.
+    - **Verification:**
+        1. Run E2E tests in CI and confirm they pass.
+    - **Depends‑on:** none
+
 ### Clarifications & Assumptions
 - [x] **Issue:** Standard testing framework (Jest/Vitest) and E2E framework (Cypress/Playwright) not explicitly chosen in PLAN.md, though mentioned as options.
     - **Context:** 5. Testing Strategy, 7. Technical Decisions & Standards
