@@ -241,7 +241,7 @@
     - **Verification:**
         1. Run Storybook and view the OperationsPanel stories, verifying different states render correctly.
     - **Depends‑on:** [T003, T018]
-- [ ] **T020 · test · P2**: write integration tests for operations panel
+- [x] **T020 · test · P2**: write integration tests for operations panel
     - **Context:** 5. Testing Strategy - Approach & Requirements 1. Integration Tests, 2. Coverage Targets, Initial Focus (`OperationsPanel`)
     - **Action:**
         1. Write integration tests for `src/components/organisms/OperationsPanel.tsx` using Jest and React Testing Library.
