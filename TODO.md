@@ -146,7 +146,7 @@
         1. Run `yarn build` or `npm run build`.
         2. Check application pages that use the Button component.
     - **Depends‑on:** [T004, T011]
-- [ ] **T013 · feature · P2**: create comprehensive storybook stories for button component
+- [x] **T013 · feature · P2**: create comprehensive storybook stories for button component
     - **Context:** 4. Storybook Integration - Standards & Process 4. Story Content, 5. Documentation, 6. Accessibility (A11y), 9. Component Variants and States
     - **Action:**
         1. Create or update `src/components/atoms/Button.stories.tsx` using CSF3.
@@ -161,7 +161,7 @@
     - **Verification:**
         1. Run Storybook and view the Button stories. Interact with the component and check the Actions panel. Check the Accessibility panel for violations.
     - **Depends‑on:** [T003, T012]
-- [ ] **T014 · test · P2**: write unit tests for button component
+- [x] **T014 · test · P2**: write unit tests for button component
     - **Context:** 5. Testing Strategy - Approach & Requirements 1. Unit/Component Tests, 2. Coverage Targets
     - **Action:**
         1. Write unit tests for `src/components/atoms/Button.tsx` using Jest and React Testing Library.
