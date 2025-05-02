@@ -287,10 +287,10 @@
 - [x] **Issue:** Standard testing framework (Jest/Vitest) and E2E framework (Cypress/Playwright) not explicitly chosen in PLAN.md, though mentioned as options.
     - **Context:** 5. Testing Strategy, 7. Technical Decisions & Standards
     - **Blocking?:** no (Formally decided on Jest+RTL for unit/integration tests and Playwright for E2E tests).
-- [ ] **Issue:** Content of `storybook-integration-notes.md` is not provided.
+- [x] **Issue:** Content of `storybook-integration-notes.md` is not provided.
     - **Context:** 4. Storybook Integration - Standards & Process 2. Configuration
-    - **Blocking?:** no (Assumed standard Storybook/Next.js integration patterns are sufficient for initial setup).
-- [ ] **Issue:** Decision on using Zustand for global state is optional.
+    - **Blocking?:** no (Standard Storybook/Next.js integration patterns have been implemented and are functioning as expected).
+- [x] **Issue:** Decision on using Zustand for global state is optional.
     - **Context:** 7. Technical Decisions & Standards - Libraries
-    - **Blocking?:** no (Will create setup tickets for Zustand only if/when a clear need arises during refactoring).
+    - **Blocking?:** no (Decision made to defer Zustand implementation until a clear need arises during refactoring).
 ```
