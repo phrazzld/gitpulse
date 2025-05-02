@@ -40,7 +40,42 @@ jobs:
       run: npm run build-storybook
       # Ensure the build fails if Storybook build fails
       
-    # Add Storybook a11y checks in the future when available
+    - name: Run Tests with Coverage
+      run: npm run test:ci
+      # Ensure the build fails if tests fail or coverage thresholds are not met
+    
+    - name: Read Coverage Summary
+      id: read-coverage
+      if: github.event_name == 'pull_request'
+      run: |
+        echo "summary=$(cat coverage/coverage-summary.json)" >> $GITHUB_OUTPUT
+      
+    - name: Upload Coverage Reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/
+        
+    - name: Add Coverage Comment to PR
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        recreate: true
+        path: coverage/coverage-summary.json
+        header: "test-coverage"
+        message: |
+          # Test Coverage Report
+
+          | Category | Line Coverage | Statement Coverage | Function Coverage | Branch Coverage |
+          | -------- | ------------- | ----------------- | ---------------- | --------------- |
+          | All Files | ${{ fromJSON(env.COVERAGE_SUMMARY).total.lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.branches.pct }}% |
+          | Atoms | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].branches.pct }}% |
+          | Molecules | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].branches.pct }}% |
+          | Organisms | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].branches.pct }}% |
+
+          Required thresholds: Atoms ≥ 90%, Molecules ≥ 85%, Organisms ≥ 80%
+      env:
+        COVERAGE_SUMMARY: ${{ steps.read-coverage.outputs.summary }}
       
     - name: Cache build output
       uses: actions/cache@v3

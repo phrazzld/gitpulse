@@ -258,7 +258,7 @@
     - **Depends‑on:** [T018, T016]
 
 ## Testing & CI Enhancements (M5)
-- [ ] **T021 · chore · P1**: configure ci to enforce test coverage thresholds
+- [x] **T021 · chore · P1**: configure ci to enforce test coverage thresholds
     - **Context:** 5. Testing Strategy - Approach & Requirements 2. Coverage Targets (CI Enforced), 7. Technical Decisions & Standards - Configuration
     - **Action:**
         1. Configure the test runner (Jest/Vitest) to collect coverage reports.
