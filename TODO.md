@@ -134,7 +134,7 @@
         2. Component interface is clearly defined and typed.
     - **Verification:** none
     - **Depends‑on:** [T006]
-- [ ] **T012 · refactor · P2**: move button component to atoms directory
+- [x] **T012 · refactor · P2**: move button component to atoms directory
     - **Context:** 7. Technical Decisions & Standards - Directory Structure
     - **Action:**
         1. Move `src/components/ui/Button.tsx` to `src/components/atoms/Button.tsx`.
