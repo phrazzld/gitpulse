@@ -123,7 +123,7 @@
     - **Depends‑on:** [T007]
 
 ## Refactor Atoms (M2 - Sample Tickets)
-- [ ] **T011 · refactor · P2**: refactor button component for atomic design and storybook standards
+- [x] **T011 · refactor · P2**: refactor button component for atomic design and storybook standards
     - **Context:** 2. Component Audit & Classification (Example: Button), 3. Component Refactoring Strategy, 4. Storybook Integration, 5. Testing Strategy
     - **Action:**
         1. Review existing `src/components/ui/Button.tsx`. Ensure it is a pure presentation component receiving all configuration via props.
