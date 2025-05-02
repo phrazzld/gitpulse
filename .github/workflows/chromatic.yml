@@ -1,0 +1,34 @@
+name: 'Chromatic Visual Testing'
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  chromatic-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for Chromatic to track changes correctly
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish to Chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          exitZeroOnChanges: true # Optional: Prevents failures on visual changes (change to false to enforce changes approval)
+          exitOnceUploaded: true # Optional: Avoid waiting for tests to complete 
+          onlyChanged: true # Optional: Only build stories affected by changes
+          externals: '**/*.png, **/*.svg' # Skip binary images from testing
+          buildScriptName: build-storybook # The script that builds the Storybook

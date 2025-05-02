@@ -270,7 +270,7 @@
     - **Verification:**
         1. Ensure test coverage is below a threshold and confirm CI failure. Add tests to pass the threshold and confirm CI success.
     - **Depends‑on:** none (Assumes Jest/Vitest and tests are already running in CI from T005, this is adding the coverage check)
-- [ ] **T022 · chore · P2**: integrate visual regression testing into ci pipeline
+- [x] **T022 · chore · P2**: integrate visual regression testing into ci pipeline
     - **Context:** 4. Storybook Integration - Standards & Process 7. Visual Testing, 5. Testing Strategy - Approach & Requirements 1. Visual Regression Tests
     - **Action:**
         1. Research and select a visual regression testing tool (e.g., Chromatic, Storybook's own VRT, Percy). Chromatic is recommended.
