@@ -284,9 +284,9 @@
     - **Depends‑on:** [T003, T005]
 
 ### Clarifications & Assumptions
-- [ ] **Issue:** Standard testing framework (Jest/Vitest) and E2E framework (Cypress/Playwright) not explicitly chosen in PLAN.md, though mentioned as options.
+- [x] **Issue:** Standard testing framework (Jest/Vitest) and E2E framework (Cypress/Playwright) not explicitly chosen in PLAN.md, though mentioned as options.
     - **Context:** 5. Testing Strategy, 7. Technical Decisions & Standards
-    - **Blocking?:** no (Assumed Jest+RTL and Cypress for ticket creation, but formal decision needed).
+    - **Blocking?:** no (Formally decided on Jest+RTL for unit/integration tests and Playwright for E2E tests).
 - [ ] **Issue:** Content of `storybook-integration-notes.md` is not provided.
     - **Context:** 4. Storybook Integration - Standards & Process 2. Configuration
     - **Blocking?:** no (Assumed standard Storybook/Next.js integration patterns are sufficient for initial setup).

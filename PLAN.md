@@ -75,12 +75,12 @@ This plan outlines the strategy and actionable steps to refactor the GitPulse UI
     1.  **Multi-Level Testing:**
         *   **Unit/Component Tests (Jest + RTL):** Test Atoms and Molecules in isolation. Focus on rendering based on props and basic interactions. Mock dependencies minimally.
         *   **Integration Tests (Jest + RTL):** Test Organisms and their composition of Molecules/Atoms. Mock data hooks and external dependencies. Verify interactions and state changes based on mocked hook return values.
-        *   **E2E Tests (Cypress/Playwright):** Cover critical user flows involving multiple pages and backend interactions.
-        *   **Visual Regression Tests (Storybook/Chromatic):** Catch unintended visual changes via snapshot comparisons of Storybook stories.
+        *   **E2E Tests (Playwright):** Cover critical user flows involving multiple pages and backend interactions. Playwright has been chosen for its excellent Next.js integration, cross-browser testing capabilities, and powerful debugging tools.
+        *   **Visual Regression Tests (Chromatic):** Catch unintended visual changes via snapshot comparisons of Storybook stories. Chromatic has been selected as the visual testing tool due to its tight integration with Storybook.
     2.  **Coverage Targets (CI Enforced):**
         *   Atoms: ≥ 90%
-        *   Molecules: ≥ 85-90%
-        *   Organisms: ≥ 80-85%
+        *   Molecules: ≥ 85%
+        *   Organisms: ≥ 80%
         *   E2E: Critical user flows covered.
     3.  **Testing Complex Interactions:** Use `@testing-library/user-event` for realistic simulations. Utilize `@storybook/addon-interactions` (`play` functions) to verify component behavior within Storybook.
     4.  **Performance:**
