@@ -75,7 +75,7 @@
     - **Depends‑on:** none
 
 ## Component Audit (M1)
-- [ ] **T007 · chore · P1**: inventory all existing components
+- [x] **T007 · chore · P1**: inventory all existing components
     - **Context:** 2. Component Audit & Classification - Process 1. Inventory
     - **Action:**
         1. List all files within `src/components/` (including subdirectories like `ui`, `dashboard`, `layout`, `library`).
