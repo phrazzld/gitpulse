@@ -15,7 +15,7 @@ import { useSummary } from '@/hooks/dashboard/useSummary';
 // Components
 import Header from '@/components/dashboard/Header';
 import DashboardLoadingState from '@/components/DashboardLoadingState';
-import OperationsPanel from '@/components/dashboard/OperationsPanel';
+import OperationsPanel from '@/components/organisms/OperationsPanel';
 import RepositorySection from '@/components/dashboard/RepositorySection';
 import DateRangePicker from '@/components/DateRangePicker';
 import AnalysisParameters from '@/components/dashboard/AnalysisParameters';

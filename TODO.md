@@ -215,7 +215,7 @@
     - **Verification:**
         1. Review the `OperationsPanel.tsx` code to ensure it follows the presentation component pattern.
     - **Depends‑on:** [T015, T016, T006]
-- [ ] **T018 · refactor · P2**: move operations panel component to organisms directory
+- [x] **T018 · refactor · P2**: move operations panel component to organisms directory
     - **Context:** 7. Technical Decisions & Standards - Directory Structure
     - **Action:**
         1. Move `src/components/dashboard/OperationsPanel.tsx` to `src/components/organisms/OperationsPanel.tsx`.
