@@ -227,7 +227,7 @@
         1. Run `yarn build` or `npm run build`.
         2. Check application pages that use the OperationsPanel component.
     - **Depends‑on:** [T004, T017]
-- [ ] **T019 · feature · P2**: create comprehensive storybook stories for operations panel
+- [x] **T019 · feature · P2**: create comprehensive storybook stories for operations panel
     - **Context:** 4. Storybook Integration - Standards & Process 4. Story Content, 5. Documentation, Initial Focus (`OperationsPanel`)
     - **Action:**
         1. Create `src/components/organisms/OperationsPanel.stories.tsx` using CSF3.
