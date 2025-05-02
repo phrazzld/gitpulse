@@ -177,7 +177,7 @@
     - **Depends‑on:** [T012]
 
 ## Refactor Organisms (M4 - OperationsPanel Sample)
-- [ ] **T015 · refactor · P1**: break down operations panel into smaller components
+- [x] **T015 · refactor · P1**: break down operations panel into smaller components
     - **Context:** 3. Component Refactoring Strategy - Approach 1. Break Down Large Components, Initial Focus (`OperationsPanel`)
     - **Action:**
         1. Analyze the functionality and UI sections within `src/components/dashboard/OperationsPanel.tsx`.

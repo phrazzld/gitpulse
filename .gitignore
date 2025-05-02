@@ -55,3 +55,5 @@ CODE_REVIEW.md
 GROOM-PROMPT.md
 
 *storybook.log
+
+**/.claude/settings.local.json
