@@ -92,7 +92,7 @@ export default function Dashboard() {
   }, []);
   
   // Handle organization selection changes
-  const handleOrganizationChange = useCallback((selectedOrgs: string[]) => {
+  const handleOrganizationChange = useCallback((selectedOrgs: readonly string[]) => {
     setOrganizations(selectedOrgs);
   }, [setOrganizations]);
   

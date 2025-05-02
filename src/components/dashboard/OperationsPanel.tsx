@@ -1,7 +1,6 @@
 import React from 'react';
 import { ActivityMode } from '@/components/ui/ModeSelector';
 import { FilterState, Installation } from '@/types/dashboard';
-import { getGitHubAppInstallUrl } from '@/lib/dashboard-utils';
 
 // Import new components
 import TerminalHeader from '@/components/molecules/TerminalHeader';
@@ -9,6 +8,9 @@ import ErrorAlert from '@/components/molecules/ErrorAlert';
 import AuthStatusBanner from '@/components/molecules/AuthStatusBanner';
 import AccountSelectionPanel from '@/components/organisms/AccountSelectionPanel';
 import AnalysisFiltersPanel from '@/components/organisms/AnalysisFiltersPanel';
+
+// Import custom hook
+import { useOperationsPanel } from '@/hooks/dashboard/useOperationsPanel';
 
 export interface OperationsPanelProps {
   /**
@@ -68,7 +70,7 @@ export interface OperationsPanelProps {
   /**
    * Function to handle organization selection changes
    */
-  onOrganizationChange: (selectedOrgs: string[]) => void;
+  onOrganizationChange: (selectedOrgs: readonly string[]) => void;
   
   /**
    * Function to handle filter changes
@@ -78,7 +80,7 @@ export interface OperationsPanelProps {
   /**
    * Function to switch between GitHub installations
    */
-  onSwitchInstallations: (installIds: number[]) => void;
+  onSwitchInstallations: (installIds: readonly number[]) => void;
   
   /**
    * Function to sign out
@@ -105,6 +107,32 @@ export default function OperationsPanel({
   onSwitchInstallations,
   onSignOut
 }: OperationsPanelProps) {
+  // Use the custom hook to handle component logic
+  const {
+    isGitHubAppAuth,
+    hasInstallations,
+    installationUrl,
+    handleModeChange,
+    handleOrganizationChange,
+    handleSwitchInstallations,
+    handleSignOut
+  } = useOperationsPanel({
+    error,
+    loading,
+    needsInstallation,
+    authMethod,
+    installations,
+    currentInstallations,
+    activityMode,
+    activeFilters,
+    userName,
+    onModeChange,
+    onOrganizationChange,
+    onFilterChange,
+    onSwitchInstallations,
+    onSignOut
+  });
+
   return (
     <div className="border rounded-lg p-6 mb-8" style={{ 
       backgroundColor: 'rgba(27, 43, 52, 0.7)',
@@ -120,8 +148,8 @@ export default function OperationsPanel({
         <ErrorAlert 
           message={error} 
           needsInstallation={needsInstallation} 
-          installationUrl={getGitHubAppInstallUrl()} 
-          onSignOut={onSignOut} 
+          installationUrl={installationUrl} 
+          onSignOut={handleSignOut} 
         />
       )}
       
@@ -136,11 +164,11 @@ export default function OperationsPanel({
       )}
       
       {/* Consolidated Account Selection Panel */}
-      {authMethod === 'github_app' && installations.length > 0 && (
+      {isGitHubAppAuth && hasInstallations && (
         <AccountSelectionPanel 
           installations={installations}
           currentInstallations={currentInstallations}
-          onSwitchInstallations={onSwitchInstallations}
+          onSwitchInstallations={handleSwitchInstallations}
         />
       )}
       
@@ -151,8 +179,8 @@ export default function OperationsPanel({
         installations={installations}
         activeFilters={activeFilters}
         userName={userName}
-        onModeChange={onModeChange}
-        onOrganizationChange={onOrganizationChange}
+        onModeChange={handleModeChange}
+        onOrganizationChange={handleOrganizationChange}
       />
     </div>
   );

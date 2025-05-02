@@ -104,7 +104,7 @@ export function useInstallations(options: UseInstallationsOptions) {
    * 
    * @param installIds - Array of installation IDs to switch to
    */
-  const switchInstallations = useCallback((installIds: number[]) => {
+  const switchInstallations = useCallback((installIds: readonly number[]) => {
     // Check if the installation selection has changed
     const currentIds = currentInstallations.map(inst => inst.id);
     const hasSelectionChanged = 

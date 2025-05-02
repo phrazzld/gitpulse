@@ -190,7 +190,7 @@
     - **Verification:**
         1. Review the code changes in `OperationsPanel.tsx` and the new component files.
     - **Depends‑on:** [T004, T009]
-- [ ] **T016 · refactor · P1**: extract logic from operations panel into a custom hook
+- [x] **T016 · refactor · P1**: extract logic from operations panel into a custom hook
     - **Context:** 3. Component Refactoring Strategy - Approach 2. Separate Presentation and Logic (Logic Abstraction), Initial Focus (`OperationsPanel`)
     - **Action:**
         1. Analyze `src/components/dashboard/OperationsPanel.tsx` for data fetching, state management (`useState`, `useReducer`, Zustand), API interactions, or complex business logic.
