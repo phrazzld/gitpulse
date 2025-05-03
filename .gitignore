@@ -48,12 +48,17 @@ DEV-REF.md
 **/glance.md
 thinktank_output/
 thinktank_output_tasks/
+thinktank_*/
 consultation-report/
 *-plan.md
 diff.md
 CODE_REVIEW.md
 GROOM-PROMPT.md
 
+# testing artifacts
+e2e/storageState.json
+playwright-report/
+test-results/
 *storybook.log
 
 **/.claude/settings.local.json
