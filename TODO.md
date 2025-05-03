@@ -297,7 +297,7 @@
         1. Open a PR with a visual change and confirm Chromatic runs and reports the change.
     - **Depends‑on:** [T022]
 
-- [ ] **T024 · fix · P1**: update github actions to v4
+- [x] **T024 · fix · P1**: update github actions to v4
     - **Context:** CI/CD, Best Practices, Maintenance
     - **Action:**
         1. Update actions/upload-artifact from v3 to v4 in ci.yml workflow.

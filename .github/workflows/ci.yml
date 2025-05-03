@@ -51,7 +51,7 @@ jobs:
         echo "summary=$(cat coverage/coverage-summary.json)" >> $GITHUB_OUTPUT
       
     - name: Upload Coverage Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: coverage/
@@ -78,7 +78,7 @@ jobs:
         COVERAGE_SUMMARY: ${{ steps.read-coverage.outputs.summary }}
       
     - name: Cache build output
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           .next
