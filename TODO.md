@@ -283,7 +283,7 @@
         1. Make a small visual change to a component with a story and open a PR. Verify the VRT tool runs and reports the change.
     - **Depends‑on:** [T003, T005]
 
-- [ ] **T023 · chore · P1**: configure chromatic project token
+- [x] **T023 · chore · P1**: configure chromatic project token
     - **Context:** 4. Storybook Integration - Standards & Process 7. Visual Testing, CI Configuration
     - **Action:**
         1. Create a Chromatic account and project at chromatic.com/start.

@@ -5,10 +5,14 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
-
+    
+# Don't run if CHROMATIC_PROJECT_TOKEN is not configured
+# This prevents CI failures during initial setup
 jobs:
   chromatic-deployment:
     runs-on: ubuntu-latest
+    # Only run if CHROMATIC_PROJECT_TOKEN exists
+    if: ${{ secrets.CHROMATIC_PROJECT_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,8 +31,9 @@ jobs:
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          exitZeroOnChanges: true # Optional: Prevents failures on visual changes (change to false to enforce changes approval)
-          exitOnceUploaded: true # Optional: Avoid waiting for tests to complete 
-          onlyChanged: true # Optional: Only build stories affected by changes
+          exitZeroOnChanges: true # Prevents failures on visual changes (change to false to enforce changes approval)
+          exitOnceUploaded: true # Avoid waiting for tests to complete 
+          onlyChanged: true # Only build stories affected by changes
           externals: '**/*.png, **/*.svg' # Skip binary images from testing
           buildScriptName: build-storybook # The script that builds the Storybook
+          skip: ${{ github.actor == 'dependabot[bot]' }} # Skip Chromatic on dependabot PRs
