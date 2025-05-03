@@ -72,7 +72,7 @@ export async function setupMockAuth(page: Page, mockUser: MockUser = defaultMock
  * Determines if tests are running in CI environment
  */
 export function isRunningInCI(): boolean {
-  return process.env.CI === 'true';
+  return process.env.CI === 'true' || process.env.CI === '1';
 }
 
 /**
