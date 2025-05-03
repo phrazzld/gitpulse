@@ -353,7 +353,7 @@
         1. Review the documented strategy for clarity, completeness, and security implications (especially environment gating).
     - **Depends‑on:** []
 
-- [ ] **T028 · feature · P1**: Implement Backend Mock Authentication API Endpoint
+- [x] **T028 · feature · P1**: Implement Backend Mock Authentication API Endpoint
     - **Context:** Create the server-side API endpoint responsible for issuing the mock authentication cookie based on the strategy defined in T027. This endpoint must be securely gated for test environments only.
     - **Action:**
         1. Create the API route handler (e.g., `pages/api/test-auth/login.ts`).
