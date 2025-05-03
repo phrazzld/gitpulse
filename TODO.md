@@ -336,6 +336,203 @@
     - **Verification:**
         1. Run E2E tests in CI and confirm they pass.
     - **Depends‑on:** none
+    <!-- Needs reimplementation via T027-T038 -->
+
+- [x] **T027 · feature · P1**: Define Mock Auth Strategy: Cookie, API, Environment Gating
+    - **Context:** Establish a clear plan for the cookie-based mock authentication. Define the cookie structure, how it will be generated via a test-only API endpoint, and the mechanism to ensure this is strictly limited to test environments, aligning with security and configuration management principles.
+    - **Action:**
+        1. Define the exact structure of the mock authentication cookie (name, content like mock user ID/roles, attributes: `HttpOnly`, `Secure` (conditional), `SameSite=Lax`, `Path=/`).
+        2. Specify the API endpoint for generating this cookie (e.g., `POST /api/test-auth/login`), including request/response format (e.g., request optional user details, response `Set-Cookie` header and success status).
+        3. Define the environment gating mechanism (e.g., require `process.env.NODE_ENV === 'test'` AND/OR `process.env.E2E_MOCK_AUTH_ENABLED === 'true'`).
+        4. Document these decisions clearly (e.g., in this task description or a temporary design note).
+    - **Done‑when:**
+        1. Mock cookie structure and attributes are documented.
+        2. Mock auth API endpoint specification (path, method, payload, response) is documented.
+        3. Environment gating mechanism is defined and documented.
+    - **Verification:**
+        1. Review the documented strategy for clarity, completeness, and security implications (especially environment gating).
+    - **Depends‑on:** []
+
+- [ ] **T028 · feature · P1**: Implement Backend Mock Authentication API Endpoint
+    - **Context:** Create the server-side API endpoint responsible for issuing the mock authentication cookie based on the strategy defined in T027. This endpoint must be securely gated for test environments only.
+    - **Action:**
+        1. Create the API route handler (e.g., `pages/api/test-auth/login.ts`).
+        2. Implement the strict environment check at the start of the handler; return 403/404 if conditions aren't met.
+        3. Implement logic to generate the mock cookie payload (potentially using a simple structure, or signing if mimicking production closely).
+        4. Set the cookie in the response headers using the defined attributes from T027.
+        5. Return a success status (e.g., 200 OK).
+        6. Add unit tests for this API handler, verifying environment gating, correct cookie setting, and response status.
+    - **Done‑when:**
+        1. The mock authentication API endpoint is implemented and functional.
+        2. The endpoint is correctly gated by the defined environment check.
+        3. The endpoint sets the cookie with the specified attributes.
+        4. Unit tests cover the endpoint's core logic and security checks.
+    - **Verification:**
+        1. Run unit tests (`npm test`).
+        2. Manually test the endpoint (e.g., using `curl`) in a local server running with the test environment enabled. Verify the `Set-Cookie` header.
+        3. Manually test the endpoint in a non-test environment and verify it returns an error/is inaccessible.
+    - **Depends‑on:** [T027]
+
+- [ ] **T029 · feature · P1**: Implement Playwright Global Setup for Mock Authentication
+    - **Context:** To efficiently authenticate all Playwright tests without repeating logic, implement a `globalSetup` script that uses the mock API endpoint (T028) to log in and save the authenticated state (cookies) to a file (`storageState`).
+    - **Action:**
+        1. Create a `globalSetup.ts` file (e.g., in `e2e/config/globalSetup.ts`).
+        2. In this script, use Playwright's `request.newContext()` to make a `POST` request to the mock auth API endpoint (`/api/test-auth/login`).
+        3. Verify the API response indicates success.
+        4. Extract the necessary cookie details *if needed* (often, the `storageState` captures this automatically if the request context is reused or properly configured).
+        5. Save the authenticated browser state (including cookies set by the API response) using `browser.newContext().storageState({ path: 'storageState.json' })`. *Alternatively, make the API request within the context you intend to save.*
+        6. Ensure the `globalSetup` script correctly uses the `baseURL` configured in `playwright.config.ts`.
+        7. Add error handling for API call failures during setup.
+    - **Done‑when:**
+        1. `globalSetup.ts` script successfully calls the mock auth API.
+        2. The script saves an authenticated state (including the mock cookie) to `storageState.json`.
+        3. The script handles potential errors during the API call.
+    - **Verification:**
+        1. Run the `globalSetup` script directly via Playwright CLI (if possible) or by running a minimal test suite configured to use it.
+        2. Verify that `storageState.json` is created and contains the expected cookie information.
+    - **Depends‑on:** [T028]
+
+- [ ] **T030 · chore · P1**: Configure Playwright to Use Saved Authentication State
+    - **Context:** Configure the main Playwright test projects to use the `storageState.json` file generated by the `globalSetup` script (T029), ensuring tests start in an authenticated state.
+    - **Action:**
+        1. Modify `playwright.config.ts`.
+        2. Define the `globalSetup` path pointing to the script created in T029.
+        3. In the `use` configuration for the main test project(s) (e.g., 'chromium'), specify `storageState: 'storageState.json'`.
+    - **Done‑when:**
+        1. `playwright.config.ts` correctly references the `globalSetup` script.
+        2. `playwright.config.ts` configures test projects to load `storageState.json`.
+    - **Verification:**
+        1. Run a single E2E test that targets an authenticated page (without any UI login steps). Verify it loads successfully without redirecting to login, indicating the state was loaded.
+    - **Depends‑on:** [T029]
+
+- [ ] **T031 · refactor · P1**: Refactor E2E Tests to Remove UI Login and Rely on `storageState`
+    - **Context:** With `globalSetup` and `storageState` handling authentication (T029, T030), remove redundant and slow UI login steps from all E2E tests.
+    - **Action:**
+        1. Review all existing E2E test files (`*.spec.ts`).
+        2. Remove code blocks related to navigating to login pages, filling forms, and submitting credentials.
+        3. Ensure tests now assume an authenticated state from the start and directly navigate to the relevant authenticated pages/features.
+        4. Adjust assertions as needed based on the authenticated starting state.
+    - **Done‑when:**
+        1. All relevant E2E tests have UI/manual login steps removed.
+        2. Tests are updated to correctly assume an authenticated state provided by `storageState`.
+    - **Verification:**
+        1. Review code changes in E2E test files.
+        2. Run the affected tests locally to ensure they pass using the loaded `storageState`.
+    - **Depends‑on:** [T030]
+
+- [ ] **T032 · test · P1**: Verify Full E2E Suite Locally with Mock Auth Across Browsers
+    - **Context:** Thoroughly validate the entire mock authentication flow locally across all supported browsers before integrating into CI.
+    - **Action:**
+        1. Ensure the local development server can be run with the necessary test environment configuration (from T027) to activate the mock auth endpoint.
+        2. Configure Playwright to run tests against all required browsers (e.g., Chromium, Firefox, WebKit).
+        3. Execute the *entire* E2E test suite locally (`npm run test:e2e` or equivalent).
+        4. Analyze results, ensuring all tests pass consistently across all browsers using the `storageState` authentication.
+        5. Debug and fix any failures or inconsistencies.
+    - **Done‑when:**
+        1. The full E2E test suite passes locally using the `storageState` mock authentication.
+        2. Tests pass reliably across all configured browsers.
+    - **Verification:**
+        1. Successful execution output of the full E2E test suite locally for all browsers.
+    - **Depends‑on:** [T031]
+
+- [ ] **T033 · chore · P1**: Configure CI Workflow for E2E Tests with Mock Auth Environment
+    - **Context:** Update the CI pipeline to correctly set up the environment for mock authentication, start the application server in test mode, and run the Playwright E2E tests.
+    - **Action:**
+        1. Edit the relevant CI workflow file (e.g., `.github/workflows/e2e.yml`).
+        2. Add steps to install dependencies and build the application if necessary.
+        3. Add a step to start the application server *within the CI job*, ensuring the test environment variables (e.g., `NODE_ENV=test`, `E2E_MOCK_AUTH_ENABLED=true`) are set correctly for this process. Use `&` to background the server process if needed.
+        4. Add a wait mechanism or health check to ensure the server is ready before tests start.
+        5. Add the step to run the Playwright tests (`npx playwright test`), ensuring it targets the correct `baseURL` of the server running in the CI job.
+        6. Ensure Playwright browsers are installed in CI.
+    - **Done‑when:**
+        1. CI workflow includes steps to start the app server with correct test environment variables.
+        2. CI workflow includes a step to run Playwright tests against the running server.
+        3. Necessary dependencies and browsers are handled in CI.
+    - **Verification:**
+        1. Review the CI workflow file changes.
+        2. Trigger a CI run on a test branch and observe the logs to ensure steps execute in order and the server starts with the correct environment flags.
+    - **Depends‑on:** [T032]
+
+- [ ] **T034 · test · P1**: Verify E2E Tests Pass Reliably in CI with Mock Authentication
+    - **Context:** Confirm that the entire setup works correctly and reliably within the CI environment.
+    - **Action:**
+        1. Ensure all preceding task changes are committed and pushed to a branch.
+        2. Create a Pull Request to trigger the CI pipeline configured in T033.
+        3. Monitor the CI build execution, paying close attention to the E2E test step.
+        4. Verify that the E2E test suite runs and passes successfully across all configured browsers in CI.
+        5. Analyze and fix any CI-specific failures (e.g., timing issues, environment variable problems, server not ready). Re-run until stable.
+    - **Done‑when:**
+        1. The CI pipeline completes successfully for the branch/PR.
+        2. All E2E tests pass across all configured browsers in the CI environment using the mock authentication.
+    - **Verification:**
+        1. Green CI check status for the E2E test job on the PR/branch. Review CI logs for confirmation.
+    - **Depends‑on:** [T033]
+
+- [ ] **T035 · test · P2**: Add Dedicated E2E Test for Mock Authentication Flow
+    - **Context:** Include a specific E2E test that explicitly verifies the mock authentication mechanism itself is working as expected, beyond just relying on it implicitly in other tests.
+    - **Action:**
+        1. Create a new E2E test file (e.g., `e2e/auth.spec.ts`).
+        2. Write a test case that:
+            - Assumes the `storageState` is loaded (like other tests).
+            - Navigates to a known protected route.
+            - Asserts that the page loads correctly (e.g., checks for user-specific elements).
+            - Optionally, attempts to navigate to the login page and asserts it redirects *away* (confirming authenticated state).
+            - Optionally, clears cookies and asserts navigation to a protected route now fails/redirects to login.
+    - **Done‑when:**
+        1. A dedicated E2E test file exists verifying the core mock auth flow.
+        2. The test passes locally and in CI.
+    - **Verification:**
+        1. Run the specific test file locally (`npx playwright test e2e/auth.spec.ts`).
+        2. Confirm the test passes as part of the full suite in CI (T034).
+    - **Depends‑on:** [T031, T034] # Depends on refactored tests and working CI
+
+- [ ] **T036 · chore · P2**: Document Mock Authentication Strategy and Usage
+    - **Context:** Ensure the new mock authentication system is clearly documented for maintainability and team understanding, following the documentation philosophy.
+    - **Action:**
+        1. Create or update a relevant documentation file (e.g., `TESTING.md`, `docs/e2e-testing.md`, or section in `README.md`).
+        2. Describe the purpose and high-level approach of the cookie-based mock authentication.
+        3. Explain the role of the mock API endpoint, `globalSetup.ts`, and `storageState.json`.
+        4. Detail the necessary environment variables (`NODE_ENV`, `E2E_MOCK_AUTH_ENABLED`).
+        5. Provide instructions on how to run tests locally that rely on this mechanism.
+        6. Add troubleshooting tips for common issues (e.g., state file not found, API endpoint not enabled).
+    - **Done‑when:**
+        1. Documentation accurately describes the mock auth system, its components, configuration, and usage.
+        2. Documentation is reviewed and merged.
+    - **Verification:**
+        1. Review the documentation for clarity, accuracy, and completeness.
+        2. Ask a team member unfamiliar with the implementation to follow the docs.
+    - **Depends‑on:** [T034] # Best documented after verified in CI
+
+- [ ] **T037 · chore · P3**: Security Review and Hardening for Mock Auth
+    - **Context:** Perform a final review focused on the security aspects of the mock authentication implementation, ensuring it doesn't introduce vulnerabilities.
+    - **Action:**
+        1. Review the environment gating logic (T028) to ensure it cannot be bypassed in production.
+        2. Confirm no sensitive information (like potential mock secrets if used) is hardcoded or logged in CI (T033).
+        3. Verify the mock cookie attributes (`HttpOnly`, `Secure`, `SameSite`) are set appropriately (T028).
+        4. Ensure the mock endpoint itself doesn't expose unintended application internals.
+    - **Done‑when:**
+        1. Security aspects of the implementation have been reviewed.
+        2. Any identified potential issues have been addressed.
+    - **Verification:**
+        1. Code review focused specifically on the security actions listed.
+        2. Confirmation that CI logs are clean of sensitive data.
+    - **Depends‑on:** [T034]
+
+- [ ] **T038 · chore · P3**: Final Cleanup and Mark T026 Complete
+    - **Context:** Remove any remaining old code, temporary files, or test artifacts related to previous E2E authentication methods and formally close the original parent task T026.
+    - **Action:**
+        1. Perform a final search for any obsolete E2E authentication code or configuration missed in T031.
+        2. Delete any temporary design notes or test files created during development if not needed.
+        3. Locate task T026 in `TODO.md`.
+        4. Ensure T026 is marked as complete (`- [x]`).
+        5. Add a comment to T026 referencing the implementing tasks (e.g., `<!-- Completed via T027-T038 -->`).
+    - **Done‑when:**
+        1. Codebase is clean of old E2E auth artifacts.
+        2. Task T026 is marked as complete in `TODO.md` with a reference note.
+    - **Verification:**
+        1. Review `TODO.md` to confirm T026 status and comment.
+        2. Perform a code search for remnants of old auth logic.
+    - **Depends‑on:** [T037, T036, T035] # Depends on all implementation, testing, docs, and security review being done.
 
 ### Clarifications & Assumptions
 - [x] **Issue:** Standard testing framework (Jest/Vitest) and E2E framework (Cypress/Playwright) not explicitly chosen in PLAN.md, though mentioned as options.
