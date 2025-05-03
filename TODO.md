@@ -323,7 +323,7 @@
         1. Run the workflow and verify a11y tests execute successfully.
     - **Depends‑on:** none
 
-- [ ] **T026 · fix · P2**: implement e2e test authentication for ci
+- [x] **T026 · fix · P2**: implement e2e test authentication for ci
     - **Context:** 5. Testing Strategy - E2E Tests, CI Configuration
     - **Action:**
         1. Create a mock authentication strategy for Playwright tests in CI.

@@ -30,9 +30,18 @@ jobs:
       - name: Run Playwright tests
         run: npm run test:e2e
         env:
-          # Set any required environment variables
+          # Basic configuration
           NEXTAUTH_URL: http://localhost:3000
           NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
+          
+          # Enable mock authentication for CI
+          CI: true
+          MOCK_AUTH: true
+          NODE_ENV: test
+          
+          # Add mock GitHub credentials for testing
+          GITHUB_OAUTH_CLIENT_ID: mock-client-id
+          GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
           
       - name: Upload test results
         if: always()
