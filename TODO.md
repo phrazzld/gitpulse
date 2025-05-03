@@ -373,7 +373,7 @@
         3. Manually test the endpoint in a non-test environment and verify it returns an error/is inaccessible.
     - **Depends‑on:** [T027]
 
-- [ ] **T029 · feature · P1**: Implement Playwright Global Setup for Mock Authentication
+- [x] **T029 · feature · P1**: Implement Playwright Global Setup for Mock Authentication
     - **Context:** To efficiently authenticate all Playwright tests without repeating logic, implement a `globalSetup` script that uses the mock API endpoint (T028) to log in and save the authenticated state (cookies) to a file (`storageState`).
     - **Action:**
         1. Create a `globalSetup.ts` file (e.g., in `e2e/config/globalSetup.ts`).

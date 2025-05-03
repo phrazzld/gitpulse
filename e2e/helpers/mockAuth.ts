@@ -79,5 +79,7 @@ export function isRunningInCI(): boolean {
  * Determines if auth mocking is enabled
  */
 export function isMockAuthEnabled(): boolean {
-  return process.env.MOCK_AUTH === 'true' || isRunningInCI();
+  return process.env.MOCK_AUTH === 'true' 
+    || process.env.E2E_MOCK_AUTH_ENABLED === 'true'
+    || isRunningInCI();
 }
