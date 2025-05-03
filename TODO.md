@@ -310,7 +310,7 @@
         1. Run CI workflows and confirm they complete without errors related to actions.
     - **Depends‑on:** none
 
-- [ ] **T025 · fix · P1**: fix storybook a11y testing workflow
+- [x] **T025 · fix · P1**: fix storybook a11y testing workflow
     - **Context:** 4. Storybook Integration - Standards & Process 6. Accessibility (A11y), CI Configuration
     - **Action:**
         1. Remove `npm install -g @storybook/cli` step from storybook-a11y.yml workflow.
