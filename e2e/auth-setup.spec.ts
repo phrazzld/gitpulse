@@ -18,7 +18,7 @@ test('should have authentication cookie from global setup', async ({ page, conte
   await page.goto('/dashboard');
   
   // Take screenshot to diagnose what's visible
-  await page.screenshot({ path: 'auth-setup-dashboard.png' });
+  await page.screenshot({ path: 'test-artifacts/screenshots/auth-setup-dashboard.png' });
   
   // Verify we stay on the dashboard page (no redirect to login)
   expect(page.url()).toContain('/dashboard');

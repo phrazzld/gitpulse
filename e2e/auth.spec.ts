@@ -53,7 +53,7 @@ test.describe('Protected Route Access', () => {
     await page.waitForLoadState('networkidle');
     
     // Take a screenshot to diagnose the state
-    await page.screenshot({ path: 'auth-test-homepage.png' });
+    await page.screenshot({ path: 'test-artifacts/screenshots/auth-test-homepage.png' });
     
     // Check that auth cookie exists by checking cookies
     const cookies = await page.context().cookies();
@@ -65,7 +65,7 @@ test.describe('Protected Route Access', () => {
     await page.waitForLoadState('networkidle');
     
     // Take screenshot for visual verification
-    await page.screenshot({ path: 'auth-test-dashboard.png' });
+    await page.screenshot({ path: 'test-artifacts/screenshots/auth-test-dashboard.png' });
     
     // The specific page content will depend on the application, but we should at least
     // verify that we don't see obvious signs of being unauthenticated
@@ -141,7 +141,7 @@ test.describe('Authentication Removal', () => {
     await page.waitForLoadState('networkidle');
     
     // Take screenshot for debugging
-    await page.screenshot({ path: 'auth-test-unauthenticated.png' });
+    await page.screenshot({ path: 'test-artifacts/screenshots/auth-test-unauthenticated.png' });
     
     // Not all applications immediately show login UI or redirect when unauthenticated
     // We need to have flexible verification that adapts to the application behavior

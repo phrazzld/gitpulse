@@ -60,14 +60,7 @@ e2e/storageState.json
 e2e/storageState-debug.json
 playwright-report/
 test-results/
+test-artifacts/
 *storybook.log
-
-# test screenshots and visualizations
-*auth*dashboard*.png
-*authenticated*.png
-*unauthenticated*.png
-*auth-test*.png
-*auth-setup*.png
-*dashboard-screenshot*.png
 
 **/.claude/settings.local.json
