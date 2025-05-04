@@ -468,7 +468,7 @@
         1. Green CI check status for the E2E test job on the PR/branch. Review CI logs for confirmation.
     - **Depends‑on:** [T033]
 
-- [ ] **T035 · test · P2**: Add Dedicated E2E Test for Mock Authentication Flow
+- [x] **T035 · test · P2**: Add Dedicated E2E Test for Mock Authentication Flow
     - **Context:** Include a specific E2E test that explicitly verifies the mock authentication mechanism itself is working as expected, beyond just relying on it implicitly in other tests.
     - **Action:**
         1. Create a new E2E test file (e.g., `e2e/auth.spec.ts`).
