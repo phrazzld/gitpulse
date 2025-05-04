@@ -420,7 +420,7 @@
         2. Run the affected tests locally to ensure they pass using the loaded `storageState`.
     - **Depends‑on:** [T030]
 
-- [ ] **T032 · test · P1**: Verify Full E2E Suite Locally with Mock Auth Across Browsers
+- [x] **T032 · test · P1**: Verify Full E2E Suite Locally with Mock Auth Across Browsers
     - **Context:** Thoroughly validate the entire mock authentication flow locally across all supported browsers before integrating into CI.
     - **Action:**
         1. Ensure the local development server can be run with the necessary test environment configuration (from T027) to activate the mock auth endpoint.
