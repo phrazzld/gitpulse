@@ -323,7 +323,7 @@
         1. Run the workflow and verify a11y tests execute successfully.
     - **Depends‑on:** none
 
-- [x] **T026 · fix · P2**: implement e2e test authentication for ci
+- [x] **T026 · fix · P2**: implement e2e test authentication for ci <!-- Completed via T027-T038 -->
     - **Context:** 5. Testing Strategy - E2E Tests, CI Configuration
     - **Action:**
         1. Create a mock authentication strategy for Playwright tests in CI.
@@ -518,7 +518,7 @@
         2. Confirmation that CI logs are clean of sensitive data.
     - **Depends‑on:** [T034]
 
-- [ ] **T038 · chore · P3**: Final Cleanup and Mark T026 Complete
+- [x] **T038 · chore · P3**: Final Cleanup and Mark T026 Complete
     - **Context:** Remove any remaining old code, temporary files, or test artifacts related to previous E2E authentication methods and formally close the original parent task T026.
     - **Action:**
         1. Perform a final search for any obsolete E2E authentication code or configuration missed in T031.
