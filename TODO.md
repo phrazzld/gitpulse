@@ -453,7 +453,7 @@
         2. Trigger a CI run on a test branch and observe the logs to ensure steps execute in order and the server starts with the correct environment flags.
     - **Depends‑on:** [T032]
 
-- [ ] **T034 · test · P1**: Verify E2E Tests Pass Reliably in CI with Mock Authentication
+- [~] **T034 · test · P1**: Verify E2E Tests Pass Reliably in CI with Mock Authentication
     - **Context:** Confirm that the entire setup works correctly and reliably within the CI environment.
     - **Action:**
         1. Ensure all preceding task changes are committed and pushed to a branch.

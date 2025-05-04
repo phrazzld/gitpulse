@@ -21,6 +21,10 @@ console.log(`Waiting for server at ${url} (timeout: ${timeout}ms, interval: ${in
 const startTime = Date.now();
 let isReady = false;
 
+// Track consecutive successes for more reliable server readiness detection
+let consecutiveSuccesses = 0;
+const requiredSuccesses = process.env.CI ? 3 : 1; // More strict in CI
+
 function checkServer() {
   const timeElapsed = Date.now() - startTime;
   
@@ -34,16 +38,35 @@ function checkServer() {
   const req = client.get(url, (res) => {
     const statusCode = res.statusCode;
     if (statusCode >= 200 && statusCode < 400) {
-      console.log(`Server at ${url} is ready! (Status: ${statusCode})`);
-      process.exit(0);
+      consecutiveSuccesses++;
+      console.log(`Server at ${url} responded successfully (Status: ${statusCode}) - Success ${consecutiveSuccesses}/${requiredSuccesses}`);
+      
+      if (consecutiveSuccesses >= requiredSuccesses) {
+        console.log(`Server at ${url} is ready! Had ${requiredSuccesses} consecutive successful responses.`);
+        process.exit(0);
+      } else {
+        // Wait a bit longer between success checks to ensure stability
+        setTimeout(checkServer, interval * 2);
+      }
     } else {
+      // Reset consecutive successes counter on any failure
+      consecutiveSuccesses = 0;
       console.log(`Server not ready yet. Status code: ${statusCode}. Retrying in ${interval}ms...`);
       setTimeout(checkServer, interval);
     }
   });
   
   req.on('error', (err) => {
+    // Reset consecutive successes counter on any error
+    consecutiveSuccesses = 0;
     console.log(`Server not ready yet. Error: ${err.message}. Retrying in ${interval}ms...`);
+    setTimeout(checkServer, interval);
+  });
+  
+  // Set a timeout for the request itself
+  req.setTimeout(5000, () => {
+    req.destroy();
+    console.log(`Request timed out. Retrying in ${interval}ms...`);
     setTimeout(checkServer, interval);
   });
   

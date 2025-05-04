@@ -13,6 +13,8 @@ async function globalSetup(config: FullConfig) {
   // Log environment info
   console.log(`CI environment: ${process.env.CI ? 'Yes' : 'No'}`);
   console.log(`Mock Auth enabled: ${isMockAuthEnabled() ? 'Yes' : 'No'}`);
+  console.log(`Environment variables: NODE_ENV=${process.env.NODE_ENV}, E2E_MOCK_AUTH_ENABLED=${process.env.E2E_MOCK_AUTH_ENABLED}, NEXTAUTH_SECRET=${process.env.NEXTAUTH_SECRET ? 'Set' : 'Not set'}`);
+  console.log(`Working directory: ${process.cwd()}`);
   
   // Skip if mock auth is not enabled
   if (!isMockAuthEnabled()) {
@@ -84,10 +86,19 @@ async function globalSetup(config: FullConfig) {
     const authCookie = state.cookies.find(cookie => cookie.name === 'next-auth.session-token');
     
     if (!authCookie) {
+      console.error('Available cookies:', JSON.stringify(state.cookies, null, 2));
       throw new Error('Authentication cookie not found in storage state');
     }
     
     console.log('Authentication cookie verified in storage state');
+    console.log(`Cookie details: domain=${authCookie.domain}, path=${authCookie.path}, httpOnly=${authCookie.httpOnly}, secure=${authCookie.secure}, sameSite=${authCookie.sameSite}`);
+    
+    // Write the storage state to a separate debug file in CI for troubleshooting
+    if (process.env.CI) {
+      const debugPath = path.resolve(__dirname, '../storageState-debug.json');
+      fs.writeFileSync(debugPath, JSON.stringify(state, null, 2));
+      console.log(`Wrote debug storage state to: ${debugPath}`);
+    }
     
   } catch (error) {
     console.error('Error during authentication setup:', error);

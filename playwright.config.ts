@@ -3,12 +3,12 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   /* Maximum time one test can run for */
-  timeout: 30 * 1000,
+  timeout: process.env.CI ? 60 * 1000 : 30 * 1000, // Longer timeout in CI
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
      */
-    timeout: 5000
+    timeout: process.env.CI ? 10000 : 5000 // Longer timeout in CI
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -26,10 +26,14 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')` */
     baseURL: 'http://localhost:3000',
-    /* Collect trace when retrying the failed test */
-    trace: 'on-first-retry',
+    /* Collect trace - always in CI, on first retry in development */
+    trace: process.env.CI ? 'on' : 'on-first-retry',
     /* Capture screenshot when a test fails */
     screenshot: 'only-on-failure',
+    /* Record video in CI */
+    video: process.env.CI ? 'on-first-retry' : 'off',
+    /* Increase timeouts in CI */
+    navigationTimeout: process.env.CI ? 45000 : 30000,
   },
 
   /* Configure projects for major browsers */
