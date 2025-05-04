@@ -435,7 +435,7 @@
         1. Successful execution output of the full E2E test suite locally for all browsers.
     - **Depends‑on:** [T031]
 
-- [ ] **T033 · chore · P1**: Configure CI Workflow for E2E Tests with Mock Auth Environment
+- [x] **T033 · chore · P1**: Configure CI Workflow for E2E Tests with Mock Auth Environment
     - **Context:** Update the CI pipeline to correctly set up the environment for mock authentication, start the application server in test mode, and run the Playwright E2E tests.
     - **Action:**
         1. Edit the relevant CI workflow file (e.g., `.github/workflows/e2e.yml`).

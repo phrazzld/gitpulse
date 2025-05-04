@@ -27,6 +27,25 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
       
+      - name: Build application
+        run: npm run build
+        env:
+          # Ensure build completes even in test mode
+          NEXTAUTH_URL: http://localhost:3000
+          NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
+          NODE_ENV: production
+      
+      - name: Start server and wait for it to be ready
+        run: |
+          # Start the server in the background
+          NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true NEXTAUTH_URL=http://localhost:3000 NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer NEXTAUTH_SECRET=playwright-test-secret-key npm run dev &
+          
+          # Store the process ID so we can terminate it later
+          echo $! > server.pid
+          
+          # Wait for the server to be ready
+          node scripts/wait-for-server.js http://localhost:3000 60000
+      
       - name: Run Playwright tests
         run: npm run test:e2e
         env:
@@ -36,13 +55,16 @@ jobs:
           
           # Enable mock authentication for CI
           CI: true
-          MOCK_AUTH: true
           NODE_ENV: test
+          E2E_MOCK_AUTH_ENABLED: true
           
           # Add mock GitHub credentials for testing
           GITHUB_OAUTH_CLIENT_ID: mock-client-id
           GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
           
+          # Set NextAuth secret for secure cookie handling (mock for tests)
+          NEXTAUTH_SECRET: playwright-test-secret-key
+      
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -50,3 +72,29 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+      
+      - name: Upload storage state (for debugging)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auth-storage-state
+          path: e2e/storageState.json
+          retention-days: 7
+      
+      - name: Upload test screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots
+          path: test-results/**/*.png
+          retention-days: 7
+      
+      - name: Terminate server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            SERVER_PID=$(cat server.pid)
+            echo "Terminating server process (PID: $SERVER_PID)"
+            kill -TERM $SERVER_PID || true
+            rm server.pid
+          fi

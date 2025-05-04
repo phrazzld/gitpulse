@@ -79,7 +79,14 @@ export function isRunningInCI(): boolean {
  * Determines if auth mocking is enabled
  */
 export function isMockAuthEnabled(): boolean {
-  return process.env.MOCK_AUTH === 'true' 
-    || process.env.E2E_MOCK_AUTH_ENABLED === 'true'
-    || isRunningInCI();
+  const mockAuth = process.env.MOCK_AUTH === 'true';
+  const e2eMockAuthEnabled = process.env.E2E_MOCK_AUTH_ENABLED === 'true';
+  const inCI = isRunningInCI();
+  
+  // Log the environment state for debugging in CI
+  if (inCI) {
+    console.log(`Mock Auth Environment: MOCK_AUTH=${process.env.MOCK_AUTH}, E2E_MOCK_AUTH_ENABLED=${process.env.E2E_MOCK_AUTH_ENABLED}, CI=${process.env.CI}`);
+  }
+  
+  return mockAuth || e2eMockAuthEnabled || inCI;
 }
