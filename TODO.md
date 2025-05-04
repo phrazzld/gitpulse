@@ -486,7 +486,7 @@
         2. Confirm the test passes as part of the full suite in CI (T034).
     - **Depends‑on:** [T031, T034] # Depends on refactored tests and working CI
 
-- [ ] **T036 · chore · P2**: Document Mock Authentication Strategy and Usage
+- [x] **T036 · chore · P2**: Document Mock Authentication Strategy and Usage
     - **Context:** Ensure the new mock authentication system is clearly documented for maintainability and team understanding, following the documentation philosophy.
     - **Action:**
         1. Create or update a relevant documentation file (e.g., `TESTING.md`, `docs/e2e-testing.md`, or section in `README.md`).
