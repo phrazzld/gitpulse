@@ -393,6 +393,21 @@ The mock authentication system is designed with security in mind:
 
 5. **Transparency**: Tests that use mock authentication are explicitly marked and can be conditionally skipped when not enabled.
 
+### CI Security Best Practices
+
+1. **Secret Management**: 
+   - Store `NEXTAUTH_SECRET` and any other secrets as GitHub Action secrets rather than hardcoding in workflow files
+   - For testing purposes, generate a random value for `NEXTAUTH_SECRET` during CI runs rather than using a fixed string
+
+2. **Log Safety**:
+   - Ensure server logs in CI don't expose sensitive information
+   - Use log redaction for environment variables and credentials
+   - The workflow includes `env | grep -v -E 'TOKEN|SECRET|PASSWORD|KEY'` to filter sensitive variables from logs
+
+3. **Limited Access**:
+   - Consider using CODEOWNERS for CI workflow files to require security review
+   - Regularly audit CI configurations for hardcoded secrets or tokens
+
 ## CI Enhancements for Reliability
 
 Several improvements were made to ensure reliable E2E test execution in CI:

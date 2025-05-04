@@ -503,7 +503,7 @@
         2. Ask a team member unfamiliar with the implementation to follow the docs.
     - **Depends‑on:** [T034] # Best documented after verified in CI
 
-- [ ] **T037 · chore · P3**: Security Review and Hardening for Mock Auth
+- [x] **T037 · chore · P3**: Security Review and Hardening for Mock Auth
     - **Context:** Perform a final review focused on the security aspects of the mock authentication implementation, ensuring it doesn't introduce vulnerabilities.
     - **Action:**
         1. Review the environment gating logic (T028) to ensure it cannot be bypassed in production.

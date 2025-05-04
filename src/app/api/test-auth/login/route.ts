@@ -54,9 +54,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   // Security check: Only allow this endpoint in test environments
   if (!isEndpointAllowed(process.env)) {
     logger.warn(MODULE_NAME, 'Unauthorized attempt to access mock auth endpoint', {
-      nodeEnv: process.env.NODE_ENV,
-      mockAuthEnabled: process.env.E2E_MOCK_AUTH_ENABLED,
-      allowedInDev: process.env.ALLOW_E2E_IN_DEV
+      nodeEnv: process.env.NODE_ENV ? 'set' : 'not-set',
+      mockAuthEnabled: process.env.E2E_MOCK_AUTH_ENABLED ? 'set' : 'not-set',
+      allowedInDev: process.env.ALLOW_E2E_IN_DEV ? 'set' : 'not-set'
     });
     
     // Return 404 to hide the existence of this endpoint in production

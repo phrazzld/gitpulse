@@ -28,7 +28,19 @@ async function globalSetup(config: FullConfig) {
     throw new Error('baseURL must be specified in the Playwright config');
   }
 
-  console.log(`Using base URL: ${baseURL}`);
+  // Validate baseURL format
+  let domain;
+  try {
+    domain = new URL(baseURL).hostname;
+  } catch (error: any) {
+    throw new Error(`Invalid baseURL format: ${baseURL}. Error: ${error?.message || 'Unknown error'}`);
+  }
+    
+  if (!domain) {
+    throw new Error(`Could not extract domain from baseURL: ${baseURL}`);
+  }
+
+  console.log(`Using base URL: ${baseURL} (domain: ${domain})`);
 
   // Launch a browser
   const browser = await chromium.launch();
@@ -54,7 +66,7 @@ async function globalSetup(config: FullConfig) {
     const cookieValue = Buffer.from(JSON.stringify(mockSessionData)).toString('base64');
     
     // Add the cookie directly to the context
-    const domain = new URL(baseURL).hostname;
+    // Note: domain has already been validated above
     await context.addCookies([
       {
         name: 'next-auth.session-token',
