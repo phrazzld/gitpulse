@@ -405,7 +405,7 @@
         1. Run a single E2E test that targets an authenticated page (without any UI login steps). Verify it loads successfully without redirecting to login, indicating the state was loaded.
     - **Depends‑on:** [T029]
 
-- [ ] **T031 · refactor · P1**: Refactor E2E Tests to Remove UI Login and Rely on `storageState`
+- [x] **T031 · refactor · P1**: Refactor E2E Tests to Remove UI Login and Rely on `storageState`
     - **Context:** With `globalSetup` and `storageState` handling authentication (T029, T030), remove redundant and slow UI login steps from all E2E tests.
     - **Action:**
         1. Review all existing E2E test files (`*.spec.ts`).
