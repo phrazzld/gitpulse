@@ -21,6 +21,9 @@ const customJestConfig = {
     '<rootDir>/src/.*/__tests__/glance.md',
     '<rootDir>/e2e/', // Exclude Playwright E2E test files
   ],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(octokit|@octokit)/)' // Process octokit modules to handle ESM syntax
+  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.stories.{js,jsx,ts,tsx}',
