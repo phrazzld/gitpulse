@@ -19,6 +19,7 @@ const customJestConfig = {
     '<rootDir>/node_modules/',
     '<rootDir>/.next/',
     '<rootDir>/src/.*/__tests__/glance.md',
+    '<rootDir>/e2e/', // Exclude Playwright E2E test files
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
