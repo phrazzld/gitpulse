@@ -8,7 +8,7 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const customJestConfig = {
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js', '<rootDir>/jest.setup.esm.js'],
   moduleNameMapper: {
     // Handle module aliases
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
@@ -21,8 +21,30 @@ const customJestConfig = {
     '<rootDir>/src/.*/__tests__/glance.md',
     '<rootDir>/e2e/', // Exclude Playwright E2E test files
   ],
+  // Expanding the list of ESM modules to process with Jest transformer
   transformIgnorePatterns: [
-    '/node_modules/(?!(octokit|@octokit)/)' // Process octokit modules to handle ESM syntax
+    '/node_modules/(?!(' + [
+      // Octokit packages
+      'octokit',
+      '@octokit',
+      
+      // Dependencies of Octokit that might use ESM
+      'node-fetch',
+      'fetch-blob', 
+      'formdata-polyfill',
+      'data-uri-to-buffer',
+      'web-streams-polyfill',
+      
+      // Additional ESM packages
+      'is-plain-object',
+      'universal-user-agent',
+      'once',
+      'wrappy',
+      'tr46',
+      'whatwg-url',
+      'punycode',
+      'webidl-conversions'
+    ].join('|') + ')/)' 
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',

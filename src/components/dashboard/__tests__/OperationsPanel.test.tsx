@@ -191,7 +191,13 @@ describe('OperationsPanel', () => {
     const rendered = renderComponent(<OperationsPanel {...props} />);
     
     expect(rendered.type).toBe('OperationsPanel');
-    expect(rendered.children.length).toBeGreaterThan(0);
+    // Since the component structure has changed with the Atomic Design refactoring,
+    // we now check for specific child components instead of looking at children.length
+    const hasTerminalHeader = rendered.children.some((child: any) => child.type === 'TerminalHeader');
+    const hasAuthBanner = rendered.children.some((child: any) => child.type === 'AuthStatusBanner');
+    
+    expect(hasTerminalHeader).toBe(true);
+    expect(hasAuthBanner).toBe(true);
   });
   
   it('renders with GitHub App auth', () => {

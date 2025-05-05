@@ -108,29 +108,38 @@ describe('Dashboard utilities', () => {
 
   describe('getDefaultDateRange', () => {
     it('returns a date range from a week ago to today', () => {
-      // Directly mock the implementation of the functions
-      jest.spyOn(global, 'Date').mockImplementation(() => {
-        return {
-          toISOString: () => '2023-05-20T00:00:00.000Z',
-          setDate: jest.fn(),
-          getDate: () => 20,
-        } as unknown as Date;
-      });
+      // Use jest.mock directly for cleaner mocking
+      // Save original functions
+      const originalGetTodayDate = getTodayDate;
+      const originalGetLastWeekDate = getLastWeekDate;
       
-      // Mock getLastWeekDate to return a specific value
-      jest.spyOn(require('../dashboard-utils'), 'getLastWeekDate')
-        .mockImplementation(() => '2023-05-13');
+      // Create mock implementations
+      const mockGetTodayDate = jest.fn().mockReturnValue('2023-05-20');
+      const mockGetLastWeekDate = jest.fn().mockReturnValue('2023-05-13');
       
-      // Mock getTodayDate to return a specific value
-      jest.spyOn(require('../dashboard-utils'), 'getTodayDate')
-        .mockImplementation(() => '2023-05-20');
+      // Replace the real functions with mocks
+      (global as any).getTodayDate = mockGetTodayDate;
+      (global as any).getLastWeekDate = mockGetLastWeekDate;
       
-      const dateRange = getDefaultDateRange();
+      // Override the imported functions with our mocks
+      const dashboardUtils = require('../dashboard-utils');
+      dashboardUtils.getTodayDate = mockGetTodayDate;
+      dashboardUtils.getLastWeekDate = mockGetLastWeekDate;
       
+      // Call the function under test
+      const dateRange = dashboardUtils.getDefaultDateRange();
+      
+      // Check result
       expect(dateRange).toEqual({
         since: '2023-05-13',
         until: '2023-05-20'
       });
+      
+      // Restore original functions
+      dashboardUtils.getTodayDate = originalGetTodayDate;
+      dashboardUtils.getLastWeekDate = originalGetLastWeekDate;
+      (global as any).getTodayDate = undefined;
+      (global as any).getLastWeekDate = undefined;
     });
   });
 });

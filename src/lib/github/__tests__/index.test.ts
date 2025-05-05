@@ -5,9 +5,15 @@
  * from the other GitHub modules for backward compatibility.
  */
 
+// Use explicit mocking to avoid ESM import issues
+jest.mock('../auth');
+jest.mock('../repositories');
+jest.mock('../commits');
+
 import * as githubIndex from '../index';
 import * as githubTypes from '../types';
-import * as githubAuth from '../auth';
+// Import mock versions instead of real modules
+import * as githubAuth from '../__mocks__/auth';
 import * as githubRepositories from '../repositories';
 import * as githubCommits from '../commits';
 import * as githubUtils from '../utils';

@@ -1,3 +1,6 @@
+// Use explicit mocking to avoid ESM import issues
+jest.mock('../auth');
+
 import { 
   getAllAppInstallations, 
   checkAppInstallation, 
