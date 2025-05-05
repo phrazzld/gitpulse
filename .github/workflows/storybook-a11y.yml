@@ -38,9 +38,13 @@ jobs:
     - name: Build Storybook
       run: npm run build-storybook
     
-    - name: Run Storybook A11y checks
+    - name: Install accessibility testing dependencies
+      run: npm install axe-playwright --save-dev
+      
+    - name: Start Storybook server and run tests
       run: |
-        npx storybook info
-        npx storybook test --url=file://${{ github.workspace }}/storybook-static
+        npx concurrently -k -s first -n "SB,TEST" \
+          "npx http-server storybook-static --port 6006 --silent" \
+          "npx wait-on tcp:6006 && npx test-storybook --url http://localhost:6006"
       # This command runs accessibility checks on the built Storybook
       # It will fail if any accessibility violations are found
