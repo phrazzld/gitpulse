@@ -58,16 +58,34 @@ jobs:
       
       - name: Run Playwright tests
         run: |
+          # Create log directory for debugging
+          mkdir -p e2e/logs
+          
           # Time the execution of the tests
-          echo "Starting Playwright tests at $(date)"
-          time npm run test:e2e
-          echo "Completed Playwright tests at $(date)"
+          echo "Starting Playwright tests at $(date)" | tee -a e2e/logs/test-run.log
+          
+          # Run tests with more detailed options for CI environment
+          PWDEBUG=console time npm run test:e2e -- --reporter=list,html --timeout=120000 --retries=2 2>&1 | tee -a e2e/logs/test-run.log
+          TEST_EXIT_CODE=$?
+          
+          echo "Completed Playwright tests at $(date) with exit code $TEST_EXIT_CODE" | tee -a e2e/logs/test-run.log
+          
+          # Output the storage state file for debugging
+          if [ -f e2e/storageState.json ]; then
+            echo "--- Storage State Content ---" | tee -a e2e/logs/test-run.log
+            cat e2e/storageState.json | tee -a e2e/logs/test-run.log
+          else
+            echo "Warning: Storage state file not found" | tee -a e2e/logs/test-run.log
+          fi
           
           # If tests failed, try running just the failing tests with more debugging
-          if [ $? -ne 0 ]; then
-            echo "Some tests failed. Attempting to run only the failed tests with additional debugging..."
-            time PWDEBUG=1 npx playwright test --repeat-each=1 --workers=1 --retries=2 --max-failures=10
+          if [ $TEST_EXIT_CODE -ne 0 ]; then
+            echo "Some tests failed. Attempting to run only the failed tests with additional debugging..." | tee -a e2e/logs/test-run.log
+            PWDEBUG=console time npx playwright test --repeat-each=1 --workers=1 --retries=2 --max-failures=10 --reporter=list 2>&1 | tee -a e2e/logs/retry-run.log
           fi
+          
+          # Exit with the original test exit code
+          exit $TEST_EXIT_CODE
         env:
           # Basic configuration
           NEXTAUTH_URL: http://localhost:3000

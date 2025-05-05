@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import SummaryStats from '../SummaryStats';
 import { CommitSummary } from '@/types/dashboard';
 
@@ -26,20 +27,47 @@ describe('SummaryStats', () => {
 
   test('displays commit count correctly', () => {
     render(<SummaryStats summary={mockSummary} />);
+    
+    // Check for the label
     expect(screen.getByText('COMMIT COUNT')).toBeInTheDocument();
-    expect(screen.getByText('42')).toBeInTheDocument(); // The total commits value
+    
+    // Check for the value using a more precise selector
+    const commitCountValue = screen.getByText('42');
+    expect(commitCountValue).toBeInTheDocument();
+    
+    // Verify the structure
+    const commitCountSection = screen.getByText('COMMIT COUNT').closest('div');
+    expect(commitCountSection).toContainElement(commitCountValue);
   });
 
   test('displays repository count correctly', () => {
     render(<SummaryStats summary={mockSummary} />);
+    
+    // Check for the label
     expect(screen.getByText('REPOSITORIES')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument(); // The length of the repositories array
+    
+    // Check for the value using a more precise selector
+    const repoCountValue = screen.getByText('3');
+    expect(repoCountValue).toBeInTheDocument();
+    
+    // Verify the structure
+    const repoCountSection = screen.getByText('REPOSITORIES').closest('div');
+    expect(repoCountSection).toContainElement(repoCountValue);
   });
 
   test('displays active days count correctly', () => {
     render(<SummaryStats summary={mockSummary} />);
+    
+    // Check for the label
     expect(screen.getByText('ACTIVE DAYS')).toBeInTheDocument();
-    expect(screen.getByText('4')).toBeInTheDocument(); // The length of the dates array
+    
+    // Check for the value using a more precise selector
+    const activeDaysValue = screen.getByText('4');
+    expect(activeDaysValue).toBeInTheDocument();
+    
+    // Verify the structure
+    const activeDaysSection = screen.getByText('ACTIVE DAYS').closest('div');
+    expect(activeDaysSection).toContainElement(activeDaysValue);
   });
 
   test('applies additional className when provided', () => {
@@ -61,8 +89,22 @@ describe('SummaryStats', () => {
 
     render(<SummaryStats summary={emptySummary} />);
     
-    // Check for all the zero values
-    const zeroElements = screen.getAllByText('0');
-    expect(zeroElements).toHaveLength(3); // Should find 3 zeros (totalCommits, repositories length, dates length)
+    // Check for specific zero values in each section
+    const commitCountSection = screen.getByText('COMMIT COUNT').closest('div');
+    const repoCountSection = screen.getByText('REPOSITORIES').closest('div');
+    const activeDaysSection = screen.getByText('ACTIVE DAYS').closest('div');
+    
+    expect(commitCountSection).toHaveTextContent('0');
+    expect(repoCountSection).toHaveTextContent('0');
+    expect(activeDaysSection).toHaveTextContent('0');
+  });
+  
+  test('handles null or undefined summary gracefully', () => {
+    // @ts-ignore - intentionally passing null to test error handling
+    expect(() => render(<SummaryStats summary={null} />)).not.toThrow();
+    
+    // Re-render with undefined
+    // @ts-ignore - intentionally passing undefined to test error handling
+    expect(() => render(<SummaryStats summary={undefined} />)).not.toThrow();
   });
 });

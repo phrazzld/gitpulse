@@ -108,38 +108,39 @@ describe('Dashboard utilities', () => {
 
   describe('getDefaultDateRange', () => {
     it('returns a date range from a week ago to today', () => {
-      // Use jest.mock directly for cleaner mocking
-      // Save original functions
-      const originalGetTodayDate = getTodayDate;
-      const originalGetLastWeekDate = getLastWeekDate;
+      // Mock the module using jest.spyOn instead of direct assignment
+      const mockTodayDate = '2023-05-20';
+      const mockLastWeekDate = '2023-05-13';
       
-      // Create mock implementations
-      const mockGetTodayDate = jest.fn().mockReturnValue('2023-05-20');
-      const mockGetLastWeekDate = jest.fn().mockReturnValue('2023-05-13');
-      
-      // Replace the real functions with mocks
-      (global as any).getTodayDate = mockGetTodayDate;
-      (global as any).getLastWeekDate = mockGetLastWeekDate;
-      
-      // Override the imported functions with our mocks
+      // Save the original implementation
       const dashboardUtils = require('../dashboard-utils');
-      dashboardUtils.getTodayDate = mockGetTodayDate;
-      dashboardUtils.getLastWeekDate = mockGetLastWeekDate;
+      const originalGetTodayDateFn = dashboardUtils.getTodayDate;
+      const originalGetLastWeekDateFn = dashboardUtils.getLastWeekDate;
+      
+      // Create spies with mock implementations
+      jest.spyOn(dashboardUtils, 'getTodayDate').mockImplementation(() => mockTodayDate);
+      jest.spyOn(dashboardUtils, 'getLastWeekDate').mockImplementation(() => mockLastWeekDate);
       
       // Call the function under test
       const dateRange = dashboardUtils.getDefaultDateRange();
       
       // Check result
       expect(dateRange).toEqual({
-        since: '2023-05-13',
-        until: '2023-05-20'
+        since: mockLastWeekDate,
+        until: mockTodayDate
       });
       
-      // Restore original functions
-      dashboardUtils.getTodayDate = originalGetTodayDate;
-      dashboardUtils.getLastWeekDate = originalGetLastWeekDate;
-      (global as any).getTodayDate = undefined;
-      (global as any).getLastWeekDate = undefined;
+      // Verify that our mock functions were called
+      expect(dashboardUtils.getTodayDate).toHaveBeenCalled();
+      expect(dashboardUtils.getLastWeekDate).toHaveBeenCalled();
+      
+      // Restore the original implementations
+      dashboardUtils.getTodayDate.mockRestore();
+      dashboardUtils.getLastWeekDate.mockRestore();
+      
+      // Ensure the original functions are in place
+      dashboardUtils.getTodayDate = originalGetTodayDateFn;
+      dashboardUtils.getLastWeekDate = originalGetLastWeekDateFn;
     });
   });
 });

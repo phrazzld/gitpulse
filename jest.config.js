@@ -43,7 +43,21 @@ const customJestConfig = {
       'tr46',
       'whatwg-url',
       'punycode',
-      'webidl-conversions'
+      'webidl-conversions',
+      
+      // Additional dependencies that might be using ESM
+      'before-after-hook',
+      'deprecation',
+      'stream-buffers',
+      'undici',
+      'hpagent',
+      'hpagent',
+      '@sindresorhus/is',
+      'form-data-encoder',
+      'ms',
+      'querystringify',
+      'requires-port',
+      'url-parse'
     ].join('|') + ')/)' 
   ],
   collectCoverageFrom: [
