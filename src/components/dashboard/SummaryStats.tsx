@@ -5,7 +5,7 @@ export interface SummaryStatsProps {
   /**
    * The commit summary data to display statistics for
    */
-  summary: CommitSummary;
+  summary?: CommitSummary | null;
   
   /**
    * Additional CSS class to apply to the container
@@ -20,6 +20,9 @@ const SummaryStats: React.FC<SummaryStatsProps> = ({
   summary,
   className = ''
 }) => {
+  // Handle null or undefined summary gracefully
+  const stats = summary?.stats || { totalCommits: 0, repositories: [], dates: [] };
+  
   return (
     <div className={`${className}`}>
       <h3 className="text-sm uppercase mb-3" style={{ color: 'var(--neon-green)' }}>
@@ -34,7 +37,7 @@ const SummaryStats: React.FC<SummaryStatsProps> = ({
           <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: 'var(--neon-green)' }}></div>
           <p className="text-xs uppercase mb-1" style={{ color: 'var(--neon-green)' }}>COMMIT COUNT</p>
           <p className="text-3xl font-mono" style={{ color: 'var(--foreground)' }}>
-            {summary.stats.totalCommits}
+            {stats.totalCommits}
           </p>
         </div>
         <div className="p-4 rounded-md border relative" style={{ 
@@ -45,7 +48,7 @@ const SummaryStats: React.FC<SummaryStatsProps> = ({
           <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
           <p className="text-xs uppercase mb-1" style={{ color: 'var(--electric-blue)' }}>REPOSITORIES</p>
           <p className="text-3xl font-mono" style={{ color: 'var(--foreground)' }}>
-            {summary.stats.repositories.length}
+            {stats.repositories.length}
           </p>
         </div>
         <div className="p-4 rounded-md border relative" style={{ 
@@ -56,7 +59,7 @@ const SummaryStats: React.FC<SummaryStatsProps> = ({
           <div className="absolute top-0 left-0 w-full h-1" style={{ backgroundColor: 'var(--luminous-yellow)' }}></div>
           <p className="text-xs uppercase mb-1" style={{ color: 'var(--luminous-yellow)' }}>ACTIVE DAYS</p>
           <p className="text-3xl font-mono" style={{ color: 'var(--foreground)' }}>
-            {summary.stats.dates.length}
+            {stats.dates.length}
           </p>
         </div>
       </div>
