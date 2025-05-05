@@ -17,20 +17,8 @@ declare namespace jest {
 }
 type Mock<T> = ReturnType<typeof jest.fn>;
 
-// Mocking renderHook and act functions that would come from @testing-library/react
-const renderHook = (callback: Function) => {
-  const result = { current: callback() };
-  return { result };
-};
-
-const act = async (callback: Function) => {
-  await callback();
-};
-
-const waitFor = async (callback: Function) => {
-  await new Promise(resolve => setTimeout(resolve, 0));
-  callback();
-};
+// Import testing library methods
+import { renderHook, act, waitFor } from '@testing-library/react';
 
 // Import hooks and types
 import { useRepositories } from '../useRepositories';

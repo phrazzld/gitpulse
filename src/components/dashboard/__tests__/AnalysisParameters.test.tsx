@@ -17,42 +17,7 @@ interface MockElement {
   textContent: string;
 }
 
-// Mock testing library rendering
-const render = (component: any) => {
-  return {
-    getByText: (text: string): MockElement => {
-      // Simple mock implementation to check if text would be rendered
-      if (component.props.activityMode && text === getActivityDisplayText(component.props.activityMode)) {
-        return { textContent: text };
-      }
-      
-      if (component.props.dateRange && text === `${component.props.dateRange.since} to ${component.props.dateRange.until}`) {
-        return { textContent: text };
-      }
-      
-      if (component.props.organizations?.length > 0 && text === `${component.props.organizations.length} SELECTED`) {
-        return { textContent: text };
-      }
-      
-      if (text === 'ANALYSIS PARAMETERS' || 
-          text === 'MODE' || 
-          text === 'DATE RANGE' || 
-          text === 'ORGANIZATIONS' ||
-          (component.props.showHelpText !== false && text === 'Configure your analysis parameters above, then click the Analyze Commits button below to generate insights.')) {
-        return { textContent: text };
-      }
-      
-      throw new Error(`Text not found: ${text}`);
-    },
-    queryByText: (text: string): MockElement | null => {
-      try {
-        return render(component).getByText(text);
-      } catch {
-        return null;
-      }
-    }
-  };
-};
+// Tests now use @testing-library/react instead of mock implementation
 
 // Helper function to get activity mode display text
 function getActivityDisplayText(mode: string): string {
@@ -69,6 +34,8 @@ function getActivityDisplayText(mode: string): string {
 }
 
 // Import component to test
+// Use @testing-library/react for testing
+import { render, screen } from '@testing-library/react';
 import AnalysisParameters from '../AnalysisParameters';
 
 describe('AnalysisParameters component', () => {
@@ -82,13 +49,13 @@ describe('AnalysisParameters component', () => {
   };
 
   it('should render the component with required props', () => {
-    const { getByText } = render(<AnalysisParameters {...defaultProps} />);
+    render(<AnalysisParameters {...defaultProps} />);
     
-    expect(getByText('ANALYSIS PARAMETERS')).toBeTruthy();
-    expect(getByText('MODE')).toBeTruthy();
-    expect(getByText('MY ACTIVITY')).toBeTruthy();
-    expect(getByText('DATE RANGE')).toBeTruthy();
-    expect(getByText('2023-01-01 to 2023-01-31')).toBeTruthy();
+    expect(screen.getByText('ANALYSIS PARAMETERS')).toBeInTheDocument();
+    expect(screen.getByText('MODE')).toBeInTheDocument();
+    expect(screen.getByText('MY ACTIVITY')).toBeInTheDocument();
+    expect(screen.getByText('DATE RANGE')).toBeInTheDocument();
+    expect(screen.getByText('2023-01-01 to 2023-01-31')).toBeInTheDocument();
   });
 
   it('should display different activity modes correctly', () => {
@@ -99,9 +66,8 @@ describe('AnalysisParameters component', () => {
     ];
 
     modes.forEach(({ mode, display }) => {
-      const props = { ...defaultProps, activityMode: mode };
-      const { getByText } = render(<AnalysisParameters {...props} />);
-      expect(getByText(display)).toBeTruthy();
+      render(<AnalysisParameters {...defaultProps} activityMode={mode} />);
+      expect(screen.getByText(display)).toBeInTheDocument();
     });
   });
 
@@ -111,23 +77,23 @@ describe('AnalysisParameters component', () => {
       organizations: ['org1', 'org2', 'org3']
     };
     
-    const { getByText } = render(<AnalysisParameters {...props} />);
+    render(<AnalysisParameters {...props} />);
     
-    expect(getByText('ORGANIZATIONS')).toBeTruthy();
-    expect(getByText('3 SELECTED')).toBeTruthy();
+    expect(screen.getByText('ORGANIZATIONS')).toBeInTheDocument();
+    expect(screen.getByText('3 SELECTED')).toBeInTheDocument();
   });
 
   it('should not display organizations section when none are provided', () => {
-    const { queryByText } = render(<AnalysisParameters {...defaultProps} />);
+    render(<AnalysisParameters {...defaultProps} />);
     
-    expect(queryByText('ORGANIZATIONS')).toBeNull();
-    expect(queryByText('0 SELECTED')).toBeNull();
+    expect(screen.queryByText('ORGANIZATIONS')).not.toBeInTheDocument();
+    expect(screen.queryByText('0 SELECTED')).not.toBeInTheDocument();
   });
 
   it('should show help text by default', () => {
-    const { getByText } = render(<AnalysisParameters {...defaultProps} />);
+    render(<AnalysisParameters {...defaultProps} />);
     
-    expect(getByText('Configure your analysis parameters above, then click the Analyze Commits button below to generate insights.')).toBeTruthy();
+    expect(screen.getByText('Configure your analysis parameters above, then click the Analyze Commits button below to generate insights.')).toBeInTheDocument();
   });
 
   it('should hide help text when showHelpText is false', () => {
@@ -136,8 +102,8 @@ describe('AnalysisParameters component', () => {
       showHelpText: false
     };
     
-    const { queryByText } = render(<AnalysisParameters {...props} />);
+    render(<AnalysisParameters {...props} />);
     
-    expect(queryByText('Configure your analysis parameters above, then click the Analyze Commits button below to generate insights.')).toBeNull();
+    expect(screen.queryByText('Configure your analysis parameters above, then click the Analyze Commits button below to generate insights.')).not.toBeInTheDocument();
   });
 });

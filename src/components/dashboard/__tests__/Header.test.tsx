@@ -19,52 +19,25 @@ interface MockElement {
   onClick?: () => void;
 }
 
-// Mock testing library rendering
-const render = (component: any) => {
-  // Mock the disconnect button with onClick handler
-  const disconnectButton: MockElement = { 
-    textContent: 'DISCONNECT',
-    onClick: () => {
-      const props = component.props || {};
-      const signOutCallbackUrl = props.signOutCallbackUrl || '/';
-      signOut({ callbackUrl: signOutCallbackUrl });
-    }
-  };
-
-  return {
-    getByText: (text: string): MockElement => {
-      if (text === 'DISCONNECT' && component.props?.userImage) {
-        return disconnectButton;
-      }
-      return {
-        textContent: text
-      };
-    },
-    getByAltText: (text: string): MockElement => ({
-      textContent: '',
-      alt: text
-    }),
-    queryByText: (text: string): MockElement | null => {
-      if (component.props?.userName && text === `USER: ${component.props.userName.toUpperCase()}`) {
-        return { textContent: text };
-      }
-      if (text === 'COMMAND TERMINAL' && component.props?.showCommandTerminal !== false) {
-        return { textContent: text };
-      }
-      if (text === 'DISCONNECT' && component.props?.userImage) {
-        return disconnectButton;
-      }
-      return null;
-    }
-  };
-};
+// Tests now use @testing-library/react instead of mock implementation
 
 // Import component to test
+// Use @testing-library/react for testing
+import { render, screen, fireEvent } from '@testing-library/react';
 import Header from '../Header';
 
 // Mock next-auth
 jest.mock('next-auth/react', () => ({
   signOut: jest.fn()
+}));
+
+// Mock the next/image component
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props: any) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={props.src} alt={props.alt} width={props.width} height={props.height} className={props.className} />;
+  },
 }));
 
 // Import the mocked signOut function
@@ -76,42 +49,37 @@ describe('Header component', () => {
   });
 
   it('should render the header with app name', () => {
-    const { getByText } = render(<Header />);
-    expect(getByText('PULSE')).toBeTruthy();
+    render(<Header />);
+    expect(screen.getByText('PULSE')).toBeInTheDocument();
   });
 
   it('should render with user information when provided', () => {
     const userName = 'Test User';
     const userImage = 'https://example.com/avatar.png';
     
-    const { getByText, getByAltText } = render(
-      <Header userName={userName} userImage={userImage} />
-    );
+    render(<Header userName={userName} userImage={userImage} />);
     
-    expect(getByText(`USER: ${userName.toUpperCase()}`)).toBeTruthy();
-    expect(getByAltText(userName)).toBeTruthy();
+    expect(screen.getByText(`USER: ${userName.toUpperCase()}`)).toBeInTheDocument();
+    expect(screen.getByAltText(userName)).toBeInTheDocument();
   });
 
   it('should not display user section when userImage is not provided', () => {
     const userName = 'Test User';
     
-    const { queryByText } = render(<Header userName={userName} />);
+    render(<Header userName={userName} />);
     
-    expect(queryByText(`USER: ${userName.toUpperCase()}`)).toBeNull();
-    expect(queryByText('DISCONNECT')).toBeNull();
+    expect(screen.queryByText(`USER: ${userName.toUpperCase()}`)).not.toBeInTheDocument();
+    expect(screen.queryByText('DISCONNECT')).not.toBeInTheDocument();
   });
 
   it('should call signOut with correct callback URL when disconnect button is clicked', () => {
     const userImage = 'https://example.com/avatar.png';
     const customCallbackUrl = '/custom-callback';
     
-    const rendered = render(
-      <Header userImage={userImage} signOutCallbackUrl={customCallbackUrl} />
-    );
+    render(<Header userImage={userImage} signOutCallbackUrl={customCallbackUrl} />);
     
     // Simulate click on the disconnect button
-    const disconnectButton = rendered.getByText('DISCONNECT');
-    disconnectButton.onClick && disconnectButton.onClick();
+    fireEvent.click(screen.getByText('DISCONNECT'));
     
     expect(signOut).toHaveBeenCalledWith({ callbackUrl: customCallbackUrl });
   });
@@ -119,22 +87,21 @@ describe('Header component', () => {
   it('should use default callback URL when not specified', () => {
     const userImage = 'https://example.com/avatar.png';
     
-    const rendered = render(<Header userImage={userImage} />);
+    render(<Header userImage={userImage} />);
     
     // Simulate click on the disconnect button
-    const disconnectButton = rendered.getByText('DISCONNECT');
-    disconnectButton.onClick && disconnectButton.onClick();
+    fireEvent.click(screen.getByText('DISCONNECT'));
     
     expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/' });
   });
 
   it('should show command terminal label by default', () => {
-    const { getByText } = render(<Header />);
-    expect(getByText('COMMAND TERMINAL')).toBeTruthy();
+    render(<Header />);
+    expect(screen.getByText('COMMAND TERMINAL')).toBeInTheDocument();
   });
 
   it('should hide command terminal label when showCommandTerminal is false', () => {
-    const { queryByText } = render(<Header showCommandTerminal={false} />);
-    expect(queryByText('COMMAND TERMINAL')).toBeNull();
+    render(<Header showCommandTerminal={false} />);
+    expect(screen.queryByText('COMMAND TERMINAL')).not.toBeInTheDocument();
   });
 });

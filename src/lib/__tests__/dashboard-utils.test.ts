@@ -108,9 +108,22 @@ describe('Dashboard utilities', () => {
 
   describe('getDefaultDateRange', () => {
     it('returns a date range from a week ago to today', () => {
-      // Mock the functions it depends on
-      jest.spyOn({ getTodayDate }, 'getTodayDate').mockReturnValue('2023-05-20');
-      jest.spyOn({ getLastWeekDate }, 'getLastWeekDate').mockReturnValue('2023-05-13');
+      // Directly mock the implementation of the functions
+      jest.spyOn(global, 'Date').mockImplementation(() => {
+        return {
+          toISOString: () => '2023-05-20T00:00:00.000Z',
+          setDate: jest.fn(),
+          getDate: () => 20,
+        } as unknown as Date;
+      });
+      
+      // Mock getLastWeekDate to return a specific value
+      jest.spyOn(require('../dashboard-utils'), 'getLastWeekDate')
+        .mockImplementation(() => '2023-05-13');
+      
+      // Mock getTodayDate to return a specific value
+      jest.spyOn(require('../dashboard-utils'), 'getTodayDate')
+        .mockImplementation(() => '2023-05-20');
       
       const dateRange = getDefaultDateRange();
       
