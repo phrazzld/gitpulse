@@ -99,12 +99,109 @@ describe('SummaryStats', () => {
     expect(activeDaysSection).toHaveTextContent('0');
   });
   
-  test('handles null or undefined summary gracefully', () => {
-    // @ts-ignore - intentionally passing null to test error handling
-    expect(() => render(<SummaryStats summary={null} />)).not.toThrow();
+  test('handles null summary gracefully', () => {
+    // Render with null summary
+    render(<SummaryStats summary={null} />);
     
-    // Re-render with undefined
-    // @ts-ignore - intentionally passing undefined to test error handling
-    expect(() => render(<SummaryStats summary={undefined} />)).not.toThrow();
+    // Component should still render with default zero values
+    expect(screen.getByText('METRICS OVERVIEW')).toBeInTheDocument();
+    
+    // Check for zero values in each section
+    const commitCountSection = screen.getByText('COMMIT COUNT').closest('div');
+    const repoCountSection = screen.getByText('REPOSITORIES').closest('div');
+    const activeDaysSection = screen.getByText('ACTIVE DAYS').closest('div');
+    
+    expect(commitCountSection).toHaveTextContent('0');
+    expect(repoCountSection).toHaveTextContent('0');
+    expect(activeDaysSection).toHaveTextContent('0');
+  });
+  
+  test('handles undefined summary gracefully', () => {
+    // Render with undefined summary
+    render(<SummaryStats summary={undefined} />);
+    
+    // Component should still render with default zero values
+    expect(screen.getByText('METRICS OVERVIEW')).toBeInTheDocument();
+    
+    // Check for zero values in each section
+    const commitCountSection = screen.getByText('COMMIT COUNT').closest('div');
+    const repoCountSection = screen.getByText('REPOSITORIES').closest('div');
+    const activeDaysSection = screen.getByText('ACTIVE DAYS').closest('div');
+    
+    expect(commitCountSection).toHaveTextContent('0');
+    expect(repoCountSection).toHaveTextContent('0');
+    expect(activeDaysSection).toHaveTextContent('0');
+  });
+  
+  test('handles summary with null stats gracefully', () => {
+    const summaryWithNullStats: CommitSummary = {
+      user: 'testuser',
+      commits: [],
+      // @ts-ignore - Intentionally using null stats for testing
+      stats: null
+    };
+    
+    render(<SummaryStats summary={summaryWithNullStats} />);
+    
+    // Component should still render with default zero values
+    expect(screen.getByText('METRICS OVERVIEW')).toBeInTheDocument();
+    
+    // Check for zero values in each section
+    const commitCountSection = screen.getByText('COMMIT COUNT').closest('div');
+    const repoCountSection = screen.getByText('REPOSITORIES').closest('div');
+    const activeDaysSection = screen.getByText('ACTIVE DAYS').closest('div');
+    
+    expect(commitCountSection).toHaveTextContent('0');
+    expect(repoCountSection).toHaveTextContent('0');
+    expect(activeDaysSection).toHaveTextContent('0');
+  });
+  
+  test('handles summary with undefined stats gracefully', () => {
+    const summaryWithUndefinedStats: CommitSummary = {
+      user: 'testuser',
+      commits: [],
+      // @ts-ignore - Intentionally using undefined stats for testing
+      stats: undefined
+    };
+    
+    render(<SummaryStats summary={summaryWithUndefinedStats} />);
+    
+    // Component should still render with default zero values
+    expect(screen.getByText('METRICS OVERVIEW')).toBeInTheDocument();
+    
+    // Check for zero values in each section
+    const commitCountSection = screen.getByText('COMMIT COUNT').closest('div');
+    const repoCountSection = screen.getByText('REPOSITORIES').closest('div');
+    const activeDaysSection = screen.getByText('ACTIVE DAYS').closest('div');
+    
+    expect(commitCountSection).toHaveTextContent('0');
+    expect(repoCountSection).toHaveTextContent('0');
+    expect(activeDaysSection).toHaveTextContent('0');
+  });
+  
+  test('handles partial stats data gracefully', () => {
+    const summaryWithPartialStats: CommitSummary = {
+      user: 'testuser',
+      commits: [],
+      stats: {
+        totalCommits: 5,
+        repositories: [],
+        dates: []
+      }
+    };
+    
+    render(<SummaryStats summary={summaryWithPartialStats} />);
+    
+    // Component should render with provided data and default values for missing data
+    expect(screen.getByText('METRICS OVERVIEW')).toBeInTheDocument();
+    
+    // Check for mixed values in each section
+    const commitCountSection = screen.getByText('COMMIT COUNT').closest('div');
+    const repoCountSection = screen.getByText('REPOSITORIES').closest('div');
+    const activeDaysSection = screen.getByText('ACTIVE DAYS').closest('div');
+    
+    expect(commitCountSection).toHaveTextContent('5'); // Provided value
+    expect(repoCountSection).toHaveTextContent('0');   // Default value
+    expect(activeDaysSection).toHaveTextContent('0');  // Default value
   });
 });

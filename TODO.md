@@ -311,20 +311,20 @@ export { customRender as render };
    - [ ] TASK-016: Fix SummaryDetails Tests
 
 4. **Infrastructure & Tooling**:
-   - [ ] **TASK-024: Fix TypeScript Issues in Test Utilities**
+   - [x] **TASK-024: Fix TypeScript Issues in Test Utilities**
      - **Priority**: High
      - **Effort**: Large
      - **Dependencies**: None
      - **Success Criteria**: All TypeScript errors are resolved
      - **Description**:
-     - [ ] Address typing issues in `react-test-utils.ts`
-     - [ ] Fix mock data to match expected interfaces
-     - [ ] Address generic type handling in test utilities
-     - [ ] Add proper type guards for unknown types
-     - [ ] Update React component testing utilities to use correct types
-     - [ ] See `TYPESCRIPT_ISSUES.md` for full details
+     - [x] Address typing issues in `react-test-utils.ts`
+     - [x] Fix mock data to match expected interfaces
+     - [x] Address generic type handling in test utilities
+     - [x] Add proper type guards for unknown types
+     - [x] Update React component testing utilities to use correct types
+     - [x] See `TYPESCRIPT_ISSUES.md` for full details
 
-4. **Storybook & Component Migration**:
+5. **Storybook & Component Migration**:
    - [x] TASK-018: Create Custom A11y Test Setup
    - [x] TASK-019: Fix Storybook Test Configuration
    - [x] TASK-020: Fix GitHub Action for Storybook

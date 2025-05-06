@@ -1,19 +1,5 @@
-/**
- * Types for test mocking - since we're not actually running tests right now
- * This helps with TypeScript checks during development
- */
-declare function describe(name: string, fn: () => void): void;
-declare function beforeEach(fn: () => void): void;
-declare function afterEach(fn: () => void): void;
-declare function it(name: string, fn: () => void): void;
-declare function expect(actual: any): any;
-declare namespace jest {
-  function resetModules(): void;
-  function clearAllMocks(): void;
-  function spyOn(object: any, methodName: string): any;
-  function fn(implementation?: (...args: any[]) => any): any;
-}
-
+import { jest } from '@jest/globals';
+import { mockDate, mockConsole } from '../tests';
 import {
   getTodayDate,
   getLastWeekDate,
@@ -23,20 +9,23 @@ import {
   getDefaultDateRange
 } from '../dashboard-utils';
 
-// Mock environment variables
+// Store original environment variables and Date constructor
 const originalEnv = process.env;
 
 describe('Dashboard utilities', () => {
+  let restoreConsole: () => void;
+
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...originalEnv };
     // Mock console.error to prevent test output pollution
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    restoreConsole = mockConsole(['error']);
   });
 
   afterEach(() => {
     process.env = originalEnv;
     jest.clearAllMocks();
+    restoreConsole();
   });
 
   describe('formatDateToISOString', () => {
@@ -48,30 +37,74 @@ describe('Dashboard utilities', () => {
 
   describe('getTodayDate', () => {
     it('returns today\'s date in ISO format', () => {
-      // Mock Date.now to return a fixed date
-      const mockDate = new Date('2023-05-20T12:00:00Z');
-      jest.spyOn(global, 'Date').mockImplementation(() => mockDate as unknown as Date);
+      // Mock Date using our utility
+      const { restore } = mockDate('2023-05-20T12:00:00Z');
       
-      expect(getTodayDate()).toBe('2023-05-20');
+      try {
+        expect(getTodayDate()).toBe('2023-05-20');
+      } finally {
+        // Always restore the Date constructor
+        restore();
+      }
     });
   });
 
   describe('getLastWeekDate', () => {
     it('returns the date from 7 days ago in ISO format', () => {
-      // Mock a fixed date
-      const mockToday = new Date('2023-05-20T12:00:00Z');
-      const mockLastWeek = new Date('2023-05-13T12:00:00Z');
+      // Create a fixed test date
+      const testDate = new Date('2023-05-20T12:00:00Z');
+      const expectedLastWeekDate = '2023-05-13';
       
-      // Mock the Date constructor and the setDate method
+      // Save the original Date constructor
       const originalDate = global.Date;
-      global.Date = jest.fn(() => mockToday) as unknown as typeof Date;
-      (mockToday as any).setDate = jest.fn(() => {});
-      (mockToday as any).toISOString = jest.fn(() => '2023-05-13T12:00:00Z');
+      const originalNow = Date.now;
       
-      expect(getLastWeekDate()).toBe('2023-05-13');
-      
-      // Restore the original Date
-      global.Date = originalDate;
+      try {
+        // Mock Date.now to return our fixed date timestamp
+        Date.now = jest.fn(() => testDate.getTime());
+        
+        // Mock Date constructor
+        global.Date = class extends originalDate {
+          constructor(...args: any[]) {
+            if (args.length === 0) {
+              // When called with no args, return our fixed date
+              super(testDate);
+            } else {
+              // Otherwise call the original constructor with explicit args
+              if (args.length === 1) {
+                super(args[0]);
+              } else if (args.length === 2) {
+                super(args[0], args[1]);
+              } else if (args.length === 3) {
+                super(args[0], args[1], args[2]);
+              } else if (args.length === 4) {
+                super(args[0], args[1], args[2], args[3]);
+              } else if (args.length === 5) {
+                super(args[0], args[1], args[2], args[3], args[4]);
+              } else if (args.length === 6) {
+                super(args[0], args[1], args[2], args[3], args[4], args[5]);
+              } else if (args.length === 7) {
+                super(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+              } else {
+                super(args[0]);
+              }
+            }
+          }
+        } as typeof Date;
+        
+        // Create a custom implementation for getLastWeekDate to validate
+        // We create a date object exactly 7 days before our test date
+        const lastWeekDate = new Date(testDate);
+        lastWeekDate.setDate(lastWeekDate.getDate() - 7);
+        const lastWeekString = formatDateToISOString(lastWeekDate);
+        
+        expect(getLastWeekDate()).toBe(expectedLastWeekDate);
+        expect(lastWeekString).toBe(expectedLastWeekDate);
+      } finally {
+        // Always restore Date constructor and methods
+        global.Date = originalDate;
+        Date.now = originalNow;
+      }
     });
   });
 
@@ -108,31 +141,44 @@ describe('Dashboard utilities', () => {
 
   describe('getDefaultDateRange', () => {
     it('returns a date range from a week ago to today', () => {
-      // Create simple mock implementation
-      const mockTodayDate = '2023-05-20';
-      const mockLastWeekDate = '2023-05-13';
+      // Create a proper spy on the actual module functions
+      const dashboardUtils = require('../dashboard-utils');
       
-      // Use manual mock with direct assignment
-      const originalModule = require('../dashboard-utils');
-      const originalGetTodayDate = originalModule.getTodayDate;
-      const originalGetLastWeekDate = originalModule.getLastWeekDate;
+      // Store original functions before spying
+      const originalGetTodayDate = dashboardUtils.getTodayDate;
+      const originalGetLastWeekDate = dashboardUtils.getLastWeekDate;
       
-      // Override the functions - using non-TypeScript approach to bypass TS errors
-      originalModule.getTodayDate = jest.fn().mockReturnValue(mockTodayDate);
-      originalModule.getLastWeekDate = jest.fn().mockReturnValue(mockLastWeekDate);
-      
-      // Call the function under test - using the same module instance
-      const dateRange = originalModule.getDefaultDateRange();
-      
-      // Verify the result
-      expect(dateRange).toEqual({
-        since: mockLastWeekDate,
-        until: mockTodayDate
-      });
-      
-      // Clean up - restore original functions
-      originalModule.getTodayDate = originalGetTodayDate;
-      originalModule.getLastWeekDate = originalGetLastWeekDate;
+      try {
+        // Create spies with mock implementations
+        jest.spyOn(dashboardUtils, 'getTodayDate').mockReturnValue('2023-05-20');
+        jest.spyOn(dashboardUtils, 'getLastWeekDate').mockReturnValue('2023-05-13');
+        
+        // Call the function under test
+        const dateRange = dashboardUtils.getDefaultDateRange();
+        
+        // Verify the result
+        expect(dateRange).toEqual({
+          since: '2023-05-13',
+          until: '2023-05-20'
+        });
+        
+        // Verify the spies were called
+        expect(dashboardUtils.getTodayDate).toHaveBeenCalledTimes(1);
+        expect(dashboardUtils.getLastWeekDate).toHaveBeenCalledTimes(1);
+      } finally {
+        // Restore original functions (important to avoid affecting other tests)
+        dashboardUtils.getTodayDate = originalGetTodayDate;
+        dashboardUtils.getLastWeekDate = originalGetLastWeekDate;
+        
+        // Alternative approach: use mockRestore if you're using jest.spyOn properly
+        if (jest.isMockFunction(dashboardUtils.getTodayDate)) {
+          (dashboardUtils.getTodayDate as jest.Mock).mockRestore();
+        }
+        
+        if (jest.isMockFunction(dashboardUtils.getLastWeekDate)) {
+          (dashboardUtils.getLastWeekDate as jest.Mock).mockRestore();
+        }
+      }
     });
   });
 });
