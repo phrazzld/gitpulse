@@ -171,15 +171,15 @@ export { customRender as render };
     - ✅ Add proper null/undefined handling
     - ✅ Test all component branches
 
-- [ ] **TASK-013: Fix OperationsPanel Tests**
+- [x] **TASK-013: Fix OperationsPanel Tests**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: TASK-003
   - **Success Criteria**: All OperationsPanel tests pass
   - **Description**:
-  - [ ] Update `src/components/dashboard/__tests__/OperationsPanel.test.tsx`
-  - [ ] Adapt tests to the new Atomic Design component structure
-  - [ ] Test correct rendering of TerminalHeader and AuthStatusBanner
+  - [x] Update `src/components/dashboard/__tests__/OperationsPanel.test.tsx`
+  - [x] Adapt tests to the new Atomic Design component structure
+  - [x] Test correct rendering of TerminalHeader and AuthStatusBanner
 
 - [x] **TASK-014: Fix RepositorySection Tests**
   - **Priority**: Medium
