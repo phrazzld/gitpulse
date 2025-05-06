@@ -49,6 +49,7 @@
     "@storybook/test-runner": "^0.22.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/react": "^16.3.0",
+    "@testing-library/react-hooks": "^8.0.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^20",
     "@types/react": "^19",

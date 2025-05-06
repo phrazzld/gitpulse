@@ -2,39 +2,39 @@
  * @jest-environment jsdom
  */
 
-import { renderHook } from '@testing-library/react';
 import { useCommits } from '../useCommits';
-import { useSession } from 'next-auth/react';
+import { ActivityMode } from '@/types/dashboard';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { createActivityFetcher } from '@/lib/activity';
-
-// Add missing waitFor function
-const waitFor = async (callback: () => boolean | void, options = { timeout: 1000 }): Promise<void> => {
-  const start = Date.now();
-  while (Date.now() - start < options.timeout) {
-    try {
-      const result = callback();
-      if (result !== false) {
-        return;
-      }
-    } catch (e) {
-      // ignore errors, they mean we need to try again
-    }
-    await new Promise(r => setTimeout(r, 50));
-  }
-  throw new Error('Timed out in waitFor');
-};
+import { logger } from '@/lib/logger';
 
 // Mock dependencies
-jest.mock('next-auth/react', () => ({
-  useSession: jest.fn()
-}));
-
+jest.mock('next-auth/react');
 jest.mock('@/lib/activity', () => ({
-  createActivityFetcher: jest.fn()
+  createActivityFetcher: jest.fn().mockImplementation(() => jest.fn())
+}));
+jest.mock('@/lib/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+  }
 }));
 
 // Mock fetch
-global.fetch = jest.fn() as jest.Mock;
+global.fetch = jest.fn().mockImplementation(() => 
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({
+      commits: [{ id: 1, sha: 'abc123' }],
+      stats: {
+        totalCommits: 1,
+        repositories: ['repo1'],
+        dates: ['2022-01-01']
+      }
+    })
+  })
+);
 
 describe('useCommits', () => {
   // Default props for testing
@@ -43,73 +43,90 @@ describe('useCommits', () => {
       since: '2022-01-01',
       until: '2022-12-31'
     },
-    activityMode: 'my-activity' as const,
+    activityMode: 'my-activity' as ActivityMode,
     organizations: [] as readonly string[],
     repositories: [] as readonly string[],
-    contributors: [] as readonly string[],
+    contributors: ['me'] as readonly string[],
     installationIds: [] as readonly number[]
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Default session mock
-    (useSession as jest.Mock).mockReturnValue({
+    // Set up an authenticated session by default
+    // Using jest.spyOn directly instead of the utility to avoid type conflicts
+    jest.spyOn(require('next-auth/react'), 'useSession').mockReturnValue({
       data: {
         accessToken: 'fake-token',
         user: { name: 'Test User', email: 'test@example.com' }
       },
-      status: 'authenticated'
+      status: 'authenticated',
+      update: jest.fn()
     });
+  });
 
-    // Default fetch mock
-    (global.fetch as jest.Mock).mockResolvedValue({
+  it('should fetch commits successfully', async () => {
+    // Setup fetch to return successful response
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({
+      json: () => Promise.resolve({
         commits: [{ id: 1, sha: 'abc123' }],
         stats: {
           totalCommits: 1,
           repositories: ['repo1'],
           dates: ['2022-01-01']
-        }
+        },
+        user: 'testuser'
       })
     });
-  });
-
-  it('should fetch commits successfully', async () => {
+    
     const { result } = renderHook(() => useCommits(defaultProps));
     
+    // Initial state should be empty/loading false
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
     expect(result.current.commits).toEqual([]);
+    expect(result.current.summary).toBeNull();
     
-    // Call fetchCommits
-    result.current.fetchCommits();
-    
-    // Check loading state
-    expect(result.current.loading).toBe(true);
-    
-    // Wait for fetch to complete
-    await waitFor(() => {
-      return !result.current.loading;
+    // Call fetchCommits wrapped in act
+    await act(async () => {
+      await result.current.fetchCommits();
     });
     
     // Verify data was updated
     expect(result.current.error).toBeNull();
     expect(result.current.commits).toEqual([{ id: 1, sha: 'abc123' }]);
-    expect(result.current.summary).not.toBeNull();
+    expect(result.current.summary).toEqual({
+      commits: [{ id: 1, sha: 'abc123' }],
+      stats: {
+        totalCommits: 1,
+        repositories: ['repo1'],
+        dates: ['2022-01-01']
+      },
+      user: 'testuser'
+    });
     
     // Verify fetch was called with correct parameters
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/summary?since=2022-01-01&until=2022-12-31&groupBy=chronological')
+      expect.stringContaining('/api/summary?since=2022-01-01&until=2022-12-31&contributors=me&groupBy=chronological')
+    );
+    
+    // Verify logger.info was called
+    expect(logger.info).toHaveBeenCalledWith(
+      'hooks:useCommits',
+      'Successfully fetched commits',
+      expect.objectContaining({
+        count: 1,
+        mode: 'my-activity'
+      })
     );
   });
 
   it('should handle API errors correctly', async () => {
     // Mock API error
-    (global.fetch as jest.Mock).mockResolvedValue({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
-      json: async () => ({
+      json: () => Promise.resolve({
         error: 'API Error',
         code: 'GITHUB_COMMIT_ERROR'
       })
@@ -118,25 +135,32 @@ describe('useCommits', () => {
     const { result } = renderHook(() => useCommits(defaultProps));
     
     // Call fetchCommits
-    result.current.fetchCommits();
-    
-    // Wait for fetch to complete
-    await waitFor(() => {
-      return !result.current.loading;
+    await act(async () => {
+      await result.current.fetchCommits();
     });
     
     // Verify error state
     expect(result.current.error).toBe('API Error');
     expect(result.current.commits).toEqual([]);
     expect(result.current.summary).toBeNull();
+    
+    // Verify logger.error was called
+    expect(logger.error).toHaveBeenCalledWith(
+      'hooks:useCommits',
+      'Error fetching commits',
+      expect.objectContaining({
+        error: 'API Error',
+        mode: 'my-activity'
+      })
+    );
   });
 
   it('should handle authentication errors', async () => {
     // Mock authentication error
-    (global.fetch as jest.Mock).mockResolvedValue({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 401,
-      json: async () => ({
+      json: () => Promise.resolve({
         error: 'Unauthorized',
         code: 'GITHUB_AUTH_ERROR'
       })
@@ -145,22 +169,29 @@ describe('useCommits', () => {
     const { result } = renderHook(() => useCommits(defaultProps));
     
     // Call fetchCommits
-    result.current.fetchCommits();
-    
-    // Wait for fetch to complete
-    await waitFor(() => {
-      return !result.current.loading;
+    await act(async () => {
+      await result.current.fetchCommits();
     });
     
     // Verify error state includes authentication message
     expect(result.current.error).toContain('GitHub authentication issue detected');
+    expect(result.current.commits).toEqual([]);
+    
+    // Verify logger.error was called
+    expect(logger.error).toHaveBeenCalledWith(
+      'hooks:useCommits',
+      'Error fetching commits',
+      expect.objectContaining({
+        error: expect.stringContaining('GitHub authentication issue detected')
+      })
+    );
   });
 
   it('should handle GitHub App installation errors', async () => {
     // Mock installation error
-    (global.fetch as jest.Mock).mockResolvedValue({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
-      json: async () => ({
+      json: () => Promise.resolve({
         needsInstallation: true
       })
     });
@@ -168,41 +199,53 @@ describe('useCommits', () => {
     const { result } = renderHook(() => useCommits(defaultProps));
     
     // Call fetchCommits
-    result.current.fetchCommits();
-    
-    // Wait for fetch to complete
-    await waitFor(() => {
-      return !result.current.loading;
+    await act(async () => {
+      await result.current.fetchCommits();
     });
     
     // Verify error state includes installation message
     expect(result.current.error).toContain('GitHub App installation required');
   });
 
-  it('should use correct API endpoint based on activity mode', async () => {
-    // Test with my-work-activity mode
-    const workProps = {
+  it('should use correct API endpoints for different activity modes', async () => {
+    // Test my-work-activity mode
+    (global.fetch as jest.Mock).mockClear();
+    (createActivityFetcher as jest.Mock).mockClear();
+    
+    const workActivityProps = {
       ...defaultProps,
-      activityMode: 'my-work-activity' as const
+      activityMode: 'my-work-activity' as ActivityMode
     };
     
-    // Create mock for createActivityFetcher
-    (createActivityFetcher as jest.Mock).mockReturnValue(() => Promise.resolve({
-      data: [],
-      nextCursor: null,
-      hasMore: false
-    }));
+    const { result: workResult } = renderHook(() => useCommits(workActivityProps));
     
-    const { result } = renderHook((props) => useCommits(props), {
-      initialProps: workProps
+    // Call getActivityFetcher indirectly by calling fetchCommits
+    await act(async () => {
+      await workResult.current.fetchCommits();
     });
     
-    // Call fetchCommits
-    result.current.fetchCommits();
-    
-    // Verify fetch was called with org activity endpoint
+    // Let's check the API URL used for the fetch instead
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/api/summary?')
+      expect.stringContaining('/api/summary')
+    );
+    
+    // Test team-activity mode
+    (global.fetch as jest.Mock).mockClear();
+    
+    const teamActivityProps = {
+      ...defaultProps,
+      activityMode: 'team-activity' as ActivityMode
+    };
+    
+    const { result: teamResult } = renderHook(() => useCommits(teamActivityProps));
+    
+    await act(async () => {
+      await teamResult.current.fetchCommits();
+    });
+    
+    // Verify fetch was called with the summary endpoint
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/summary')
     );
   });
 
@@ -219,26 +262,91 @@ describe('useCommits', () => {
     const { result } = renderHook(() => useCommits(filteredProps));
     
     // Call fetchCommits
-    result.current.fetchCommits();
+    await act(async () => {
+      await result.current.fetchCommits();
+    });
     
     // Verify fetch was called with all parameters
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/since=2022-01-01/)
+    const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0];
+    expect(fetchCall).toMatch(/since=2022-01-01/);
+    expect(fetchCall).toMatch(/until=2022-12-31/);
+    expect(fetchCall).toMatch(/organizations=org1%2Corg2/);
+    expect(fetchCall).toMatch(/repositories=repo1%2Crepo2/);
+    expect(fetchCall).toMatch(/contributors=user1%2Cuser2/);
+    expect(fetchCall).toMatch(/installation_ids=123%2C456/);
+  });
+
+  it('should handle missing authentication', async () => {
+    // Mock missing authentication
+    jest.spyOn(require('next-auth/react'), 'useSession').mockReturnValue({
+      data: null,
+      status: 'unauthenticated',
+      update: jest.fn()
+    });
+    
+    const { result } = renderHook(() => useCommits(defaultProps));
+    
+    // Call fetchCommits
+    await act(async () => {
+      await result.current.fetchCommits();
+    });
+    
+    // Should set error without calling fetch
+    expect(result.current.error).toBe('Authentication required. Please sign in again.');
+    expect(logger.warn).toHaveBeenCalledWith(
+      'hooks:useCommits',
+      'No authentication available for fetching commits'
     );
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/until=2022-12-31/)
-    );
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/organizations=org1%2Corg2/)
-    );
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/repositories=repo1%2Crepo2/)
-    );
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/contributors=user1%2Cuser2/)
-    );
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/installation_ids=123%2C456/)
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('should handle installation IDs even without session', async () => {
+    // Mock missing session but provide installation IDs
+    jest.spyOn(require('next-auth/react'), 'useSession').mockReturnValue({
+      data: null,
+      status: 'unauthenticated',
+      update: jest.fn()
+    });
+    
+    const propsWithInstallationIds = {
+      ...defaultProps,
+      installationIds: [123, 456] as readonly number[]
+    };
+    
+    const { result } = renderHook(() => useCommits(propsWithInstallationIds));
+    
+    // Call fetchCommits
+    await act(async () => {
+      await result.current.fetchCommits();
+    });
+    
+    // Should proceed with fetch since installationIds are provided
+    expect(global.fetch).toHaveBeenCalled();
+    
+    // Verify state after fetch completes
+    expect(result.current.error).toBeNull();
+    expect(result.current.commits).toHaveLength(1);
+  });
+
+  it('should handle fetch exception errors', async () => {
+    // Mock fetch throwing a network error
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+    
+    const { result } = renderHook(() => useCommits(defaultProps));
+    
+    // Call fetchCommits
+    await act(async () => {
+      await result.current.fetchCommits();
+    });
+    
+    // Verify error state
+    expect(result.current.error).toBe('Network error');
+    expect(logger.error).toHaveBeenCalledWith(
+      'hooks:useCommits',
+      'Error fetching commits',
+      expect.objectContaining({
+        error: 'Network error'
+      })
     );
   });
 });

@@ -53,41 +53,30 @@ jobs:
         ls -la .storybook/test-runner-setup.js
         ls -la .storybook/utils/custom-a11y-test-utils.js
         
+    - name: Verify required accessibility test files
+      run: |
+        echo "Checking for required test files..."
+        ls -la .storybook/test-runner-setup.js
+        ls -la .storybook/utils/custom-a11y-test-utils.js
+        ls -la .storybook/utils/custom-axe-reporter.js
+        
     - name: Create Storybook test config
       run: |
-        # Create custom config file for test-storybook to avoid using setup-file option
-        mkdir -p .storybook/.temp
-        cat > .storybook/.temp/storybook-test.config.js << 'EOF'
-        // Import our custom implementation
-        const { axePlaywrightUtils } = require('axe-playwright');
-        const { customTestResultDependsOnViolations } = require('../utils/custom-a11y-test-utils');
-        
-        // Override the testResultDependsOnViolations function on startup
-        if (axePlaywrightUtils) {
-          axePlaywrightUtils.testResultDependsOnViolations = customTestResultDependsOnViolations;
-          console.log('Successfully overrode the axe-playwright utils testResultDependsOnViolations function');
-        } else {
-          console.warn('Could not find axePlaywrightUtils, a11y tests may fail on violations');
-        }
-        
-        // Set environment variable to skip failures
-        process.env.SKIP_A11Y_FAILURES = "true";
-        EOF
-        
-        # Create a hook to register the config
-        cat > .storybook/.temp/jest-setup.js << 'EOF'
-        // Load our custom configuration
-        require('./.temp/storybook-test.config.js');
-        EOF
-        
         # Create test-storybook.config.js at the root to configure test-storybook
+        # This file points to our custom setup file that handles a11y testing
         cat > test-storybook.config.js << 'EOF'
         module.exports = {
-          setupFile: './.storybook/.temp/jest-setup.js',
+          setupFile: './.storybook/test-runner-setup.js',
           browserBuilder: async (browserType) => {
-            const browser = await browserType.launch();
+            const browser = await browserType.launch({
+              // Set browser options for CI environment
+              headless: true,
+              args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+            });
             return browser;
           },
+          // Set a longer timeout for a11y testing
+          testTimeout: 30000,
         };
         EOF
         

@@ -148,15 +148,15 @@ export { customRender as render };
   - [x] Use renderHook properly to test the hook
   - [x] Mock API responses and state changes
 
-- [ ] **TASK-011: Fix useCommits Hook Testing**
+- [x] **TASK-011: Fix useCommits Hook Testing**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: TASK-009
   - **Success Criteria**: useCommits tests pass
   - **Description**:
-  - [ ] Update `src/hooks/dashboard/__tests__/useCommits.test.ts`
-  - [ ] Use renderHook properly to test the hook
-  - [ ] Mock API responses and state changes
+  - [x] Update `src/hooks/dashboard/__tests__/useCommits.test.ts`
+  - [x] Use renderHook properly to test the hook
+  - [x] Mock API responses and state changes
 
 ## Component Tests Refactoring
 
@@ -303,9 +303,9 @@ export { customRender as render };
 
 3. **Component & Hook Testing**:
    - [x] TASK-010: Fix useInstallations Hook Testing
-   - [ ] TASK-011: Fix useCommits Hook Testing
+   - [x] TASK-011: Fix useCommits Hook Testing
    - [x] TASK-012: Fix SummaryStats Tests
-   - [ ] TASK-013: Fix OperationsPanel Tests
+   - [x] TASK-013: Fix OperationsPanel Tests
    - [x] TASK-014: Fix RepositorySection Tests
    - [ ] TASK-015: Fix SummaryView Tests
    - [ ] TASK-016: Fix SummaryDetails Tests
