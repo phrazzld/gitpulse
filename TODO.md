@@ -264,25 +264,25 @@ export { customRender as render };
   - [x] Create a spreadsheet mapping components to Atomic Design categories
   - [x] Identify components that need to be moved
 
-- [~] **TASK-022: Move Remaining Components to Proper Folders**
+- [x] **TASK-022: Move Remaining Components to Proper Folders**
   - **Priority**: High
   - **Effort**: Large
   - **Dependencies**: TASK-021
   - **Success Criteria**: All components properly organized
   - **Description**:
-  - [ ] Move remaining components to atoms/molecules/organisms/templates
-  - [ ] Update imports throughout the codebase
-  - [ ] Update tests to match new locations
+  - [x] Move remaining components to atoms/molecules/organisms/templates
+  - [x] Update imports throughout the codebase
+  - [x] Update tests to match new locations
 
-- [ ] **TASK-023: Create Documentation for Atomic Design Structure**
+- [x] **TASK-023: Create Documentation for Atomic Design Structure**
   - **Priority**: Low
   - **Effort**: Small
   - **Dependencies**: TASK-022
   - **Success Criteria**: Clear documentation for the Atomic Design implementation
   - **Description**:
-  - [ ] Create `docs/ATOMIC_DESIGN.md` explaining the implementation
-  - [ ] Document guidelines for categorizing components
-  - [ ] Include examples and patterns
+  - [x] Create `docs/ATOMIC_DESIGN.md` explaining the implementation
+  - [x] Document guidelines for categorizing components
+  - [x] Include examples and patterns
 
 ## Implementation Order
 
