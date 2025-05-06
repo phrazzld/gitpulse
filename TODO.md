@@ -201,14 +201,14 @@ export { customRender as render };
   - [x] Update `src/components/dashboard/__tests__/SummaryView.test.tsx`
   - [x] Adapt tests to the new Atomic Design component structure
 
-- [ ] **TASK-016: Fix SummaryDetails Tests**
+- [x] **TASK-016: Fix SummaryDetails Tests**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: TASK-003
   - **Success Criteria**: All SummaryDetails tests pass
   - **Description**:
-  - [ ] Update `src/components/dashboard/__tests__/SummaryDetails.test.tsx`
-  - [ ] Fix string content assertions to match new component structure
+  - [x] Update `src/components/dashboard/__tests__/SummaryDetails.test.tsx`
+  - [x] Fix string content assertions to match new component structure
 
 - [ ] **TASK-017: Fix API Tests**
   - **Priority**: High
@@ -308,7 +308,7 @@ export { customRender as render };
    - [x] TASK-013: Fix OperationsPanel Tests
    - [x] TASK-014: Fix RepositorySection Tests
    - [x] TASK-015: Fix SummaryView Tests
-   - [ ] TASK-016: Fix SummaryDetails Tests
+   - [x] TASK-016: Fix SummaryDetails Tests
 
 4. **Infrastructure & Tooling**:
    - [x] **TASK-024: Fix TypeScript Issues in Test Utilities**
