@@ -13,13 +13,13 @@ import { useFilters } from '@/hooks/dashboard/useFilters';
 import { useSummary } from '@/hooks/dashboard/useSummary';
 
 // Components
-import Header from '@/components/dashboard/Header';
-import DashboardLoadingState from '@/components/DashboardLoadingState';
+import Header from '@/components/organisms/Header';
+import DashboardLoadingState from '@/components/organisms/DashboardLoadingState';
 import OperationsPanel from '@/components/organisms/OperationsPanel';
 import RepositorySection from '@/components/dashboard/RepositorySection';
 import DateRangePicker from '@/components/molecules/DateRangePicker';
-import AnalysisParameters from '@/components/dashboard/AnalysisParameters';
-import SummaryView from '@/components/dashboard/SummaryView';
+import AnalysisParameters from '@/components/organisms/AnalysisParameters';
+import SummaryView from '@/components/organisms/SummaryView';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();

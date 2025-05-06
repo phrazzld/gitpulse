@@ -1,6 +1,6 @@
 import React from 'react';
-import ModeSelector, { ActivityMode } from '@/components/ui/ModeSelector';
-import OrganizationPicker from '@/components/OrganizationPicker';
+import ModeSelector, { ActivityMode } from '@/components/atoms/ModeSelector';
+import OrganizationPicker from '@/components/organisms/OrganizationPicker';
 import { Installation } from '@/types/dashboard';
 
 export interface AnalysisFiltersPanelProps {

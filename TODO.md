@@ -264,7 +264,7 @@ export { customRender as render };
   - [x] Create a spreadsheet mapping components to Atomic Design categories
   - [x] Identify components that need to be moved
 
-- [ ] **TASK-022: Move Remaining Components to Proper Folders**
+- [~] **TASK-022: Move Remaining Components to Proper Folders**
   - **Priority**: High
   - **Effort**: Large
   - **Dependencies**: TASK-021

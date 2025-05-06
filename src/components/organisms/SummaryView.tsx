@@ -1,7 +1,7 @@
 import React from 'react';
 import ActivityFeed from '@/components/organisms/ActivityFeed';
-import SummaryStats from '@/components/dashboard/SummaryStats';
-import SummaryDetails from '@/components/dashboard/SummaryDetails';
+import SummaryStats from '@/components/organisms/SummaryStats';
+import SummaryDetails from '@/components/organisms/SummaryDetails';
 import { createActivityFetcher } from '@/lib/activity';
 import { ActivityMode, CommitSummary, DateRange, FilterState } from '@/types/dashboard';
 

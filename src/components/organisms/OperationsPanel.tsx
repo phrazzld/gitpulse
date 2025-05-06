@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityMode } from '@/components/ui/ModeSelector';
+import { ActivityMode } from '@/components/atoms/ModeSelector';
 import { FilterState, Installation } from '@/types/dashboard';
 
 // Import components
