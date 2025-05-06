@@ -11,6 +11,86 @@ import { Commit, Repository, AppInstallation } from '../types';
 
 export const MODULE_NAME = 'github';
 
+// Mock repositories
+export const mockRepositories: Repository[] = [
+  {
+    id: 1,
+    full_name: 'org1/repo1',
+    name: 'repo1',
+    owner: { login: 'org1' },
+    private: false,
+    html_url: 'https://github.com/org1/repo1',
+    description: 'Test repository 1'
+  },
+  {
+    id: 2,
+    full_name: 'org1/repo2',
+    name: 'repo2',
+    owner: { login: 'org1' },
+    private: true,
+    html_url: 'https://github.com/org1/repo2',
+    description: 'Test repository 2'
+  }
+];
+
+// Mock commits
+export const mockCommits: Commit[] = [
+  {
+    sha: 'abc123',
+    commit: {
+      author: {
+        name: 'Test User',
+        email: 'test@example.com',
+        date: '2023-01-01T12:00:00Z'
+      },
+      message: 'Test commit 1'
+    },
+    author: {
+      login: 'testuser',
+      avatar_url: 'https://avatars.githubusercontent.com/u/1234'
+    },
+    html_url: 'https://github.com/org1/repo1/commit/abc123',
+    repository: { full_name: 'org1/repo1' }
+  },
+  {
+    sha: 'def456',
+    commit: {
+      author: {
+        name: 'Another User',
+        email: 'another@example.com',
+        date: '2023-01-02T12:00:00Z'
+      },
+      message: 'Test commit 2'
+    },
+    author: {
+      login: 'anotheruser',
+      avatar_url: 'https://avatars.githubusercontent.com/u/5678'
+    },
+    html_url: 'https://github.com/org1/repo2/commit/def456',
+    repository: { full_name: 'org1/repo2' }
+  }
+];
+
+// Mock installations
+export const mockInstallations: AppInstallation[] = [
+  {
+    id: 101,
+    account: { login: 'org1' },
+    appSlug: 'test-app',
+    appId: 12345,
+    repositorySelection: 'all',
+    targetType: 'Organization'
+  },
+  {
+    id: 102,
+    account: { login: 'org2' },
+    appSlug: 'test-app',
+    appId: 12345,
+    repositorySelection: 'all',
+    targetType: 'Organization'
+  }
+];
+
 // Mock function for fetchCommitsForRepositories
 export const fetchCommitsForRepositories = jest.fn(
   async (
@@ -21,7 +101,7 @@ export const fetchCommitsForRepositories = jest.fn(
     until?: string,
     author?: string
   ): Promise<Commit[]> => {
-    return [];
+    return mockCommits;
   }
 );
 
@@ -31,7 +111,7 @@ export const fetchUserRepositories = jest.fn(
     accessToken: string, 
     options?: { per_page?: number; page?: number }
   ): Promise<Repository[]> => {
-    return [];
+    return mockRepositories;
   }
 );
 
@@ -42,7 +122,7 @@ export const fetchInstallationRepositories = jest.fn(
     installationId: number, 
     options?: { per_page?: number; page?: number }
   ): Promise<Repository[]> => {
-    return [];
+    return mockRepositories;
   }
 );
 
@@ -51,7 +131,17 @@ export const getAllAppInstallations = jest.fn(
   async (
     accessToken: string
   ): Promise<AppInstallation[]> => {
-    return [];
+    return mockInstallations;
+  }
+);
+
+// Export fetchAllRepositories as well
+export const fetchAllRepositories = jest.fn(
+  async (
+    accessToken?: string,
+    installationId?: number
+  ): Promise<Repository[]> => {
+    return mockRepositories;
   }
 );
 

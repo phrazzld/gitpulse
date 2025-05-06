@@ -1,12 +1,10 @@
 /**
  * Tests for summary API handlers
+ * @jest-environment node
  */
 
-// Add explicit mocks to avoid ESM import issues
-jest.mock('@/lib/github', () => ({
-  ...jest.requireActual('@/lib/github'),
-  fetchCommitsForRepositories: jest.fn()
-}));
+// Mock dependencies
+jest.mock('@/lib/github'); // Use the mock in __mocks__ directory
 
 jest.mock('@/lib/gemini', () => ({
   generateCommitSummary: jest.fn()

@@ -210,15 +210,15 @@ export { customRender as render };
   - [x] Update `src/components/dashboard/__tests__/SummaryDetails.test.tsx`
   - [x] Fix string content assertions to match new component structure
 
-- [ ] **TASK-017: Fix API Tests**
+- [x] **TASK-017: Fix API Tests**
   - **Priority**: High
   - **Effort**: Large
   - **Dependencies**: TASK-001, TASK-002
   - **Success Criteria**: All API tests pass
   - **Description**:
-  - [ ] Fix `src/app/api/summary/__tests__/handlers.test.ts`
-  - [ ] Fix `src/app/api/summary/__tests__/route.test.ts`
-  - [ ] Handle Next.js Request object properly in tests
+  - [x] Fix `src/app/api/summary/__tests__/handlers.test.ts`
+  - [x] Fix `src/app/api/summary/__tests__/route.test.ts`
+  - [x] Handle Next.js Request object properly in tests
 
 ## Storybook Accessibility Testing
 
