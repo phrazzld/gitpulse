@@ -192,14 +192,14 @@ export { customRender as render };
     - ✅ Test with proper component structure
     - ✅ Create backward compatibility module
 
-- [ ] **TASK-015: Fix SummaryView Tests**
+- [x] **TASK-015: Fix SummaryView Tests**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: TASK-003
   - **Success Criteria**: All SummaryView tests pass
   - **Description**:
-  - [ ] Update `src/components/dashboard/__tests__/SummaryView.test.tsx`
-  - [ ] Adapt tests to the new Atomic Design component structure
+  - [x] Update `src/components/dashboard/__tests__/SummaryView.test.tsx`
+  - [x] Adapt tests to the new Atomic Design component structure
 
 - [ ] **TASK-016: Fix SummaryDetails Tests**
   - **Priority**: Medium
@@ -307,7 +307,7 @@ export { customRender as render };
    - [x] TASK-012: Fix SummaryStats Tests
    - [x] TASK-013: Fix OperationsPanel Tests
    - [x] TASK-014: Fix RepositorySection Tests
-   - [ ] TASK-015: Fix SummaryView Tests
+   - [x] TASK-015: Fix SummaryView Tests
    - [ ] TASK-016: Fix SummaryDetails Tests
 
 4. **Infrastructure & Tooling**:
