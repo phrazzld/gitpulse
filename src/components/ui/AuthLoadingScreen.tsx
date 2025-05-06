@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import AuthLoadingCard from './AuthLoadingCard'; // Import the composed component
+import AuthLoadingCard from '@/components/molecules/AuthLoadingCard'; // Import the composed component
 import './AuthLoadingScreen.css'; // Import the CSS file for default variables
 
 /**

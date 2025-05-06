@@ -17,7 +17,7 @@ import Header from '@/components/dashboard/Header';
 import DashboardLoadingState from '@/components/DashboardLoadingState';
 import OperationsPanel from '@/components/organisms/OperationsPanel';
 import RepositorySection from '@/components/dashboard/RepositorySection';
-import DateRangePicker from '@/components/DateRangePicker';
+import DateRangePicker from '@/components/molecules/DateRangePicker';
 import AnalysisParameters from '@/components/dashboard/AnalysisParameters';
 import SummaryView from '@/components/dashboard/SummaryView';
 
