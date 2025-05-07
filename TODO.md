@@ -355,17 +355,17 @@ export { customRender as render };
     - [ ] Document any other direct usages in test files (if any)
     - [ ] Create a mapping of which hook tests rely on the library directly or indirectly
 
-- [ ] **TASK-026: Update Project Dependencies**
+- [x] **TASK-026: Update Project Dependencies**
   - **Priority**: High
   - **Effort**: Small
   - **Dependencies**: TASK-025
   - **Success Criteria**: Project can be built without the incompatible library.
   - **Description**:
-    - [ ] Remove `"@testing-library/react-hooks"` from `devDependencies` in `package.json`
-    - [ ] Remove `"@types/testing-library__react-hooks"` (if present) from `devDependencies`
-    - [ ] Verify `"@testing-library/react"` is at version `^16.3.0` or higher
-    - [ ] Run `npm install` to update the lock file
-    - [ ] Update package-lock.json to remove any reference to `@testing-library/react-hooks`
+    - [x] Remove `"@testing-library/react-hooks"` from `devDependencies` in `package.json`
+    - [x] Remove `"@types/testing-library__react-hooks"` (if present) from `devDependencies`
+    - [x] Verify `"@testing-library/react"` is at version `^16.3.0` or higher
+    - [x] Run `npm install` to update the lock file
+    - [x] Update package-lock.json to remove any reference to `@testing-library/react-hooks`
 
 - [ ] **TASK-027: Refactor `renderHookSafely` Utility**
   - **Priority**: High
