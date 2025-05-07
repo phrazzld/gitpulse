@@ -311,23 +311,170 @@ export { customRender as render };
    - [x] TASK-016: Fix SummaryDetails Tests
 
 4. **Infrastructure & Tooling**:
-   - [x] **TASK-024: Fix TypeScript Issues in Test Utilities**
-     - **Priority**: High
-     - **Effort**: Large
-     - **Dependencies**: None
-     - **Success Criteria**: All TypeScript errors are resolved
-     - **Description**:
-     - [x] Address typing issues in `react-test-utils.ts`
-     - [x] Fix mock data to match expected interfaces
-     - [x] Address generic type handling in test utilities
-     - [x] Add proper type guards for unknown types
-     - [x] Update React component testing utilities to use correct types
-     - [x] See `TYPESCRIPT_ISSUES.md` for full details
+   - [x] TASK-024: Fix TypeScript Issues in Test Utilities
+
+5. **Storybook & Component Migration**:
+   - [x] TASK-018: Create Custom A11y Test Setup
+   - [x] TASK-019: Fix Storybook Test Configuration
+   - [x] TASK-020: Fix GitHub Action for Storybook
+   - [x] TASK-022: Move Remaining Components to Proper Folders
+   - [x] TASK-023: Create Documentation for Atomic Design Structure
+
+6. **Testing Library Migration**:
+   - [x] TASK-025: Audit Current Usage of @testing-library/react-hooks
+   - [ ] TASK-026: Update Project Dependencies
+   - [ ] TASK-027: Refactor `renderHookSafely` Utility
+   - [ ] TASK-028: Create Testing Utilities for React Hooks
+   - [ ] TASK-029: Update useInstallations Hook Tests
+   - [ ] TASK-030: Update useCommits Hook Tests
+   - [ ] TASK-031: Update useFilters Hook Tests
+   - [ ] TASK-032: Update useRepositories Hook Tests
+   - [ ] TASK-033: Update useSummary Hook Tests
+   - [ ] TASK-034: Verify Full Test Suite
+   - [ ] TASK-035: Update CI Configuration
+   - [ ] TASK-036: Document Testing Patterns
 
 5. **Storybook & Component Migration**:
    - [x] TASK-018: Create Custom A11y Test Setup
    - [x] TASK-019: Fix Storybook Test Configuration
    - [x] TASK-020: Fix GitHub Action for Storybook
    - [x] TASK-021: Audit Current Component Structure
-   - [ ] TASK-022: Move Remaining Components to Proper Folders
-   - [ ] TASK-023: Create Documentation for Atomic Design Structure
+   - [x] TASK-022: Move Remaining Components to Proper Folders
+   - [x] TASK-023: Create Documentation for Atomic Design Structure
+
+## Testing Library Migration
+
+- [x] **TASK-025: Audit Current Usage of @testing-library/react-hooks**
+  - **Priority**: High
+  - **Effort**: Small
+  - **Dependencies**: None
+  - **Success Criteria**: All files importing `@testing-library/react-hooks` are identified and documented.
+  - **Description**:
+    - [ ] Search the codebase for all imports of `@testing-library/react-hooks`
+    - [ ] Confirm that `src/lib/tests/react-test-utils.ts` is the primary (or only) direct consumer
+    - [ ] Document any other direct usages in test files (if any)
+    - [ ] Create a mapping of which hook tests rely on the library directly or indirectly
+
+- [ ] **TASK-026: Update Project Dependencies**
+  - **Priority**: High
+  - **Effort**: Small
+  - **Dependencies**: TASK-025
+  - **Success Criteria**: Project can be built without the incompatible library.
+  - **Description**:
+    - [ ] Remove `"@testing-library/react-hooks"` from `devDependencies` in `package.json`
+    - [ ] Remove `"@types/testing-library__react-hooks"` (if present) from `devDependencies`
+    - [ ] Verify `"@testing-library/react"` is at version `^16.3.0` or higher
+    - [ ] Run `npm install` to update the lock file
+    - [ ] Update package-lock.json to remove any reference to `@testing-library/react-hooks`
+
+- [ ] **TASK-027: Refactor `renderHookSafely` Utility**
+  - **Priority**: High
+  - **Effort**: Medium
+  - **Dependencies**: TASK-026
+  - **Success Criteria**: The utility works with `@testing-library/react` natively.
+  - **Description**:
+    - [ ] Open `src/lib/tests/react-test-utils.ts`
+    - [ ] Change imports to use `renderHook`, `act`, and `waitFor` from `@testing-library/react`
+    - [ ] Update the `SafeRenderHookResult` type to match the new API
+    - [ ] Refactor any use of `waitForNextUpdate` using `waitFor` with specific conditions
+    - [ ] Refactor any use of `waitForValueToChange` using `waitFor` with value comparison
+    - [ ] Ensure TypeScript compiles without errors
+
+- [ ] **TASK-028: Create Testing Utilities for React Hooks**
+  - **Priority**: High
+  - **Effort**: Medium
+  - **Dependencies**: TASK-027
+  - **Success Criteria**: Comprehensive testing utilities that work with React 19.
+  - **Description**:
+    - [ ] Create or update unit tests for `renderHookSafely` to verify it works correctly
+    - [ ] Add helper functions for common hook testing patterns (if needed)
+    - [ ] Add utilities for proper mocking of React context for hooks
+    - [ ] Document usage of the new utilities in comments
+
+- [ ] **TASK-029: Update useInstallations Hook Tests**
+  - **Priority**: Medium
+  - **Effort**: Medium
+  - **Dependencies**: TASK-028
+  - **Success Criteria**: All useInstallations tests pass without warnings.
+  - **Description**:
+    - [ ] Update `src/hooks/dashboard/__tests__/useInstallations.test.ts`
+    - [ ] Replace any direct usage of methods from the old library 
+    - [ ] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
+    - [ ] Verify all tests pass without console warnings
+
+- [ ] **TASK-030: Update useCommits Hook Tests**
+  - **Priority**: Medium
+  - **Effort**: Medium
+  - **Dependencies**: TASK-028
+  - **Success Criteria**: All useCommits tests pass without warnings.
+  - **Description**:
+    - [ ] Update `src/hooks/dashboard/__tests__/useCommits.test.ts`
+    - [ ] Replace any direct usage of methods from the old library
+    - [ ] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
+    - [ ] Verify all tests pass without console warnings
+
+- [ ] **TASK-031: Update useFilters Hook Tests**
+  - **Priority**: Medium
+  - **Effort**: Medium
+  - **Dependencies**: TASK-028
+  - **Success Criteria**: All useFilters tests pass without warnings.
+  - **Description**:
+    - [ ] Update `src/hooks/dashboard/__tests__/useFilters.test.ts`
+    - [ ] Replace any direct usage of methods from the old library
+    - [ ] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
+    - [ ] Verify all tests pass without console warnings
+
+- [ ] **TASK-032: Update useRepositories Hook Tests**
+  - **Priority**: Medium
+  - **Effort**: Medium
+  - **Dependencies**: TASK-028
+  - **Success Criteria**: All useRepositories tests pass without warnings.
+  - **Description**:
+    - [ ] Update `src/hooks/dashboard/__tests__/useRepositories.test.ts`
+    - [ ] Replace any direct usage of methods from the old library
+    - [ ] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
+    - [ ] Verify all tests pass without console warnings
+
+- [ ] **TASK-033: Update useSummary Hook Tests**
+  - **Priority**: Medium
+  - **Effort**: Medium
+  - **Dependencies**: TASK-028
+  - **Success Criteria**: All useSummary tests pass without warnings.
+  - **Description**:
+    - [ ] Update `src/hooks/dashboard/__tests__/useSummary.test.ts`
+    - [ ] Replace any direct usage of methods from the old library
+    - [ ] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
+    - [ ] Verify all tests pass without console warnings
+
+- [ ] **TASK-034: Verify Full Test Suite**
+  - **Priority**: High
+  - **Effort**: Medium
+  - **Dependencies**: TASK-029, TASK-030, TASK-031, TASK-032, TASK-033
+  - **Success Criteria**: All tests pass with no warnings or dependency errors.
+  - **Description**:
+    - [ ] Run the full test suite with `npm test`
+    - [ ] Address any remaining failures or console warnings
+    - [ ] Verify no `act` warnings appear during testing
+    - [ ] Ensure test coverage remains at or above previous levels
+
+- [ ] **TASK-035: Update CI Configuration**
+  - **Priority**: High
+  - **Effort**: Small
+  - **Dependencies**: TASK-034
+  - **Success Criteria**: CI builds pass successfully with updated dependencies.
+  - **Description**:
+    - [ ] Update GitHub Actions workflow files to use the updated dependencies
+    - [ ] Remove any special handling related to `@testing-library/react-hooks`
+    - [ ] Consider adding `--legacy-peer-deps` as a short-term fallback for any remaining issues
+    - [ ] Verify CI builds complete without dependency conflicts
+
+- [ ] **TASK-036: Document Testing Patterns**
+  - **Priority**: Medium
+  - **Effort**: Small
+  - **Dependencies**: All previous tasks
+  - **Success Criteria**: Clear documentation for testing hooks with new approach.
+  - **Description**:
+    - [ ] Create or update a testing guide document explaining the new approach
+    - [ ] Document the proper way to test asynchronous hooks with `waitFor`
+    - [ ] Provide examples of common testing patterns
+    - [ ] Update any existing documentation that references the old library
