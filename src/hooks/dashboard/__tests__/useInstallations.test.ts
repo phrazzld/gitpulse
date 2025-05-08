@@ -4,8 +4,9 @@
  * Tests for the useInstallations hook
  */
 
-import { mockNextAuthSession } from '@/lib/tests/react-test-utils';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { mockNextAuthSession, renderHookSafely } from '@/lib/tests/react-test-utils';
+import { act } from 'react';
+import { waitFor } from '@testing-library/react';
 
 // Import hooks and types
 import { useInstallations } from '../useInstallations';
@@ -95,7 +96,7 @@ describe('useInstallations', () => {
   });
 
   it('should return initial state on first render', () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: mockFetchRepositories })
     );
 
@@ -110,7 +111,7 @@ describe('useInstallations', () => {
   });
 
   it('should set installations when setInstallations is called', async () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: mockFetchRepositories })
     );
 
@@ -129,7 +130,7 @@ describe('useInstallations', () => {
   });
 
   it('should add a current installation when addCurrentInstallation is called', async () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: mockFetchRepositories })
     );
 
@@ -148,7 +149,7 @@ describe('useInstallations', () => {
   });
 
   it('should not add duplicate current installations', async () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: mockFetchRepositories })
     );
 
@@ -163,7 +164,7 @@ describe('useInstallations', () => {
   });
 
   it('should switch installations and fetch repositories', async () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: mockFetchRepositories })
     );
 
@@ -180,9 +181,11 @@ describe('useInstallations', () => {
     expect(mockFetchRepositories).toHaveBeenCalledWith(2);
     
     // Wait for the promise to resolve
-    await waitFor(() => {
-      expect(result.current.installationIds).toEqual([2]);
-      expect(result.current.currentInstallations).toEqual([mockInstallations[1]]);
+    await act(async () => {
+      await waitFor(() => {
+        expect(result.current.installationIds).toEqual([2]);
+        expect(result.current.currentInstallations).toEqual([mockInstallations[1]]);
+      });
     });
   });
 
@@ -235,7 +238,7 @@ describe('useInstallations', () => {
   });
 
   it('should not call fetchRepositories if installIds is empty', async () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: mockFetchRepositories })
     );
 
@@ -261,7 +264,7 @@ describe('useInstallations', () => {
       isStale: false 
     });
 
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: mockFetchRepositories })
     );
 
@@ -273,7 +276,7 @@ describe('useInstallations', () => {
     // Setup fetchRepositories to return success
     const successFetchRepositories = jest.fn(() => Promise.resolve(true));
     
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: successFetchRepositories })
     );
 
@@ -288,11 +291,13 @@ describe('useInstallations', () => {
     });
 
     // Wait for the promise to resolve and assertions to pass
-    await waitFor(() => {
-      return (
-        result.current.currentInstallations.length === 1 && 
-        result.current.installationIds.length === 1
-      );
+    await act(async () => {
+      await waitFor(() => {
+        return (
+          result.current.currentInstallations.length === 1 && 
+          result.current.installationIds.length === 1
+        );
+      });
     });
     
     expect(result.current.currentInstallations).toEqual([mockInstallations[0]]);
@@ -302,7 +307,7 @@ describe('useInstallations', () => {
   });
   
   it('should set needsInstallation flag when requested', async () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: mockFetchRepositories })
     );
     
@@ -320,7 +325,7 @@ describe('useInstallations', () => {
   });
   
   it('should clear needsInstallation flag after successful installation switch', async () => {
-    const { result } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useInstallations({ fetchRepositories: mockFetchRepositories })
     );
     
@@ -337,8 +342,10 @@ describe('useInstallations', () => {
       result.current.switchInstallations([1]);
     });
     
-    await waitFor(() => {
-      return result.current.needsInstallation === false;
+    await act(async () => {
+      await waitFor(() => {
+        return result.current.needsInstallation === false;
+      });
     });
     
     expect(result.current.needsInstallation).toBe(false);

@@ -391,16 +391,16 @@ export { customRender as render };
     - [x] Add utilities for proper mocking of React context for hooks
     - [x] Document usage of the new utilities in comments
 
-- [ ] **TASK-029: Update useInstallations Hook Tests**
+- [x] **TASK-029: Update useInstallations Hook Tests**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: TASK-028
   - **Success Criteria**: All useInstallations tests pass without warnings.
   - **Description**:
-    - [ ] Update `src/hooks/dashboard/__tests__/useInstallations.test.ts`
-    - [ ] Replace any direct usage of methods from the old library 
-    - [ ] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
-    - [ ] Verify all tests pass without console warnings
+    - [x] Update `src/hooks/dashboard/__tests__/useInstallations.test.ts`
+    - [x] Replace any direct usage of methods from the old library 
+    - [x] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
+    - [x] Verify all tests pass without console warnings
 
 - [ ] **TASK-030: Update useCommits Hook Tests**
   - **Priority**: Medium

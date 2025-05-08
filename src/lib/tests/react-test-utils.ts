@@ -178,6 +178,7 @@ export function renderHookSafely<Result, Props>(
  */
 export function withContext<T>(Context: Context<T>, value: T) {
   const ContextWrapper = ({ children }: { children: ReactNode }) => {
+    // Pass children as the third argument to React.createElement instead of in props
     return React.createElement(Context.Provider, { value }, children);
   };
   // Add display name for ESLint
@@ -198,6 +199,7 @@ export function createMockContext<T>(defaultValue: T) {
     value = defaultValue, 
     children 
   }) => {
+    // Pass children as the third argument to React.createElement instead of in props
     return React.createElement(Context.Provider, { value }, children);
   };
   

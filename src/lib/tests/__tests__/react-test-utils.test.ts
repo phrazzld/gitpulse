@@ -64,8 +64,14 @@ describe('createMockContext', () => {
     expect(result.current).toBe('default-value');
     
     const { result: result2 } = renderHookSafely(useTestContext, {
-      wrapper: ({ children }: { children: React.ReactNode }) => 
-        React.createElement(Provider, { value: 'custom-value', children })
+      wrapper: ({ children }: { children: React.ReactNode }) => {
+        // We need to define the component in a way compatible with the Provider type
+        return React.createElement(
+          Provider as React.FC<any>, 
+          { value: 'custom-value' }, 
+          children
+        );
+      }
     });
     expect(result2.current).toBe('custom-value');
   });
