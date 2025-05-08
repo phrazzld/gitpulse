@@ -7,9 +7,8 @@
  */
 
 import * as React from 'react';
-import { ReactElement, ReactNode } from 'react';
+import { ReactElement, ReactNode, Context, createContext, useContext, act } from 'react';
 import { render, RenderOptions, RenderResult, renderHook, waitFor } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
 
 /**
  * Custom wrapper for rendering components with specific providers
@@ -168,6 +167,82 @@ export function renderHookSafely<Result, Props>(
     waitForNextUpdate: safeWaitForNextUpdate,
     waitFor: safeWaitFor,
     waitForValueToChange: safeWaitForValueToChange
+  };
+}
+
+/**
+ * Creates a wrapper function for testing hooks that use context
+ * @param Context - The React context to provide a value for
+ * @param value - The value to provide to the context
+ * @returns A wrapper function to use with renderHook
+ */
+export function withContext<T>(Context: Context<T>, value: T) {
+  const ContextWrapper = ({ children }: { children: ReactNode }) => {
+    return React.createElement(Context.Provider, { value }, children);
+  };
+  // Add display name for ESLint
+  ContextWrapper.displayName = 'ContextWrapper';
+  return ContextWrapper;
+}
+
+/**
+ * Creates a mock context and provider for testing
+ * @param defaultValue - Default value for the context
+ * @returns Context, Provider, and hooks for updating the context value
+ */
+export function createMockContext<T>(defaultValue: T) {
+  const Context = createContext<T>(defaultValue);
+  const useTestContext = () => useContext(Context);
+  
+  const TestProvider: React.FC<{ value?: T; children: ReactNode }> = ({ 
+    value = defaultValue, 
+    children 
+  }) => {
+    return React.createElement(Context.Provider, { value }, children);
+  };
+  
+  return {
+    Context,
+    Provider: TestProvider,
+    useTestContext
+  };
+}
+
+/**
+ * Helper for testing async hooks that fetch data
+ * @param hookFn - The hook function to call
+ * @param mockData - The mock data to resolve with
+ * @param options - Options to pass to renderHook
+ * @returns The rendered hook with additional utilities
+ */
+export function renderAsyncHook<Result, Props, Data>(
+  hookFn: (props: Props) => Result,
+  mockData: Data,
+  options?: any
+): SafeRenderHookResult<Result, Props> & { mockData: Data; triggerSuccess: () => void; triggerError: (error: Error) => void } {
+  let resolvePromise: (value: Data) => void;
+  let rejectPromise: (reason: Error) => void;
+  
+  // Create a promise that we can resolve/reject on demand
+  const promise = new Promise<Data>((resolve, reject) => {
+    resolvePromise = resolve;
+    rejectPromise = reject;
+  });
+  
+  // Mock the fetch implementation
+  global.fetch = jest.fn().mockImplementation(() => promise);
+  
+  const result = renderHookSafely(hookFn, options);
+  
+  // Functions to resolve/reject the promise from tests
+  const triggerSuccess = () => resolvePromise(mockData);
+  const triggerError = (error: Error) => rejectPromise(error);
+  
+  return {
+    ...result,
+    mockData,
+    triggerSuccess,
+    triggerError
   };
 }
 

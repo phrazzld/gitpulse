@@ -367,18 +367,18 @@ export { customRender as render };
     - [x] Run `npm install` to update the lock file
     - [x] Update package-lock.json to remove any reference to `@testing-library/react-hooks`
 
-- [~] **TASK-027: Refactor `renderHookSafely` Utility**
+- [x] **TASK-027: Refactor `renderHookSafely` Utility**
   - **Priority**: High
   - **Effort**: Medium
   - **Dependencies**: TASK-026
   - **Success Criteria**: The utility works with `@testing-library/react` natively.
   - **Description**:
-    - [ ] Open `src/lib/tests/react-test-utils.ts`
-    - [ ] Change imports to use `renderHook`, `act`, and `waitFor` from `@testing-library/react`
-    - [ ] Update the `SafeRenderHookResult` type to match the new API
-    - [ ] Refactor any use of `waitForNextUpdate` using `waitFor` with specific conditions
-    - [ ] Refactor any use of `waitForValueToChange` using `waitFor` with value comparison
-    - [ ] Ensure TypeScript compiles without errors
+    - [x] Open `src/lib/tests/react-test-utils.ts`
+    - [x] Change imports to use `renderHook`, `act`, and `waitFor` from `@testing-library/react`
+    - [x] Update the `SafeRenderHookResult` type to match the new API
+    - [x] Refactor any use of `waitForNextUpdate` using `waitFor` with specific conditions
+    - [x] Refactor any use of `waitForValueToChange` using `waitFor` with value comparison
+    - [x] Ensure TypeScript compiles without errors
 
 - [ ] **TASK-028: Create Testing Utilities for React Hooks**
   - **Priority**: High
