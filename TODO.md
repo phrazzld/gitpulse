@@ -457,16 +457,16 @@ export { customRender as render };
     - [x] Verify no `act` warnings appear during testing
     - [x] Ensure test coverage remains at or above previous levels
 
-- [ ] **TASK-035: Update CI Configuration**
+- [x] **TASK-035: Update CI Configuration**
   - **Priority**: High
   - **Effort**: Small
   - **Dependencies**: TASK-034
   - **Success Criteria**: CI builds pass successfully with updated dependencies.
   - **Description**:
-    - [ ] Update GitHub Actions workflow files to use the updated dependencies
-    - [ ] Remove any special handling related to `@testing-library/react-hooks`
-    - [ ] Consider adding `--legacy-peer-deps` as a short-term fallback for any remaining issues
-    - [ ] Verify CI builds complete without dependency conflicts
+    - [x] Update GitHub Actions workflow files to use the updated dependencies
+    - [x] Remove any special handling related to `@testing-library/react-hooks`
+    - [x] Consider adding `--legacy-peer-deps` as a short-term fallback for any remaining issues
+    - [x] Verify CI builds complete without dependency conflicts
 
 - [ ] **TASK-036: Document Testing Patterns**
   - **Priority**: Medium
