@@ -322,17 +322,17 @@ export { customRender as render };
 
 6. **Testing Library Migration**:
    - [x] TASK-025: Audit Current Usage of @testing-library/react-hooks
-   - [ ] TASK-026: Update Project Dependencies
-   - [ ] TASK-027: Refactor `renderHookSafely` Utility
-   - [ ] TASK-028: Create Testing Utilities for React Hooks
-   - [ ] TASK-029: Update useInstallations Hook Tests
-   - [ ] TASK-030: Update useCommits Hook Tests
-   - [ ] TASK-031: Update useFilters Hook Tests
-   - [ ] TASK-032: Update useRepositories Hook Tests
-   - [ ] TASK-033: Update useSummary Hook Tests
-   - [ ] TASK-034: Verify Full Test Suite
-   - [ ] TASK-035: Update CI Configuration
-   - [ ] TASK-036: Document Testing Patterns
+   - [x] TASK-026: Update Project Dependencies
+   - [x] TASK-027: Refactor `renderHookSafely` Utility
+   - [x] TASK-028: Create Testing Utilities for React Hooks
+   - [x] TASK-029: Update useInstallations Hook Tests
+   - [x] TASK-030: Update useCommits Hook Tests
+   - [x] TASK-031: Update useFilters Hook Tests
+   - [x] TASK-032: Update useRepositories Hook Tests
+   - [x] TASK-033: Update useSummary Hook Tests
+   - [x] TASK-034: Verify Full Test Suite
+   - [x] TASK-035: Update CI Configuration
+   - [x] TASK-036: Document Testing Patterns
 
 5. **Storybook & Component Migration**:
    - [x] TASK-018: Create Custom A11y Test Setup
