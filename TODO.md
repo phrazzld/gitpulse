@@ -468,13 +468,13 @@ export { customRender as render };
     - [x] Consider adding `--legacy-peer-deps` as a short-term fallback for any remaining issues
     - [x] Verify CI builds complete without dependency conflicts
 
-- [ ] **TASK-036: Document Testing Patterns**
+- [x] **TASK-036: Document Testing Patterns**
   - **Priority**: Medium
   - **Effort**: Small
   - **Dependencies**: All previous tasks
   - **Success Criteria**: Clear documentation for testing hooks with new approach.
   - **Description**:
-    - [ ] Create or update a testing guide document explaining the new approach
-    - [ ] Document the proper way to test asynchronous hooks with `waitFor`
-    - [ ] Provide examples of common testing patterns
-    - [ ] Update any existing documentation that references the old library
+    - [x] Create or update a testing guide document explaining the new approach
+    - [x] Document the proper way to test asynchronous hooks with `waitFor`
+    - [x] Provide examples of common testing patterns
+    - [x] Update any existing documentation that references the old library

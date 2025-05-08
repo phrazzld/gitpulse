@@ -11,10 +11,13 @@ This document provides guidance on how to test React hooks in the GitPulse proje
 5. [Testing Async Hooks](#testing-async-hooks)
 6. [Testing Common Hooks](#testing-common-hooks)
 7. [Best Practices](#best-practices)
+8. [Migration from react-hooks-testing-library](#migration-from-react-hooks-testing-library)
 
 ## Introduction
 
 Testing React hooks requires special utilities to handle their stateful nature and integration with React's lifecycle. GitPulse uses the native `renderHook` functionality from `@testing-library/react` (v16.3.0+) to test hooks, with custom utilities to make testing more robust and easier.
+
+> **Important Note**: We have migrated from `@testing-library/react-hooks` to the native `renderHook` function in `@testing-library/react` (v16.3.0+). This migration was necessary to maintain compatibility with React 19.
 
 ## Testing Utilities Overview
 
@@ -259,5 +262,106 @@ it('calls useState and useEffect', () => {
 // ✅ Good - Testing behavior
 it('fetches data when component mounts and displays loading state while fetching', () => {
   // ...
+});
+```
+
+## Migration from react-hooks-testing-library
+
+We have migrated from the now-deprecated `@testing-library/react-hooks` to using the native `renderHook` function provided by `@testing-library/react` v16.3.0+. This migration was necessary to ensure compatibility with React 19.
+
+### Key Changes
+
+1. **Import Changes**:
+   ```typescript
+   // Before
+   import { renderHook, act, waitFor } from '@testing-library/react-hooks';
+   
+   // After
+   import { renderHookSafely } from '@/lib/tests/react-test-utils';
+   import { act } from 'react';
+   import { waitFor } from '@testing-library/react';
+   ```
+
+2. **Using renderHookSafely**:
+   ```typescript
+   // Before
+   const { result, waitForNextUpdate } = renderHook(() => useMyHook(props));
+   
+   // After
+   const { result, waitFor } = renderHookSafely(() => useMyHook(props));
+   ```
+
+3. **Handling Async State Updates**:
+   ```typescript
+   // Before
+   await waitForNextUpdate();
+   
+   // After
+   await waitFor(() => expect(result.current.someValue).toBe(expectedValue));
+   ```
+
+4. **Wrapping Act Properly**:
+   ```typescript
+   // Before
+   act(() => {
+     result.current.someFunction();
+   });
+   
+   // After (synchronous updates)
+   act(() => {
+     result.current.someFunction();
+   });
+   
+   // After (asynchronous updates)
+   await act(async () => {
+     await result.current.someAsyncFunction();
+   });
+   ```
+
+### Our Custom Utilities
+
+Our `renderHookSafely` utility provides several advantages:
+
+1. It wraps the native `renderHook` function with additional safety features
+2. It properly implements `waitForNextUpdate` and `waitForValueToChange` using the new APIs
+3. It ensures all state updates are properly wrapped in `act()`
+4. It provides better error handling and reporting
+
+### Example Test
+
+```typescript
+import { renderHookSafely } from '@/lib/tests/react-test-utils';
+import { act } from 'react';
+import { waitFor } from '@testing-library/react';
+import { useMyHook } from '../useMyHook';
+
+// Mock dependencies
+jest.mock('some-external-dependency');
+
+describe('useMyHook', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should handle async operations properly', async () => {
+    // Setup mock response
+    someMock.mockResolvedValueOnce({ data: 'test' });
+    
+    // Render the hook
+    const { result } = renderHookSafely(() => useMyHook());
+    
+    // Initial state
+    expect(result.current.loading).toBe(false);
+    expect(result.current.data).toBeNull();
+    
+    // Trigger an async operation
+    await act(async () => {
+      await result.current.fetchData();
+    });
+    
+    // Verify that the state has been updated correctly
+    expect(result.current.loading).toBe(false);
+    expect(result.current.data).toEqual({ data: 'test' });
+  });
 });
 ```

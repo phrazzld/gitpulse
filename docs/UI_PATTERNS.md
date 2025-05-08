@@ -266,10 +266,14 @@ describe('SummaryView', () => {
 - Test state updates in response to function calls
 - Mock API calls and external dependencies
 - Test error handling and edge cases
-- Use `renderHook` from `@testing-library/react-hooks`
+- Use `renderHookSafely` from our custom test utilities
 
 ```tsx
 // Logic hook test example
+import { renderHookSafely } from '@/lib/tests/react-test-utils';
+import { act } from 'react';
+import { waitFor } from '@testing-library/react';
+
 describe('useSummary', () => {
   beforeEach(() => {
     // Mock API
@@ -282,28 +286,34 @@ describe('useSummary', () => {
       () => new Promise(resolve => setTimeout(() => resolve(sampleCommits), 100))
     );
     
-    const { result, waitForNextUpdate } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useSummary({ 
         timeRange: { start: new Date(), end: new Date() }
       })
     );
     
     expect(result.current.isLoading).toBe(true);
-    await waitForNextUpdate();
-    expect(result.current.isLoading).toBe(false);
+    
+    // Wait for the loading state to change
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    
+    // Verify data is loaded
+    expect(result.current.commits).toEqual(sampleCommits);
   });
   
   it('handles API errors correctly', async () => {
     const testError = new Error('API Error');
     jest.spyOn(api, 'getCommits').mockRejectedValue(testError);
     
-    const { result, waitForNextUpdate } = renderHook(() => 
+    const { result } = renderHookSafely(() => 
       useSummary({ 
         timeRange: { start: new Date(), end: new Date() }
       })
     );
     
-    await waitForNextUpdate();
+    // Wait for the error to be set
+    await waitFor(() => expect(result.current.error).not.toBeNull());
+    
     expect(result.current.error).toEqual(testError);
   });
 });
