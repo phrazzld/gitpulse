@@ -380,16 +380,16 @@ export { customRender as render };
     - [x] Refactor any use of `waitForValueToChange` using `waitFor` with value comparison
     - [x] Ensure TypeScript compiles without errors
 
-- [ ] **TASK-028: Create Testing Utilities for React Hooks**
+- [x] **TASK-028: Create Testing Utilities for React Hooks**
   - **Priority**: High
   - **Effort**: Medium
   - **Dependencies**: TASK-027
   - **Success Criteria**: Comprehensive testing utilities that work with React 19.
   - **Description**:
-    - [ ] Create or update unit tests for `renderHookSafely` to verify it works correctly
-    - [ ] Add helper functions for common hook testing patterns (if needed)
-    - [ ] Add utilities for proper mocking of React context for hooks
-    - [ ] Document usage of the new utilities in comments
+    - [x] Create or update unit tests for `renderHookSafely` to verify it works correctly
+    - [x] Add helper functions for common hook testing patterns (if needed)
+    - [x] Add utilities for proper mocking of React context for hooks
+    - [x] Document usage of the new utilities in comments
 
 - [ ] **TASK-029: Update useInstallations Hook Tests**
   - **Priority**: Medium
