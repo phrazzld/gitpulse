@@ -4,7 +4,9 @@
 
 import { useCommits } from '../useCommits';
 import { ActivityMode } from '@/types/dashboard';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHookSafely } from '@/lib/tests/react-test-utils';
+import { act } from 'react';
+import { waitFor } from '@testing-library/react';
 import { createActivityFetcher } from '@/lib/activity';
 import { logger } from '@/lib/logger';
 
@@ -80,7 +82,7 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHook(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps));
     
     // Initial state should be empty/loading false
     expect(result.current.loading).toBe(false);
@@ -132,7 +134,7 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHook(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps));
     
     // Call fetchCommits
     await act(async () => {
@@ -166,7 +168,7 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHook(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps));
     
     // Call fetchCommits
     await act(async () => {
@@ -196,7 +198,7 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHook(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps));
     
     // Call fetchCommits
     await act(async () => {
@@ -217,7 +219,7 @@ describe('useCommits', () => {
       activityMode: 'my-work-activity' as ActivityMode
     };
     
-    const { result: workResult } = renderHook(() => useCommits(workActivityProps));
+    const { result: workResult } = renderHookSafely(() => useCommits(workActivityProps));
     
     // Call getActivityFetcher indirectly by calling fetchCommits
     await act(async () => {
@@ -237,7 +239,7 @@ describe('useCommits', () => {
       activityMode: 'team-activity' as ActivityMode
     };
     
-    const { result: teamResult } = renderHook(() => useCommits(teamActivityProps));
+    const { result: teamResult } = renderHookSafely(() => useCommits(teamActivityProps));
     
     await act(async () => {
       await teamResult.current.fetchCommits();
@@ -259,7 +261,7 @@ describe('useCommits', () => {
       installationIds: [123, 456] as readonly number[]
     };
     
-    const { result } = renderHook(() => useCommits(filteredProps));
+    const { result } = renderHookSafely(() => useCommits(filteredProps));
     
     // Call fetchCommits
     await act(async () => {
@@ -284,7 +286,7 @@ describe('useCommits', () => {
       update: jest.fn()
     });
     
-    const { result } = renderHook(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps));
     
     // Call fetchCommits
     await act(async () => {
@@ -313,7 +315,7 @@ describe('useCommits', () => {
       installationIds: [123, 456] as readonly number[]
     };
     
-    const { result } = renderHook(() => useCommits(propsWithInstallationIds));
+    const { result } = renderHookSafely(() => useCommits(propsWithInstallationIds));
     
     // Call fetchCommits
     await act(async () => {
@@ -332,7 +334,7 @@ describe('useCommits', () => {
     // Mock fetch throwing a network error
     (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
     
-    const { result } = renderHook(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps));
     
     // Call fetchCommits
     await act(async () => {

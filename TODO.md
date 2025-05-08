@@ -402,16 +402,16 @@ export { customRender as render };
     - [x] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
     - [x] Verify all tests pass without console warnings
 
-- [ ] **TASK-030: Update useCommits Hook Tests**
+- [x] **TASK-030: Update useCommits Hook Tests**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: TASK-028
   - **Success Criteria**: All useCommits tests pass without warnings.
   - **Description**:
-    - [ ] Update `src/hooks/dashboard/__tests__/useCommits.test.ts`
-    - [ ] Replace any direct usage of methods from the old library
-    - [ ] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
-    - [ ] Verify all tests pass without console warnings
+    - [x] Update `src/hooks/dashboard/__tests__/useCommits.test.ts`
+    - [x] Replace any direct usage of methods from the old library
+    - [x] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
+    - [x] Verify all tests pass without console warnings
 
 - [ ] **TASK-031: Update useFilters Hook Tests**
   - **Priority**: Medium
