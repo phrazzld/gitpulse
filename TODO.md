@@ -367,7 +367,7 @@ export { customRender as render };
     - [x] Run `npm install` to update the lock file
     - [x] Update package-lock.json to remove any reference to `@testing-library/react-hooks`
 
-- [ ] **TASK-027: Refactor `renderHookSafely` Utility**
+- [~] **TASK-027: Refactor `renderHookSafely` Utility**
   - **Priority**: High
   - **Effort**: Medium
   - **Dependencies**: TASK-026

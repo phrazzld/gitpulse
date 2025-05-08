@@ -8,8 +8,7 @@
 
 import * as React from 'react';
 import { ReactElement, ReactNode } from 'react';
-import { render, RenderOptions, RenderResult } from '@testing-library/react';
-import { renderHook, RenderHookOptions, RenderHookResult } from '@testing-library/react-hooks';
+import { render, RenderOptions, RenderResult, renderHook, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 
 /**
@@ -36,11 +35,23 @@ export function renderWithProviders(
 }
 
 /**
+ * Type definition for the return value of renderHook from @testing-library/react
+ */
+type RTLRenderHookResult<T> = {
+  result: {
+    current: T;
+    error?: Error;
+  };
+  rerender: (props?: any) => void;
+  unmount: () => void;
+};
+
+/**
  * Type for hook testing result with controlled async utilities
  */
 export type SafeRenderHookResult<Result, Props> = Omit<
-  RenderHookResult<Props, Result>,
-  'waitForNextUpdate' | 'waitFor' | 'waitForValueToChange'
+  RTLRenderHookResult<Result>,
+  'waitFor'
 > & {
   waitForNextUpdate: (options?: { timeout?: number }) => Promise<void>;
   waitFor: (callback: () => boolean | void, options?: { timeout?: number; interval?: number }) => Promise<void>;
@@ -56,20 +67,35 @@ export type SafeRenderHookResult<Result, Props> = Omit<
  */
 export function renderHookSafely<Result, Props>(
   hookFn: (props: Props) => Result,
-  options?: RenderHookOptions<Props>
+  options?: any // Using any temporarily for compatibility with both libraries
 ): SafeRenderHookResult<Result, Props> {
   const result = renderHook(hookFn, options);
 
   const safeWaitForNextUpdate = async (waitOptions?: { timeout?: number }) => {
     try {
+      // In @testing-library/react there is no waitForNextUpdate, so we use waitFor
+      // with a condition that checks if the result has changed from its initial value
+      const initialValue = result.result.current;
+      
       await act(async () => {
-        await result.waitForNextUpdate(waitOptions);
+        await waitFor(
+          () => {
+            // This will keep retrying until the current value is different from the initial value
+            if (JSON.stringify(result.result.current) === JSON.stringify(initialValue)) {
+              throw new Error('Value has not changed yet');
+            }
+            return true;
+          },
+          { timeout: waitOptions?.timeout || 1000 }
+        );
       });
     } catch (error: unknown) {
       const e = error as Error;
-      if (e.name === 'WaitError') {
-        // Rethrow wait errors as they're often what we're testing for
-        throw e;
+      if (e.name === 'TimeoutError' || e.message.includes('Timed out')) {
+        // Create a similar error to the one from @testing-library/react-hooks
+        const waitError = new Error('Timed out in waitForNextUpdate');
+        waitError.name = 'WaitError';
+        throw waitError;
       } else {
         console.error('Error in waitForNextUpdate:', e);
       }
@@ -82,12 +108,18 @@ export function renderHookSafely<Result, Props>(
   ) => {
     try {
       await act(async () => {
-        await result.waitFor(callback, waitOptions);
+        await waitFor(callback, {
+          timeout: waitOptions?.timeout,
+          interval: waitOptions?.interval
+        });
       });
     } catch (error: unknown) {
       const e = error as Error;
-      if (e.name === 'WaitError') {
-        throw e;
+      if (e.name === 'TimeoutError' || e.message.includes('Timed out')) {
+        // Create a similar error to the one from @testing-library/react-hooks
+        const waitError = new Error('Timed out in waitFor');
+        waitError.name = 'WaitError';
+        throw waitError;
       } else {
         console.error('Error in waitFor:', e);
       }
@@ -99,13 +131,32 @@ export function renderHookSafely<Result, Props>(
     waitOptions?: { timeout?: number; interval?: number }
   ) => {
     try {
+      // In @testing-library/react there is no waitForValueToChange, so we use waitFor
+      // to implement similar functionality
+      const initialValue = selector();
+      
       await act(async () => {
-        await result.waitForValueToChange(selector, waitOptions);
+        await waitFor(
+          () => {
+            const newValue = selector();
+            if (JSON.stringify(newValue) === JSON.stringify(initialValue)) {
+              throw new Error('Value has not changed yet');
+            }
+            return true;
+          },
+          {
+            timeout: waitOptions?.timeout,
+            interval: waitOptions?.interval
+          }
+        );
       });
     } catch (error: unknown) {
       const e = error as Error;
-      if (e.name === 'WaitError') {
-        throw e;
+      if (e.name === 'TimeoutError' || e.message.includes('Timed out')) {
+        // Create a similar error to the one from @testing-library/react-hooks
+        const waitError = new Error('Timed out in waitForValueToChange');
+        waitError.name = 'WaitError';
+        throw waitError;
       } else {
         console.error('Error in waitForValueToChange:', e);
       }
