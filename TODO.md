@@ -435,16 +435,16 @@ export { customRender as render };
     - [x] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
     - [x] Verify all tests pass without console warnings
 
-- [ ] **TASK-033: Update useSummary Hook Tests**
+- [x] **TASK-033: Update useSummary Hook Tests**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: TASK-028
   - **Success Criteria**: All useSummary tests pass without warnings.
   - **Description**:
-    - [ ] Update `src/hooks/dashboard/__tests__/useSummary.test.ts`
-    - [ ] Replace any direct usage of methods from the old library
-    - [ ] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
-    - [ ] Verify all tests pass without console warnings
+    - [x] Update `src/hooks/dashboard/__tests__/useSummary.test.ts`
+    - [x] Replace any direct usage of methods from the old library
+    - [x] Use `waitFor` instead of `waitForNextUpdate` or `waitForValueToChange`
+    - [x] Verify all tests pass without console warnings
 
 - [ ] **TASK-034: Verify Full Test Suite**
   - **Priority**: High
