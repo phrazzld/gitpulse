@@ -18,7 +18,9 @@ declare namespace jest {
 type Mock<T> = ReturnType<typeof jest.fn>;
 
 // Import testing library methods
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHookSafely } from '@/lib/tests/react-test-utils';
+import { act } from 'react';
+import { waitFor } from '@testing-library/react';
 
 // Import hooks and types
 import { useRepositories } from '../useRepositories';
@@ -112,7 +114,7 @@ describe('useRepositories', () => {
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Initial state
     expect(result.current.repositories).toEqual([]);
@@ -130,7 +132,7 @@ describe('useRepositories', () => {
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -168,7 +170,7 @@ describe('useRepositories', () => {
       isStale: false 
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -199,7 +201,7 @@ describe('useRepositories', () => {
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -232,7 +234,7 @@ describe('useRepositories', () => {
       })
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -266,7 +268,7 @@ describe('useRepositories', () => {
       })
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -294,7 +296,7 @@ describe('useRepositories', () => {
     // Mock generic error
     (fetch as any).mockRejectedValueOnce(new Error('Network error'));
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -324,7 +326,7 @@ describe('useRepositories', () => {
     });
 
     const installationId = 54321;
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories with specific installation ID
     let fetchPromise;
