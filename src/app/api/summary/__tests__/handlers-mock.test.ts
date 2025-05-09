@@ -22,6 +22,13 @@ jest.mock('@/lib/logger', () => ({
   }
 }));
 
+// Mock the GitHub module to avoid ESM issues
+jest.mock('@/lib/github', () => ({
+  fetchCommitsForRepositories: jest.fn().mockResolvedValue([]),
+  fetchAllRepositories: jest.fn().mockResolvedValue([]),
+  getAllAppInstallations: jest.fn().mockResolvedValue([])
+}));
+
 // Create test data directly
 const mockRepositories = [
   { id: 1, full_name: 'org1/repo1', name: 'repo1', owner: { login: 'org1' }, private: false, html_url: '', description: null },

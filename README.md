@@ -211,6 +211,7 @@ When adding new features or making changes, follow these guidelines:
 - Keep files under 500 lines (warning threshold)
 - Use immutable patterns where possible (readonly modifiers, const, etc.)
 - Document the "why" not just the "how" in comments
+- Follow [dependency management guidelines](docs/DEPENDENCY_MANAGEMENT.md) for adding, updating, and removing dependencies
 
 ### Error Handling Principles
 
