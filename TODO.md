@@ -517,14 +517,14 @@ export { customRender as render };
     - [x] Document the CI workflow's dependency handling approach
     - [x] Add guidance for adding new dependencies to prevent similar issues
 
-- [ ] **TASK-040: Configure Dependabot for automated dependency updates**
+- [x] **TASK-040: Configure Dependabot for automated dependency updates**
   - **Priority**: Low
   - **Effort**: Small
   - **Dependencies**: TASK-038
   - **Success Criteria**: Dependabot is configured and working
   - **Description**:
-    - [ ] Create `.github/dependabot.yml` configuration file
-    - [ ] Configure Dependabot to monitor npm dependencies
-    - [ ] Set up appropriate update frequency (e.g., weekly)
-    - [ ] Configure version update strategy (semver compatibility)
-    - [ ] Test the configuration by verifying PRs are generated correctly
+    - [x] Create `.github/dependabot.yml` configuration file
+    - [x] Configure Dependabot to monitor npm dependencies
+    - [x] Set up appropriate update frequency (e.g., weekly)
+    - [x] Configure version update strategy (semver compatibility)
+    - [x] Test the configuration by verifying PRs are generated correctly
