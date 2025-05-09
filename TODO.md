@@ -478,3 +478,53 @@ export { customRender as render };
     - [x] Document the proper way to test asynchronous hooks with `waitFor`
     - [x] Provide examples of common testing patterns
     - [x] Update any existing documentation that references the old library
+
+## CI Resolution Tasks
+
+- [x] **TASK-037: Fix peer dependency conflicts with incompatible library**
+  - **Priority**: High
+  - **Effort**: Medium
+  - **Dependencies**: None
+  - **Success Criteria**: CI builds successfully pass dependency installation
+  - **Description**:
+    - [x] Verify that @testing-library/react-hooks has already been migrated (TASK-025 through TASK-036)
+    - [x] If not completed, finish the migration to use React Testing Library's native renderHook
+    - [x] Verify package.json and package-lock.json do not contain @testing-library/react-hooks
+    - [x] Run `npm ci` locally to confirm dependencies install without errors
+    - [x] Push changes to the PR branch and verify CI jobs pass the "Install dependencies" step
+
+- [ ] **TASK-038: Update CI workflows to handle peer dependencies correctly**
+  - **Priority**: High
+  - **Effort**: Small
+  - **Dependencies**: TASK-037
+  - **Success Criteria**: CI workflow files correctly handle dependencies
+  - **Description**:
+    - [ ] Review all GitHub Actions workflow files in `.github/workflows/`
+    - [ ] If using npm 7+, update `npm ci` commands to use strict peer dependency resolution
+    - [ ] Ensure CI script runs TypeScript checks to catch typing errors
+    - [ ] Add npm audit to CI workflow to detect vulnerable dependencies
+    - [ ] Push changes to the PR branch and verify updated workflow files work correctly
+
+- [ ] **TASK-039: Document dependency management approaches for the project**
+  - **Priority**: Medium
+  - **Effort**: Small
+  - **Dependencies**: TASK-038
+  - **Success Criteria**: Clear documentation for handling dependencies
+  - **Description**:
+    - [ ] Document the resolution to the peer dependency conflict
+    - [ ] Create or update documentation about dependency management
+    - [ ] Document the recommended approach for testing React hooks
+    - [ ] Document the CI workflow's dependency handling approach
+    - [ ] Add guidance for adding new dependencies to prevent similar issues
+
+- [ ] **TASK-040: Configure Dependabot for automated dependency updates**
+  - **Priority**: Low
+  - **Effort**: Small
+  - **Dependencies**: TASK-038
+  - **Success Criteria**: Dependabot is configured and working
+  - **Description**:
+    - [ ] Create `.github/dependabot.yml` configuration file
+    - [ ] Configure Dependabot to monitor npm dependencies
+    - [ ] Set up appropriate update frequency (e.g., weekly)
+    - [ ] Configure version update strategy (semver compatibility)
+    - [ ] Test the configuration by verifying PRs are generated correctly
