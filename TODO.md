@@ -493,17 +493,17 @@ export { customRender as render };
     - [x] Run `npm ci` locally to confirm dependencies install without errors
     - [x] Push changes to the PR branch and verify CI jobs pass the "Install dependencies" step
 
-- [ ] **TASK-038: Update CI workflows to handle peer dependencies correctly**
+- [x] **TASK-038: Update CI workflows to handle peer dependencies correctly**
   - **Priority**: High
   - **Effort**: Small
   - **Dependencies**: TASK-037
   - **Success Criteria**: CI workflow files correctly handle dependencies
   - **Description**:
-    - [ ] Review all GitHub Actions workflow files in `.github/workflows/`
-    - [ ] If using npm 7+, update `npm ci` commands to use strict peer dependency resolution
-    - [ ] Ensure CI script runs TypeScript checks to catch typing errors
-    - [ ] Add npm audit to CI workflow to detect vulnerable dependencies
-    - [ ] Push changes to the PR branch and verify updated workflow files work correctly
+    - [x] Review all GitHub Actions workflow files in `.github/workflows/`
+    - [x] If using npm 7+, update `npm ci` commands to use strict peer dependency resolution
+    - [x] Ensure CI script runs TypeScript checks to catch typing errors
+    - [x] Add npm audit to CI workflow to detect vulnerable dependencies
+    - [x] Push changes to the PR branch and verify updated workflow files work correctly
 
 - [ ] **TASK-039: Document dependency management approaches for the project**
   - **Priority**: Medium
