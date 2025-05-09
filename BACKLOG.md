@@ -2,6 +2,32 @@
 
 ## High Priority
 
+### Code Review - High Priority Items
+
+- **Refactor**: Audit and fix Atomic Design component categorization
+  - **Complexity**: Medium
+  - **Rationale**: Incorrect component categorization undermines Atomic Design benefits
+  - **Expected Outcome**: Components properly organized according to ATOMIC_DESIGN.md criteria
+  - **Dependencies**: None
+
+- **Fix**: Standardize branch naming in CI/automation
+  - **Complexity**: Simple
+  - **Rationale**: Mixed branch names (`master` vs `main`) across configurations is confusing and error-prone
+  - **Expected Outcome**: Consistent primary branch name used in all configurations
+  - **Dependencies**: None
+
+- **Enhancement**: Add TSDoc for all public component APIs and utilities
+  - **Complexity**: Medium
+  - **Rationale**: Missing documentation hinders discoverability and increases onboarding time
+  - **Expected Outcome**: Complete TSDoc comments for exported components, props, and functions
+  - **Dependencies**: None
+
+- **Refactor**: Fix leaky abstractions in Storybook stories
+  - **Complexity**: Medium
+  - **Rationale**: Stories dependent on global context hide true component dependencies
+  - **Expected Outcome**: Components rendered using only public props and documented decorators
+  - **Dependencies**: None
+
 ### Security Issues
 
 - **Fix**: Verify repository history for sensitive configuration files exposure
@@ -160,6 +186,38 @@
   - **Dependencies**: None
 
 ## Medium Priority
+
+### Code Review - Medium Priority Items
+
+- **Enhancement**: Add visual regression testing in CI
+  - **Complexity**: Medium
+  - **Rationale**: UI bugs and layout regressions can go undetected until manual QA or production
+  - **Expected Outcome**: Visual regression tool integrated into CI pipeline with baseline images
+  - **Dependencies**: None
+
+- **Enhancement**: Improve test assertions for component behavior
+  - **Complexity**: Medium
+  - **Rationale**: Superficial tests may pass even if component logic is broken
+  - **Expected Outcome**: Tests cover various states, prop combinations, and verify actual behavior
+  - **Dependencies**: None
+
+- **Enhancement**: Add edge case coverage in Storybook stories
+  - **Complexity**: Simple
+  - **Rationale**: Missing edge cases in stories leads to incomplete visual documentation
+  - **Expected Outcome**: Stories for error states, loading states, empty states, and content overflow
+  - **Dependencies**: None
+
+- **Fix**: Replace unstructured logging with structured logger
+  - **Complexity**: Simple
+  - **Rationale**: Console.log bypasses structured logging, making log aggregation difficult
+  - **Expected Outcome**: All logging uses the project's standardized structured logger
+  - **Dependencies**: None
+
+- **Enhancement**: Add explicit formatting enforcement in CI
+  - **Complexity**: Simple
+  - **Rationale**: Without CI check, inconsistently formatted code can be merged
+  - **Expected Outcome**: CI step running formatting check and failing build on violations
+  - **Dependencies**: None
 
 ### Technical Debt & Improvements
 
@@ -350,6 +408,26 @@
   - **Dependencies**: Structured logging
 
 ## Low Priority
+
+### Code Review - Low Priority Items
+
+- **Enhancement**: Improve naming consistency for variables, functions, and props
+  - **Complexity**: Simple
+  - **Rationale**: Non-descriptive names increase cognitive load for developers
+  - **Expected Outcome**: Consistent, descriptive naming throughout the codebase
+  - **Dependencies**: None
+
+- **Fix**: Remove console.error from test utilities
+  - **Complexity**: Simple
+  - **Rationale**: Logging errors within test utilities can obscure actual test failures
+  - **Expected Outcome**: Errors propagate naturally without additional logging
+  - **Dependencies**: None
+
+- **Enhancement**: Update component-level README files
+  - **Complexity**: Simple
+  - **Rationale**: Outdated READMEs can mislead developers about components
+  - **Expected Outcome**: Current READMEs that align with global philosophy documents
+  - **Dependencies**: None
 
 ### Code Quality & Developer Experience
 
