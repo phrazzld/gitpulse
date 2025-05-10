@@ -46,7 +46,7 @@ jest.mock('next/image', () => ({
       <div 
         data-testid="mock-image"
         aria-label={alt}
-        data-alt={alt} {/* Use data-alt instead of alt attribute which isn't valid on div */}
+        data-alt={alt}
         style={{ 
           display: 'inline-block', 
           width: typeof width === 'number' ? `${width}px` : width,
