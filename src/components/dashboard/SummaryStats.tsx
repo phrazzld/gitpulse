@@ -1,11 +1,12 @@
 import React from 'react';
 import { CommitSummary } from '@/types/dashboard';
+import { getSafeStats, TestCommitSummary } from '@/types/dashboardExtensions';
 
 export interface SummaryStatsProps {
   /**
    * The commit summary data to display statistics for
    */
-  summary?: CommitSummary | null;
+  summary?: CommitSummary | TestCommitSummary | null;
   
   /**
    * Additional CSS class to apply to the container
@@ -20,8 +21,8 @@ const SummaryStats: React.FC<SummaryStatsProps> = ({
   summary,
   className = ''
 }) => {
-  // Handle null or undefined summary gracefully
-  const stats = summary?.stats || { totalCommits: 0, repositories: [], dates: [] };
+  // Handle null or undefined summary gracefully with our utility function
+  const stats = getSafeStats(summary);
   
   return (
     <div className={`${className}`}>

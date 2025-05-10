@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import SummaryStats from '../SummaryStats';
 import { CommitSummary } from '@/types/dashboard';
+import { TestCommitSummary } from '@/types/dashboardExtensions';
 
 describe('SummaryStats', () => {
   // Test data
@@ -134,10 +135,9 @@ describe('SummaryStats', () => {
   });
   
   test('handles summary with null stats gracefully', () => {
-    const summaryWithNullStats: CommitSummary = {
+    const summaryWithNullStats: TestCommitSummary = {
       user: 'testuser',
       commits: [],
-      // @ts-ignore - Intentionally using null stats for testing
       stats: null
     };
     
@@ -157,10 +157,9 @@ describe('SummaryStats', () => {
   });
   
   test('handles summary with undefined stats gracefully', () => {
-    const summaryWithUndefinedStats: CommitSummary = {
+    const summaryWithUndefinedStats: TestCommitSummary = {
       user: 'testuser',
       commits: [],
-      // @ts-ignore - Intentionally using undefined stats for testing
       stats: undefined
     };
     
