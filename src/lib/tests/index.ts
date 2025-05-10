@@ -8,6 +8,9 @@
 export * from './github-test-utils';
 export * from './react-test-utils';
 export * from './network-test-utils';
+export * from './dateMock';
+export * from './localStorageMock';
+export * from './mockRenderer';
 
 /**
  * Common test utilities that don't belong in a specific category
@@ -25,29 +28,12 @@ export const delay = (ms: number): Promise<void> =>
  * Creates a mock date for testing date-dependent functions
  * @param dateString - ISO date string to use for the mock date
  * @returns Object with mock and restore functions
+ * @deprecated Use createMockDate from dateMock.ts instead
  */
 export const mockDate = (dateString: string) => {
-  const originalDate = global.Date;
-  const mockDateObj = new Date(dateString);
-  
-  // @ts-ignore
-  global.Date = class extends Date {
-    constructor() {
-      super();
-      return mockDateObj;
-    }
-    
-    static now() {
-      return mockDateObj.getTime();
-    }
-  };
-  
-  return {
-    date: mockDateObj,
-    restore: () => {
-      global.Date = originalDate;
-    }
-  };
+  // Import the createMockDate function from the dateMock module
+  const { createMockDate } = require('./dateMock');
+  return createMockDate(dateString);
 };
 
 /**
@@ -73,42 +59,10 @@ export const mockConsole = (methods: Array<'log' | 'error' | 'warn' | 'info' | '
 /**
  * Helper to test localStorage in environments where it might not be available
  * @returns Mock localStorage implementation and utility functions
+ * @deprecated Use createMockLocalStorage from localStorageMock.ts instead
  */
 export const mockLocalStorage = () => {
-  const originalLocalStorage = global.localStorage;
-  const store: Record<string, string> = {};
-  
-  const mockStorage = {
-    getItem: jest.fn((key: string) => store[key] || null),
-    setItem: jest.fn((key: string, value: string) => {
-      store[key] = value.toString();
-    }),
-    removeItem: jest.fn((key: string) => {
-      delete store[key];
-    }),
-    clear: jest.fn(() => {
-      Object.keys(store).forEach(key => {
-        delete store[key];
-      });
-    }),
-    key: jest.fn((index: number) => {
-      return Object.keys(store)[index] || null;
-    }),
-    length: 0
-  };
-  
-  Object.defineProperty(mockStorage, 'length', {
-    get: () => Object.keys(store).length
-  });
-  
-  // @ts-ignore
-  global.localStorage = mockStorage;
-  
-  return {
-    store,
-    localStorage: mockStorage,
-    restore: () => {
-      global.localStorage = originalLocalStorage;
-    }
-  };
+  // Import the createMockLocalStorage function from the localStorageMock module
+  const { createMockLocalStorage } = require('./localStorageMock');
+  return createMockLocalStorage();
 };
