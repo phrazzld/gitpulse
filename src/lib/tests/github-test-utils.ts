@@ -8,6 +8,14 @@
 
 import { jest } from '@jest/globals';
 import { AppInstallation, Commit, Repository } from '../github/types';
+import { mockResolvedValue, mockReturnValue, TypedMock } from './typed-mock-utils';
+import { 
+  GitHubAuthModule, 
+  GitHubCommitsModule,
+  GitHubRepositoriesModule,
+  GitHubUtilsModule,
+  GitHubModule
+} from './github-module-types';
 
 // Type definitions for mock factories
 export type MockFactory<T> = (overrides?: Partial<T>) => T;
@@ -94,52 +102,38 @@ export const setupGitHubMocks = () => {
     index: jest.requireActual('../github')
   };
 
-  // Create mock functions with default implementations
-  const mockAuth = {
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    getAllAppInstallations: jest.fn().mockResolvedValue([createMockInstallation()]),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly  
-    checkAppInstallation: jest.fn().mockResolvedValue(true),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    getInstallationOctokit: jest.fn().mockResolvedValue({}),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    getInstallationManagementUrl: jest.fn().mockReturnValue('https://github.com/settings/installations/123456'),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    createOAuthOctokit: jest.fn().mockReturnValue({}),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    validateOAuthToken: jest.fn().mockResolvedValue(true)
+  // Create typed mock functions with default implementations
+  const mockAuth: TypedMock<GitHubAuthModule> = {
+    getAllAppInstallations: mockResolvedValue([createMockInstallation()]),
+    checkAppInstallation: mockResolvedValue(12345),
+    getInstallationOctokit: mockResolvedValue({} as any),
+    getInstallationManagementUrl: mockReturnValue('https://github.com/settings/installations/123456'),
+    createOAuthOctokit: mockReturnValue({} as any),
+    validateOAuthToken: mockResolvedValue({ valid: true, user: { login: 'testuser', name: 'Test User' }})
   };
 
-  const mockCommits = {
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    fetchRepositoryCommitsOAuth: jest.fn().mockResolvedValue([createMockCommit()]),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    fetchRepositoryCommitsApp: jest.fn().mockResolvedValue([createMockCommit()]),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    fetchRepositoryCommits: jest.fn().mockResolvedValue([createMockCommit()]),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    fetchCommitsForRepositories: jest.fn().mockResolvedValue([createMockCommit()])
+  const mockCommits: TypedMock<GitHubCommitsModule> = {
+    fetchRepositoryCommitsOAuth: mockResolvedValue([createMockCommit()]),
+    fetchRepositoryCommitsApp: mockResolvedValue([createMockCommit()]),
+    fetchRepositoryCommits: mockResolvedValue([createMockCommit()]),
+    fetchCommitsForRepositories: mockResolvedValue([createMockCommit()])
   };
 
-  const mockRepositories = {
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    fetchUserRepositories: jest.fn().mockResolvedValue([createMockRepository()]),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    fetchInstallationRepositories: jest.fn().mockResolvedValue([createMockRepository()]),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    fetchOrganizationRepositories: jest.fn().mockResolvedValue([createMockRepository()]),
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    getAllRepositories: jest.fn().mockResolvedValue([createMockRepository()])
+  const mockRepositories: TypedMock<GitHubRepositoriesModule> = {
+    fetchUserRepositories: mockResolvedValue([createMockRepository()]),
+    fetchInstallationRepositories: mockResolvedValue([createMockRepository()]),
+    fetchOrganizationRepositories: mockResolvedValue([createMockRepository()]),
+    getAllRepositories: mockResolvedValue([createMockRepository()])
   };
 
-  const mockUtils = {
-    extractAuthorMetadata: jest.fn().mockReturnValue({
+  const mockUtils: TypedMock<GitHubUtilsModule> = {
+    extractAuthorMetadata: mockReturnValue({
       name: 'Test User',
       email: 'test@example.com',
       username: 'testuser',
       date: '2023-01-01T00:00:00Z'
     }),
-    extractCommitMetadata: jest.fn().mockReturnValue({
+    extractCommitMetadata: mockReturnValue({
       sha: 'abcdef1234567890',
       message: 'Test commit message',
       url: 'https://github.com/org/repo/commit/abcdef1234567890',

@@ -67,7 +67,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Run `grep -r "@ts-expect-error" --include="*.ts" --include="*.tsx" src/`
     - Document each suppression with file, line number, and suppressed rule/error
 
-- [ ] **TASK-047: Address TypeScript/linter suppressions by fixing underlying issues**
+- [~] **TASK-047: Address TypeScript/linter suppressions by fixing underlying issues**
   - **Priority**: Critical
   - **Effort**: Large
   - **Dependencies**: TASK-046
@@ -77,6 +77,10 @@ This document outlines the tasks needed to address the critical issues identifie
     - Refactor code to fix the underlying issue
     - Remove the suppression comment
     - Verify TypeScript/ESLint pass without errors
+  - **Progress**:
+    - ✅ Completed Jest mock type suppressions (24 instances, 60% of total)
+    - 🔄 Created typed-mock-utils.ts with type-safe utilities for Jest mocks
+    - 🔄 Created module-type interfaces for properly typing dependencies
 
 - [ ] **TASK-048: Fix common suppression patterns systematically**
   - **Priority**: High

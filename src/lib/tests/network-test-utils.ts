@@ -6,23 +6,18 @@
  */
 
 import { jest } from '@jest/globals';
+import { MockApiResponse, FetchMockImplementation, FetchMockUtils } from './network-module-types';
 
 /**
- * Type definitions for mock API responses
+ * Helper type for global fetch object
  */
-export type MockApiResponse<T> = {
-  ok: boolean;
-  status: number;
-  statusText: string;
-  data: T;
-  headers: Record<string, string>;
-};
+type GlobalFetch = typeof global.fetch;
 
 /**
  * Sets up global fetch mocks for testing
  * @returns Utility functions for controlling fetch behavior
  */
-export function setupFetchMocks() {
+export function setupFetchMocks(): FetchMockUtils {
   // Store original fetch
   const originalFetch = global.fetch;
 
@@ -30,10 +25,10 @@ export function setupFetchMocks() {
   if (jest.isMockFunction(global.fetch)) {
     (global.fetch as jest.Mock).mockClear();
   } else {
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    global.fetch = jest.fn().mockImplementation(() => 
+    // Set up the mock implementation for fetch
+    global.fetch = jest.fn(() => 
       Promise.resolve(new Response())
-    );
+    ) as unknown as GlobalFetch;
   }
 
   /**
@@ -54,16 +49,11 @@ export function setupFetchMocks() {
     });
 
     // Create mock functions for response methods
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    const json = jest.fn().mockResolvedValue(data);
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    const text = jest.fn().mockResolvedValue(JSON.stringify(data));
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    const blob = jest.fn().mockResolvedValue(new Blob([JSON.stringify(data)]));
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    const arrayBuffer = jest.fn().mockResolvedValue(new ArrayBuffer(0));
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    const formData = jest.fn().mockResolvedValue(new FormData());
+    const json = jest.fn(() => Promise.resolve(data));
+    const text = jest.fn(() => Promise.resolve(JSON.stringify(data)));
+    const blob = jest.fn(() => Promise.resolve(new Blob([JSON.stringify(data)])));
+    const arrayBuffer = jest.fn(() => Promise.resolve(new ArrayBuffer(0)));
+    const formData = jest.fn(() => Promise.resolve(new FormData()));
 
     // Create a partial Response object with common properties
     const responseInit = {
@@ -98,8 +88,8 @@ export function setupFetchMocks() {
       data,
       headers
     });
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+    const mockFetch = global.fetch as jest.Mock;
+    mockFetch.mockImplementationOnce(() => Promise.resolve(mockResponse));
   };
 
   /**
@@ -118,16 +108,16 @@ export function setupFetchMocks() {
       data,
       headers
     });
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+    const mockFetch = global.fetch as jest.Mock;
+    mockFetch.mockImplementationOnce(() => Promise.resolve(mockResponse));
   };
 
   /**
    * Creates a network error response
    */
   const mockNetworkError = (errorMessage = 'Network error'): void => {
-    // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+    const mockFetch = global.fetch as jest.Mock;
+    mockFetch.mockImplementationOnce(() => Promise.reject(new Error(errorMessage)));
   };
 
   /**
@@ -139,8 +129,8 @@ export function setupFetchMocks() {
         mockNetworkError(response.message);
       } else {
         const mockResponse = createResponse(response);
-        // @ts-ignore - Work around TypeScript not handling jest.fn() return types properly
-        (global.fetch as jest.Mock).mockResolvedValueOnce(mockResponse);
+        const mockFetch = global.fetch as jest.Mock;
+        mockFetch.mockImplementationOnce(() => Promise.resolve(mockResponse));
       }
     });
   };
