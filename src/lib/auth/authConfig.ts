@@ -1,13 +1,14 @@
-import type { NextAuthOptions, Session } from "next-auth";
+import type { NextAuthOptions, Session, User, Account, Profile } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 import GitHubProvider from "next-auth/providers/github"; 
 import { logger } from "@/lib/logger";
 import { checkAppInstallation } from "@/lib/github/auth";
 
 // Add type for JWT token
-interface ExtendedToken {
+interface ExtendedToken extends JWT {
   accessToken?: string;
   installationId?: number;
-  [key: string]: any;
+  // Additional properties will be typed through JWT interface
 }
 
 // Add type for Extended Session
@@ -50,7 +51,7 @@ export const createAuthOptions = (): NextAuthOptions => ({
     }),
   ],
   callbacks: {
-    async jwt({ token, account, user }: { token: ExtendedToken; account: any | null; user: any | undefined }) {
+    async jwt({ token, account, user }: { token: ExtendedToken; account: Account | null; user: User | undefined }) {
       logger.debug(MODULE_NAME, "JWT callback called", { 
         hasToken: !!token,
         hasAccount: !!account,
@@ -85,7 +86,7 @@ export const createAuthOptions = (): NextAuthOptions => ({
       
       return token;
     },
-    async session({ session, token }: { session: ExtendedSession; token: ExtendedToken; user: any }) {
+    async session({ session, token }: { session: ExtendedSession; token: ExtendedToken; user: User }) {
       logger.debug(MODULE_NAME, "Session callback called", { 
         hasSession: !!session, 
         hasToken: !!token,
@@ -108,7 +109,7 @@ export const createAuthOptions = (): NextAuthOptions => ({
       
       return session;
     },
-    async signIn({ user, account, profile }: { user: any; account: any | null; profile?: any }) {
+    async signIn({ user, account, profile }: { user: User; account: Account | null; profile?: Profile }) {
       if (!account) return false;
       
       logger.info(MODULE_NAME, "User sign in", {
@@ -121,7 +122,7 @@ export const createAuthOptions = (): NextAuthOptions => ({
     },
   },
   events: {
-    async signIn(message: { user: any }) {
+    async signIn(message: { user: User }) {
       logger.info(MODULE_NAME, "User signed in successfully", {
         user: message.user.email || message.user.name || 'unknown'
       });

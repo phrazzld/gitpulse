@@ -58,6 +58,13 @@ interface FetchOptions {
   readonly forceFetch?: boolean;
 }
 
+interface ApiErrorData {
+  readonly error?: string;
+  readonly message?: string;
+  readonly code?: string;
+  readonly needsInstallation?: boolean;
+}
+
 /**
  * Custom hook for fetching and managing GitHub repositories
  * 

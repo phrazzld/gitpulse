@@ -1,4 +1,6 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHookSafely } from '@/lib/tests/react-test-utils';
+import { act } from 'react';
+import { waitFor } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
 import { useSummary } from '../useSummary';
 import { logger } from '@/lib/logger';
@@ -50,7 +52,7 @@ describe('useSummary', () => {
   };
 
   it('should initialize with default values', () => {
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHookSafely(() => useSummary(defaultProps));
     
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
@@ -79,7 +81,7 @@ describe('useSummary', () => {
 
     (fetch as jest.Mock).mockResolvedValueOnce(createMockResponse(mockSummaryData));
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHookSafely(() => useSummary(defaultProps));
     
     await act(async () => {
       await result.current.generateSummary();
@@ -104,7 +106,7 @@ describe('useSummary', () => {
       status: 'unauthenticated'
     });
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHookSafely(() => useSummary(defaultProps));
     
     await act(async () => {
       await result.current.generateSummary();
@@ -127,7 +129,7 @@ describe('useSummary', () => {
       installationIds: [123, 456]
     };
 
-    const { result } = renderHook(() => useSummary(propsWithInstallations));
+    const { result } = renderHookSafely(() => useSummary(propsWithInstallations));
     
     await act(async () => {
       await result.current.generateSummary();
@@ -148,7 +150,7 @@ describe('useSummary', () => {
       contributors: ['user1']
     };
 
-    const { result } = renderHook(() => useSummary(propsWithFilters));
+    const { result } = renderHookSafely(() => useSummary(propsWithFilters));
     
     await act(async () => {
       await result.current.generateSummary();
@@ -177,7 +179,7 @@ describe('useSummary', () => {
       json: jest.fn().mockResolvedValue(errorResponse)
     });
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHookSafely(() => useSummary(defaultProps));
     
     await act(async () => {
       await result.current.generateSummary();
@@ -207,7 +209,7 @@ describe('useSummary', () => {
       json: jest.fn().mockResolvedValue(errorResponse)
     });
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHookSafely(() => useSummary(defaultProps));
     
     await act(async () => {
       await result.current.generateSummary();
@@ -221,7 +223,7 @@ describe('useSummary', () => {
   it('should handle network errors', async () => {
     (fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHookSafely(() => useSummary(defaultProps));
     
     await act(async () => {
       await result.current.generateSummary();

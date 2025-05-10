@@ -9,6 +9,7 @@ import {
 import { fetchAllRepositories } from "@/lib/github/repositories";
 import { fetchCommitsForRepositories } from "@/lib/github/commits";
 import { logger } from "@/lib/logger";
+import { getErrorMessage, isError, isGitHubApiError } from "@/lib/utils/types";
 
 const MODULE_NAME = "api:my-org-activity";
 
@@ -142,11 +143,12 @@ export async function GET(request: NextRequest) {
     let allRepositories: Repository[] = [];
     try {
       allRepositories = await fetchAllRepositories(accessToken, installationId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
       
+      const errorMessage = getErrorMessage(error);
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching repositories: " + error.message,
+        error: "Error fetching repositories: " + errorMessage,
         code: "GITHUB_REPO_ERROR"
       }), {
         status: 500,
@@ -208,11 +210,12 @@ export async function GET(request: NextRequest) {
         until,
         userLogin // Only fetch commits by the current user
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(MODULE_NAME, "Error fetching commits", { error });
       
+      const errorMessage = getErrorMessage(error);
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching commits: " + error.message,
+        error: "Error fetching commits: " + errorMessage,
         code: "GITHUB_COMMIT_ERROR"
       }), {
         status: 500,
@@ -271,11 +274,12 @@ export async function GET(request: NextRequest) {
       },
     });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(MODULE_NAME, "Unexpected error processing request", { error });
     
+    const errorMessage = getErrorMessage(error);
     return new NextResponse(JSON.stringify({ 
-      error: "An unexpected error occurred: " + error.message,
+      error: "An unexpected error occurred: " + errorMessage,
       code: "UNEXPECTED_ERROR"
     }), {
       status: 500,
@@ -299,13 +303,16 @@ function getDefaultUntil(): string {
 }
 
 // Helper function to generate an ETag for caching
-function generateETag(data: any): string {
+function generateETag(data: unknown): string {
   // Simple implementation - in a real app you might want to use a hash function
   return `"${Buffer.from(JSON.stringify(data)).toString('base64').slice(0, 40)}"`;
 }
 
 // Helper to extract user login from session
-function getUserLoginFromSession(session: any): string | undefined {
+function getUserLoginFromSession(session: {
+  profile?: { login?: string };
+  user?: { name?: string | null; email?: string | null };
+}): string | undefined {
   if (session.profile?.login) {
     return session.profile.login;
   }

@@ -1,0 +1,39 @@
+name: 'Chromatic Visual Testing'
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+    
+# Don't run if CHROMATIC_PROJECT_TOKEN is not configured
+# This prevents CI failures during initial setup
+jobs:
+  chromatic-deployment:
+    runs-on: ubuntu-latest
+    # Only run if CHROMATIC_PROJECT_TOKEN exists
+    if: ${{ secrets.CHROMATIC_PROJECT_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for Chromatic to track changes correctly
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Publish to Chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          exitZeroOnChanges: true # Prevents failures on visual changes (change to false to enforce changes approval)
+          exitOnceUploaded: true # Avoid waiting for tests to complete 
+          onlyChanged: true # Only build stories affected by changes
+          externals: '**/*.png, **/*.svg' # Skip binary images from testing
+          buildScriptName: build-storybook # The script that builds the Storybook
+          skip: ${{ github.actor == 'dependabot[bot]' }} # Skip Chromatic on dependabot PRs

@@ -346,7 +346,7 @@ export default function FilterPanel({
                       name="groupBy"
                       value={option.value}
                       checked={groupBy === option.value}
-                      onChange={() => setGroupBy(option.value as any)}
+                      onChange={() => setGroupBy(option.value as 'contributor' | 'organization' | 'repository' | 'chronological')}
                       disabled={isLoading}
                       className="mr-2"
                       style={{ 

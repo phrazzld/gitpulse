@@ -13,7 +13,8 @@ This document defines the standards and best practices for using Storybook in th
 - [7. Component Isolation and Testing](#7-component-isolation-and-testing)
 - [8. Accessibility (a11y)](#8-accessibility-a11y)
 - [9. Component Variants and States](#9-component-variants-and-states)
-- [10. Example Stories](#10-example-stories)
+- [10. Visual Regression Testing](#10-visual-regression-testing)
+- [11. Example Stories](#11-example-stories)
 
 ## 1. Introduction
 
@@ -314,7 +315,63 @@ For interactive components, include stories demonstrating:
 - Active/pressed state
 - Disabled state
 
-## 10. Example Stories
+## 10. Visual Regression Testing
+
+### Chromatic Integration
+
+The project uses Chromatic for visual regression testing to ensure UI consistency across changes:
+
+1. **Automated Testing**:
+   - All Storybook stories are automatically tested using Chromatic on each PR and merge to master
+   - Visual changes are detected and flagged for review
+   - Tests run as part of CI pipeline in GitHub Actions
+
+2. **Review Process**:
+   - Visual changes detected by Chromatic require review
+   - Use the Chromatic web UI to:
+     - Compare before/after screenshots
+     - Approve intentional changes
+     - Reject unintended changes
+
+3. **Testing on PRs**:
+   - When a PR includes visual changes:
+     - Chromatic will flag the changes
+     - PR author should add a comment explaining visual changes
+     - Reviewer should verify changes in Chromatic before approving
+
+### Creating Baseline Images
+
+When adding new components or stories:
+1. The first Chromatic run will establish baseline images
+2. Ensure your components render as expected in the initial run
+3. Review and approve the baseline images in Chromatic UI
+
+### Local Testing
+
+Before submitting PRs, you can run Chromatic locally:
+
+```bash
+npm run chromatic
+```
+
+This will:
+1. Build your Storybook
+2. Upload to Chromatic for testing
+3. Generate a URL for you to preview changes
+
+### Dealing with False Positives
+
+Occasionally, Chromatic may detect visual differences due to:
+- Rendering inconsistencies across environments
+- Animation or transition timing
+- Dynamic content
+
+In these cases:
+1. Add the `chromatic={{ disableSnapshot: true }}` parameter to the problematic story
+2. For subtle animations, add `chromatic={{ pauseAnimationAtEnd: true }}`
+3. Document the reason for disabling snapshots in story comments
+
+## 11. Example Stories
 
 ### Simple Component Example (LoadMoreButton)
 

@@ -14,23 +14,23 @@ declare namespace jest {
   function spyOn(object: any, methodName: string): any;
   function fn(implementation?: (...args: any[]) => any): any;
   function mock(moduleName: string, factory?: () => any): void;
+  
+  interface Mock {
+    (...args: any[]): any;
+    mockReturnValue(val: any): this;
+    mockResolvedValue(val: any): this;
+    mockRejectedValue(val: any): this;
+    mockResolvedValueOnce(val: any): this;
+    mockRejectedValueOnce(val: any): this;
+    mockReset(): void;
+  }
 }
-type Mock<T> = ReturnType<typeof jest.fn>;
+type Mock = jest.Mock;
 
-// Mocking renderHook and act functions that would come from @testing-library/react
-const renderHook = (callback: Function) => {
-  const result = { current: callback() };
-  return { result };
-};
-
-const act = async (callback: Function) => {
-  await callback();
-};
-
-const waitFor = async (callback: Function) => {
-  await new Promise(resolve => setTimeout(resolve, 0));
-  callback();
-};
+// Import testing library methods
+import { renderHookSafely } from '@/lib/tests/react-test-utils';
+import { act } from 'react';
+import { waitFor } from '@testing-library/react';
 
 // Import hooks and types
 import { useRepositories } from '../useRepositories';
@@ -63,7 +63,7 @@ jest.mock('@/lib/localStorageCache', () => ({
 import { setCacheItem, getStaleItem } from '@/lib/localStorageCache';
 
 // Mock fetch
-global.fetch = jest.fn();
+global.fetch = jest.fn() as jest.Mock;
 
 describe('useRepositories', () => {
   // Mock repositories for testing
@@ -113,7 +113,7 @@ describe('useRepositories', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (fetch as any).mockReset();
+    (fetch as jest.Mock).mockReset();
   });
 
   it('should return initial state on first render', async () => {
@@ -124,7 +124,7 @@ describe('useRepositories', () => {
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Initial state
     expect(result.current.repositories).toEqual([]);
@@ -142,7 +142,7 @@ describe('useRepositories', () => {
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -180,7 +180,7 @@ describe('useRepositories', () => {
       isStale: false 
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -211,7 +211,7 @@ describe('useRepositories', () => {
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -244,7 +244,7 @@ describe('useRepositories', () => {
       })
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -278,7 +278,7 @@ describe('useRepositories', () => {
       })
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -306,7 +306,7 @@ describe('useRepositories', () => {
     // Mock generic error
     (fetch as any).mockRejectedValueOnce(new Error('Network error'));
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories
     let fetchPromise;
@@ -336,7 +336,7 @@ describe('useRepositories', () => {
     });
 
     const installationId = 54321;
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories());
 
     // Call fetchRepositories with specific installation ID
     let fetchPromise;
