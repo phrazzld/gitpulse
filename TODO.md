@@ -14,7 +14,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Compile a list of all files and line numbers where `any` is used
     - Exclude legitimate type declarations (e.g., Array<any> vs `any` type assignments)
 
-- [ ] **TASK-042: Replace `any` in `renderHookSafely` function signature**
+- [x] **TASK-042: Replace `any` in `renderHookSafely` function signature**
   - **Priority**: Critical
   - **Effort**: Medium
   - **Dependencies**: None

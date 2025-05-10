@@ -8,7 +8,7 @@
 
 import * as React from 'react';
 import { ReactElement, ReactNode, Context, createContext, useContext, act } from 'react';
-import { render, RenderOptions, RenderResult, renderHook, waitFor } from '@testing-library/react';
+import { render, RenderOptions, RenderResult, renderHook, RenderHookOptions, waitFor } from '@testing-library/react';
 
 /**
  * Custom wrapper for rendering components with specific providers
@@ -54,7 +54,7 @@ export type SafeRenderHookResult<Result, Props> = Omit<
 > & {
   waitForNextUpdate: (options?: { timeout?: number }) => Promise<void>;
   waitFor: (callback: () => boolean | void, options?: { timeout?: number; interval?: number }) => Promise<void>;
-  waitForValueToChange: (selector: () => any, options?: { timeout?: number; interval?: number }) => Promise<void>;
+  waitForValueToChange: (selector: () => unknown, options?: { timeout?: number; interval?: number }) => Promise<void>;
 };
 
 /**
@@ -66,7 +66,9 @@ export type SafeRenderHookResult<Result, Props> = Omit<
  */
 export function renderHookSafely<Result, Props>(
   hookFn: (props: Props) => Result,
-  options?: any // Using any temporarily for compatibility with both libraries
+  options?: Omit<RenderHookOptions<Props>, 'wrapper'> & { 
+    wrapper?: React.ComponentType<{children: React.ReactNode}>; 
+  }
 ): SafeRenderHookResult<Result, Props> {
   const result = renderHook(hookFn, options);
 
@@ -126,7 +128,7 @@ export function renderHookSafely<Result, Props>(
   };
 
   const safeWaitForValueToChange = async (
-    selector: () => any,
+    selector: () => unknown,
     waitOptions?: { timeout?: number; interval?: number }
   ) => {
     try {
@@ -220,7 +222,7 @@ export function createMockContext<T>(defaultValue: T) {
 export function renderAsyncHook<Result, Props, Data>(
   hookFn: (props: Props) => Result,
   mockData: Data,
-  options?: any
+  options?: Omit<RenderHookOptions<Props>, 'wrapper'> & { wrapper?: React.ComponentType<{children: React.ReactNode}>; }
 ): SafeRenderHookResult<Result, Props> & { mockData: Data; triggerSuccess: () => void; triggerError: (error: Error) => void } {
   let resolvePromise: (value: Data) => void;
   let rejectPromise: (reason: Error) => void;
