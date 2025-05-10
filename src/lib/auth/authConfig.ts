@@ -3,6 +3,7 @@ import type { JWT } from "next-auth/jwt";
 import GitHubProvider from "next-auth/providers/github"; 
 import { logger } from "@/lib/logger";
 import { checkAppInstallation } from "@/lib/github/auth";
+import { GitHubProviderCallbackConfig } from "./githubProviderTypes";
 
 // Add type for JWT token
 interface ExtendedToken extends JWT {
@@ -20,7 +21,7 @@ interface ExtendedSession extends Session {
 const MODULE_NAME = "auth:config";
 
 // A helper function to generate consistent callback URL
-function getCallbackUrl() {
+function getCallbackUrl(): string | undefined {
   // In production, use NEXTAUTH_URL if available
   const baseUrl = process.env.NEXTAUTH_URL;
   if (baseUrl) {
@@ -45,7 +46,6 @@ export const createAuthOptions = (): NextAuthOptions => ({
       },
       // Only set callback URL if explicitly defined
       ...(getCallbackUrl() ? { 
-        // @ts-ignore - callbackUrl is not in the type but it works
         callbackUrl: getCallbackUrl() 
       } : {})
     }),
