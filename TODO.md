@@ -24,7 +24,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Ensure function type safety without breaking existing usages
     - Run tests to verify functionality is preserved
 
-- [ ] **TASK-043: Replace `any` in `renderAsyncHook` function signature**
+- [x] **TASK-043: Replace `any` in `renderAsyncHook` function signature**
   - **Priority**: Critical
   - **Effort**: Medium
   - **Dependencies**: None
