@@ -41,7 +41,7 @@ type RTLRenderHookResult<T> = {
     current: T;
     error?: Error;
   };
-  rerender: (props?: any) => void;
+  rerender: (props?: Partial<T>) => void;
   unmount: () => void;
 };
 
@@ -164,12 +164,17 @@ export function renderHookSafely<Result, Props>(
     }
   };
 
-  return {
-    ...result,
+  // Create a properly typed result object
+  const safeResult: SafeRenderHookResult<Result, Props> = {
+    result: result.result,
+    rerender: result.rerender as (props?: Partial<Result>) => void,
+    unmount: result.unmount,
     waitForNextUpdate: safeWaitForNextUpdate,
     waitFor: safeWaitFor,
     waitForValueToChange: safeWaitForValueToChange
   };
+  
+  return safeResult;
 }
 
 /**
