@@ -14,8 +14,18 @@ declare namespace jest {
   function spyOn(object: any, methodName: string): any;
   function fn(implementation?: (...args: any[]) => any): any;
   function mock(moduleName: string, factory?: () => any): void;
+  
+  interface Mock {
+    (...args: any[]): any;
+    mockReturnValue(val: any): this;
+    mockResolvedValue(val: any): this;
+    mockRejectedValue(val: any): this;
+    mockResolvedValueOnce(val: any): this;
+    mockRejectedValueOnce(val: any): this;
+    mockReset(): void;
+  }
 }
-type Mock<T> = ReturnType<typeof jest.fn>;
+type Mock = jest.Mock;
 
 // Import testing library methods
 import { renderHookSafely } from '@/lib/tests/react-test-utils';
@@ -53,7 +63,7 @@ jest.mock('@/lib/localStorageCache', () => ({
 import { setCacheItem, getStaleItem } from '@/lib/localStorageCache';
 
 // Mock fetch
-global.fetch = jest.fn();
+global.fetch = jest.fn() as jest.Mock;
 
 describe('useRepositories', () => {
   // Mock repositories for testing
@@ -103,7 +113,7 @@ describe('useRepositories', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (fetch as any).mockReset();
+    (fetch as jest.Mock).mockReset();
   });
 
   it('should return initial state on first render', async () => {

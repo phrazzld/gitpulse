@@ -31,10 +31,21 @@ jest.mock('next-auth/react', () => ({
   signOut: jest.fn()
 }));
 
+// Define interface for Image props
+interface NextImageProps {
+  src: string;
+  alt: string;
+  width: number | string;
+  height: number | string;
+  className?: string;
+  priority?: boolean;
+  quality?: number;
+}
+
 // Mock the next/image component
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: any) => {
+  default: (props: NextImageProps) => {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={props.src} alt={props.alt} width={props.width} height={props.height} className={props.className} />;
   },

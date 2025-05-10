@@ -19,7 +19,7 @@ interface ApiErrorResponse {
  * @returns A standardized error object
  */
 export async function handleApiFetchError(
-  error: any,
+  error: unknown,
   response?: Response
 ): Promise<ApiErrorResponse> {
   console.error('API Error:', error);
@@ -81,7 +81,7 @@ export async function handleApiFetchError(
  * @param options Fetch options
  * @returns A promise that resolves to the response data or throws an error
  */
-export async function authenticatedFetch<T = any>(
+export async function authenticatedFetch<T = unknown>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
@@ -94,7 +94,7 @@ export async function authenticatedFetch<T = any>(
     }
     
     return await response.json();
-  } catch (error) {
+  } catch (error: unknown) {
     // If it's already been processed by handleApiFetchError, just rethrow
     if (error && typeof error === 'object' && 'code' in error) {
       throw error;

@@ -78,15 +78,30 @@ export function optimizeCommit(commit: Commit): MinimalCommit {
 }
 
 /**
+ * Types for input contributor data with various possible formats
+ */
+export interface ContributorInput {
+  username?: string;
+  login?: string;
+  displayName?: string;
+  name?: string;
+  avatarUrl?: string;
+  avatar_url?: string;
+  commitCount?: number;
+  commit_count?: number;
+  [key: string]: unknown;
+}
+
+/**
  * Optimize contributor data
  * 
  * @param contributor - Contributor object with potential extra fields
  * @returns - Minimized contributor data
  */
-export function optimizeContributor(contributor: any): MinimalContributor {
+export function optimizeContributor(contributor: ContributorInput): MinimalContributor {
   return {
-    username: contributor.username || contributor.login,
-    display_name: contributor.displayName || contributor.name || contributor.username || contributor.login,
+    username: contributor.username || contributor.login || '',
+    display_name: contributor.displayName || contributor.name || contributor.username || contributor.login || 'Unknown',
     avatar_url: contributor.avatarUrl || contributor.avatar_url || null,
     commit_count: contributor.commitCount || contributor.commit_count
   };
@@ -110,10 +125,10 @@ export function optimizeArray<T, R>(items: T[], optimizerFn: (item: T) => R): R[
  * @param obj - Object to clean
  * @returns - Object without null or undefined values
  */
-export function removeNullValues<T extends Record<string, any>>(obj: T): Partial<T> {
-  return Object.entries(obj).reduce((acc: any, [key, value]) => {
+export function removeNullValues<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.entries(obj).reduce((acc: Partial<T>, [key, value]) => {
     if (value !== null && value !== undefined) {
-      acc[key] = value;
+      acc[key as keyof T] = value as T[keyof T];
     }
     return acc;
   }, {});
@@ -125,7 +140,7 @@ export function removeNullValues<T extends Record<string, any>>(obj: T): Partial
  * @param data - Data to serialize
  * @returns - Serialized JSON string
  */
-export function optimizedJSONStringify(data: any): string {
+export function optimizedJSONStringify(data: unknown): string {
   // Handle arrays separately for better optimization opportunities
   if (Array.isArray(data)) {
     return `[${data.map(item => 
