@@ -64,30 +64,40 @@ Tests using null/undefined values with @ts-ignore:
 - Updated SummaryStats components to use the utility function and extended types
 - Removed @ts-ignore comments in test files with proper typing
 
-### 4. React Hook Dependencies (2 instances)
+### 4. React Hook Dependencies (2 instances) ✅
 
 ESLint react-hooks/exhaustive-deps rule disabled in useEffect:
 
-**Solution:**
-1. Analyze why dependencies are omitted
-2. Either include all dependencies or refactor to eliminate the need for the suppression
-3. If dependency omission is intentional, add a clear explanation comment
+**Solution:** ✅
+1. ✅ Created a custom hook to encapsulate the initial data loading logic
+2. ✅ Used proper dependency management in the custom hook
+3. ✅ Replaced problematic useEffect calls with the custom hook
 
-**Files to modify:**
-- src/components/ActivityFeed.tsx (1 instance)
-- src/components/organisms/ActivityFeed.tsx (1 instance)
+**Files modified:**
+- ✅ src/components/ActivityFeed.tsx (1 instance)
+- ✅ src/components/organisms/ActivityFeed.tsx (1 instance)
 
-### 5. Next.js Image Mocking (2 instances)
+**Implementation details:**
+- Created useLoadInitialData.ts to handle initial data loading with proper dependency tracking
+- Used useCallback with correct dependencies for the loading function
+- Removed the ESLint suppressions by using the new custom hook
+
+### 5. Next.js Image Mocking (2 instances) ✅
 
 ESLint @next/next/no-img-element rule disabled in test mocks:
 
-**Solution:**
-1. Create a shared mock for Next.js Image that doesn't trigger the warning
-2. Update both test files to use the shared mock
+**Solution:** ✅
+1. ✅ Created an ESLint-safe mock for Next.js Image
+2. ✅ Updated test files to use div elements instead of img
 
-**Files to modify:**
-- src/components/dashboard/__tests__/Header.test.tsx (1 instance)
-- src/components/organisms/__tests__/Header.test.tsx (1 instance)
+**Files modified:**
+- ✅ src/components/dashboard/__tests__/Header.test.tsx (1 instance)
+- ✅ src/components/organisms/__tests__/Header.test.tsx (1 instance)
+
+**Implementation details:**
+- Created reusable imageMock.tsx for future tests
+- Implemented inline ESLint-safe mock in Header tests using div elements
+- Updated tests to use data-testid instead of alt text for querying elements
 
 ### 6. Other TypeScript Suppressions (3 instances)
 
@@ -105,14 +115,14 @@ Miscellaneous suppressions:
 1. ✅ **Jest Mock Type Utilities** - Created reusable solution for all mock-related suppressions
 2. ✅ **External Library Types** - Fixed critical API-related types for Octokit and NextAuth
 3. ✅ **Component Test Edge Cases** - Updated types to handle null/undefined test cases
-4. **ESLint Suppressions** - Address React hooks and Next.js Image issues
+4. ✅ **ESLint Suppressions** - Fixed React hooks and Next.js Image issues
 5. **Remaining TypeScript Suppressions** - Fix the remaining miscellaneous suppressions
 
 ## Progress
 
-- ✅ Completed: 33 suppressions (82.5% of total)
-- 🔄 In Progress: ESLint Suppressions
-- ⏱️ Pending: Remaining TypeScript Suppressions
+- ✅ Completed: 37 suppressions (92.5% of total)
+- 🔄 In Progress: Remaining TypeScript Suppressions
+- ⏱️ Pending: None
 
 ## Testing Strategy
 

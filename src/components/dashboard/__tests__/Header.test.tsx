@@ -31,24 +31,33 @@ jest.mock('next-auth/react', () => ({
   signOut: jest.fn()
 }));
 
-// Define interface for Image props
-interface NextImageProps {
-  src: string;
-  alt: string;
-  width: number | string;
-  height: number | string;
-  className?: string;
-  priority?: boolean;
-  quality?: number;
-}
-
-// Mock the next/image component
+// Mock the next/image component with an inline implementation
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: NextImageProps) => {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={props.src} alt={props.alt} width={props.width} height={props.height} className={props.className} />;
-  },
+  default: function Image({ src, alt, width, height, className }: { 
+    src: string; 
+    alt: string; 
+    width?: number | string; 
+    height?: number | string; 
+    className?: string;
+  }) {
+    // Using a div instead of img to avoid ESLint warnings
+    return (
+      <div 
+        data-testid="mock-image"
+        aria-label={alt}
+        data-alt={alt} {/* Use data-alt instead of alt attribute which isn't valid on div */}
+        style={{ 
+          display: 'inline-block', 
+          width: typeof width === 'number' ? `${width}px` : width,
+          height: typeof height === 'number' ? `${height}px` : height
+        }}
+        className={className}
+      >
+        <div data-src={src}>{alt}</div>
+      </div>
+    );
+  }
 }));
 
 // Import the mocked signOut function
@@ -71,7 +80,10 @@ describe('Header component', () => {
     render(<Header userName={userName} userImage={userImage} />);
     
     expect(screen.getByText(`USER: ${userName.toUpperCase()}`)).toBeInTheDocument();
-    expect(screen.getByAltText(userName)).toBeInTheDocument();
+    // Use getByTestId instead of getByAltText to find the image
+    const mockImage = screen.getByTestId('mock-image');
+    expect(mockImage).toBeInTheDocument();
+    expect(mockImage).toHaveAttribute('aria-label', userName);
   });
 
   it('should not display user section when userImage is not provided', () => {

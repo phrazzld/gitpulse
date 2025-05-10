@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useProgressiveLoading } from '@/hooks/useProgressiveLoading';
+import { useLoadInitialData } from '@/hooks/useLoadInitialData';
 import { FixedSizeList as List } from 'react-window';
 import IntersectionObserver from './IntersectionObserver';
 import LoadMoreButton from '@/components/atoms/LoadMoreButton';
@@ -113,22 +114,15 @@ export default function ActivityFeed({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Load initial data when component mounts
-  useEffect(() => {
-    if (initialLoad) {
-      logger.debug(MODULE_NAME, 'Initial load triggered', {
-        initialLimit,
-        useInfiniteScroll
-      });
-      
-      loadInitialData()
-        .catch(initialError => {
-          // Extra safety to log initial load errors
-          logger.error(MODULE_NAME, 'Error during initial data load', { initialError });
-        });
+  // Use custom hook to handle initial data loading with proper dependency tracking
+  useLoadInitialData(
+    loadInitialData,
+    {
+      initialLoad,
+      logModule: MODULE_NAME,
+      additionalDependencies: [initialLimit, useInfiniteScroll]
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialLoad]);
+  );
   
   // Track new items for animations
   useEffect(() => {
