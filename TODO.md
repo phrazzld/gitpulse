@@ -44,7 +44,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Replace `any` in the `waitForValueToChange` selector function
     - Ensure type safety without breaking existing usages
 
-- [ ] **TASK-045: Replace other identified `any` usages with appropriate types**
+- [~] **TASK-045: Replace other identified `any` usages with appropriate types**
   - **Priority**: High
   - **Effort**: Large
   - **Dependencies**: TASK-041
