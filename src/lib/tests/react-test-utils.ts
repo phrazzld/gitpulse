@@ -9,6 +9,7 @@
 import * as React from 'react';
 import { ReactElement, ReactNode, Context, createContext, useContext, act } from 'react';
 import { render, RenderOptions, RenderResult, renderHook, RenderHookOptions, waitFor } from '@testing-library/react';
+import { setupFetchMocks } from './network-test-utils';
 
 /**
  * Custom wrapper for rendering components with specific providers
@@ -217,6 +218,7 @@ export function createMockContext<T>(defaultValue: T) {
   };
 }
 
+
 /**
  * Helper for testing async hooks that fetch data
  * @param hookFn - The hook function to call
@@ -228,7 +230,7 @@ export function renderAsyncHook<Result, Props, Data>(
   hookFn: (props: Props) => Result,
   mockData: Data,
   options?: Omit<RenderHookOptions<Props>, 'wrapper'> & { wrapper?: React.ComponentType<{children: React.ReactNode}>; }
-): SafeRenderHookResult<Result, Props> & { mockData: Data; triggerSuccess: () => void; triggerError: (error: Error) => void } {
+): SafeRenderHookResult<Result, Props> & { mockData: Data; triggerSuccess: () => void; triggerError: (error: Error) => void; restoreFetch: () => void } {
   let resolvePromise: (value: Data) => void;
   let rejectPromise: (reason: Error) => void;
   
@@ -238,10 +240,20 @@ export function renderAsyncHook<Result, Props, Data>(
     rejectPromise = reject;
   });
   
-  // Mock the fetch implementation
-  global.fetch = jest.fn().mockImplementation(() => promise);
+  // Set up local fetch mocks instead of directly modifying global.fetch
+  const fetchMocks = setupFetchMocks();
+  
+  // Use a custom implementation that returns our controlled promise
+  (global.fetch as jest.Mock).mockImplementation(() => promise);
   
   const result = renderHookSafely(hookFn, options);
+  
+  // Add an unmount handler to restore the original fetch
+  const originalUnmount = result.unmount;
+  result.unmount = () => {
+    fetchMocks.restore();
+    originalUnmount();
+  };
   
   // Functions to resolve/reject the promise from tests
   const triggerSuccess = () => resolvePromise(mockData);
@@ -251,7 +263,8 @@ export function renderAsyncHook<Result, Props, Data>(
     ...result,
     mockData,
     triggerSuccess,
-    triggerError
+    triggerError,
+    restoreFetch: fetchMocks.restore
   };
 }
 

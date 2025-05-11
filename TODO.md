@@ -98,7 +98,7 @@ This document outlines the tasks needed to address the critical issues identifie
 
 ## Testing Improvements
 
-- [ ] **TASK-049: Remove global fetch mock from `renderAsyncHook`**
+- [x] **TASK-049: Remove global fetch mock from `renderAsyncHook`**
   - **Priority**: High
   - **Effort**: Medium
   - **Dependencies**: None
