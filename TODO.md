@@ -163,7 +163,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Remove custom logic that duplicates RTL functionality
     - Update tests to use the refactored function
 
-- [ ] **TASK-055: Update tests to use native RTL methods directly**
+- [x] **TASK-055: Update tests to use native RTL methods directly**
   - **Priority**: High
   - **Effort**: Large
   - **Dependencies**: TASK-053, TASK-054

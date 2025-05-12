@@ -4,10 +4,8 @@
 
 import { useCommits } from '../useCommits';
 import { ActivityMode } from '@/types/dashboard';
-import { renderHookSafely } from '@/lib/tests/react-test-utils';
 import React from 'react';
-import { act } from 'react';
-import { waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { createActivityFetcher } from '@/lib/activity';
 import { logger } from '@/lib/logger';
 import { FetchProvider } from '@/contexts/FetchContext';
@@ -40,17 +38,6 @@ const mockFetch = jest.fn().mockImplementation(() =>
   })
 );
 
-// Define a function that returns a wrapper component for testing
-function wrapper({ children }: { children: React.ReactNode }) {
-  // Cast the props to avoid TypeScript error about missing 'children'
-  // while still passing children as the third argument for ESLint compatibility
-  return React.createElement(
-    FetchProvider,
-    { fetchImplementation: mockFetch } as any,
-    children
-  );
-}
-
 describe('useCommits', () => {
   // Default props for testing
   const defaultProps = {
@@ -70,7 +57,6 @@ describe('useCommits', () => {
     mockFetch.mockClear();
     
     // Set up an authenticated session by default
-    // Using jest.spyOn directly instead of the utility to avoid type conflicts
     jest.spyOn(require('next-auth/react'), 'useSession').mockReturnValue({
       data: {
         accessToken: 'fake-token',
@@ -80,6 +66,16 @@ describe('useCommits', () => {
       update: jest.fn()
     });
   });
+
+  // Helper function to create wrapper with FetchProvider
+  const createWrapper = () => {
+    return ({ children }: { children: React.ReactNode }) =>
+      React.createElement(
+        FetchProvider,
+        { fetchImplementation: mockFetch },
+        children
+      );
+  };
 
   it('should fetch commits successfully', async () => {
     // Setup fetch to return successful response
@@ -96,8 +92,8 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps), {
-      wrapper
+    const { result } = renderHook(() => useCommits(defaultProps), {
+      wrapper: createWrapper()
     });
     
     // Initial state should be empty/loading false
@@ -150,8 +146,8 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps), {
-      wrapper
+    const { result } = renderHook(() => useCommits(defaultProps), {
+      wrapper: createWrapper()
     });
     
     // Call fetchCommits
@@ -186,8 +182,8 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps), {
-      wrapper
+    const { result } = renderHook(() => useCommits(defaultProps), {
+      wrapper: createWrapper()
     });
     
     // Call fetchCommits
@@ -218,8 +214,8 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps), {
-      wrapper
+    const { result } = renderHook(() => useCommits(defaultProps), {
+      wrapper: createWrapper()
     });
     
     // Call fetchCommits
@@ -241,8 +237,8 @@ describe('useCommits', () => {
       activityMode: 'my-work-activity' as ActivityMode
     };
     
-    const { result: workResult } = renderHookSafely(() => useCommits(workActivityProps), {
-      wrapper
+    const { result: workResult } = renderHook(() => useCommits(workActivityProps), {
+      wrapper: createWrapper()
     });
     
     // Call getActivityFetcher indirectly by calling fetchCommits
@@ -263,8 +259,8 @@ describe('useCommits', () => {
       activityMode: 'team-activity' as ActivityMode
     };
     
-    const { result: teamResult } = renderHookSafely(() => useCommits(teamActivityProps), {
-      wrapper
+    const { result: teamResult } = renderHook(() => useCommits(teamActivityProps), {
+      wrapper: createWrapper()
     });
     
     await act(async () => {
@@ -287,8 +283,8 @@ describe('useCommits', () => {
       installationIds: [123, 456] as readonly number[]
     };
     
-    const { result } = renderHookSafely(() => useCommits(filteredProps), {
-      wrapper
+    const { result } = renderHook(() => useCommits(filteredProps), {
+      wrapper: createWrapper()
     });
     
     // Call fetchCommits
@@ -314,8 +310,8 @@ describe('useCommits', () => {
       update: jest.fn()
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps), {
-      wrapper
+    const { result } = renderHook(() => useCommits(defaultProps), {
+      wrapper: createWrapper()
     });
     
     // Call fetchCommits
@@ -345,8 +341,8 @@ describe('useCommits', () => {
       installationIds: [123, 456] as readonly number[]
     };
     
-    const { result } = renderHookSafely(() => useCommits(propsWithInstallationIds), {
-      wrapper
+    const { result } = renderHook(() => useCommits(propsWithInstallationIds), {
+      wrapper: createWrapper()
     });
     
     // Call fetchCommits
@@ -366,8 +362,8 @@ describe('useCommits', () => {
     // Mock fetch throwing a network error
     mockFetch.mockRejectedValueOnce(new Error('Network error'));
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps), {
-      wrapper
+    const { result } = renderHook(() => useCommits(defaultProps), {
+      wrapper: createWrapper()
     });
     
     // Call fetchCommits
