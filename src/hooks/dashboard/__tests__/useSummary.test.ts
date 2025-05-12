@@ -23,14 +23,12 @@ const mockFetch = jest.fn();
 
 // Define a function that returns a wrapper component for testing
 function wrapper({ children }: { children: React.ReactNode }) {
-  // Use props that match the FetchProviderProps interface
+  // Cast the props to avoid TypeScript error about missing 'children'
+  // while still passing children as the third argument for ESLint compatibility
   return React.createElement(
     FetchProvider,
-    {
-      fetchImplementation: mockFetch,
-      children: children
-    },
-    null
+    { fetchImplementation: mockFetch } as any,
+    children
   );
 }
 
