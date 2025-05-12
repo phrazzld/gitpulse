@@ -93,12 +93,14 @@ describe('useRepositories', () => {
 
   // Helper function to create wrapper with FetchProvider
   const createWrapper = () => {
-    return ({ children }: { children: React.ReactNode }) => 
+    const FetchProviderWrapper = ({ children }: { children: React.ReactNode }) =>
       React.createElement(
         FetchProvider,
-        { fetchImplementation: mockFetch },
-        children
+        { fetchImplementation: mockFetch, children },
+        null
       );
+    FetchProviderWrapper.displayName = 'FetchProviderWrapper';
+    return FetchProviderWrapper;
   };
 
   it('should return initial state on first render', async () => {
