@@ -133,7 +133,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - This is a known issue with TypeScript and React types in Jest tests
     - Added comments to explain the TypeScript errors
 
-- [ ] **TASK-052: Implement router context for Next.js testing**
+- [x] **TASK-052: Implement router context for Next.js testing**
   - **Priority**: High
   - **Effort**: Medium
   - **Dependencies**: None

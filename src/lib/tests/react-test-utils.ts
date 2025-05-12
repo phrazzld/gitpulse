@@ -10,6 +10,12 @@ import * as React from 'react';
 import { ReactElement, ReactNode, Context, createContext, useContext, act } from 'react';
 import { render, RenderOptions, RenderResult, renderHook, RenderHookOptions, waitFor } from '@testing-library/react';
 import { setupFetchMocks } from './network-test-utils';
+import {
+  RouterProvider,
+  useRouter,
+  createRouterWrapper,
+  setupRouterMock
+} from './router-context';
 
 /**
  * Custom wrapper for rendering components with specific providers
@@ -270,38 +276,25 @@ export function renderAsyncHook<Result, Props, Data>(
 
 /**
  * Function that mocks the useRouter hook from Next.js
+ *
+ * DEPRECATED: Use RouterProvider from router-context.tsx instead.
+ * This function will be removed in a future version.
+ *
  * @param mockRouter - Override default mock router values
  * @returns Mock router implementation
  */
 export function mockNextRouter(mockRouter = {}) {
-  const useRouter = jest.spyOn(require('next/router'), 'useRouter');
-  
-  const router = {
-    route: '/',
-    pathname: '/',
-    query: {},
-    asPath: '/',
-    push: jest.fn().mockResolvedValue(true),
-    replace: jest.fn().mockResolvedValue(true),
-    reload: jest.fn(),
-    back: jest.fn(),
-    prefetch: jest.fn().mockResolvedValue(undefined),
-    beforePopState: jest.fn(),
-    events: {
-      on: jest.fn(),
-      off: jest.fn(),
-      emit: jest.fn()
-    },
-    isFallback: false,
-    isReady: true,
-    ...mockRouter
-  };
+  // Import from our router-context to ensure consistent mock values
+  const { setupRouterMock } = require('./router-context');
+  const { mockUseRouter, resetMock } = setupRouterMock(mockRouter);
 
-  useRouter.mockReturnValue(router);
+  // For backward compatibility
+  const router = mockUseRouter();
 
   return {
     router,
-    useRouter
+    useRouter: mockUseRouter,
+    reset: resetMock
   };
 }
 
@@ -325,7 +318,7 @@ export function mockNextAuthSession(mockSession = null) {
 
   const signIn = jest.fn().mockResolvedValue({ ok: true, error: null });
   const signOut = jest.fn().mockResolvedValue({ ok: true });
-  
+
   jest.spyOn(require('next-auth/react'), 'signIn').mockImplementation(signIn);
   jest.spyOn(require('next-auth/react'), 'signOut').mockImplementation(signOut);
 
@@ -341,3 +334,11 @@ export function mockNextAuthSession(mockSession = null) {
     }
   };
 }
+
+// Export router context utilities
+export {
+  RouterProvider,
+  useRouter,
+  createRouterWrapper,
+  setupRouterMock
+};
