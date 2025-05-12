@@ -29,8 +29,10 @@ type Mock = jest.Mock;
 
 // Import testing library methods
 import { renderHookSafely } from '@/lib/tests/react-test-utils';
+import React from 'react';
 import { act } from 'react';
 import { waitFor } from '@testing-library/react';
+import { FetchProvider } from '@/contexts/FetchContext';
 
 // Import hooks and types
 import { useRepositories } from '../useRepositories';
@@ -62,8 +64,21 @@ jest.mock('@/lib/localStorageCache', () => ({
 // Import mocks after mocking
 import { setCacheItem, getStaleItem } from '@/lib/localStorageCache';
 
-// Mock fetch
-global.fetch = jest.fn() as jest.Mock;
+// Create a mock fetch function for testing
+const mockFetch = jest.fn() as jest.Mock;
+
+// Define a function that returns a wrapper component for testing
+function wrapper({ children }: { children: React.ReactNode }) {
+  // Use props that match the FetchProviderProps interface
+  return React.createElement(
+    FetchProvider,
+    {
+      fetchImplementation: mockFetch,
+      children: children
+    },
+    null
+  );
+}
 
 describe('useRepositories', () => {
   // Mock repositories for testing
@@ -113,18 +128,20 @@ describe('useRepositories', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (fetch as jest.Mock).mockReset();
+    mockFetch.mockReset();
   });
 
   it('should return initial state on first render', async () => {
     // Set up mock for stale-while-revalidate cache
     (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHookSafely(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories(), {
+      wrapper
+    });
 
     // Initial state
     expect(result.current.repositories).toEqual([]);
@@ -137,12 +154,14 @@ describe('useRepositories', () => {
   it('should fetch repositories and update state', async () => {
     // Set up mock for stale-while-revalidate cache
     (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHookSafely(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories(), {
+      wrapper
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -163,7 +182,7 @@ describe('useRepositories', () => {
     expect(result.current.needsInstallation).toBe(false);
     
     // Verify fetch was called with the correct URL
-    expect(fetch).toHaveBeenCalledWith('/api/repos');
+    expect(mockFetch).toHaveBeenCalledWith('/api/repos');
     
     // Verify cache was updated
     expect(setCacheItem).toHaveBeenCalledWith(
@@ -180,7 +199,9 @@ describe('useRepositories', () => {
       isStale: false 
     });
 
-    const { result } = renderHookSafely(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories(), {
+      wrapper
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -196,7 +217,7 @@ describe('useRepositories', () => {
     expect(result.current.repositories).toEqual(mockRepositories);
     
     // Verify fetch was NOT called since we had fresh cached data
-    expect(fetch).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('should use cached repositories but fetch in background if stale', async () => {
@@ -206,12 +227,14 @@ describe('useRepositories', () => {
       isStale: true 
     });
     
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHookSafely(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories(), {
+      wrapper
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -227,7 +250,7 @@ describe('useRepositories', () => {
     expect(result.current.repositories).toEqual(mockRepositories);
     
     // Verify fetch was called to get fresh data in background
-    expect(fetch).toHaveBeenCalledWith('/api/repos');
+    expect(mockFetch).toHaveBeenCalledWith('/api/repos');
   });
 
   it('should handle auth errors correctly', async () => {
@@ -235,7 +258,7 @@ describe('useRepositories', () => {
     (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
     
     // Mock auth error response
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
       json: async () => ({ 
@@ -244,7 +267,9 @@ describe('useRepositories', () => {
       })
     });
 
-    const { result } = renderHookSafely(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories(), {
+      wrapper
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -269,7 +294,7 @@ describe('useRepositories', () => {
     (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
     
     // Mock installation needed error response
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,
       json: async () => ({ 
@@ -278,7 +303,9 @@ describe('useRepositories', () => {
       })
     });
 
-    const { result } = renderHookSafely(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories(), {
+      wrapper
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -304,9 +331,11 @@ describe('useRepositories', () => {
     (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
     
     // Mock generic error
-    (fetch as any).mockRejectedValueOnce(new Error('Network error'));
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    const { result } = renderHookSafely(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories(), {
+      wrapper
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -330,13 +359,15 @@ describe('useRepositories', () => {
     // Set up mock for stale-while-revalidate cache
     (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
     
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockSuccessResponse
     });
 
     const installationId = 54321;
-    const { result } = renderHookSafely(() => useRepositories());
+    const { result } = renderHookSafely(() => useRepositories(), {
+      wrapper
+    });
 
     // Call fetchRepositories with specific installation ID
     let fetchPromise;
@@ -355,6 +386,6 @@ describe('useRepositories', () => {
     expect(result.current.repositories).toEqual(mockRepositories);
     
     // Verify fetch was called with the correct URL including installation_id
-    expect(fetch).toHaveBeenCalledWith(`/api/repos?installation_id=${installationId}`);
+    expect(mockFetch).toHaveBeenCalledWith(`/api/repos?installation_id=${installationId}`);
   });
 });

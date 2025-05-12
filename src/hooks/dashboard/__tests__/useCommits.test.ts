@@ -5,10 +5,12 @@
 import { useCommits } from '../useCommits';
 import { ActivityMode } from '@/types/dashboard';
 import { renderHookSafely } from '@/lib/tests/react-test-utils';
+import React from 'react';
 import { act } from 'react';
 import { waitFor } from '@testing-library/react';
 import { createActivityFetcher } from '@/lib/activity';
 import { logger } from '@/lib/logger';
+import { FetchProvider } from '@/contexts/FetchContext';
 
 // Mock dependencies
 jest.mock('next-auth/react');
@@ -23,8 +25,8 @@ jest.mock('@/lib/logger', () => ({
   }
 }));
 
-// Mock fetch
-global.fetch = jest.fn().mockImplementation(() => 
+// Create a mock fetch function for testing
+const mockFetch = jest.fn().mockImplementation(() => 
   Promise.resolve({
     ok: true,
     json: () => Promise.resolve({
@@ -37,6 +39,19 @@ global.fetch = jest.fn().mockImplementation(() =>
     })
   })
 );
+
+// Define a function that returns a wrapper component for testing
+function wrapper({ children }: { children: React.ReactNode }) {
+  // Use props that match the FetchProviderProps interface
+  return React.createElement(
+    FetchProvider,
+    {
+      fetchImplementation: mockFetch,
+      children: children
+    },
+    null
+  );
+}
 
 describe('useCommits', () => {
   // Default props for testing
@@ -54,6 +69,7 @@ describe('useCommits', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetch.mockClear();
     
     // Set up an authenticated session by default
     // Using jest.spyOn directly instead of the utility to avoid type conflicts
@@ -69,7 +85,7 @@ describe('useCommits', () => {
 
   it('should fetch commits successfully', async () => {
     // Setup fetch to return successful response
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({
         commits: [{ id: 1, sha: 'abc123' }],
@@ -82,7 +98,9 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps), {
+      wrapper
+    });
     
     // Initial state should be empty/loading false
     expect(result.current.loading).toBe(false);
@@ -109,7 +127,7 @@ describe('useCommits', () => {
     });
     
     // Verify fetch was called with correct parameters
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/summary?since=2022-01-01&until=2022-12-31&contributors=me&groupBy=chronological')
     );
     
@@ -126,7 +144,7 @@ describe('useCommits', () => {
 
   it('should handle API errors correctly', async () => {
     // Mock API error
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({
         error: 'API Error',
@@ -134,7 +152,9 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps), {
+      wrapper
+    });
     
     // Call fetchCommits
     await act(async () => {
@@ -159,7 +179,7 @@ describe('useCommits', () => {
 
   it('should handle authentication errors', async () => {
     // Mock authentication error
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
       json: () => Promise.resolve({
@@ -168,7 +188,9 @@ describe('useCommits', () => {
       })
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps), {
+      wrapper
+    });
     
     // Call fetchCommits
     await act(async () => {
@@ -191,14 +213,16 @@ describe('useCommits', () => {
 
   it('should handle GitHub App installation errors', async () => {
     // Mock installation error
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       json: () => Promise.resolve({
         needsInstallation: true
       })
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps), {
+      wrapper
+    });
     
     // Call fetchCommits
     await act(async () => {
@@ -211,7 +235,7 @@ describe('useCommits', () => {
 
   it('should use correct API endpoints for different activity modes', async () => {
     // Test my-work-activity mode
-    (global.fetch as jest.Mock).mockClear();
+    mockFetch.mockClear();
     (createActivityFetcher as jest.Mock).mockClear();
     
     const workActivityProps = {
@@ -219,7 +243,9 @@ describe('useCommits', () => {
       activityMode: 'my-work-activity' as ActivityMode
     };
     
-    const { result: workResult } = renderHookSafely(() => useCommits(workActivityProps));
+    const { result: workResult } = renderHookSafely(() => useCommits(workActivityProps), {
+      wrapper
+    });
     
     // Call getActivityFetcher indirectly by calling fetchCommits
     await act(async () => {
@@ -227,26 +253,28 @@ describe('useCommits', () => {
     });
     
     // Let's check the API URL used for the fetch instead
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/summary')
     );
     
     // Test team-activity mode
-    (global.fetch as jest.Mock).mockClear();
+    mockFetch.mockClear();
     
     const teamActivityProps = {
       ...defaultProps,
       activityMode: 'team-activity' as ActivityMode
     };
     
-    const { result: teamResult } = renderHookSafely(() => useCommits(teamActivityProps));
+    const { result: teamResult } = renderHookSafely(() => useCommits(teamActivityProps), {
+      wrapper
+    });
     
     await act(async () => {
       await teamResult.current.fetchCommits();
     });
     
     // Verify fetch was called with the summary endpoint
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/summary')
     );
   });
@@ -261,7 +289,9 @@ describe('useCommits', () => {
       installationIds: [123, 456] as readonly number[]
     };
     
-    const { result } = renderHookSafely(() => useCommits(filteredProps));
+    const { result } = renderHookSafely(() => useCommits(filteredProps), {
+      wrapper
+    });
     
     // Call fetchCommits
     await act(async () => {
@@ -269,7 +299,7 @@ describe('useCommits', () => {
     });
     
     // Verify fetch was called with all parameters
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0][0];
+    const fetchCall = mockFetch.mock.calls[0][0];
     expect(fetchCall).toMatch(/since=2022-01-01/);
     expect(fetchCall).toMatch(/until=2022-12-31/);
     expect(fetchCall).toMatch(/organizations=org1%2Corg2/);
@@ -286,7 +316,9 @@ describe('useCommits', () => {
       update: jest.fn()
     });
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps), {
+      wrapper
+    });
     
     // Call fetchCommits
     await act(async () => {
@@ -299,7 +331,7 @@ describe('useCommits', () => {
       'hooks:useCommits',
       'No authentication available for fetching commits'
     );
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('should handle installation IDs even without session', async () => {
@@ -315,7 +347,9 @@ describe('useCommits', () => {
       installationIds: [123, 456] as readonly number[]
     };
     
-    const { result } = renderHookSafely(() => useCommits(propsWithInstallationIds));
+    const { result } = renderHookSafely(() => useCommits(propsWithInstallationIds), {
+      wrapper
+    });
     
     // Call fetchCommits
     await act(async () => {
@@ -323,7 +357,7 @@ describe('useCommits', () => {
     });
     
     // Should proceed with fetch since installationIds are provided
-    expect(global.fetch).toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalled();
     
     // Verify state after fetch completes
     expect(result.current.error).toBeNull();
@@ -332,9 +366,11 @@ describe('useCommits', () => {
 
   it('should handle fetch exception errors', async () => {
     // Mock fetch throwing a network error
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
     
-    const { result } = renderHookSafely(() => useCommits(defaultProps));
+    const { result } = renderHookSafely(() => useCommits(defaultProps), {
+      wrapper
+    });
     
     // Call fetchCommits
     await act(async () => {
