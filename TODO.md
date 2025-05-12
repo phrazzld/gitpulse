@@ -195,7 +195,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Focus on React and testing library compatibility
     - Test dependency installation locally
 
-- [ ] **TASK-058: Upgrade problematic dependencies to compatible versions**
+- [x] **TASK-058: Upgrade problematic dependencies to compatible versions**
   - **Priority**: High
   - **Effort**: Medium
   - **Dependencies**: TASK-057
