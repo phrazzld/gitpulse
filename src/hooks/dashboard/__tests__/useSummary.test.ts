@@ -21,12 +21,15 @@ const mockFetch = jest.fn();
 
 // Helper function to create wrapper with FetchProvider
 const createWrapper = () => {
-  const FetchProviderWrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
+  const FetchProviderWrapper = ({ children }: { children: React.ReactNode }) => {
+    // Pass children as third argument, not as a prop
+    return React.createElement(
       FetchProvider,
-      { fetchImplementation: mockFetch, children },
-      null
+      // @ts-ignore - Bypass TypeScript error about missing children prop
+      { fetchImplementation: mockFetch },
+      children
     );
+  };
   FetchProviderWrapper.displayName = 'FetchProviderWrapper';
   return FetchProviderWrapper;
 };
