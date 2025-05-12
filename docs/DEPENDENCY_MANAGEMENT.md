@@ -18,23 +18,23 @@ Properly managing dependencies is critical for maintaining a stable, secure, and
 
 ### Current Approach
 
-GitPulse uses the `--legacy-peer-deps` flag with npm to handle peer dependency conflicts, particularly with React 19 and related packages. This approach is necessary due to the incompatibility of some older packages with newer React versions.
+GitPulse uses standard dependency management without relying on the `--legacy-peer-deps` flag. We maintain compatible versions of all dependencies to ensure smooth installation and operation without dependency conflicts.
 
-### Long-term Strategy
+### Strategy
 
-While the `--legacy-peer-deps` flag helps us bypass peer dependency issues in the short term, our long-term strategy is to:
+Our dependency management strategy includes:
 
-1. Gradually migrate away from packages with incompatible peer dependencies
-2. Use native alternatives where available
-3. Update our own utilities to avoid depending on outdated packages
+1. Using compatible versions of dependencies, especially for React and its ecosystem
+2. Leveraging native functionality where available instead of additional dependencies
+3. Regularly updating dependencies to maintain compatibility and security
 
-For example, we've successfully migrated from `@testing-library/react-hooks` to the native `renderHook` functionality in `@testing-library/react`.
+For example, we've successfully migrated from `@testing-library/react-hooks` to the native `renderHook` functionality in `@testing-library/react` v16.3.0, which is fully compatible with React 19.
 
 ## CI Configuration
 
 Our CI workflows are configured to:
 
-1. Use `npm ci --legacy-peer-deps` to install dependencies
+1. Use `npm ci` to install dependencies
 2. Run security audits with `npm audit --audit-level=high`
 3. Perform TypeScript type checking with `npm run typecheck`
 
