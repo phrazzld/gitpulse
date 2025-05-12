@@ -143,7 +143,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Update testing utilities to use context providers
     - Remove global Next.js mocking
 
-- [ ] **TASK-053: Replace custom waitFor implementations with RTL native ones**
+- [x] **TASK-053: Replace custom waitFor implementations with RTL native ones**
   - **Priority**: High
   - **Effort**: Medium
   - **Dependencies**: None
@@ -153,7 +153,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Replace with RTL's native waitFor and findBy methods
     - Ensure tests still pass with the new approach
 
-- [ ] **TASK-054: Refactor renderHookSafely to use RTL's native utilities**
+- [x] **TASK-054: Refactor renderHookSafely to use RTL's native utilities**
   - **Priority**: High
   - **Effort**: Medium
   - **Dependencies**: None
