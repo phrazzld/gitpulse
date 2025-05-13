@@ -215,7 +215,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Remove --legacy-peer-deps flag from all commands
     - Verify CI builds pass without the flag
 
-- [ ] **TASK-060: Update dependency management documentation**
+- [x] **TASK-060: Update dependency management documentation**
   - **Priority**: Medium
   - **Effort**: Small
   - **Dependencies**: TASK-059
