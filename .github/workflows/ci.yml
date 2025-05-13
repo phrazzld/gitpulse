@@ -109,6 +109,39 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-build-
 
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+      # This installs all browsers (Chromium, Firefox, WebKit) required for E2E tests
+
+    - name: Run E2E Tests
+      run: |
+        # Set CI to true explicitly to enable CI-specific settings in playwright.config.ts
+        # This includes longer timeouts, retries, and disabling "only" tests
+        CI=true npm run test:e2e
+      # This step will automatically fail if any E2E tests fail
+      env:
+        CI: true
+        E2E_MOCK_AUTH_ENABLED: true
+
+    - name: Upload E2E Test Results
+      if: always() # Run even if tests fail
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 7
+
+    - name: Upload E2E Test Artifacts
+      if: always() # Run even if tests fail
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-artifacts
+        path: |
+          test-results/
+          screenshots/
+        retention-days: 3
+        if-no-files-found: ignore
+
   # Add additional jobs as needed, such as:
   # - Deployment jobs
   # - Visual regression tests
