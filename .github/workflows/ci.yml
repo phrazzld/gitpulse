@@ -142,6 +142,35 @@ jobs:
         retention-days: 3
         if-no-files-found: ignore
 
+    - name: Install Storybook Test Runner
+      run: npm install @storybook/test-runner --no-save
+
+    - name: Run Accessibility Tests
+      env:
+        CI: 'true'
+        A11Y_FAILING_IMPACTS: 'critical,serious'
+      run: |
+        # Run accessibility tests with Storybook Test Runner
+        # This will respect the CI=true environment and fail on critical/serious issues
+        npx test-storybook --stories-json=./storybook-static/stories.json --static-dir=./storybook-static
+
+    - name: Upload Accessibility Test Results
+      if: always() # Run even if accessibility tests fail
+      uses: actions/upload-artifact@v4
+      with:
+        name: accessibility-results
+        path: |
+          test-results/
+        retention-days: 7
+
+    - name: Add Accessibility Report to PR
+      if: github.event_name == 'pull_request' && always()
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        recreate: true
+        path: test-results/a11y-summary.md
+        header: "accessibility-report"
+
   # Add additional jobs as needed, such as:
   # - Deployment jobs
   # - Visual regression tests

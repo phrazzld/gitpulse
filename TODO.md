@@ -247,7 +247,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Configure E2E test execution in CI
     - Ensure CI fails if E2E tests fail
 
-- [ ] **TASK-063: Add accessibility checks to CI workflow**
+- [x] **TASK-063: Add accessibility checks to CI workflow**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: None
