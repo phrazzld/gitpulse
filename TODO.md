@@ -279,7 +279,7 @@ This document outlines the tasks needed to address the critical issues identifie
 
 ## Security Improvements
 
-- [ ] **TASK-066: Update npm audit command in CI workflow**
+- [x] **TASK-066: Update npm audit command in CI workflow**
   - **Priority**: High
   - **Effort**: Small
   - **Dependencies**: None
