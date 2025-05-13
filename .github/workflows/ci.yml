@@ -24,10 +24,16 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Run security audit
-      # This ensures the build fails if any high or critical severity vulnerabilities are found
+    - name: Run enhanced security audit
+      # This ensures the build fails if any high or critical severity vulnerabilities are found in production dependencies
       # See our Development Philosophy: CI builds MUST FAIL on discovery of critical/high severity vulnerabilities
-      run: npm audit --audit-level=high || (echo "Security audit failed - high or critical severity vulnerabilities found" && exit 1)
+      run: |
+        # Install required dependencies for the security-auditor script
+        cd scripts/security-auditor
+        npm install
+        cd ../..
+        # Run the enhanced security audit
+        npm run audit:security
       
     - name: Lint
       run: npm run lint
@@ -47,7 +53,10 @@ jobs:
       
     - name: Run Tests with Coverage
       run: npm run test:ci
-      # Ensure the build fails if tests fail or coverage thresholds are not met
+      # This step will fail if:
+      # 1. Any tests fail
+      # 2. Coverage thresholds are not met (configured in jest.config.js)
+      # Coverage thresholds: Global ≥ 80%, Atoms ≥ 90%, Molecules ≥ 85%, Organisms ≥ 80%
     
     - name: Read Coverage Summary
       id: read-coverage
@@ -73,12 +82,20 @@ jobs:
 
           | Category | Line Coverage | Statement Coverage | Function Coverage | Branch Coverage |
           | -------- | ------------- | ----------------- | ---------------- | --------------- |
-          | All Files | ${{ fromJSON(env.COVERAGE_SUMMARY).total.lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.branches.pct }}% |
-          | Atoms | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].branches.pct }}% |
-          | Molecules | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].branches.pct }}% |
-          | Organisms | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].branches.pct }}% |
+          | All Files | ${{ fromJSON(env.COVERAGE_SUMMARY).total.lines.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY).total.lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.statements.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY).total.statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.functions.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY).total.functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.branches.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY).total.branches.pct }}% |
+          | Atoms | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].lines.pct < 90 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].statements.pct < 90 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].functions.pct < 90 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].branches.pct < 90 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].branches.pct }}% |
+          | Molecules | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].lines.pct < 85 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].statements.pct < 85 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].functions.pct < 85 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].branches.pct < 85 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].branches.pct }}% |
+          | Organisms | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].lines.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].statements.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].functions.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].branches.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].branches.pct }}% |
 
-          Required thresholds: Atoms ≥ 90%, Molecules ≥ 85%, Organisms ≥ 80%
+          ### Required Thresholds
+          - Global: ≥ 80% (branches, functions, lines, statements)
+          - Atoms: ≥ 90% (branches, functions, lines, statements)
+          - Molecules: ≥ 85% (branches, functions, lines, statements)
+          - Organisms: ≥ 80% (branches, functions, lines, statements)
+
+          ✅ = Meets threshold | ❌ = Below threshold
+
+          > CI will fail if any coverage metric falls below these thresholds
       env:
         COVERAGE_SUMMARY: ${{ steps.read-coverage.outputs.summary }}
       

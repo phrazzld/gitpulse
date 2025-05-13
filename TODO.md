@@ -227,7 +227,7 @@ This document outlines the tasks needed to address the critical issues identifie
 
 ## CI Improvements
 
-- [ ] **TASK-061: Update Jest coverage configuration**
+- [x] **TASK-061: Update Jest coverage configuration**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: None
@@ -289,7 +289,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Update --audit-level flag to appropriate level (critical/high)
     - Verify CI fails on violations
 
-- [ ] **TASK-067: Create nuanced security checking script**
+- [x] **TASK-067: Create nuanced security checking script**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: None
@@ -299,7 +299,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Add logic to differentiate dev vs prod vulnerabilities
     - Ensure clear reporting of issues
 
-- [ ] **TASK-068: Update CI workflow to use security checking script**
+- [x] **TASK-068: Update CI workflow to use security checking script**
   - **Priority**: Medium
   - **Effort**: Small
   - **Dependencies**: TASK-067

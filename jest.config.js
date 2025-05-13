@@ -67,6 +67,9 @@ const customJestConfig = {
     '!src/**/glance.md',
     '!**/node_modules/**',
   ],
+  // Coverage thresholds configuration - CI will fail if these thresholds are not met
+  // These thresholds are aligned with the requirements in DEVELOPMENT_PHILOSOPHY_APPENDIX_TESTING.md
+  // When running with --coverage flag, Jest will enforce these thresholds
   coverageThreshold: {
     global: {
       branches: 80,
