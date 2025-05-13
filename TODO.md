@@ -205,7 +205,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Upgrade these dependencies or find alternatives
     - Ensure application builds and tests pass
 
-- [ ] **TASK-059: Update CI workflow to remove --legacy-peer-deps flag**
+- [x] **TASK-059: Update CI workflow to remove --legacy-peer-deps flag**
   - **Priority**: Critical
   - **Effort**: Small
   - **Dependencies**: TASK-058
