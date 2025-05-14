@@ -74,6 +74,7 @@
     "puppeteer": "^24.8.2",
     "storybook": "^8.6.12",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5",
     "wait-on": "^8.0.3"
   }
