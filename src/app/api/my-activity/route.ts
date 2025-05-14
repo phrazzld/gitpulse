@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { createAuthOptions } from "@/lib/auth/authConfig";
-import { 
+import {
   Commit,
   Repository,
-  AppInstallation 
+  AppInstallation
 } from "@/lib/github/types";
 import { fetchAllRepositories } from "@/lib/github/repositories";
 import { fetchCommitsForRepositories } from "@/lib/github/commits";
@@ -12,6 +12,7 @@ import { logger } from "@/lib/logger";
 import { optimizedJsonResponse, generateETag, isCacheValid, notModifiedResponse, CacheTTL } from "@/lib/cache";
 import { optimizeCommit, optimizeRepository, MinimalCommit, MinimalRepository } from "@/lib/optimize";
 import { getErrorMessage, isError, isGitHubApiError } from "@/lib/utils/types";
+import { GitPulseSession } from "@/lib/auth/sessionTypes";
 
 const MODULE_NAME = "api:my-activity";
 
@@ -228,10 +229,7 @@ function getDefaultUntil(): string {
 // We now import generateETag from cache.ts
 
 // Helper to extract user login from session
-function getUserLoginFromSession(session: {
-  profile?: { login?: string };
-  user?: { name?: string | null; email?: string | null };
-}): string | undefined {
+function getUserLoginFromSession(session: GitPulseSession): string | undefined {
   if (session.profile?.login) {
     return session.profile.login;
   }

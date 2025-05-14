@@ -1,5 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
+import { AISummary } from '@/types/aiSummary';
+import { CommitSummary } from '@/types/dashboard';
 
 type GroupedResult = {
   groupKey: string;
@@ -8,8 +10,8 @@ type GroupedResult = {
   commitCount: number;
   repositories: string[];
   dates: string[];
-  commits: any[];
-  aiSummary?: any;
+  commits: CommitSummary['commits'];
+  aiSummary?: AISummary;
 };
 
 type GroupedResultsViewProps = {
@@ -188,7 +190,7 @@ export default function GroupedResultsView({
                           TECHNICAL FOCUS
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          {group.aiSummary.technicalAreas.slice(0, 5).map((area: any, index: number) => (
+                          {group.aiSummary.technicalAreas.slice(0, 5).map((area, index) => (
                             <span
                               key={index}
                               className="text-xs px-2 py-1 rounded flex items-center"

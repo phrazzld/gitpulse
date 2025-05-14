@@ -4,6 +4,7 @@ import { ActivityMode, CommitSummary, DateRange } from '@/types/dashboard';
 import { createActivityFetcher } from '@/lib/activity';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, isError } from '@/lib/utils/types';
+import { useFetch } from '@/contexts/FetchContext';
 
 const MODULE_NAME = 'hooks:useCommits';
 
@@ -43,6 +44,8 @@ export function useCommits({
   const [error, setError] = useState<string | null>(null);
   const [commits, setCommits] = useState<CommitSummary['commits']>([]);
   const [summary, setSummary] = useState<CommitSummary | null>(null);
+  // Get the fetch function from context
+  const fetchFn = useFetch();
 
   // Function to fetch commits from the API
   const fetchCommits = useCallback(async () => {
@@ -94,7 +97,7 @@ export function useCommits({
       }
 
       // Fetch the data
-      const response = await fetch(`/api/summary?${new URLSearchParams(params).toString()}`);
+      const response = await fetchFn(`/api/summary?${new URLSearchParams(params).toString()}`);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -143,7 +146,8 @@ export function useCommits({
     organizations, 
     repositories,
     contributors,
-    installationIds
+    installationIds,
+    fetchFn
   ]);
 
   // Create the activity fetcher for progressive loading

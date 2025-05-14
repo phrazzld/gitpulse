@@ -5,6 +5,7 @@ import { checkAppInstallation, getAllAppInstallations } from "@/lib/github/auth"
 import { logger } from "@/lib/logger";
 import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl } from "@/lib/cache";
 import { withAuthValidation } from "@/lib/auth/apiAuth";
+import { GitPulseSession } from "@/lib/auth/sessionTypes";
 
 const MODULE_NAME = "api:repos";
 
@@ -34,7 +35,7 @@ function optimizeRepositoryData(repo: Repository): OptimizedRepository {
   };
 }
 
-async function handleGetRepositories(request: NextRequest, session: any) {
+async function handleGetRepositories(request: NextRequest, session: GitPulseSession) {
   logger.debug(MODULE_NAME, "GET /api/repos request received", { 
     url: request.url,
     headers: Object.fromEntries([...request.headers.entries()])

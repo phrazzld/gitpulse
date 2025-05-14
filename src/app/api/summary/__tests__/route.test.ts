@@ -300,10 +300,12 @@ describe('Summary API Route', () => {
   it('should handle GitHub auth errors', async () => {
     // Mock auth error
     const authError = new Error('Authentication failed');
-    (authError as any).name = 'HttpError';
-    (authError as any).message = 'Bad credentials';
-    (handlers.fetchCommitsWithAuthMethod as jest.Mock).mockRejectedValue(authError);
-    
+    const httpError = Object.assign(authError, {
+      name: 'HttpError',
+      message: 'Bad credentials'
+    });
+    (handlers.fetchCommitsWithAuthMethod as jest.Mock).mockRejectedValue(httpError);
+
     const request = createMockRequest();
     const response = await GET(request);
     

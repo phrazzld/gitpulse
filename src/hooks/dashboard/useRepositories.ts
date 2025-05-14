@@ -10,6 +10,7 @@ import {
   getStaleItem,
   ClientCacheTTL
 } from '@/lib/localStorageCache';
+import { useFetch } from '@/contexts/FetchContext';
 
 interface ReposResponse {
   readonly repositories: readonly Repository[];
@@ -77,6 +78,8 @@ export function useRepositories() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needsInstallation, setNeedsInstallation] = useState(false);
+  // Get the fetch function from context
+  const fetchFn = useFetch();
 
   /**
    * Handle GitHub authentication errors
@@ -143,7 +146,7 @@ export function useRepositories() {
         ? `/api/repos?installation_id=${selectedInstallationId}` 
         : '/api/repos';
       
-      const response = await fetch(url);
+      const response = await fetchFn(url);
       
       if (!response.ok) {
         // Parse the error response
@@ -172,7 +175,7 @@ export function useRepositories() {
       }
       
       const data: ReposResponse = await response.json();
-      
+
       // Cache the repositories for future use with 1 hour TTL
       if (data.repositories && data.repositories.length > 0) {
         setCacheItem(cacheKey, data.repositories, ClientCacheTTL.LONG);
@@ -185,7 +188,7 @@ export function useRepositories() {
       setNeedsInstallation(false);
       
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching repositories:', error);
       setError('Failed to fetch repositories. Please try again.');
       return false;
@@ -197,7 +200,8 @@ export function useRepositories() {
   }, [
     session, 
     handleAuthError, 
-    handleAppInstallationNeeded
+    handleAppInstallationNeeded,
+    fetchFn
   ]);
 
   return {

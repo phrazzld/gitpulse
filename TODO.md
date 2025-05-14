@@ -44,7 +44,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Replace `any` in the `waitForValueToChange` selector function
     - Ensure type safety without breaking existing usages
 
-- [~] **TASK-045: Replace other identified `any` usages with appropriate types**
+- [x] **TASK-045: Replace other identified `any` usages with appropriate types**
   - **Priority**: High
   - **Effort**: Large
   - **Dependencies**: TASK-041
@@ -257,7 +257,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Configure failure thresholds
     - Integrate with Storybook if possible
 
-- [ ] **TASK-064: Configure Lighthouse CI for performance budgets**
+- [x] **TASK-064: Configure Lighthouse CI for performance budgets**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: None
@@ -267,7 +267,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Define performance budgets for key metrics
     - Configure assertions and thresholds
 
-- [ ] **TASK-065: Add performance budget checks to CI workflow**
+- [x] **TASK-065: Add performance budget checks to CI workflow**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: TASK-064

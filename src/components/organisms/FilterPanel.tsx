@@ -340,8 +340,8 @@ export default function FilterPanel({
                   { value: 'repository', label: 'REPOSITORY' }
                 ].map(option => (
                   <div key={option.value} className="flex items-center">
-                    <input 
-                      type="radio" 
+                    <input
+                      type="radio"
                       id={`group-${option.value}`}
                       name="groupBy"
                       value={option.value}

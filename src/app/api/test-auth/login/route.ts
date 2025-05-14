@@ -1,23 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { isEndpointAllowed } from './utils';
+import { MockUserRequest, MockSession } from '@/lib/auth/sessionTypes';
 
 const MODULE_NAME = 'api:test-auth:login';
 
 /**
- * Interface for customizing the mock user
- */
-interface MockUserRequest {
-  userId?: string;
-  userName?: string;
-  userEmail?: string;
-  userImage?: string;
-}
-
-/**
  * Creates a mock session payload for testing
  */
-function createMockSession(customUser?: MockUserRequest): Record<string, any> {
+function createMockSession(customUser?: MockUserRequest): MockSession {
   return {
     user: {
       id: customUser?.userId || 'mock-user-id',

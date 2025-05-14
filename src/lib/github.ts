@@ -3,70 +3,14 @@
 import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
 import { logger } from "./logger";
+import { Repository as GithubRepository, Commit as GithubCommit } from "./github/types";
 
 const MODULE_NAME = "github";
 
-// loosen up the fields that github can return as null or undefined
-export interface Repository {
-  id: number;
-  name: string;
-  full_name: string;
-  owner: {
-    login: string;
-    // you could add node_id?: string; avatar_url?: string; etc. if you need them
-  };
-  private: boolean;
-  html_url: string;
-  description: string | null;
-  updated_at?: string | null;
-  language?: string | null;
-  // optionally: license?: License|null;
-}
-
-export interface Commit {
-  sha: string;
-  commit: {
-    author: {
-      name?: string;
-      email?: string;
-      date?: string;
-    } | null;
-    committer?: {
-      name?: string;
-      email?: string;
-      date?: string;
-    } | null;
-    message: string;
-    // Add other properties that might exist
-    [key: string]: any;
-  };
-  html_url: string;
-  author: {
-    login: string;
-    avatar_url: string;
-    // Add other properties that might exist
-    [key: string]: any;
-  } | null;
-  repository?: {
-    full_name: string;
-  };
-  // Allow other properties from the GitHub API
-  [key: string]: any;
-}
-
-// Installation type for managing multiple installations
-export interface AppInstallation {
-  id: number;
-  account: {
-    login: string;
-    type?: string;
-    avatarUrl?: string;
-  } | null;
-  appSlug: string;
-  appId: number;
-  repositorySelection: string;
-  targetType: string; // 'User' or 'Organization'
-}
+// Re-export types from github/types.ts
+export type Repository = GithubRepository;
+export type Commit = GithubCommit;
+export type { AppInstallation } from "./github/types";
 
 /**
  * Generate the URL for managing a GitHub App installation
@@ -590,8 +534,8 @@ export async function fetchRepositoryCommitsOAuth(
       },
     }));
 
-    // Cast to ensure compatibility with our interface
-    return commitsWithRepoInfo as any as Commit[];
+    // Type-safe way to ensure compatibility with our interface
+    return commitsWithRepoInfo as unknown as Commit[];
   } catch (error) {
     logger.error(MODULE_NAME, `Error fetching commits for ${owner}/${repo}`, {
       error,
@@ -657,8 +601,8 @@ export async function fetchRepositoryCommitsApp(
       },
     }));
 
-    // Cast to ensure compatibility with our interface
-    return commitsWithRepoInfo as any as Commit[];
+    // Type-safe way to ensure compatibility with our interface
+    return commitsWithRepoInfo as unknown as Commit[];
   } catch (error) {
     logger.error(
       MODULE_NAME,

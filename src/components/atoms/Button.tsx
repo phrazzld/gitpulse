@@ -77,8 +77,9 @@ export interface ButtonProps {
 
   /**
    * Additional button attributes
+   * This allows passing HTML button attributes not explicitly defined above
    */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**

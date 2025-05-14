@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { ActivityMode, CommitSummary, DateRange, Installation } from '@/types/dashboard';
 import { logger } from '@/lib/logger';
+import { useFetch } from '@/contexts/FetchContext';
 
 const MODULE_NAME = 'hooks:useSummary';
 
@@ -42,9 +43,11 @@ export function useSummary({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<CommitSummary | null>(null);
-  const [installations, setInstallations] = useState<Installation[] | readonly Installation[]>([]);
-  const [currentInstallations, setCurrentInstallations] = useState<Installation[] | readonly Installation[]>([]);
+  const [installations, setInstallations] = useState<readonly Installation[]>([]);
+  const [currentInstallations, setCurrentInstallations] = useState<readonly Installation[]>([]);
   const [authMethod, setAuthMethod] = useState<string | null>(null);
+  // Get the fetch function from context
+  const fetchFn = useFetch();
 
   interface ApiErrorData {
     needsInstallation?: boolean;
@@ -123,7 +126,7 @@ export function useSummary({
         }
       });
 
-      const response = await fetch(`/api/summary?${params.toString()}`);
+      const response = await fetchFn(`/api/summary?${params.toString()}`);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -190,7 +193,8 @@ export function useSummary({
     repositories,
     contributors,
     installationIds,
-    handleApiError
+    handleApiError,
+    fetchFn
   ]);
 
   return {

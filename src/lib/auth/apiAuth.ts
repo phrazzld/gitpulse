@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { createAuthOptions } from "@/lib/auth/authConfig";
 import { isGitHubTokenValid } from "./tokenValidator";
 import { logger } from "../logger";
+import { GitPulseSession } from "./sessionTypes";
 
 const MODULE_NAME = "auth:apiAuth";
 
@@ -11,7 +12,7 @@ const MODULE_NAME = "auth:apiAuth";
  */
 export type ApiRouteHandler = (
   req: NextRequest,
-  session: any
+  session: GitPulseSession
 ) => Promise<NextResponse>;
 
 /**
