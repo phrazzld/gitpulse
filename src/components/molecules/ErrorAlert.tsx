@@ -87,16 +87,17 @@ export default function ErrorAlert({
             className="px-4 py-1 text-sm rounded-md transition-all duration-200"
             style={{ 
               backgroundColor: 'var(--dark-slate)',
-              color: 'var(--electric-blue)',
-              border: '1px solid var(--electric-blue)'
+              // Using a darker blue for better contrast with backgrounds (WCAG AA 4.5:1 ratio)
+              color: 'var(--electric-blue, #0066cc)', // Changed from #3b8eea to #0066cc
+              border: '1px solid var(--electric-blue, #0066cc)'
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--electric-blue)';
+              e.currentTarget.style.backgroundColor = 'var(--electric-blue, #0066cc)';
               e.currentTarget.style.color = 'var(--dark-slate)';
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.backgroundColor = 'var(--dark-slate)';
-              e.currentTarget.style.color = 'var(--electric-blue)';
+              e.currentTarget.style.color = 'var(--electric-blue, #0066cc)';
             }}
             onClick={() => onSignOut({ callbackUrl: '/' })}
           >

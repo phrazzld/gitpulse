@@ -25,9 +25,10 @@ export default function TerminalHeader({ title, statusText = 'OPERATIONAL STATUS
         </h2>
       </div>
       <div className="px-2 py-1 text-xs rounded" style={{ 
-        backgroundColor: 'rgba(0, 0, 0, 0.3)', 
-        border: '1px solid var(--electric-blue)',
-        color: 'var(--electric-blue)'
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        // Using a darker blue for better contrast with backgrounds (WCAG AA 4.5:1 ratio)
+        border: '1px solid var(--electric-blue, #0066cc)',
+        color: 'var(--electric-blue, #0066cc)' // Changed from #3b8eea to #0066cc
       }}>
         {statusText}
       </div>

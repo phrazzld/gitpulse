@@ -366,7 +366,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Run accessibility tests locally to verify
     - Check all states (selected, unselected, hover, focus)
 
-- [ ] **TASK-074: Test and fix OperationsPanel accessibility**
+- [x] **TASK-074: Test and fix OperationsPanel accessibility**
   - **Priority**: High
   - **Effort**: Medium
   - **Dependencies**: TASK-071, TASK-072, TASK-073

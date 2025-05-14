@@ -43,13 +43,13 @@ export default function AuthStatusBanner({
     <div className="mb-6 p-3 rounded-md border" style={{
       backgroundColor: isGitHubApp 
         ? 'rgba(0, 255, 135, 0.1)' 
-        : 'rgba(59, 142, 234, 0.1)',
-      borderColor: isGitHubApp 
-        ? 'var(--neon-green)' 
-        : 'var(--electric-blue)',
-      color: isGitHubApp 
-        ? 'var(--neon-green)' 
-        : 'var(--electric-blue)'
+        : 'rgba(0, 102, 204, 0.1)', // Using darker blue (#0066cc) for better contrast
+      borderColor: isGitHubApp
+        ? 'var(--neon-green)'
+        : 'var(--electric-blue, #0066cc)', // Changed from #3b8eea to #0066cc for better contrast
+      color: isGitHubApp
+        ? 'var(--neon-green)'
+        : 'var(--electric-blue, #0066cc)' // Changed from #3b8eea to #0066cc for better contrast
     }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center">
@@ -70,9 +70,9 @@ export default function AuthStatusBanner({
               href={getGitHubAppInstallUrl()}
               className="text-xs px-2 py-1 rounded-md flex items-center"
               style={{ 
-                backgroundColor: 'rgba(59, 142, 234, 0.1)',
-                color: 'var(--electric-blue)',
-                border: '1px solid var(--electric-blue)'
+                backgroundColor: 'rgba(0, 102, 204, 0.1)', // Using darker blue (#0066cc) for better contrast
+                color: 'var(--electric-blue, #0066cc)', // Changed from #3b8eea to #0066cc for better contrast
+                border: '1px solid var(--electric-blue, #0066cc)'
               }}
             >
               <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

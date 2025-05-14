@@ -133,7 +133,7 @@ export default function OperationsPanel({
       backgroundColor: 'rgba(27, 43, 52, 0.7)',
       backdropFilter: 'blur(5px)',
       borderColor: 'var(--neon-green)',
-      boxShadow: '0 0 15px rgba(0, 255, 135, 0.15)'
+      boxShadow: '0 0 15px rgba(0, 255, 135, 0.2)' // Increased opacity for better visibility
     }}>
       {/* Terminal-like header */}
       <TerminalHeader title="COMMIT ANALYSIS MODULE" />
