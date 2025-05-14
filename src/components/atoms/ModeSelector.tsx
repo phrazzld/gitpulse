@@ -92,7 +92,7 @@ export interface ModeSelectorProps {
   
   /**
    * Text color for descriptions
-   * @default 'var(--electric-blue, #3b8eea)'
+   * @default 'var(--electric-blue, #0066cc)'
    */
   secondaryColor?: string;
   
@@ -141,7 +141,8 @@ export default function ModeSelector({
   ariaLabel = 'Activity Mode',
   className = '',
   accentColor = 'var(--neon-green, #00ff87)',
-  secondaryColor = 'var(--electric-blue, #3b8eea)',
+  // Using a darker blue for better contrast with backgrounds (WCAG AA 4.5:1 ratio)
+  secondaryColor = 'var(--electric-blue, #0066cc)', // Changed from #3b8eea to #0066cc
   textColor = 'var(--foreground, #ffffff)',
   backgroundColor = 'rgba(27, 43, 52, 0.7)',
   selectedBackgroundColor = 'rgba(0, 255, 135, 0.1)',

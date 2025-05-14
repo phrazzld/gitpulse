@@ -355,7 +355,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Ensure all variants (Default, NoMoreItems, CustomLabels) pass accessibility tests
     - Verify with: `npm run test-storybook`
 
-- [ ] **TASK-073: Fix color contrast in ModeSelector component**
+- [x] **TASK-073: Fix color contrast in ModeSelector component**
   - **Priority**: High
   - **Effort**: Small
   - **Dependencies**: TASK-071
