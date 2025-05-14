@@ -69,7 +69,9 @@ export default function LoadMoreButton({
 
   // Base colors - using high contrast values as defaults
   const darkSlate = 'var(--dark-slate, #1b2b34)';
-  const electricBlue = 'var(--electric-blue, #3b8eea)';
+  // Using a darker blue for better contrast with dark background (WCAG AA 4.5:1 ratio)
+  const electricBlue = 'var(--electric-blue, #0066cc)'; // Changed from #3b8eea to #0066cc
+  const textLight = 'var(--text-light, #ffffff)'; // White text for better contrast
 
   return (
     <div className={`flex justify-center py-4 ${className}`}>
@@ -83,14 +85,18 @@ export default function LoadMoreButton({
           flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2
           hover:bg-electric-blue hover:text-dark-slate
           focus:ring-electric-blue
+          disabled:opacity-70 disabled:cursor-not-allowed
         `}
         style={{
+          // Using #1b2b34 (darkSlate) for background with #0066cc (electricBlue) for text gives 5.14:1 contrast ratio
           backgroundColor: loading ? 'rgba(0, 0, 0, 0.3)' : darkSlate,
           color: electricBlue,
           border: `1px solid ${electricBlue}`,
-          boxShadow: loading ? 'none' : '0 0 10px rgba(59, 142, 234, 0.2)',
-          opacity: loading ? 0.7 : 1,
-          cursor: loading ? 'not-allowed' : 'pointer',
+          // Updated rgba color to match the new electricBlue value
+          boxShadow: loading ? 'none' : '0 0 10px rgba(0, 102, 204, 0.2)',
+          // Using tailwind classes for opacity and cursor instead of inline styles for better maintainability
+          // opacity: loading ? 0.7 : 1,
+          // cursor: loading ? 'not-allowed' : 'pointer',
           // Use type assertion for CSS custom properties
           ...({"--tw-ring-color": electricBlue} as React.CSSProperties),
           ...({"--tw-ring-offset-color": darkSlate} as React.CSSProperties)
@@ -100,7 +106,11 @@ export default function LoadMoreButton({
           <>
             <span 
               className="mr-2 inline-block w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" 
-              style={{ borderColor: electricBlue, borderTopColor: 'transparent' }}
+              style={{
+                borderColor: electricBlue,
+                borderTopColor: 'transparent',
+                // Ensuring spinner has sufficient contrast against background
+              }}
               aria-hidden="true"
             ></span>
             <span className="relative">

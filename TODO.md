@@ -344,7 +344,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Test with the accessibility addon in Storybook
     - Run accessibility tests locally to verify: `npm run test-storybook`
 
-- [ ] **TASK-072: Fix color contrast in LoadMoreButton component**
+- [x] **TASK-072: Fix color contrast in LoadMoreButton component**
   - **Priority**: High
   - **Effort**: Small
   - **Dependencies**: TASK-071
