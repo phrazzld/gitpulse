@@ -127,7 +127,8 @@ export default function Button({
 }: ButtonProps) {
   // Base colors - using CSS variables for theming
   const darkSlate = 'var(--dark-slate, #1b2b34)';
-  const electricBlue = 'var(--electric-blue, #3b8eea)';
+  // Using a darker blue for better contrast with white text (WCAG AA 4.5:1 ratio)
+  const electricBlue = 'var(--electric-blue, #0066cc)'; // Changed from #3b8eea to #0066cc
   const lightGray = 'var(--light-gray, #f5f5f5)';
   const disabledGray = 'var(--disabled-gray, #e0e0e0)';
   const textLight = 'var(--text-light, #ffffff)';
@@ -179,7 +180,8 @@ export default function Button({
           borderColor: darkSlate,
           boxShadow: 'none',
           hoverBg: 'rgba(27, 43, 52, 0.05)',
-          hoverColor: electricBlue
+          // The darker blue has better contrast against white/transparent backgrounds
+          hoverColor: electricBlue // Now using #0066cc which meets contrast requirements
         };
       default:
         return {
@@ -229,6 +231,7 @@ export default function Button({
         cursor: (disabled || loading) ? 'not-allowed' : 'pointer',
         opacity: loading ? 0.85 : 1,
         // Use type assertion for CSS custom properties and focus styles
+        // Using darker blue for focus ring to meet WCAG 3:1 contrast requirement for non-text elements
         ...({"--tw-ring-color": electricBlue} as React.CSSProperties),
         ...({"--tw-ring-offset-color": darkSlate} as React.CSSProperties)
       }}
