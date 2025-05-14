@@ -24,7 +24,12 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "chromatic": "npx chromatic --exit-zero-on-changes"
+    "chromatic": "npx chromatic --exit-zero-on-changes",
+    "audit:security": "ts-node ./scripts/security-auditor/src/index.ts --fail-on-severity=high --fail-on-env=prod",
+    "lighthouse": "node scripts/lighthouse/run-lighthouse.js autorun",
+    "lighthouse:collect": "node scripts/lighthouse/run-lighthouse.js collect",
+    "lighthouse:assert": "node scripts/lighthouse/run-lighthouse.js assert",
+    "lighthouse:ci": "lhci autorun"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
@@ -37,6 +42,7 @@
     "react-window": "^1.8.11"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.14.0",
     "@playwright/test": "^1.52.0",
     "@storybook/addon-a11y": "^8.6.12",
     "@storybook/addon-essentials": "^8.6.12",
@@ -65,6 +71,7 @@
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "puppeteer": "^24.8.2",
     "storybook": "^8.6.12",
     "tailwindcss": "^4",
     "typescript": "^5",

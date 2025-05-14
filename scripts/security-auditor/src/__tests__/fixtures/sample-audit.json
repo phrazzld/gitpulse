@@ -1,0 +1,131 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "package-a": {
+      "name": "package-a",
+      "severity": "critical",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1,
+          "name": "package-a",
+          "dependency": "package-a",
+          "title": "Remote Code Execution",
+          "url": "https://npmjs.com/advisories/1",
+          "severity": "critical",
+          "range": "<1.0.0",
+          "vulnerableVersions": "<1.0.0"
+        }
+      ],
+      "effects": [],
+      "range": "<1.0.0",
+      "nodes": [
+        "node_modules/package-a"
+      ],
+      "fixAvailable": {
+        "name": "package-a",
+        "version": "1.0.0",
+        "isSemVerMajor": true
+      }
+    },
+    "package-b": {
+      "name": "package-b",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 2,
+          "name": "package-b",
+          "dependency": "package-b",
+          "title": "Prototype Pollution",
+          "url": "https://npmjs.com/advisories/2",
+          "severity": "high",
+          "range": "<2.0.0",
+          "vulnerableVersions": "<2.0.0"
+        }
+      ],
+      "effects": ["package-c"],
+      "range": "<2.0.0",
+      "nodes": [
+        "node_modules/package-c/node_modules/package-b"
+      ],
+      "fixAvailable": {
+        "name": "package-b",
+        "version": "2.0.0",
+        "isSemVerMajor": true
+      }
+    },
+    "package-d": {
+      "name": "package-d",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 3,
+          "name": "package-d",
+          "dependency": "package-d",
+          "title": "Cross-Site Scripting",
+          "url": "https://npmjs.com/advisories/3",
+          "severity": "moderate",
+          "range": "<3.0.0",
+          "vulnerableVersions": "<3.0.0"
+        }
+      ],
+      "effects": [],
+      "range": "<3.0.0",
+      "nodes": [
+        "node_modules/package-d"
+      ],
+      "fixAvailable": {
+        "name": "package-d",
+        "version": "3.0.0",
+        "isSemVerMajor": false
+      }
+    },
+    "package-e": {
+      "name": "package-e",
+      "severity": "low",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 4,
+          "name": "package-e",
+          "dependency": "package-e",
+          "title": "Regular Expression Denial of Service",
+          "url": "https://npmjs.com/advisories/4",
+          "severity": "low",
+          "range": "<4.0.0",
+          "vulnerableVersions": "<4.0.0"
+        }
+      ],
+      "effects": ["package-f"],
+      "range": "<4.0.0",
+      "nodes": [
+        "node_modules/package-f/node_modules/package-e"
+      ],
+      "fixAvailable": {
+        "name": "package-e",
+        "version": "4.0.0",
+        "isSemVerMajor": false
+      }
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 1,
+      "moderate": 1,
+      "high": 1,
+      "critical": 1,
+      "total": 4
+    },
+    "dependencies": {
+      "prod": 150,
+      "dev": 75,
+      "optional": 0,
+      "peer": 0,
+      "peerOptional": 0,
+      "total": 225
+    }
+  }
+}

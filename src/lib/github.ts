@@ -3,14 +3,14 @@
 import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
 import { logger } from "./logger";
-import { Repository as GithubRepository, Commit as GithubCommit } from "./github/types";
+import { Repository as GithubRepository, Commit as GithubCommit, AppInstallation as GithubAppInstallation } from "./github/types";
 
 const MODULE_NAME = "github";
 
 // Re-export types from github/types.ts
 export type Repository = GithubRepository;
 export type Commit = GithubCommit;
-export type { AppInstallation } from "./github/types";
+export type AppInstallation = GithubAppInstallation;
 
 /**
  * Generate the URL for managing a GitHub App installation

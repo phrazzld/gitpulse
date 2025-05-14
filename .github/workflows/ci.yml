@@ -171,8 +171,53 @@ jobs:
         path: test-results/a11y-summary.md
         header: "accessibility-report"
 
+    # Performance Testing with Lighthouse CI
+    - name: Install Lighthouse CI
+      run: npm install -g @lhci/cli puppeteer
+
+    - name: Run Lighthouse CI
+      run: |
+        # Start the server in the background
+        npm run build
+        npx http-server ./.next -p 3000 --silent &
+        SERVER_PID=$!
+
+        # Wait for server to start
+        sleep 5
+
+        # Run Lighthouse CI
+        lhci autorun --config=./.lighthouserc.js
+
+        # Generate the performance summary for PR comments
+        node scripts/lighthouse/generate-summary.js
+
+        # Kill the server
+        kill $SERVER_PID
+      env:
+        LHCI_BUILD_CONTEXT__GITHUB_REPO_OWNER: ${{ github.repository_owner }}
+        LHCI_BUILD_CONTEXT__GITHUB_REPO_NAME: ${{ github.repository }}
+        LHCI_BUILD_CONTEXT__GITHUB_RUN_ID: ${{ github.run_id }}
+        LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+        LHCI_BUILD_CONTEXT__COMMIT_TIME: ${{ github.event.head_commit.timestamp }}
+        LHCI_TOKEN: ${{ secrets.LHCI_TOKEN }}
+
+    - name: Upload Lighthouse Reports
+      if: always() # Run even if Lighthouse tests fail
+      uses: actions/upload-artifact@v4
+      with:
+        name: lighthouse-results
+        path: ./lighthouse-results
+        retention-days: 7
+
+    - name: Add Performance Report to PR
+      if: github.event_name == 'pull_request' && always()
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        recreate: true
+        path: lighthouse-results/performance-summary.md
+        header: "performance-report"
+
   # Add additional jobs as needed, such as:
   # - Deployment jobs
   # - Visual regression tests
   # - Integration tests
-  # - Performance tests
