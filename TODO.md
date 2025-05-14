@@ -309,6 +309,85 @@ This document outlines the tasks needed to address the critical issues identifie
     - Configure script execution environment
     - Verify CI fails based on script logic
 
+## CI Fix Tasks
+
+- [x] **TASK-069: Add ts-node to project dependencies**
+  - **Priority**: Critical
+  - **Effort**: Small
+  - **Dependencies**: None
+  - **Success Criteria**: CI security audit step passes without error
+  - **Description**:
+    - Add `ts-node` to `devDependencies` in root `package.json`
+    - Ensure the version is compatible with the TypeScript version
+    - Test locally to verify the security audit script runs successfully
+    - Commit the change and verify CI passes
+
+- [x] **TASK-070: Analyze button component accessibility issues**
+  - **Priority**: High
+  - **Effort**: Medium
+  - **Dependencies**: None
+  - **Success Criteria**: Complete understanding of accessibility violations
+  - **Description**:
+    - Run Storybook locally and enable the accessibility addon
+    - Identify all color contrast issues in button components
+    - Document the specific CSS variables and color combinations causing failures
+    - Create a report of all affected components
+
+- [ ] **TASK-071: Fix color contrast in Button component**
+  - **Priority**: High
+  - **Effort**: Medium
+  - **Dependencies**: TASK-070
+  - **Success Criteria**: Button passes accessibility tests
+  - **Description**:
+    - Update the color variables in `src/components/atoms/Button.tsx`
+    - Ensure text colors have sufficient contrast with backgrounds (4.5:1 ratio)
+    - Test with the accessibility addon in Storybook
+    - Run accessibility tests locally to verify: `npm run test-storybook`
+
+- [ ] **TASK-072: Fix color contrast in LoadMoreButton component**
+  - **Priority**: High
+  - **Effort**: Small
+  - **Dependencies**: TASK-071
+  - **Success Criteria**: LoadMoreButton passes accessibility tests
+  - **Description**:
+    - Apply the same color contrast fixes from Button component
+    - Test with the accessibility addon in Storybook
+    - Ensure all variants (Default, NoMoreItems, CustomLabels) pass accessibility tests
+    - Verify with: `npm run test-storybook`
+
+- [ ] **TASK-073: Fix color contrast in ModeSelector component**
+  - **Priority**: High
+  - **Effort**: Small
+  - **Dependencies**: TASK-071
+  - **Success Criteria**: ModeSelector passes accessibility tests
+  - **Description**:
+    - Update the component to use the fixed color variables
+    - Test with the accessibility addon in Storybook
+    - Run accessibility tests locally to verify
+    - Check all states (selected, unselected, hover, focus)
+
+- [ ] **TASK-074: Test and fix OperationsPanel accessibility**
+  - **Priority**: High
+  - **Effort**: Medium
+  - **Dependencies**: TASK-071, TASK-072, TASK-073
+  - **Success Criteria**: OperationsPanel passes accessibility tests
+  - **Description**:
+    - Verify that fixing child components resolves OperationsPanel issues
+    - Check if any additional contrast issues exist in the panel itself
+    - Apply fixes if necessary
+    - Run accessibility tests to verify
+
+- [ ] **TASK-075: Implement centralized color contrast utility**
+  - **Priority**: Medium
+  - **Effort**: Medium
+  - **Dependencies**: TASK-074
+  - **Success Criteria**: Color contrast utility implemented and used
+  - **Description**:
+    - Create a utility function to validate color contrast ratios
+    - Add it to the development tools
+    - Update component documentation to reference the utility
+    - Consider adding as a pre-commit hook
+
 ## Implementation Order
 
 1. **Type Safety** (TASK-041 → TASK-045)
@@ -317,3 +396,5 @@ This document outlines the tasks needed to address the critical issues identifie
 4. **Testing Improvements** (TASK-049 → TASK-055)
 5. **CI Security** (TASK-066 → TASK-068)
 6. **CI Quality Gates** (TASK-061 → TASK-065)
+7. **CI Fix** (TASK-069)
+8. **Accessibility Fixes** (TASK-070 → TASK-075)
