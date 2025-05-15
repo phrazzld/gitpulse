@@ -377,7 +377,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Apply fixes if necessary
     - Run accessibility tests to verify
 
-- [ ] **TASK-075: Implement centralized color contrast utility**
+- [x] **TASK-075: Implement centralized color contrast utility**
   - **Priority**: Medium
   - **Effort**: Medium
   - **Dependencies**: TASK-074
