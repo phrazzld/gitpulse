@@ -408,7 +408,7 @@ This document outlines the tasks needed to address the critical issues identifie
   - Update the test's `toThrow()` assertion if the error message has changed
   - Verification: Run targeted test and confirm CI passes
 
-- [ ] **T002: Refactor `dashboard-utils.test.ts` to use `dateMock.ts` for date mocking**
+- [x] **T002: Refactor `dashboard-utils.test.ts` to use `dateMock.ts` for date mocking**
   - Remove direct assignments to `dashboardUtils.getTodayDate` and `getLastWeekDate` properties
   - Import and use `createMockDate` from `src/lib/tests/dateMock.ts` for date mocking
   - Adjust test assertions to work with the mocked dates

@@ -26,17 +26,38 @@ interface MockDateClass extends DateConstructor {
  */
 export function createMockDate(dateString: string) {
   const originalDate = global.Date;
-  const mockDateObj = new Date(dateString);
+  const mockTime = new Date(dateString).getTime();
   
   // Create a properly typed mock Date class
   const MockDate = class MockDate extends Date {
-    constructor() {
-      super();
-      return mockDateObj;
+    constructor(...args: any[]) {
+      if (args.length === 0) {
+        // When called with no args, return a fresh copy of the mock date
+        super(mockTime);
+      } else {
+        // Otherwise call the original constructor with explicit args
+        if (args.length === 1) {
+          super(args[0]);
+        } else if (args.length === 2) {
+          super(args[0], args[1]);
+        } else if (args.length === 3) {
+          super(args[0], args[1], args[2]);
+        } else if (args.length === 4) {
+          super(args[0], args[1], args[2], args[3]);
+        } else if (args.length === 5) {
+          super(args[0], args[1], args[2], args[3], args[4]);
+        } else if (args.length === 6) {
+          super(args[0], args[1], args[2], args[3], args[4], args[5]);
+        } else if (args.length === 7) {
+          super(args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+        } else {
+          super(args[0]);
+        }
+      }
     }
     
     static now() {
-      return mockDateObj.getTime();
+      return mockTime;
     }
   } as unknown as MockDateClass;
   
@@ -44,7 +65,7 @@ export function createMockDate(dateString: string) {
   global.Date = MockDate;
   
   return {
-    date: mockDateObj,
+    date: new MockDate(),
     MockDate,
     restore: () => {
       global.Date = originalDate;
