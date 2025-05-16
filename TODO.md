@@ -434,10 +434,13 @@ This document outlines the tasks needed to address the critical issues identifie
   - ✅ Documented rule-skipping mechanism for exceptional cases
   - ✅ Created `docs/ACCESSIBILITY_CI_SETUP.md` with complete documentation
 
-- [~] **T009: Implement local pre-commit/push accessibility checks**
-  - Research tools like `axe-core` CLI for fast local accessibility validation
-  - Integrate with git hooks to prevent committing/pushing accessibility issues
-  - Document setup for the development team
+- [x] **T009: Implement local pre-commit/push accessibility checks**
+  - ✅ Used existing test-storybook with axe-core for consistency with CI
+  - ✅ Integrated with Husky pre-commit hook to check staged stories
+  - ✅ Added filtering to only report violations in staged files
+  - ✅ Created comprehensive documentation at `docs/LOCAL_ACCESSIBILITY_CHECKS.md`
+  - ✅ Added override mechanism with A11Y_SKIP environment variable
+  - ✅ Included unit tests and convenience npm scripts
 
 ## Priority 2 (Medium)
 
