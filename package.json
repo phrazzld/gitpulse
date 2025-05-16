@@ -29,7 +29,9 @@
     "lighthouse": "node scripts/lighthouse/run-lighthouse.js autorun",
     "lighthouse:collect": "node scripts/lighthouse/run-lighthouse.js collect",
     "lighthouse:assert": "node scripts/lighthouse/run-lighthouse.js assert",
-    "lighthouse:ci": "lhci autorun"
+    "lighthouse:ci": "lhci autorun",
+    "check:a11y:staged": "node scripts/check-a11y-staged-stories.js",
+    "check:a11y:all": "test-storybook"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",

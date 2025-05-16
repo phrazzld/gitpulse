@@ -93,7 +93,7 @@ jobs:
         # Ensure tests know they're running in CI
         CI: true
         # Force the tests to use our custom handlers
-        SKIP_A11Y_FAILURES: true
+        SKIP_A11Y_FAILURES: false
         # Verbose logging for easier debugging
         DEBUG: "true"
         # Output location for test reports

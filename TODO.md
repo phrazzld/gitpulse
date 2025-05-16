@@ -427,11 +427,14 @@ This document outlines the tasks needed to address the critical issues identifie
   - Ensure proper detection and suggestions for using `dateMock.ts` instead
   - Test the rule against known violation patterns
 
-- [ ] **T008: Configure `storybook-a11y` as a blocking CI check**
-  - Verify or update CI configuration to ensure accessibility failures block PRs
-  - Test with a deliberate failure to confirm blocking behavior
+- [x] **T008: Configure `storybook-a11y` as a blocking CI check**
+  - ✅ Updated `.github/workflows/storybook-a11y.yml` to set `SKIP_A11Y_FAILURES: false`
+  - ✅ Modified `.storybook/test-runner.js` to properly fail tests on violations
+  - ✅ Verified with test stories that violations now block the CI
+  - ✅ Documented rule-skipping mechanism for exceptional cases
+  - ✅ Created `docs/ACCESSIBILITY_CI_SETUP.md` with complete documentation
 
-- [ ] **T009: Implement local pre-commit/push accessibility checks**
+- [~] **T009: Implement local pre-commit/push accessibility checks**
   - Research tools like `axe-core` CLI for fast local accessibility validation
   - Integrate with git hooks to prevent committing/pushing accessibility issues
   - Document setup for the development team

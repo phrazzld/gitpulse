@@ -3,6 +3,9 @@
 # Run lint and typecheck
 npm run lint && npm run typecheck
 
+# Run accessibility checks on staged stories
+node scripts/check-a11y-staged-stories.js
+
 # File length check
 echo "Checking file lengths..."
 warning_length=500
