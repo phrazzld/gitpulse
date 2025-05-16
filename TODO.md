@@ -414,7 +414,7 @@ This document outlines the tasks needed to address the critical issues identifie
   - Adjust test assertions to work with the mocked dates
   - Verification: Tests pass without TypeErrors
 
-- [ ] **T003: Update `--electric-blue` CSS variable in `globals.css` to fix color contrast**
+- [x] **T003: Update `--electric-blue` CSS variable in `globals.css` to fix color contrast**
   - Identify current value of `var(--electric-blue)` in `src/app/globals.css`
   - Update to a color with sufficient contrast ratio (≥4.5:1) against `var(--dark-slate)`
   - Visually verify the updated appearance is acceptable
