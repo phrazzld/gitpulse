@@ -398,3 +398,83 @@ This document outlines the tasks needed to address the critical issues identifie
 6. **CI Quality Gates** (TASK-061 → TASK-065)
 7. **CI Fix** (TASK-069)
 8. **Accessibility Fixes** (TASK-070 → TASK-075)
+
+# CI Resolution Tasks
+
+## Priority 0 (Critical)
+
+- [x] **T001: Fix GitHub token scope validation test in `repositories.test.ts`**
+  - Modify the mock implementation for `validateOAuthToken` in `repositories.test.ts` to accurately simulate a token missing the 'repo' scope
+  - Update the test's `toThrow()` assertion if the error message has changed
+  - Verification: Run targeted test and confirm CI passes
+
+- [ ] **T002: Refactor `dashboard-utils.test.ts` to use `dateMock.ts` for date mocking**
+  - Remove direct assignments to `dashboardUtils.getTodayDate` and `getLastWeekDate` properties
+  - Import and use `createMockDate` from `src/lib/tests/dateMock.ts` for date mocking
+  - Adjust test assertions to work with the mocked dates
+  - Verification: Tests pass without TypeErrors
+
+- [ ] **T003: Update `--electric-blue` CSS variable in `globals.css` to fix color contrast**
+  - Identify current value of `var(--electric-blue)` in `src/app/globals.css`
+  - Update to a color with sufficient contrast ratio (≥4.5:1) against `var(--dark-slate)`
+  - Visually verify the updated appearance is acceptable
+  - Verification: Storybook accessibility checks pass for all `LoadMoreButton` variants
+
+## Priority 1 (High)
+
+- [ ] **T006: Implement ESLint rule or pre-commit hook for `dateMock.ts` enforcement**
+  - Create custom rule to flag direct manipulation of `global.Date` or `Date.now`
+  - Ensure proper detection and suggestions for using `dateMock.ts` instead
+  - Test the rule against known violation patterns
+
+- [ ] **T008: Configure `storybook-a11y` as a blocking CI check**
+  - Verify or update CI configuration to ensure accessibility failures block PRs
+  - Test with a deliberate failure to confirm blocking behavior
+
+- [ ] **T009: Implement local pre-commit/push accessibility checks**
+  - Research tools like `axe-core` CLI for fast local accessibility validation
+  - Integrate with git hooks to prevent committing/pushing accessibility issues
+  - Document setup for the development team
+
+## Priority 2 (Medium)
+
+- [ ] **T004: Conduct team review of mocking policy**
+  - Schedule review of "Mocking Policy" section from development philosophy
+  - Emphasize anti-patterns like mocking internal module collaborators
+
+- [ ] **T005: Update testing guidelines to mandate `dateMock.ts`**
+  - Document proper date mocking approach in project guidelines
+  - Include examples of correct usage patterns
+
+- [ ] **T007: Add mocking and test utility checks to code review checklist**
+  - Update PR template with specific validation criteria
+  - Cover mocking policies, date mocking, and error testing
+
+- [ ] **T010: Document approved color pairings and contrast ratios**
+  - List all theme color combinations with their WCAG contrast ratios
+  - Reference the centralized color contrast utility
+
+- [ ] **T011: Audit adoption of centralized color contrast utility**
+  - Review components for proper use of the accessibility color system
+  - Document findings and create follow-up tickets for non-compliance
+
+- [ ] **T012: Configure Jest for clearer test failure output**
+  - Enhance error messaging to better show actual vs expected values
+  - Implement necessary Jest configuration changes
+
+- [ ] **T013: Configure detailed accessibility violation reporting**
+  - Update `storybook-a11y` to show specific selectors and WCAG rules
+  - Improve violation details in CI output
+
+- [ ] **T014: Document approved testing patterns**
+  - Create guidelines for mocking external dependencies
+  - Include examples for handling async operations properly
+
+- [ ] **T015: Update accessibility best practices documentation**
+  - Document color contrast requirements
+  - List common accessibility pitfalls and solutions
+
+## Clarifications & Assumptions
+
+- Confirm current hex value of `var(--electric-blue)` in `src/app/globals.css` (for task T003)
+- Determine if the team has existing documentation/guidelines to update or if new ones need to be created

@@ -92,6 +92,10 @@ export async function fetchAllRepositoriesOAuth(
       logger.warn(MODULE_NAME, "Could not retrieve authenticated user info", {
         error: userInfoError,
       });
+      // Re-throw the error if it's the missing repo scope error
+      if (userInfoError instanceof Error && userInfoError.message.includes("GitHub token is missing 'repo' scope")) {
+        throw userInfoError;
+      }
     }
 
     // the simplest approach to get as many repos as possible:
