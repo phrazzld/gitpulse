@@ -66,6 +66,7 @@
     "concurrently": "^9.1.2",
     "eslint": "^9.22.0",
     "eslint-config-next": "^15.3.2",
+    "eslint-plugin-gitpulse": "file:eslint",
     "eslint-plugin-storybook": "^0.12.0",
     "http-server": "^14.1.1",
     "husky": "^9.1.7",
