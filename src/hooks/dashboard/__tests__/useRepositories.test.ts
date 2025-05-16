@@ -2,35 +2,10 @@
  * Tests for the useRepositories hook
  */
 
-// Test type declarations
-declare function describe(name: string, fn: () => void): void;
-declare function beforeEach(fn: () => void): void;
-declare function afterEach(fn: () => void): void;
-declare function it(name: string, fn: () => void): void;
-declare function expect(actual: any): any;
-declare namespace jest {
-  function resetModules(): void;
-  function clearAllMocks(): void;
-  function spyOn(object: any, methodName: string): any;
-  function fn(implementation?: (...args: any[]) => any): any;
-  function mock(moduleName: string, factory?: () => any): void;
-}
-type Mock<T> = ReturnType<typeof jest.fn>;
-
-// Mocking renderHook and act functions that would come from @testing-library/react
-const renderHook = (callback: Function) => {
-  const result = { current: callback() };
-  return { result };
-};
-
-const act = async (callback: Function) => {
-  await callback();
-};
-
-const waitFor = async (callback: Function) => {
-  await new Promise(resolve => setTimeout(resolve, 0));
-  callback();
-};
+// Import testing library methods
+import { act, renderHook, waitFor } from '@testing-library/react';
+import React from 'react';
+import { FetchProvider } from '@/contexts/FetchContext';
 
 // Import hooks and types
 import { useRepositories } from '../useRepositories';
@@ -62,8 +37,8 @@ jest.mock('@/lib/localStorageCache', () => ({
 // Import mocks after mocking
 import { setCacheItem, getStaleItem } from '@/lib/localStorageCache';
 
-// Mock fetch
-global.fetch = jest.fn();
+// Create a mock fetch function for testing
+const mockFetch = jest.fn();
 
 describe('useRepositories', () => {
   // Mock repositories for testing
@@ -113,18 +88,35 @@ describe('useRepositories', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (fetch as any).mockReset();
+    mockFetch.mockReset();
   });
+
+  // Helper function to create wrapper with FetchProvider
+  const createWrapper = () => {
+    const FetchProviderWrapper = ({ children }: { children: React.ReactNode }) => {
+      // Pass children as third argument, not as a prop
+      return React.createElement(
+        FetchProvider,
+        // @ts-ignore - Bypass TypeScript error about missing children prop
+        { fetchImplementation: mockFetch },
+        children
+      );
+    };
+    FetchProviderWrapper.displayName = 'FetchProviderWrapper';
+    return FetchProviderWrapper;
+  };
 
   it('should return initial state on first render', async () => {
     // Set up mock for stale-while-revalidate cache
-    (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
-    (fetch as any).mockResolvedValueOnce({
+    (getStaleItem as jest.Mock).mockReturnValue({ data: null, isStale: true });
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHook(() => useRepositories(), {
+      wrapper: createWrapper()
+    });
 
     // Initial state
     expect(result.current.repositories).toEqual([]);
@@ -136,13 +128,15 @@ describe('useRepositories', () => {
 
   it('should fetch repositories and update state', async () => {
     // Set up mock for stale-while-revalidate cache
-    (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
-    (fetch as any).mockResolvedValueOnce({
+    (getStaleItem as jest.Mock).mockReturnValue({ data: null, isStale: true });
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHook(() => useRepositories(), {
+      wrapper: createWrapper()
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -163,7 +157,7 @@ describe('useRepositories', () => {
     expect(result.current.needsInstallation).toBe(false);
     
     // Verify fetch was called with the correct URL
-    expect(fetch).toHaveBeenCalledWith('/api/repos');
+    expect(mockFetch).toHaveBeenCalledWith('/api/repos');
     
     // Verify cache was updated
     expect(setCacheItem).toHaveBeenCalledWith(
@@ -175,12 +169,14 @@ describe('useRepositories', () => {
 
   it('should use cached repositories if available and not stale', async () => {
     // Set up mock for stale-while-revalidate cache with fresh data
-    (getStaleItem as any).mockReturnValue({ 
+    (getStaleItem as jest.Mock).mockReturnValue({ 
       data: mockRepositories, 
       isStale: false 
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHook(() => useRepositories(), {
+      wrapper: createWrapper()
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -196,22 +192,24 @@ describe('useRepositories', () => {
     expect(result.current.repositories).toEqual(mockRepositories);
     
     // Verify fetch was NOT called since we had fresh cached data
-    expect(fetch).not.toHaveBeenCalled();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('should use cached repositories but fetch in background if stale', async () => {
     // Set up mock for stale-while-revalidate cache with stale data
-    (getStaleItem as any).mockReturnValue({ 
+    (getStaleItem as jest.Mock).mockReturnValue({ 
       data: mockRepositories, 
       isStale: true 
     });
     
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockSuccessResponse
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHook(() => useRepositories(), {
+      wrapper: createWrapper()
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -227,15 +225,15 @@ describe('useRepositories', () => {
     expect(result.current.repositories).toEqual(mockRepositories);
     
     // Verify fetch was called to get fresh data in background
-    expect(fetch).toHaveBeenCalledWith('/api/repos');
+    expect(mockFetch).toHaveBeenCalledWith('/api/repos');
   });
 
   it('should handle auth errors correctly', async () => {
     // Set up mock for stale-while-revalidate cache
-    (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
+    (getStaleItem as jest.Mock).mockReturnValue({ data: null, isStale: true });
     
     // Mock auth error response
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
       json: async () => ({ 
@@ -244,7 +242,9 @@ describe('useRepositories', () => {
       })
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHook(() => useRepositories(), {
+      wrapper: createWrapper()
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -266,10 +266,10 @@ describe('useRepositories', () => {
 
   it('should handle installation needed errors correctly', async () => {
     // Set up mock for stale-while-revalidate cache
-    (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
+    (getStaleItem as jest.Mock).mockReturnValue({ data: null, isStale: true });
     
     // Mock installation needed error response
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,
       json: async () => ({ 
@@ -278,7 +278,9 @@ describe('useRepositories', () => {
       })
     });
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHook(() => useRepositories(), {
+      wrapper: createWrapper()
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -301,12 +303,14 @@ describe('useRepositories', () => {
 
   it('should handle general errors correctly', async () => {
     // Set up mock for stale-while-revalidate cache
-    (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
+    (getStaleItem as jest.Mock).mockReturnValue({ data: null, isStale: true });
     
     // Mock generic error
-    (fetch as any).mockRejectedValueOnce(new Error('Network error'));
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHook(() => useRepositories(), {
+      wrapper: createWrapper()
+    });
 
     // Call fetchRepositories
     let fetchPromise;
@@ -328,15 +332,17 @@ describe('useRepositories', () => {
 
   it('should fetch repositories with specific installation ID', async () => {
     // Set up mock for stale-while-revalidate cache
-    (getStaleItem as any).mockReturnValue({ data: null, isStale: true });
+    (getStaleItem as jest.Mock).mockReturnValue({ data: null, isStale: true });
     
-    (fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockSuccessResponse
     });
 
     const installationId = 54321;
-    const { result } = renderHook(() => useRepositories());
+    const { result } = renderHook(() => useRepositories(), {
+      wrapper: createWrapper()
+    });
 
     // Call fetchRepositories with specific installation ID
     let fetchPromise;
@@ -355,6 +361,6 @@ describe('useRepositories', () => {
     expect(result.current.repositories).toEqual(mockRepositories);
     
     // Verify fetch was called with the correct URL including installation_id
-    expect(fetch).toHaveBeenCalledWith(`/api/repos?installation_id=${installationId}`);
+    expect(mockFetch).toHaveBeenCalledWith(`/api/repos?installation_id=${installationId}`);
   });
 });

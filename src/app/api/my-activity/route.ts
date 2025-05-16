@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { createAuthOptions } from "@/lib/auth/authConfig";
-import { 
+import {
   Commit,
   Repository,
-  AppInstallation 
+  AppInstallation
 } from "@/lib/github/types";
 import { fetchAllRepositories } from "@/lib/github/repositories";
 import { fetchCommitsForRepositories } from "@/lib/github/commits";
 import { logger } from "@/lib/logger";
 import { optimizedJsonResponse, generateETag, isCacheValid, notModifiedResponse, CacheTTL } from "@/lib/cache";
 import { optimizeCommit, optimizeRepository, MinimalCommit, MinimalRepository } from "@/lib/optimize";
+import { getErrorMessage, isError, isGitHubApiError } from "@/lib/utils/types";
+import { GitPulseSession } from "@/lib/auth/sessionTypes";
 
 const MODULE_NAME = "api:my-activity";
 
@@ -103,11 +105,12 @@ export async function GET(request: NextRequest) {
     let repositories: Repository[] = [];
     try {
       repositories = await fetchAllRepositories(accessToken, installationId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
       
+      const errorMessage = getErrorMessage(error);
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching repositories: " + error.message,
+        error: "Error fetching repositories: " + errorMessage,
         code: "GITHUB_REPO_ERROR"
       }), {
         status: 500,
@@ -131,11 +134,12 @@ export async function GET(request: NextRequest) {
         until,
         userLogin // Only fetch commits by the current user
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(MODULE_NAME, "Error fetching commits", { error });
       
+      const errorMessage = getErrorMessage(error);
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching commits: " + error.message,
+        error: "Error fetching commits: " + errorMessage,
         code: "GITHUB_COMMIT_ERROR"
       }), {
         status: 500,
@@ -199,11 +203,12 @@ export async function GET(request: NextRequest) {
       compress: true
     });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(MODULE_NAME, "Unexpected error processing request", { error });
     
+    const errorMessage = getErrorMessage(error);
     return await optimizedJsonResponse(request, { 
-      error: "An unexpected error occurred: " + error.message,
+      error: "An unexpected error occurred: " + errorMessage,
       code: "UNEXPECTED_ERROR"
     }, 500);
   }
@@ -224,13 +229,13 @@ function getDefaultUntil(): string {
 // We now import generateETag from cache.ts
 
 // Helper to extract user login from session
-function getUserLoginFromSession(session: any): string | undefined {
+function getUserLoginFromSession(session: GitPulseSession): string | undefined {
   if (session.profile?.login) {
     return session.profile.login;
   }
   
   // Fallback to username or email if login not available
-  return session.user?.name || session.user?.email?.split('@')[0];
+  return session.user?.name || (session.user?.email ? session.user.email.split('@')[0] : undefined);
 }
 
 // Helper to apply cursor-based pagination

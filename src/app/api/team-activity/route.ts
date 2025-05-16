@@ -11,6 +11,7 @@ import { fetchCommitsForRepositories } from "@/lib/github/commits";
 import { logger } from "@/lib/logger";
 import { optimizedJsonResponse, isCacheValid, notModifiedResponse, CacheTTL, generateETag } from "@/lib/cache";
 import { optimizeCommit, optimizeRepository, optimizeContributor, MinimalCommit, MinimalRepository, MinimalContributor } from "@/lib/optimize";
+import { getErrorMessage, isError, isGitHubApiError } from "@/lib/utils/types";
 
 const MODULE_NAME = "api:team-activity";
 
@@ -144,11 +145,12 @@ export async function GET(request: NextRequest) {
     let allRepositories: Repository[] = [];
     try {
       allRepositories = await fetchAllRepositories(accessToken, installationId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
       
+      const errorMessage = getErrorMessage(error);
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching repositories: " + error.message,
+        error: "Error fetching repositories: " + errorMessage,
         code: "GITHUB_REPO_ERROR"
       }), {
         status: 500,
@@ -210,11 +212,12 @@ export async function GET(request: NextRequest) {
         until
         // No author parameter - we want all team members' commits
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(MODULE_NAME, "Error fetching commits", { error });
       
+      const errorMessage = getErrorMessage(error);
       return new NextResponse(JSON.stringify({ 
-        error: "Error fetching commits: " + error.message,
+        error: "Error fetching commits: " + errorMessage,
         code: "GITHUB_COMMIT_ERROR"
       }), {
         status: 500,
@@ -312,11 +315,12 @@ export async function GET(request: NextRequest) {
       compress: true
     });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error(MODULE_NAME, "Unexpected error processing request", { error });
     
+    const errorMessage = getErrorMessage(error);
     return await optimizedJsonResponse(request, { 
-      error: "An unexpected error occurred: " + error.message,
+      error: "An unexpected error occurred: " + errorMessage,
       code: "UNEXPECTED_ERROR"
     }, 500);
   }

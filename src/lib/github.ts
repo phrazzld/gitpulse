@@ -3,70 +3,14 @@
 import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
 import { logger } from "./logger";
+import { Repository as GithubRepository, Commit as GithubCommit, AppInstallation as GithubAppInstallation } from "./github/types";
 
 const MODULE_NAME = "github";
 
-// loosen up the fields that github can return as null or undefined
-export interface Repository {
-  id: number;
-  name: string;
-  full_name: string;
-  owner: {
-    login: string;
-    // you could add node_id?: string; avatar_url?: string; etc. if you need them
-  };
-  private: boolean;
-  html_url: string;
-  description: string | null;
-  updated_at?: string | null;
-  language?: string | null;
-  // optionally: license?: License|null;
-}
-
-export interface Commit {
-  sha: string;
-  commit: {
-    author: {
-      name?: string;
-      email?: string;
-      date?: string;
-    } | null;
-    committer?: {
-      name?: string;
-      email?: string;
-      date?: string;
-    } | null;
-    message: string;
-    // Add other properties that might exist
-    [key: string]: any;
-  };
-  html_url: string;
-  author: {
-    login: string;
-    avatar_url: string;
-    // Add other properties that might exist
-    [key: string]: any;
-  } | null;
-  repository?: {
-    full_name: string;
-  };
-  // Allow other properties from the GitHub API
-  [key: string]: any;
-}
-
-// Installation type for managing multiple installations
-export interface AppInstallation {
-  id: number;
-  account: {
-    login: string;
-    type?: string;
-    avatarUrl?: string;
-  } | null;
-  appSlug: string;
-  appId: number;
-  repositorySelection: string;
-  targetType: string; // 'User' or 'Organization'
-}
+// Re-export types from github/types.ts
+export type Repository = GithubRepository;
+export type Commit = GithubCommit;
+export type AppInstallation = GithubAppInstallation;
 
 /**
  * Generate the URL for managing a GitHub App installation
@@ -136,16 +80,26 @@ export async function getAllAppInstallations(
         };
       }
       
-      // Handle both user and organization accounts
-      // Safe assertion - we already checked inst.account is not null
-      const account = inst.account as any;
+      // Handle both user and organization accounts using safe accessors
+      const account = inst.account;
+      const login = typeof account === 'object' && account !== null && 'login' in account 
+        ? String(account.login) 
+        : undefined;
+      
+      const type = typeof account === 'object' && account !== null && 'type' in account 
+        ? String(account.type) 
+        : undefined;
+        
+      const avatarUrl = typeof account === 'object' && account !== null && 'avatar_url' in account 
+        ? String(account.avatar_url) 
+        : undefined;
       
       return {
         id: inst.id,
         account: {
-          login: account.login,
-          type: 'type' in account ? account.type : undefined, 
-          avatarUrl: account.avatar_url,
+          login: login || '',
+          type, 
+          avatarUrl,
         },
         appSlug: inst.app_slug,
         appId: inst.app_id,
@@ -290,16 +244,21 @@ export async function fetchAllRepositoriesOAuth(
       const scopesHeader = userInfo.headers["x-oauth-scopes"] || "";
       const scopes = scopesHeader ? scopesHeader.split(", ") : [];
 
+      // Extract two_factor_authentication which may not be in official types
+      const twoFactorEnabled = typeof userInfo.data === 'object' && 
+        userInfo.data !== null && 
+        'two_factor_authentication' in userInfo.data ? 
+        Boolean(userInfo.data.two_factor_authentication) : 
+        undefined;
+        
       logger.info(MODULE_NAME, "Authenticated user details", {
         login: userInfo.data.login,
         id: userInfo.data.id,
         type: userInfo.data.type,
-        // this property isn't in official octokit types:
-        twoFactorEnabled: (userInfo.data as any).two_factor_authentication,
+        twoFactorEnabled,
         tokenScopes: scopes,
         hasRepoScope: scopes.includes("repo"),
         hasReadOrgScope: scopes.includes("read:org"),
-        // etc...
       });
 
       // strongly recommend ensuring 'repo' and 'read:org' if you want all repos
@@ -575,8 +534,8 @@ export async function fetchRepositoryCommitsOAuth(
       },
     }));
 
-    // Cast to ensure compatibility with our interface
-    return commitsWithRepoInfo as any as Commit[];
+    // Type-safe way to ensure compatibility with our interface
+    return commitsWithRepoInfo as unknown as Commit[];
   } catch (error) {
     logger.error(MODULE_NAME, `Error fetching commits for ${owner}/${repo}`, {
       error,
@@ -642,8 +601,8 @@ export async function fetchRepositoryCommitsApp(
       },
     }));
 
-    // Cast to ensure compatibility with our interface
-    return commitsWithRepoInfo as any as Commit[];
+    // Type-safe way to ensure compatibility with our interface
+    return commitsWithRepoInfo as unknown as Commit[];
   } catch (error) {
     logger.error(
       MODULE_NAME,

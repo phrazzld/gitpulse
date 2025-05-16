@@ -9,6 +9,7 @@ import { Octokit } from "octokit";
 import { logger } from "../logger";
 import { Repository } from "./types";
 import { getInstallationOctokit } from "./auth";
+import { normalizeRepositoryResponse, isRepositoryArray } from "./octokitTypes";
 
 const MODULE_NAME = "github:repositories";
 
@@ -91,6 +92,10 @@ export async function fetchAllRepositoriesOAuth(
       logger.warn(MODULE_NAME, "Could not retrieve authenticated user info", {
         error: userInfoError,
       });
+      // Re-throw the error if it's the missing repo scope error
+      if (userInfoError instanceof Error && userInfoError.message.includes("GitHub token is missing 'repo' scope")) {
+        throw userInfoError;
+      }
     }
 
     // the simplest approach to get as many repos as possible:
@@ -140,14 +145,10 @@ export async function fetchAllRepositoriesOAuth(
           logger.info(MODULE_NAME, `Fetched repos for org: ${org.login}`, {
             count: orgRepos.length,
           });
-          // Make sure we're creating a proper array of repositories
-          // @ts-ignore - Octokit types for returned repository data vary
-          if (Array.isArray(orgRepos)) {
-            allRepos = [...allRepos, ...orgRepos];
-          } else if (orgRepos) {
-            // If it's a single repo, add it to the array
-            // @ts-ignore - Octokit type complexities
-            allRepos.push(orgRepos);
+          // Handle repository response with proper type checking
+          const normalizedRepos = normalizeRepositoryResponse(orgRepos);
+          if (normalizedRepos.length > 0) {
+            allRepos = [...allRepos, ...normalizedRepos];
           }
         } catch (orgError) {
           logger.warn(

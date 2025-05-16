@@ -1,0 +1,223 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run enhanced security audit
+      # This ensures the build fails if any high or critical severity vulnerabilities are found in production dependencies
+      # See our Development Philosophy: CI builds MUST FAIL on discovery of critical/high severity vulnerabilities
+      run: |
+        # Install required dependencies for the security-auditor script
+        cd scripts/security-auditor
+        npm install
+        cd ../..
+        # Run the enhanced security audit
+        npm run audit:security
+      
+    - name: Lint
+      run: npm run lint
+      # Ensure the build fails if linting fails
+      
+    - name: Type check
+      run: npm run typecheck
+      # Ensure the build fails if type checking fails
+      
+    - name: Build
+      run: npm run build
+      # Ensure the build fails if the app build fails
+      
+    - name: Build Storybook
+      run: npm run build-storybook
+      # Ensure the build fails if Storybook build fails
+      
+    - name: Run Tests with Coverage
+      run: npm run test:ci
+      # This step will fail if:
+      # 1. Any tests fail
+      # 2. Coverage thresholds are not met (configured in jest.config.js)
+      # Coverage thresholds: Global ≥ 80%, Atoms ≥ 90%, Molecules ≥ 85%, Organisms ≥ 80%
+    
+    - name: Read Coverage Summary
+      id: read-coverage
+      if: github.event_name == 'pull_request'
+      run: |
+        echo "summary=$(cat coverage/coverage-summary.json)" >> $GITHUB_OUTPUT
+      
+    - name: Upload Coverage Reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/
+        
+    - name: Add Coverage Comment to PR
+      if: github.event_name == 'pull_request'
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        recreate: true
+        path: coverage/coverage-summary.json
+        header: "test-coverage"
+        message: |
+          # Test Coverage Report
+
+          | Category | Line Coverage | Statement Coverage | Function Coverage | Branch Coverage |
+          | -------- | ------------- | ----------------- | ---------------- | --------------- |
+          | All Files | ${{ fromJSON(env.COVERAGE_SUMMARY).total.lines.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY).total.lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.statements.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY).total.statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.functions.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY).total.functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY).total.branches.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY).total.branches.pct }}% |
+          | Atoms | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].lines.pct < 90 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].statements.pct < 90 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].functions.pct < 90 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].branches.pct < 90 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/atoms/'].branches.pct }}% |
+          | Molecules | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].lines.pct < 85 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].statements.pct < 85 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].functions.pct < 85 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].branches.pct < 85 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/molecules/'].branches.pct }}% |
+          | Organisms | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].lines.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].lines.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].statements.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].statements.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].functions.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].functions.pct }}% | ${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].branches.pct < 80 && '❌ ' || '✅ ' }}${{ fromJSON(env.COVERAGE_SUMMARY)['./src/components/organisms/'].branches.pct }}% |
+
+          ### Required Thresholds
+          - Global: ≥ 80% (branches, functions, lines, statements)
+          - Atoms: ≥ 90% (branches, functions, lines, statements)
+          - Molecules: ≥ 85% (branches, functions, lines, statements)
+          - Organisms: ≥ 80% (branches, functions, lines, statements)
+
+          ✅ = Meets threshold | ❌ = Below threshold
+
+          > CI will fail if any coverage metric falls below these thresholds
+      env:
+        COVERAGE_SUMMARY: ${{ steps.read-coverage.outputs.summary }}
+      
+    - name: Cache build output
+      uses: actions/cache@v4
+      with:
+        path: |
+          .next
+          storybook-static
+        key: ${{ runner.os }}-build-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-build-
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+      # This installs all browsers (Chromium, Firefox, WebKit) required for E2E tests
+
+    - name: Run E2E Tests
+      run: |
+        # Set CI to true explicitly to enable CI-specific settings in playwright.config.ts
+        # This includes longer timeouts, retries, and disabling "only" tests
+        CI=true npm run test:e2e
+      # This step will automatically fail if any E2E tests fail
+      env:
+        CI: true
+        E2E_MOCK_AUTH_ENABLED: true
+
+    - name: Upload E2E Test Results
+      if: always() # Run even if tests fail
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 7
+
+    - name: Upload E2E Test Artifacts
+      if: always() # Run even if tests fail
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-artifacts
+        path: |
+          test-results/
+          screenshots/
+        retention-days: 3
+        if-no-files-found: ignore
+
+    - name: Install Storybook Test Runner
+      run: npm install @storybook/test-runner --no-save
+
+    - name: Run Accessibility Tests
+      env:
+        CI: 'true'
+        A11Y_FAILING_IMPACTS: 'critical,serious'
+      run: |
+        # Run accessibility tests with Storybook Test Runner
+        # This will respect the CI=true environment and fail on critical/serious issues
+        npx test-storybook --stories-json=./storybook-static/stories.json --static-dir=./storybook-static
+
+    - name: Upload Accessibility Test Results
+      if: always() # Run even if accessibility tests fail
+      uses: actions/upload-artifact@v4
+      with:
+        name: accessibility-results
+        path: |
+          test-results/
+        retention-days: 7
+
+    - name: Add Accessibility Report to PR
+      if: github.event_name == 'pull_request' && always()
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        recreate: true
+        path: test-results/a11y-summary.md
+        header: "accessibility-report"
+
+    # Performance Testing with Lighthouse CI
+    - name: Install Lighthouse CI
+      run: npm install -g @lhci/cli puppeteer
+
+    - name: Run Lighthouse CI
+      run: |
+        # Start the server in the background
+        npm run build
+        npx http-server ./.next -p 3000 --silent &
+        SERVER_PID=$!
+
+        # Wait for server to start
+        sleep 5
+
+        # Run Lighthouse CI
+        lhci autorun --config=./.lighthouserc.js
+
+        # Generate the performance summary for PR comments
+        node scripts/lighthouse/generate-summary.js
+
+        # Kill the server
+        kill $SERVER_PID
+      env:
+        LHCI_BUILD_CONTEXT__GITHUB_REPO_OWNER: ${{ github.repository_owner }}
+        LHCI_BUILD_CONTEXT__GITHUB_REPO_NAME: ${{ github.repository }}
+        LHCI_BUILD_CONTEXT__GITHUB_RUN_ID: ${{ github.run_id }}
+        LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+        LHCI_BUILD_CONTEXT__COMMIT_TIME: ${{ github.event.head_commit.timestamp }}
+        LHCI_TOKEN: ${{ secrets.LHCI_TOKEN }}
+
+    - name: Upload Lighthouse Reports
+      if: always() # Run even if Lighthouse tests fail
+      uses: actions/upload-artifact@v4
+      with:
+        name: lighthouse-results
+        path: ./lighthouse-results
+        retention-days: 7
+
+    - name: Add Performance Report to PR
+      if: github.event_name == 'pull_request' && always()
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        recreate: true
+        path: lighthouse-results/performance-summary.md
+        header: "performance-report"
+
+  # Add additional jobs as needed, such as:
+  # - Deployment jobs
+  # - Visual regression tests
+  # - Integration tests

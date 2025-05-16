@@ -3,6 +3,8 @@ import { useSession } from 'next-auth/react';
 import { ActivityMode, CommitSummary, DateRange } from '@/types/dashboard';
 import { createActivityFetcher } from '@/lib/activity';
 import { logger } from '@/lib/logger';
+import { getErrorMessage, isError } from '@/lib/utils/types';
+import { useFetch } from '@/contexts/FetchContext';
 
 const MODULE_NAME = 'hooks:useCommits';
 
@@ -18,7 +20,7 @@ interface UseCommitsProps {
 interface UseCommitsResult {
   loading: boolean;
   error: string | null;
-  commits: any[];
+  commits: CommitSummary['commits'];
   summary: CommitSummary | null;
   fetchCommits: () => Promise<void>;
 }
@@ -40,8 +42,10 @@ export function useCommits({
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [commits, setCommits] = useState<any[]>([]);
+  const [commits, setCommits] = useState<CommitSummary['commits']>([]);
   const [summary, setSummary] = useState<CommitSummary | null>(null);
+  // Get the fetch function from context
+  const fetchFn = useFetch();
 
   // Function to fetch commits from the API
   const fetchCommits = useCallback(async () => {
@@ -93,7 +97,7 @@ export function useCommits({
       }
 
       // Fetch the data
-      const response = await fetch(`/api/summary?${new URLSearchParams(params).toString()}`);
+      const response = await fetchFn(`/api/summary?${new URLSearchParams(params).toString()}`);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -123,14 +127,15 @@ export function useCommits({
         count: data.commits?.length || 0,
         mode: activityMode
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = getErrorMessage(error);
       logger.error(MODULE_NAME, 'Error fetching commits', { 
-        error: error.message,
+        error: errorMessage,
         mode: activityMode,
         dateRange
       });
       
-      setError(error.message || 'Failed to fetch commits. Please try again.');
+      setError(errorMessage || 'Failed to fetch commits. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -141,7 +146,8 @@ export function useCommits({
     organizations, 
     repositories,
     contributors,
-    installationIds
+    installationIds,
+    fetchFn
   ]);
 
   // Create the activity fetcher for progressive loading

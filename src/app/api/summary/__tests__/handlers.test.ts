@@ -1,6 +1,23 @@
 /**
  * Tests for summary API handlers
+ * @jest-environment node
  */
+
+// Mock dependencies
+jest.mock('@/lib/github'); // Use the mock in __mocks__ directory
+
+jest.mock('@/lib/gemini', () => ({
+  generateCommitSummary: jest.fn()
+}));
+
+jest.mock('@/lib/logger', () => ({
+  logger: {
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
+  }
+}));
 
 import { 
   filterRepositoriesByOrgAndRepoNames,
@@ -16,24 +33,7 @@ import { fetchCommitsForRepositories } from '@/lib/github';
 import { generateCommitSummary } from '@/lib/gemini';
 import { logger } from '@/lib/logger';
 
-// Mock dependencies
-jest.mock('@/lib/logger', () => ({
-  logger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
-  }
-}));
-
-jest.mock('@/lib/gemini', () => ({
-  generateCommitSummary: jest.fn()
-}));
-
-jest.mock('@/lib/github', () => ({
-  ...jest.requireActual('@/lib/github'),
-  fetchCommitsForRepositories: jest.fn()
-}));
+// Mock dependencies already defined above
 
 describe('Summary API Handlers', () => {
   beforeEach(() => {

@@ -2,7 +2,101 @@
 
 ## High Priority
 
+### Code Review - High Priority Items
+
+- **Refactor**: Audit and fix Atomic Design component categorization
+  - **Complexity**: Medium
+  - **Rationale**: Incorrect component categorization undermines Atomic Design benefits
+  - **Expected Outcome**: Components properly organized according to ATOMIC_DESIGN.md criteria
+  - **Dependencies**: None
+
+- **Fix**: Standardize branch naming in CI/automation
+  - **Complexity**: Simple
+  - **Rationale**: Mixed branch names (`master` vs `main`) across configurations is confusing and error-prone
+  - **Expected Outcome**: Consistent primary branch name used in all configurations
+  - **Dependencies**: None
+
+- **Enhancement**: Add TSDoc for all public component APIs and utilities
+  - **Complexity**: Medium
+  - **Rationale**: Missing documentation hinders discoverability and increases onboarding time
+  - **Expected Outcome**: Complete TSDoc comments for exported components, props, and functions
+  - **Dependencies**: None
+
+- **Refactor**: Fix leaky abstractions in Storybook stories
+  - **Complexity**: Medium
+  - **Rationale**: Stories dependent on global context hide true component dependencies
+  - **Expected Outcome**: Components rendered using only public props and documented decorators
+  - **Dependencies**: None
+
+### Security Issues
+
+- **Fix**: Verify repository history for sensitive configuration files exposure
+  - **Complexity**: Medium
+  - **Rationale**: The explicit exclusion of `.claude/settings.local.json` in `.gitignore` suggests it might exist or has existed, posing potential security risk
+  - **Expected Outcome**: Confirm no sensitive files in Git history; implement prevention mechanisms
+  - **Dependencies**: None
+
+- **Enhancement**: Ensure E2E test coverage for critical dashboard flows
+  - **Complexity**: Medium
+  - **Rationale**: Core dashboard functionality tests are currently skipped, leaving critical user paths untested
+  - **Expected Outcome**: Implement robust authentication for Playwright tests; enable skipped dashboard tests
+  - **Dependencies**: Playwright setup
+
 ### Technical Foundation
+
+- **Enhancement**: Configure Chromatic workflow to enforce visual review
+  - **Complexity**: Simple
+  - **Rationale**: Setting `exitZeroOnChanges: true` allows UI changes to be merged without mandatory review
+  - **Expected Outcome**: CI build fails on visual diffs, enforcing explicit review of UI changes
+  - **Dependencies**: None
+
+- **Refactor**: Consolidate Storybook mocking strategies
+  - **Complexity**: Medium
+  - **Rationale**: Multiple overlapping methods for mocking Next.js features create confusion and maintenance overhead
+  - **Expected Outcome**: Single, clear mocking strategy; removed redundant files and configurations
+  - **Dependencies**: None
+
+- **Fix**: Improve CI coverage comment generation
+  - **Complexity**: Medium
+  - **Rationale**: Parsing coverage data directly in YAML is brittle and may break with format changes
+  - **Expected Outcome**: Dedicated script for coverage parsing that handles missing keys gracefully
+  - **Dependencies**: None
+
+- **Refactor**: Update OperationsPanel tests to use real child components
+  - **Complexity**: Medium
+  - **Rationale**: Current tests mock all child components, testing only wiring of mocks rather than actual integration
+  - **Expected Outcome**: Tests using real child components that verify actual component integration
+  - **Dependencies**: None
+
+- **Fix**: Remove global npm install in CI workflow
+  - **Complexity**: Simple
+  - **Rationale**: Using `npm install -g` pollutes the runner environment and reduces build reproducibility
+  - **Expected Outcome**: Use npx or add packages to devDependencies instead of global installation
+  - **Dependencies**: None
+
+- **Enhancement**: Standardize use of readonly arrays for props and returns
+  - **Complexity**: Medium
+  - **Rationale**: Inconsistent use of `string[]` vs `readonly string[]` allows unintended mutation of data
+  - **Expected Outcome**: Consistent use of immutable array types across component and hook boundaries
+  - **Dependencies**: None
+
+- **Fix**: Remove hardcoded URL checks in components
+  - **Complexity**: Simple
+  - **Rationale**: Checking against literal string `"#github-app-not-configured"` is brittle and obscures intent
+  - **Expected Outcome**: Return null/undefined for unconfigured state; update components accordingly
+  - **Dependencies**: None
+
+- **Fix**: Standardize prop type for `onSelectionChange` callback
+  - **Complexity**: Simple
+  - **Rationale**: Type mismatch between components and hooks creates confusion and violates consistency
+  - **Expected Outcome**: Consistent types for callback props and implementing functions
+  - **Dependencies**: None
+
+- **Refactor**: Remove arbitrary props from Button component
+  - **Complexity**: Simple
+  - **Rationale**: Using index signature `[key: string]: any` bypasses TypeScript type checking, hiding errors
+  - **Expected Outcome**: Explicitly defined props with appropriate HTML button attributes extension
+  - **Dependencies**: None
 
 - implement rigorous git hooks and github actions ci for quality control
 
@@ -92,6 +186,112 @@
   - **Dependencies**: None
 
 ## Medium Priority
+
+### Code Review - Medium Priority Items
+
+- **Enhancement**: Add visual regression testing in CI
+  - **Complexity**: Medium
+  - **Rationale**: UI bugs and layout regressions can go undetected until manual QA or production
+  - **Expected Outcome**: Visual regression tool integrated into CI pipeline with baseline images
+  - **Dependencies**: None
+
+- **Enhancement**: Improve test assertions for component behavior
+  - **Complexity**: Medium
+  - **Rationale**: Superficial tests may pass even if component logic is broken
+  - **Expected Outcome**: Tests cover various states, prop combinations, and verify actual behavior
+  - **Dependencies**: None
+
+- **Enhancement**: Add edge case coverage in Storybook stories
+  - **Complexity**: Simple
+  - **Rationale**: Missing edge cases in stories leads to incomplete visual documentation
+  - **Expected Outcome**: Stories for error states, loading states, empty states, and content overflow
+  - **Dependencies**: None
+
+- **Fix**: Replace unstructured logging with structured logger
+  - **Complexity**: Simple
+  - **Rationale**: Console.log bypasses structured logging, making log aggregation difficult
+  - **Expected Outcome**: All logging uses the project's standardized structured logger
+  - **Dependencies**: None
+
+- **Enhancement**: Add explicit formatting enforcement in CI
+  - **Complexity**: Simple
+  - **Rationale**: Without CI check, inconsistently formatted code can be merged
+  - **Expected Outcome**: CI step running formatting check and failing build on violations
+  - **Dependencies**: None
+
+### Technical Debt & Improvements
+
+- **Refactor**: Remove fragile CSS variable mocking in unit tests
+  - **Complexity**: Simple
+  - **Rationale**: Mocking `window.getComputedStyle` with hardcoded values makes tests brittle
+  - **Expected Outcome**: Tests focused on component behavior rather than computed styles
+  - **Dependencies**: None
+
+- **Enhancement**: Update GitHub Actions to latest versions
+  - **Complexity**: Simple
+  - **Rationale**: Using outdated action versions (`@v3` instead of `@v4`) misses performance and security improvements
+  - **Expected Outcome**: All GitHub Actions updated to latest stable versions
+  - **Dependencies**: None
+
+- **Fix**: Align workflow triggers across CI configurations
+  - **Complexity**: Simple
+  - **Rationale**: E2E workflow triggers only on `master` while others use `master, main`
+  - **Expected Outcome**: Consistent branch triggers across all workflow files
+  - **Dependencies**: None
+
+- **Enhancement**: Make status text dynamic in TerminalHeader
+  - **Complexity**: Simple
+  - **Rationale**: Status text is hardcoded, preventing dynamic updates based on system state
+  - **Expected Outcome**: Status text passed as prop from parent component
+  - **Dependencies**: None
+
+- **Refactor**: Replace DOM style manipulation with Tailwind for hover effects
+  - **Complexity**: Simple
+  - **Rationale**: Inline style manipulation bypasses Tailwind and mixes styling with event handling
+  - **Expected Outcome**: Pure Tailwind hover variants for consistent styling
+  - **Dependencies**: None
+
+- **Refactor**: Improve Button tests to focus on behavior not implementation
+  - **Complexity**: Simple
+  - **Rationale**: Tests assert on specific class names for styling, making them brittle
+  - **Expected Outcome**: Tests focusing on presence and ordering of elements rather than CSS classes
+  - **Dependencies**: None
+
+- **Fix**: Ensure state immutability in OrganizationPicker
+  - **Complexity**: Simple
+  - **Rationale**: Direct prop usage for state initialization creates risk of mutation
+  - **Expected Outcome**: State initialized with shallow copies of prop arrays
+  - **Dependencies**: None
+
+- **Enhancement**: Replace console logging in Storybook mocks with structured logger
+  - **Complexity**: Simple
+  - **Rationale**: Direct console.log bypasses structured logging strategy
+  - **Expected Outcome**: Consistent logging approach across all code, including mocks
+  - **Dependencies**: None
+
+- **Refactor**: Optimize Storybook documentation for maintainability
+  - **Complexity**: Medium
+  - **Rationale**: Verbose story descriptions repeat information better suited for component docs
+  - **Expected Outcome**: Concise stories with focused descriptions; shared documentation in TSDoc
+  - **Dependencies**: None
+
+- **Enhancement**: Improve Button styling and accessibility
+  - **Complexity**: Medium
+  - **Rationale**: Uses inline styles instead of Tailwind classes; lacks proper focus styling
+  - **Expected Outcome**: Pure Tailwind styling with proper accessibility features
+  - **Dependencies**: None
+
+- **Refactor**: Simplify OperationsPanel stories
+  - **Complexity**: Simple
+  - **Rationale**: Too many explicit stories for minor prop combinations increases maintenance burden
+  - **Expected Outcome**: Reduced story count focusing on key states; more use of controls
+  - **Dependencies**: None
+
+- **Enhancement**: Add barrel exports for Atomic components
+  - **Complexity**: Simple
+  - **Rationale**: Missing index.ts files forces verbose imports and hinders API definition
+  - **Expected Outcome**: Clear public API for each atomic layer; simplified imports
+  - **Dependencies**: None
 
 ### Monetization & Pricing
 
@@ -208,6 +408,88 @@
   - **Dependencies**: Structured logging
 
 ## Low Priority
+
+### Code Review - Low Priority Items
+
+- **Enhancement**: Improve naming consistency for variables, functions, and props
+  - **Complexity**: Simple
+  - **Rationale**: Non-descriptive names increase cognitive load for developers
+  - **Expected Outcome**: Consistent, descriptive naming throughout the codebase
+  - **Dependencies**: None
+
+- **Fix**: Remove console.error from test utilities
+  - **Complexity**: Simple
+  - **Rationale**: Logging errors within test utilities can obscure actual test failures
+  - **Expected Outcome**: Errors propagate naturally without additional logging
+  - **Dependencies**: None
+
+- **Enhancement**: Update component-level README files
+  - **Complexity**: Simple
+  - **Rationale**: Outdated READMEs can mislead developers about components
+  - **Expected Outcome**: Current READMEs that align with global philosophy documents
+  - **Dependencies**: None
+
+### Code Quality & Developer Experience
+
+- **Enhancement**: Add newlines at end of files 
+  - **Complexity**: Simple
+  - **Rationale**: Inconsistent file endings cause issues with some tools and version control
+  - **Expected Outcome**: Consistent file endings with automated enforcement via Prettier
+  - **Dependencies**: None
+
+- **Enhancement**: Standardize callback prop naming convention
+  - **Complexity**: Simple
+  - **Rationale**: Inconsistent naming conventions for callback props vs handler functions
+  - **Expected Outcome**: Consistent `on[Action]` for props and `handle[Action]` for functions
+  - **Dependencies**: None
+
+- **Enhancement**: Document Button prop defaults explicitly
+  - **Complexity**: Simple
+  - **Rationale**: Default values set via destructuring are not documented in TSDoc or Storybook
+  - **Expected Outcome**: `@default` tags added to TSDoc and default values shown in Storybook
+  - **Dependencies**: None
+
+- **Enhancement**: Add Button keyboard interaction tests
+  - **Complexity**: Simple
+  - **Rationale**: Current tests don't verify keyboard accessibility
+  - **Expected Outcome**: Tests for keyboard focus and activation via Space/Enter
+  - **Dependencies**: None
+
+- **Enhancement**: Add forwardRef to Button component
+  - **Complexity**: Simple
+  - **Rationale**: Current implementation can't have refs forwarded to the button element
+  - **Expected Outcome**: Button wrapped with React.forwardRef for proper ref handling
+  - **Dependencies**: None
+
+- **Enhancement**: Improve Storybook controls for complex props
+  - **Complexity**: Simple
+  - **Rationale**: Using `control: { disable: true }` is less informative than proper controls
+  - **Expected Outcome**: Better control types or example values for complex props
+  - **Dependencies**: None
+
+- **Enhancement**: Make Playwright baseURL configurable
+  - **Complexity**: Simple
+  - **Rationale**: Hardcoded baseURL limits flexibility for testing different environments
+  - **Expected Outcome**: Environment-based configuration for test target URL
+  - **Dependencies**: None
+
+- **Refactor**: Clean up unnecessary comments in E2E specs
+  - **Complexity**: Simple
+  - **Rationale**: Comments stating the obvious add noise to test files
+  - **Expected Outcome**: Cleaner test files with meaningful comments only
+  - **Dependencies**: None
+
+- **Refactor**: Standardize test file location
+  - **Complexity**: Medium
+  - **Rationale**: Inconsistent test file locations reduces discoverability
+  - **Expected Outcome**: Consistent test file organization across the codebase
+  - **Dependencies**: None
+
+- **Enhancement**: Add Storybook interaction play functions
+  - **Complexity**: Simple
+  - **Rationale**: Interaction stories without play functions don't actually demonstrate interactions
+  - **Expected Outcome**: Play functions for interactive stories to verify actions
+  - **Dependencies**: None
 
 ### Advanced Features
 

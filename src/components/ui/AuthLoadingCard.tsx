@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import StatusDisplay from './StatusDisplay'; // Import the new component
+import StatusDisplay from '@/components/atoms/StatusDisplay'; // Import from atoms directory
 
 /**
  * Props for the AuthLoadingCard component

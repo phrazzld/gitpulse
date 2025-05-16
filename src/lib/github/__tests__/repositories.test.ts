@@ -29,8 +29,9 @@ jest.mock('../auth', () => ({
   getInstallationOctokit: jest.fn()
 }));
 
-jest.mock('octokit', () => {
-  const mockOctokit = jest.fn(() => ({
+// Mock octokit directly
+jest.mock('octokit', () => ({
+  Octokit: jest.fn(() => ({
     rest: {
       rateLimit: {
         get: jest.fn().mockResolvedValue({
@@ -63,10 +64,8 @@ jest.mock('octokit', () => {
       }
     },
     paginate: jest.fn().mockResolvedValue([])
-  }));
-  
-  return { Octokit: mockOctokit };
-});
+  }))
+}));
 
 jest.mock('@/lib/logger', () => ({
   logger: {
@@ -113,16 +112,21 @@ describe('GitHub Repositories Module', () => {
     });
     
     it('should throw an error when token lacks repo scope', async () => {
-      const mockOctokit = require('octokit').Octokit();
+      // Get the mock and modify it for this test
+      const { Octokit } = require('octokit');
+      const mockInstance = new Octokit();
       
-      // Mock the getAuthenticated to return a token without 'repo' scope
-      mockOctokit.rest.users.getAuthenticated.mockResolvedValue({
+      // Override the getAuthenticated method to return a token without 'repo' scope
+      mockInstance.rest.users.getAuthenticated.mockResolvedValue({
         data: { login: 'testuser' },
-        headers: { 'x-oauth-scopes': 'read:user' }
+        headers: { 'x-oauth-scopes': 'read:user' }  // Missing 'repo' scope
       });
       
+      // Make sure the constructor returns our modified instance
+      Octokit.mockReturnValue(mockInstance);
+      
       await expect(fetchAllRepositoriesOAuth('token')).rejects.toThrow(
-        "GitHub token is missing 'repo' scope"
+        "GitHub token is missing 'repo' scope. Please re-authenticate with the necessary permissions."
       );
     });
   });
@@ -188,14 +192,49 @@ describe('GitHub Repositories Module', () => {
     });
 
     it('should call fetchAllRepositoriesOAuth when only accessToken is provided', async () => {
-      // Mock the Octokit constructor and its methods
-      const mockOctokit = require('octokit').Octokit();
-      mockOctokit.paginate.mockResolvedValue([]);
+      // Set up the mock with proper scopes for this test
+      const { Octokit } = require('octokit');
+      const mockInstance = {
+        rest: {
+          rateLimit: {
+            get: jest.fn().mockResolvedValue({
+              data: { 
+                resources: { 
+                  core: { 
+                    limit: 5000, 
+                    remaining: 4000, 
+                    reset: Math.floor(Date.now() / 1000) + 3600 
+                  } 
+                } 
+              },
+              headers: {}
+            })
+          },
+          users: {
+            getAuthenticated: jest.fn().mockResolvedValue({
+              data: { login: 'testuser', id: 123, type: 'User' },
+              headers: { 'x-oauth-scopes': 'repo, read:org' }  // Has proper scopes
+            })
+          },
+          repos: {
+            listForAuthenticatedUser: jest.fn()
+          },
+          orgs: {
+            listForAuthenticatedUser: jest.fn()
+          },
+          apps: {
+            listReposAccessibleToInstallation: jest.fn()
+          }
+        },
+        paginate: jest.fn().mockResolvedValue([])
+      };
+      
+      Octokit.mockReturnValue(mockInstance);
       
       await fetchAllRepositories('token');
       
       // Verify Octokit was created with the token (indicating fetchAllRepositoriesOAuth was used)
-      expect(require('octokit').Octokit).toHaveBeenCalledWith({ auth: 'token' });
+      expect(Octokit).toHaveBeenCalledWith({ auth: 'token' });
       // Verify the logger shows we're using OAuth
       expect(logger.info).toHaveBeenCalledWith(
         'github:repositories',

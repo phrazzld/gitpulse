@@ -2,7 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { renderHookSafely } from '@/lib/tests/react-test-utils';
+import { act } from 'react';
 import { useFilters } from '../useFilters';
 import { ActivityMode, FilterState } from '@/types/dashboard';
 
@@ -19,7 +20,7 @@ jest.mock('@/lib/logger', () => ({
 describe('useFilters', () => {
   // Test default initialization
   it('should initialize with default values when no props provided', () => {
-    const { result } = renderHook(() => useFilters());
+    const { result } = renderHookSafely(() => useFilters());
     
     expect(result.current.filters).toEqual({
       contributors: [],
@@ -40,7 +41,7 @@ describe('useFilters', () => {
     
     const initialMode: ActivityMode = 'team-activity';
     
-    const { result } = renderHook(() => useFilters({
+    const { result } = renderHookSafely(() => useFilters({
       initialFilters,
       initialMode
     }));
@@ -56,7 +57,7 @@ describe('useFilters', () => {
   
   // Test setContributors function
   it('should update contributors correctly', () => {
-    const { result } = renderHook(() => useFilters());
+    const { result } = renderHookSafely(() => useFilters());
     
     act(() => {
       result.current.setContributors(['user1', 'user2']);
@@ -69,7 +70,7 @@ describe('useFilters', () => {
   
   // Test setOrganizations function
   it('should update organizations correctly', () => {
-    const { result } = renderHook(() => useFilters());
+    const { result } = renderHookSafely(() => useFilters());
     
     act(() => {
       result.current.setOrganizations(['org1', 'org2']);
@@ -82,7 +83,7 @@ describe('useFilters', () => {
   
   // Test setRepositories function
   it('should update repositories correctly', () => {
-    const { result } = renderHook(() => useFilters());
+    const { result } = renderHookSafely(() => useFilters());
     
     act(() => {
       result.current.setRepositories(['repo1', 'repo2']);
@@ -95,7 +96,7 @@ describe('useFilters', () => {
   
   // Test setAllFilters function
   it('should update all filters correctly', () => {
-    const { result } = renderHook(() => useFilters());
+    const { result } = renderHookSafely(() => useFilters());
     
     const newFilters: FilterState = {
       contributors: ['user1', 'user2'],
@@ -118,7 +119,7 @@ describe('useFilters', () => {
       repositories: ['repo1']
     };
     
-    const { result } = renderHook(() => useFilters({ initialFilters }));
+    const { result } = renderHookSafely(() => useFilters({ initialFilters }));
     
     act(() => {
       result.current.setActivityMode('my-activity');
@@ -138,7 +139,7 @@ describe('useFilters', () => {
       repositories: ['repo1']
     };
     
-    const { result } = renderHook(() => useFilters({ initialFilters }));
+    const { result } = renderHookSafely(() => useFilters({ initialFilters }));
     
     act(() => {
       result.current.setActivityMode('my-work-activity');
@@ -158,7 +159,7 @@ describe('useFilters', () => {
       repositories: ['repo1']
     };
     
-    const { result } = renderHook(() => useFilters({ initialFilters }));
+    const { result } = renderHookSafely(() => useFilters({ initialFilters }));
     
     act(() => {
       result.current.setActivityMode('team-activity');
@@ -178,7 +179,7 @@ describe('useFilters', () => {
       repositories: ['repo1']
     };
     
-    const { result } = renderHook(() => useFilters({ initialFilters }));
+    const { result } = renderHookSafely(() => useFilters({ initialFilters }));
     
     // Change filters
     act(() => {
@@ -212,7 +213,7 @@ describe('useFilters', () => {
   
   // Test immutability of returned state
   it('should maintain immutability when updating filters', () => {
-    const { result } = renderHook(() => useFilters());
+    const { result } = renderHookSafely(() => useFilters());
     
     const originalFilters = result.current.filters;
     

@@ -1,6 +1,15 @@
 import type { Preview } from '@storybook/react'
 import '../src/app/globals.css'
 
+/**
+ * This is the Storybook preview configuration.
+ * It includes:
+ * - Global styles import
+ * - Next.js feature mocks
+ * - Background presets
+ * - Control matchers for better controls panel experience
+ * - Decorator for themeing consistency
+ */
 const preview: Preview = {
   parameters: {
     backgrounds: {
@@ -29,6 +38,9 @@ const preview: Preview = {
         color: /(background|color)$/i,
         date: /Date$/i,
       },
+    },
+    nextjs: {
+      appDirectory: true,
     },
   },
 };

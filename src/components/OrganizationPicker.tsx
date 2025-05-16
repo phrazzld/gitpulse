@@ -12,8 +12,8 @@ export type Organization = {
 
 export interface OrganizationPickerProps {
   organizations: Organization[];
-  selectedOrganizations: string[];
-  onSelectionChange: (selectedOrgs: string[]) => void;
+  selectedOrganizations: readonly string[];
+  onSelectionChange: (selectedOrgs: readonly string[]) => void;
   mode: ActivityMode;
   disabled?: boolean;
   isLoading?: boolean;
@@ -36,7 +36,7 @@ export default function OrganizationPicker({
   const [searchQuery, setSearchQuery] = useState('');
   const [hasBeenOpened, setHasBeenOpened] = useState(false);
   // Internal state for immediate UI feedback
-  const [internalSelection, setInternalSelection] = useState<string[]>(selectedOrganizations);
+  const [internalSelection, setInternalSelection] = useState<string[]>([...selectedOrganizations]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Support multi-select only for team-activity mode
@@ -44,7 +44,7 @@ export default function OrganizationPicker({
 
   // Update internal state when props change
   useEffect(() => {
-    setInternalSelection(selectedOrganizations);
+    setInternalSelection([...selectedOrganizations]);
   }, [selectedOrganizations]);
 
   // Create debounced selection change handler (500ms delay)

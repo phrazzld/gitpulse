@@ -1,19 +1,5 @@
-/**
- * Types for test mocking - since we're not actually running tests right now
- * This helps with TypeScript checks during development
- */
-declare function describe(name: string, fn: () => void): void;
-declare function beforeEach(fn: () => void): void;
-declare function afterEach(fn: () => void): void;
-declare function it(name: string, fn: () => void): void;
-declare function expect(actual: any): any;
-declare namespace jest {
-  function resetModules(): void;
-  function clearAllMocks(): void;
-  function spyOn(object: any, methodName: string): any;
-  function fn(implementation?: (...args: any[]) => any): any;
-}
-
+import { jest } from '@jest/globals';
+import { mockDate, mockConsole } from '../tests';
 import {
   getTodayDate,
   getLastWeekDate,
@@ -23,20 +9,23 @@ import {
   getDefaultDateRange
 } from '../dashboard-utils';
 
-// Mock environment variables
+// Store original environment variables and Date constructor
 const originalEnv = process.env;
 
 describe('Dashboard utilities', () => {
+  let restoreConsole: () => void;
+
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...originalEnv };
     // Mock console.error to prevent test output pollution
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    restoreConsole = mockConsole(['error']);
   });
 
   afterEach(() => {
     process.env = originalEnv;
     jest.clearAllMocks();
+    restoreConsole();
   });
 
   describe('formatDateToISOString', () => {
@@ -48,30 +37,29 @@ describe('Dashboard utilities', () => {
 
   describe('getTodayDate', () => {
     it('returns today\'s date in ISO format', () => {
-      // Mock Date.now to return a fixed date
-      const mockDate = new Date('2023-05-20T12:00:00Z');
-      jest.spyOn(global, 'Date').mockImplementation(() => mockDate as unknown as Date);
+      // Mock Date using our utility
+      const { restore } = mockDate('2023-05-20T12:00:00Z');
       
-      expect(getTodayDate()).toBe('2023-05-20');
+      try {
+        expect(getTodayDate()).toBe('2023-05-20');
+      } finally {
+        // Always restore the Date constructor
+        restore();
+      }
     });
   });
 
   describe('getLastWeekDate', () => {
     it('returns the date from 7 days ago in ISO format', () => {
-      // Mock a fixed date
-      const mockToday = new Date('2023-05-20T12:00:00Z');
-      const mockLastWeek = new Date('2023-05-13T12:00:00Z');
+      // Mock Date using our utility
+      const { restore } = mockDate('2023-05-20T12:00:00Z');
       
-      // Mock the Date constructor and the setDate method
-      const originalDate = global.Date;
-      global.Date = jest.fn(() => mockToday) as unknown as typeof Date;
-      (mockToday as any).setDate = jest.fn(() => {});
-      (mockToday as any).toISOString = jest.fn(() => '2023-05-13T12:00:00Z');
-      
-      expect(getLastWeekDate()).toBe('2023-05-13');
-      
-      // Restore the original Date
-      global.Date = originalDate;
+      try {
+        expect(getLastWeekDate()).toBe('2023-05-13');
+      } finally {
+        // Always restore the Date constructor
+        restore();
+      }
     });
   });
 
@@ -108,16 +96,22 @@ describe('Dashboard utilities', () => {
 
   describe('getDefaultDateRange', () => {
     it('returns a date range from a week ago to today', () => {
-      // Mock the functions it depends on
-      jest.spyOn({ getTodayDate }, 'getTodayDate').mockReturnValue('2023-05-20');
-      jest.spyOn({ getLastWeekDate }, 'getLastWeekDate').mockReturnValue('2023-05-13');
+      // Mock Date using our utility
+      const { restore } = mockDate('2023-05-20T12:00:00Z');
       
-      const dateRange = getDefaultDateRange();
-      
-      expect(dateRange).toEqual({
-        since: '2023-05-13',
-        until: '2023-05-20'
-      });
+      try {
+        // Call the function under test
+        const dateRange = getDefaultDateRange();
+        
+        // Verify the result
+        expect(dateRange).toEqual({
+          since: '2023-05-13',
+          until: '2023-05-20'
+        });
+      } finally {
+        // Always restore the Date constructor
+        restore();
+      }
     });
   });
 });

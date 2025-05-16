@@ -1,0 +1,57 @@
+# Dependabot configuration file
+# Documentation: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    # Look for package.json and package-lock.json files in the root directory
+    directory: "/"
+    # Check for updates once a week (on Monday)
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    # Target branch
+    target-branch: "master"
+    # Labels to apply to pull requests
+    labels:
+      - "dependencies"
+      - "automerge-candidate"
+    # Limit number of open PRs to prevent overwhelming with dependency updates
+    open-pull-requests-limit: 10
+    # Specify versioning strategy
+    versioning-strategy: auto
+    # Group related dependencies together when possible
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      next:
+        patterns:
+          - "next"
+          - "@next/*"
+      testing-library:
+        patterns:
+          - "@testing-library/*"
+    # Allow only secure updates
+    allow:
+      # Only allow updates that follow semantic versioning
+      - dependency-type: "all"
+    # Specify reviewers for dependabot PRs
+    # reviewers:
+    #   - "phrazzld"
+    
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    target-branch: "master"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    open-pull-requests-limit: 5
