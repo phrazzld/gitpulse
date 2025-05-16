@@ -444,10 +444,6 @@ This document outlines the tasks needed to address the critical issues identifie
 
 ## Priority 2 (Medium)
 
-- [ ] **T004: Conduct team review of mocking policy**
-  - Schedule review of "Mocking Policy" section from development philosophy
-  - Emphasize anti-patterns like mocking internal module collaborators
-
 - [ ] **T005: Update testing guidelines to mandate `dateMock.ts`**
   - Document proper date mocking approach in project guidelines
   - Include examples of correct usage patterns

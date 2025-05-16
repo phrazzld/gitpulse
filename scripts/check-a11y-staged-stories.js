@@ -9,11 +9,23 @@ const STORYBOOK_BUILD_CACHE_MINUTES = 5;
 
 function detectStagedStoryFiles() {
   try {
-    const output = execSync('git diff --cached --name-only', { encoding: 'utf-8' });
-    const files = output.trim().split('\n').filter(Boolean);
+    // Get only added or modified files, not deleted ones
+    const output = execSync('git diff --cached --name-status', { encoding: 'utf-8' });
+    const lines = output.trim().split('\n').filter(Boolean);
     
-    // Filter for story files
-    return files.filter(file => /\.stories\.(js|jsx|ts|tsx)$/.test(file));
+    // Filter for story files that are not deleted
+    const storyFiles = [];
+    for (const line of lines) {
+      const [status, ...fileParts] = line.split('\t');
+      const file = fileParts.join('\t'); // Handle filenames with tabs
+      
+      // Skip deleted files (status 'D')
+      if (status !== 'D' && /\.stories\.(js|jsx|ts|tsx)$/.test(file)) {
+        storyFiles.push(file);
+      }
+    }
+    
+    return storyFiles;
   } catch (error) {
     console.error('Error detecting staged files:', error.message);
     return [];
