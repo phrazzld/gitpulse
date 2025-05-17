@@ -5,8 +5,8 @@
  * including rate limit handling, data transformation, and error formatting.
  */
 
-import { Octokit } from "octokit";
 import { logger } from "../logger";
+import { IOctokitClient } from "./interfaces";
 
 const MODULE_NAME = "github:utils";
 
@@ -27,13 +27,13 @@ export interface RateLimitInfo {
  * @returns Rate limit information or null if checking failed
  */
 export async function checkRateLimit(
-  octokit: Octokit,
+  client: IOctokitClient,
   authMethod: string = ""
 ): Promise<RateLimitInfo | null> {
   const authLabel = authMethod ? ` (${authMethod})` : "";
   
   try {
-    const rateLimit = await octokit.rest.rateLimit.get();
+    const rateLimit = await client.rest.rateLimit.get();
     const core = rateLimit.data.resources.core;
     
     const rateLimitInfo: RateLimitInfo = {

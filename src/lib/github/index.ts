@@ -1,25 +1,23 @@
 /**
  * GitHub module index
  * 
- * This module re-exports all functions and types from the GitHub modules
- * to maintain backward compatibility with code that imports from the
- * original monolithic github.ts file.
+ * This module provides the public API for the GitHub modules,
+ * exporting types, interfaces, and the adapter layer for dependency injection.
  */
 
 // Re-export all types
 export * from './types';
 
-// Re-export all authentication-related functions
-export * from './auth';
+// Re-export interfaces for dependency injection
+export * from './interfaces';
 
-// Re-export all repository-related functions
-export * from './repositories';
+// Re-export the adapter for creating configured services
+export * from './adapter';
 
-// Re-export all commit-related functions
-export * from './commits';
-
-// Re-export all utility functions
-export * from './utils';
+// For backward compatibility, also export individual module functions
+// Note: These exports are for backward compatibility only. 
+// New code should use the adapter pattern via createGitHubClient or createGitHubServices
+export { getInstallationManagementUrl } from './auth';
 
 // Set the module name for logging
 export const MODULE_NAME = "github";

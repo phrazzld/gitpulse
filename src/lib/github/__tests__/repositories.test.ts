@@ -21,17 +21,12 @@ import {
   fetchAllRepositoriesApp, 
   fetchAllRepositories 
 } from '../repositories';
-import { getInstallationOctokit } from '../auth';
+import { IOctokitClient } from '../interfaces';
 import { logger } from '@/lib/logger';
 
-// Mock the dependencies
-jest.mock('../auth', () => ({
-  getInstallationOctokit: jest.fn()
-}));
-
-// Mock octokit directly
-jest.mock('octokit', () => ({
-  Octokit: jest.fn(() => ({
+// Create a mock implementation of IOctokitClient
+const createMockOctokitClient = (): jest.Mocked<IOctokitClient> => {
+  const mockClient: jest.Mocked<IOctokitClient> = {
     rest: {
       rateLimit: {
         get: jest.fn().mockResolvedValue({
@@ -49,202 +44,151 @@ jest.mock('octokit', () => ({
       },
       users: {
         getAuthenticated: jest.fn().mockResolvedValue({
-          data: { login: 'testuser', id: 123, type: 'User' },
-          headers: { 'x-oauth-scopes': 'repo, read:org' }
+          data: {
+            login: 'testuser',
+            id: 123,
+            type: 'User'
+          },
+          status: 200,
+          headers: {
+            'x-oauth-scopes': 'repo, read:org'
+          }
         })
       },
       repos: {
-        listForAuthenticatedUser: jest.fn()
+        listForAuthenticatedUser: jest.fn().mockResolvedValue({
+          data: [],
+          status: 200
+        }),
+        listForOrg: jest.fn().mockResolvedValue({
+          data: [],
+          status: 200
+        }),
+        listCommits: jest.fn()
       },
       orgs: {
-        listForAuthenticatedUser: jest.fn()
+        listForAuthenticatedUser: jest.fn().mockResolvedValue({
+          data: [],
+          status: 200
+        })
       },
       apps: {
-        listReposAccessibleToInstallation: jest.fn()
+        listInstallationsForAuthenticatedUser: jest.fn().mockResolvedValue({
+          data: { installations: [] },
+          status: 200
+        }),
+        listReposAccessibleToInstallation: jest.fn().mockResolvedValue({
+          data: [],
+          status: 200
+        })
       }
     },
-    paginate: jest.fn().mockResolvedValue([])
-  }))
-}));
+    paginate: jest.fn(async (endpoint, params) => {
+      // Simulate pagination behavior
+      const response = await endpoint(params);
+      return response.data;
+    })
+  };
+  
+  return mockClient;
+};
 
-jest.mock('@/lib/logger', () => ({
-  logger: {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
-  }
-}));
+describe('repositories module', () => {
+  let mockClient: jest.Mocked<IOctokitClient>;
+  let loggerSpy: jest.SpyInstance;
 
-describe('GitHub Repositories Module', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+    mockClient = createMockOctokitClient();
+    loggerSpy = jest.spyOn(logger, 'debug');
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('Function exports', () => {
-    it('should export fetchAllRepositoriesOAuth function', () => {
-      expect(typeof fetchAllRepositoriesOAuth).toBe('function');
-    });
-    
-    it('should export fetchAllRepositoriesApp function', () => {
-      expect(typeof fetchAllRepositoriesApp).toBe('function');
-    });
-    
-    it('should export fetchAllRepositories function', () => {
-      expect(typeof fetchAllRepositories).toBe('function');
-    });
-  });
-
   describe('fetchAllRepositoriesOAuth', () => {
-    it('should call Octokit with correct auth token', async () => {
-      const mockOctokit = require('octokit').Octokit();
-      // Set up a successful return for paginate
-      mockOctokit.paginate.mockResolvedValue([
-        { id: 1, name: 'repo1', full_name: 'owner/repo1', private: false }
-      ]);
+    it('should fetch repositories successfully', async () => {
+      const mockRepos = [
+        { id: 1, name: 'repo1', full_name: 'user/repo1', private: false },
+        { id: 2, name: 'repo2', full_name: 'user/repo2', private: true }
+      ];
       
-      await fetchAllRepositoriesOAuth('test-token');
+      mockClient.paginate.mockResolvedValue(mockRepos);
       
-      // Verify Octokit was called with the token
-      expect(require('octokit').Octokit).toHaveBeenCalledWith({ 
-        auth: 'test-token' 
-      });
+      const result = await fetchAllRepositoriesOAuth(mockClient);
+      
+      expect(mockClient.rest.rateLimit.get).toHaveBeenCalled();
+      expect(mockClient.rest.users.getAuthenticated).toHaveBeenCalled();
+      expect(mockClient.paginate).toHaveBeenCalled();
+      expect(result).toEqual(mockRepos);
     });
-    
-    it('should throw an error when token lacks repo scope', async () => {
-      // Get the mock and modify it for this test
-      const { Octokit } = require('octokit');
-      const mockInstance = new Octokit();
-      
-      // Override the getAuthenticated method to return a token without 'repo' scope
-      mockInstance.rest.users.getAuthenticated.mockResolvedValue({
-        data: { login: 'testuser' },
-        headers: { 'x-oauth-scopes': 'read:user' }  // Missing 'repo' scope
+
+    it('should throw error if token is missing repo scope', async () => {
+      mockClient.rest.users.getAuthenticated.mockResolvedValue({
+        data: {
+          login: 'testuser',
+          id: 123,
+          type: 'User'
+        },
+        status: 200,
+        headers: {
+          'x-oauth-scopes': 'read:org'
+        }
       });
-      
-      // Make sure the constructor returns our modified instance
-      Octokit.mockReturnValue(mockInstance);
-      
-      await expect(fetchAllRepositoriesOAuth('token')).rejects.toThrow(
-        "GitHub token is missing 'repo' scope. Please re-authenticate with the necessary permissions."
+
+      await expect(fetchAllRepositoriesOAuth(mockClient)).rejects.toThrow(
+        'GitHub token is missing \'repo\' scope'
       );
     });
   });
 
   describe('fetchAllRepositoriesApp', () => {
-    it('should call getInstallationOctokit with correct installation ID', async () => {
-      // Setup mock for getInstallationOctokit
-      const mockOctokit = {
-        rest: {
-          rateLimit: { 
-            get: jest.fn().mockResolvedValue({
-              data: { resources: { core: { limit: 5000, remaining: 4000, reset: 123456789 } } },
-              headers: {}
-            })
-          },
-          apps: {
-            listReposAccessibleToInstallation: jest.fn()
-          }
-        },
-        paginate: jest.fn().mockResolvedValue([])
-      };
+    it('should fetch repositories via app authentication', async () => {
+      const mockRepos = [
+        { id: 1, name: 'repo1', full_name: 'org/repo1', private: false }
+      ];
       
-      (getInstallationOctokit as any).mockResolvedValue(mockOctokit);
+      mockClient.paginate.mockResolvedValue(mockRepos);
       
-      await fetchAllRepositoriesApp(12345);
+      const result = await fetchAllRepositoriesApp(mockClient);
       
-      // Verify getInstallationOctokit was called with the correct ID
-      expect(getInstallationOctokit).toHaveBeenCalledWith(12345);
+      expect(mockClient.rest.rateLimit.get).toHaveBeenCalled();
+      expect(mockClient.paginate).toHaveBeenCalled();
+      expect(result).toEqual(mockRepos);
     });
   });
 
   describe('fetchAllRepositories', () => {
-    it('should call fetchAllRepositoriesApp when installationId is provided', async () => {
-      // Since we can't easily spy on imported functions, we'll verify the result
-      // by mocking the appropriate dependencies and check the logger calls
-      const mockInstallationOctokit = {
-        rest: {
-          rateLimit: { 
-            get: jest.fn().mockResolvedValue({
-              data: { resources: { core: { limit: 5000, remaining: 4000, reset: 123456789 } } },
-              headers: {}
-            })
-          },
-          apps: {
-            listReposAccessibleToInstallation: jest.fn()
-          }
-        },
-        paginate: jest.fn().mockResolvedValue([])
-      };
+    it('should use OAuth when authMethod is oauth', async () => {
+      const mockRepos = [
+        { id: 1, name: 'repo1', full_name: 'user/repo1', private: false }
+      ];
       
-      (getInstallationOctokit as any).mockResolvedValue(mockInstallationOctokit);
+      mockClient.paginate.mockResolvedValue(mockRepos);
       
-      await fetchAllRepositories('token', 12345);
+      const result = await fetchAllRepositories(mockClient, 'oauth');
       
-      // Verify getInstallationOctokit was called (indicating fetchAllRepositoriesApp was used)
-      expect(getInstallationOctokit).toHaveBeenCalledWith(12345);
-      // Verify the logger shows we're using GitHub App installation
-      expect(logger.info).toHaveBeenCalledWith(
-        'github:repositories',
-        "Using GitHub App installation for repository access",
-        { installationId: 12345 }
+      expect(result).toEqual(mockRepos);
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        'Using OAuth token for repository access'
       );
     });
 
-    it('should call fetchAllRepositoriesOAuth when only accessToken is provided', async () => {
-      // Set up the mock with proper scopes for this test
-      const { Octokit } = require('octokit');
-      const mockInstance = {
-        rest: {
-          rateLimit: {
-            get: jest.fn().mockResolvedValue({
-              data: { 
-                resources: { 
-                  core: { 
-                    limit: 5000, 
-                    remaining: 4000, 
-                    reset: Math.floor(Date.now() / 1000) + 3600 
-                  } 
-                } 
-              },
-              headers: {}
-            })
-          },
-          users: {
-            getAuthenticated: jest.fn().mockResolvedValue({
-              data: { login: 'testuser', id: 123, type: 'User' },
-              headers: { 'x-oauth-scopes': 'repo, read:org' }  // Has proper scopes
-            })
-          },
-          repos: {
-            listForAuthenticatedUser: jest.fn()
-          },
-          orgs: {
-            listForAuthenticatedUser: jest.fn()
-          },
-          apps: {
-            listReposAccessibleToInstallation: jest.fn()
-          }
-        },
-        paginate: jest.fn().mockResolvedValue([])
-      };
+    it('should use App when authMethod is app', async () => {
+      const mockRepos = [
+        { id: 1, name: 'repo1', full_name: 'org/repo1', private: false }
+      ];
       
-      Octokit.mockReturnValue(mockInstance);
+      mockClient.paginate.mockResolvedValue(mockRepos);
       
-      await fetchAllRepositories('token');
+      const result = await fetchAllRepositories(mockClient, 'app');
       
-      // Verify Octokit was created with the token (indicating fetchAllRepositoriesOAuth was used)
-      expect(Octokit).toHaveBeenCalledWith({ auth: 'token' });
-      // Verify the logger shows we're using OAuth
-      expect(logger.info).toHaveBeenCalledWith(
-        'github:repositories',
-        "Using OAuth token for repository access"
-      );
-    });
-
-    it('should throw error when no authentication is provided', async () => {
-      await expect(fetchAllRepositories()).rejects.toThrow(
-        "No GitHub authentication available"
+      expect(result).toEqual(mockRepos);
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        'Using GitHub App installation for repository access'
       );
     });
   });

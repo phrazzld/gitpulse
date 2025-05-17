@@ -5,10 +5,9 @@
  * using both OAuth tokens and GitHub App installations.
  */
 
-import { Octokit } from "octokit";
 import { logger } from "../logger";
 import { Commit } from "./types";
-import { createOAuthOctokit, getInstallationOctokit } from "./auth";
+import { IOctokitClient } from "./interfaces";
 
 const MODULE_NAME = "github:commits";
 
@@ -23,7 +22,7 @@ const MODULE_NAME = "github:commits";
  * @returns Array of GitHub commits
  */
 export async function fetchRepositoryCommitsOAuth(
-  accessToken: string,
+  client: IOctokitClient,
   owner: string,
   repo: string,
   since: string,
@@ -40,14 +39,12 @@ export async function fetchRepositoryCommitsOAuth(
     },
   );
 
-  const octokit = createOAuthOctokit(accessToken);
-
   try {
     logger.debug(
       MODULE_NAME,
       `Starting pagination for ${owner}/${repo} commits`,
     );
-    const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
+    const commits = await client.paginate<any>(client.rest.repos.listCommits, {
       owner,
       repo,
       since,
@@ -92,7 +89,7 @@ export async function fetchRepositoryCommitsOAuth(
  * @returns Array of GitHub commits
  */
 export async function fetchRepositoryCommitsApp(
-  installationId: number,
+  client: IOctokitClient,
   owner: string,
   repo: string,
   since: string,
@@ -103,7 +100,6 @@ export async function fetchRepositoryCommitsApp(
     MODULE_NAME,
     `fetchRepositoryCommitsApp called for ${owner}/${repo}`,
     {
-      installationId,
       since,
       until,
       author: author || "not specified",
@@ -111,14 +107,13 @@ export async function fetchRepositoryCommitsApp(
   );
 
   try {
-    const octokit = await getInstallationOctokit(installationId);
 
     logger.debug(
       MODULE_NAME,
       `Starting pagination for ${owner}/${repo} commits via GitHub App`,
     );
 
-    const commits = await octokit.paginate(octokit.rest.repos.listCommits, {
+    const commits = await client.paginate<any>(client.rest.repos.listCommits, {
       owner,
       repo,
       since,
@@ -172,8 +167,8 @@ export async function fetchRepositoryCommitsApp(
  * @returns Array of GitHub commits
  */
 export async function fetchRepositoryCommits(
-  accessToken?: string,
-  installationId?: number,
+  client: IOctokitClient,
+  authMethod: 'oauth' | 'app',
   owner: string = "",
   repo: string = "",
   since: string = "",
@@ -184,8 +179,7 @@ export async function fetchRepositoryCommits(
     MODULE_NAME,
     `fetchRepositoryCommits called for ${owner}/${repo}`,
     {
-      hasAccessToken: !!accessToken,
-      hasInstallationId: !!installationId,
+      authMethod,
       since,
       until,
       author: author || "not specified",
@@ -193,27 +187,13 @@ export async function fetchRepositoryCommits(
   );
 
   try {
-    // Prefer GitHub App installation if available
-    if (installationId) {
+    if (authMethod === 'app') {
       logger.info(
         MODULE_NAME,
         "Using GitHub App installation for commit access",
-        {
-          installationId,
-        },
       );
       return await fetchRepositoryCommitsApp(
-        installationId,
-        owner,
-        repo,
-        since,
-        until,
-        author,
-      );
-    } else if (accessToken) {
-      logger.info(MODULE_NAME, "Using OAuth token for commit access");
-      return await fetchRepositoryCommitsOAuth(
-        accessToken,
+        client,
         owner,
         repo,
         since,
@@ -221,13 +201,14 @@ export async function fetchRepositoryCommits(
         author,
       );
     } else {
-      // Neither authentication method is available
-      logger.error(
-        MODULE_NAME,
-        "No authentication method available for commit access",
-      );
-      throw new Error(
-        "No GitHub authentication available. Please sign in again.",
+      logger.info(MODULE_NAME, "Using OAuth token for commit access");
+      return await fetchRepositoryCommitsOAuth(
+        client,
+        owner,
+        repo,
+        since,
+        until,
+        author,
       );
     }
   } catch (error) {
@@ -251,8 +232,8 @@ export async function fetchRepositoryCommits(
  * @returns Array of GitHub commits across all repositories
  */
 export async function fetchCommitsForRepositories(
-  accessToken?: string,
-  installationId?: number,
+  client: IOctokitClient,
+  authMethod: 'oauth' | 'app',
   repositories: string[] = [],
   since: string = "",
   until: string = "",
@@ -260,22 +241,11 @@ export async function fetchCommitsForRepositories(
 ): Promise<Commit[]> {
   logger.debug(MODULE_NAME, "fetchCommitsForRepositories called", {
     repositoriesCount: repositories.length,
-    hasAccessToken: !!accessToken,
-    hasInstallationId: !!installationId,
+    authMethod,
     since,
     until,
     author: author || "not specified",
   });
-
-  if (!accessToken && !installationId) {
-    logger.error(
-      MODULE_NAME,
-      "No authentication method provided for fetching commits",
-    );
-    throw new Error(
-      "No GitHub authentication available. Please sign in again.",
-    );
-  }
 
   const allCommits: Commit[] = [];
   let githubUsername = author;
@@ -294,8 +264,8 @@ export async function fetchCommitsForRepositories(
       batch.map((repoFullName) => {
         const [owner, repo] = repoFullName.split("/");
         return fetchRepositoryCommits(
-          accessToken,
-          installationId,
+          client,
+          authMethod,
           owner,
           repo,
           since,
@@ -323,8 +293,8 @@ export async function fetchCommitsForRepositories(
           batch.map((repoFullName) => {
             const [owner, repo] = repoFullName.split("/");
             return fetchRepositoryCommits(
-              accessToken,
-              installationId,
+              client,
+              authMethod,
               owner,
               repo,
               since,
@@ -349,8 +319,8 @@ export async function fetchCommitsForRepositories(
         batch.map((repoFullName) => {
           const [owner, repo] = repoFullName.split("/");
           return fetchRepositoryCommits(
-            accessToken,
-            installationId,
+            client,
+            authMethod,
             owner,
             repo,
             since,
@@ -367,7 +337,7 @@ export async function fetchCommitsForRepositories(
     totalRepositories: repositories.length,
     totalCommits: allCommits.length,
     finalAuthorFilter: githubUsername || "none",
-    authMethod: installationId ? "GitHub App" : "OAuth",
+    authMethod,
   });
 
   return allCommits;

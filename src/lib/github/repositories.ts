@@ -5,11 +5,10 @@
  * using both OAuth tokens and GitHub App installations.
  */
 
-import { Octokit } from "octokit";
 import { logger } from "../logger";
 import { Repository } from "./types";
-import { getInstallationOctokit } from "./auth";
 import { normalizeRepositoryResponse, isRepositoryArray } from "./octokitTypes";
+import { IOctokitClient } from "./interfaces";
 
 const MODULE_NAME = "github:repositories";
 
@@ -19,18 +18,15 @@ const MODULE_NAME = "github:repositories";
  * @returns Array of GitHub repositories
  */
 export async function fetchAllRepositoriesOAuth(
-  accessToken: string,
+  client: IOctokitClient,
 ): Promise<Repository[]> {
-  logger.debug(MODULE_NAME, "fetchAllRepositoriesOAuth called", {
-    accessTokenLength: accessToken?.length,
-  });
-  const octokit = new Octokit({ auth: accessToken });
+  logger.debug(MODULE_NAME, "fetchAllRepositoriesOAuth called");
   let allRepos: Repository[] = [];
 
   try {
     // check github api rate limits
     try {
-      const rateLimit = await octokit.rest.rateLimit.get();
+      const rateLimit = await client.rest.rateLimit.get();
       const core = rateLimit.data.resources.core;
       logger.info(MODULE_NAME, "GitHub API rate limit status", {
         limit: core.limit,
@@ -54,7 +50,7 @@ export async function fetchAllRepositoriesOAuth(
 
     // retrieve authenticated user info (and check token scopes)
     try {
-      const userInfo = await octokit.rest.users.getAuthenticated();
+      const userInfo = await client.rest.users.getAuthenticated();
       const scopesHeader = userInfo.headers["x-oauth-scopes"] || "";
       const scopes = scopesHeader ? scopesHeader.split(", ") : [];
 
@@ -103,8 +99,8 @@ export async function fetchAllRepositoriesOAuth(
       MODULE_NAME,
       "Fetching all repos with combined affiliation=owner,collaborator,organization_member and visibility=all",
     );
-    const combinedRepos = await octokit.paginate(
-      octokit.rest.repos.listForAuthenticatedUser,
+    const combinedRepos = await client.paginate<Repository>(
+      client.rest.repos.listForAuthenticatedUser,
       {
         per_page: 100,
         sort: "updated",
@@ -120,8 +116,8 @@ export async function fetchAllRepositoriesOAuth(
     // you can optionally also iterate over orgs you belong to and list them directly,
     // in case you want to see if the direct org approach yields anything new:
     try {
-      const orgs = await octokit.paginate(
-        octokit.rest.orgs.listForAuthenticatedUser,
+      const orgs = await client.paginate<{ login: string }>(
+        client.rest.orgs.listForAuthenticatedUser,
         {
           per_page: 100,
         },
@@ -133,8 +129,8 @@ export async function fetchAllRepositoriesOAuth(
 
       for (const org of orgs) {
         try {
-          const orgRepos = await octokit.paginate(
-            octokit.rest.repos.listForOrg,
+          const orgRepos = await client.paginate<Repository>(
+            client.rest.repos.listForOrg,
             {
               org: org.login,
               per_page: 100,
@@ -189,19 +185,15 @@ export async function fetchAllRepositoriesOAuth(
  * @returns Array of GitHub repositories
  */
 export async function fetchAllRepositoriesApp(
-  installationId: number,
+  client: IOctokitClient,
 ): Promise<Repository[]> {
-  logger.debug(MODULE_NAME, "fetchAllRepositoriesApp called", {
-    installationId,
-  });
+  logger.debug(MODULE_NAME, "fetchAllRepositoriesApp called");
 
   try {
-    // Get an Octokit instance with the installation access token
-    const octokit = await getInstallationOctokit(installationId);
 
     // Check rate limits
     try {
-      const rateLimit = await octokit.rest.rateLimit.get();
+      const rateLimit = await client.rest.rateLimit.get();
       const core = rateLimit.data.resources.core;
       logger.info(MODULE_NAME, "GitHub API rate limit status (App auth)", {
         limit: core.limit,
@@ -227,8 +219,8 @@ export async function fetchAllRepositoriesApp(
     );
 
     // Use paginate to fetch all pages, not just the first 100 repos
-    const repositories = await octokit.paginate(
-      octokit.rest.apps.listReposAccessibleToInstallation,
+    const repositories = await client.paginate<Repository>(
+      client.rest.apps.listReposAccessibleToInstallation,
       {
         per_page: 100,
       },
@@ -260,37 +252,23 @@ export async function fetchAllRepositoriesApp(
  * @returns Array of GitHub repositories
  */
 export async function fetchAllRepositories(
-  accessToken?: string,
-  installationId?: number,
+  client: IOctokitClient,
+  authMethod: 'oauth' | 'app',
 ): Promise<Repository[]> {
   logger.debug(MODULE_NAME, "fetchAllRepositories called", {
-    hasAccessToken: !!accessToken,
-    hasInstallationId: !!installationId,
+    authMethod,
   });
 
   try {
-    // Prefer GitHub App installation if available
-    if (installationId) {
+    if (authMethod === 'app') {
       logger.info(
         MODULE_NAME,
         "Using GitHub App installation for repository access",
-        {
-          installationId,
-        },
       );
-      return await fetchAllRepositoriesApp(installationId);
-    } else if (accessToken) {
-      logger.info(MODULE_NAME, "Using OAuth token for repository access");
-      return await fetchAllRepositoriesOAuth(accessToken);
+      return await fetchAllRepositoriesApp(client);
     } else {
-      // Neither authentication method is available
-      logger.error(
-        MODULE_NAME,
-        "No authentication method available for repository access",
-      );
-      throw new Error(
-        "No GitHub authentication available. Please sign in again.",
-      );
+      logger.info(MODULE_NAME, "Using OAuth token for repository access");
+      return await fetchAllRepositoriesOAuth(client);
     }
   } catch (error) {
     logger.error(MODULE_NAME, "Error in unified fetchAllRepositories", {

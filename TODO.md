@@ -2,6 +2,75 @@
 
 This document outlines the tasks needed to address the critical issues identified in the code review for the Atomic Design and Testing Library Migration PR.
 
+## CI Resolution Tasks - Priority 0 (Critical - Must Fix for CI to Pass)
+
+### Unit Test Failures - Refactoring for DI
+
+- [x] **T001CI: Refactor github modules for dependency injection**
+  - Modify modules in `src/lib/github/` (repositories, auth, commits, utils) to accept Octokit client and fetch functions as explicit dependencies
+  - Export interfaces for external dependencies where needed
+  - Modules should no longer instantiate external clients internally
+
+- [ ] **T002CI: Refactor summary API handlers for dependency injection**
+  - Modify `src/app/api/summary/handlers.ts` to accept external dependencies explicitly
+  - Dependencies should be injected via parameters or constructor arguments
+  - **Depends on:** T001CI
+
+### Unit Test Failures - Test Corrections
+
+- [ ] **T003CI: Correct mocks and async handling in summary API handler tests**
+  - Remove internal mocks from `src/app/api/summary/__tests__/handlers.test.ts`
+  - Mock only injected external dependencies
+  - Update assertions to focus on public behavior
+  - Ensure proper async/await usage and Promise handling
+  - **Depends on:** T002CI
+
+- [ ] **T004CI: Fix "me" special case logic in summary API handlers**
+  - Investigate and correct the "me" special case logic in handlers
+  - Update the corresponding test to assert correct behavior
+  - **Depends on:** T003CI
+
+- [ ] **T005CI: Correct mocks and async handling in github/repositories tests**
+  - Remove internal mocks from `src/lib/github/__tests__/repositories.test.ts`
+  - Mock only injected Octokit client
+  - Update assertions and ensure proper async handling
+  - **Depends on:** T001CI
+
+- [ ] **T006CI: Correct mocks and async handling in github/auth tests**
+  - Remove internal mocks from `src/lib/github/__tests__/auth.test.ts`
+  - Mock only injected dependencies
+  - Update assertions and ensure proper async handling
+  - **Depends on:** T001CI
+
+- [ ] **T007CI: Correct mocks and async handling in github/commits tests**
+  - Remove internal mocks from `src/lib/github/__tests__/commits.test.ts`
+  - Mock only injected dependencies
+  - Fix promise rejection handling
+  - **Depends on:** T001CI
+
+### Accessibility Violations
+
+- [ ] **T008CI: Fix color contrast violations**
+  - Fix contrast issues in LoadMoreButton, ModeSelector, OperationsPanel
+  - Adjust colors to meet WCAG AA requirements (4.5:1 normal text, 3:1 large text)
+  - Verify in both light and dark modes
+
+- [ ] **T009CI: Fix interactive element accessibility**
+  - Ensure keyboard focusability for all interactive elements
+  - Add proper ARIA roles, states, and properties
+  - Correct tabindex usage
+
+- [ ] **T010CI: Fix button name accessibility**
+  - Add aria-labels to icon-only buttons
+  - Ensure all buttons have accessible names
+
+### Pre-commit Script Test
+
+- [ ] **T011CI: Fix pre-commit script test**
+  - Update execSync mock in `scripts/__tests__/check-a11y-staged-stories.test.js`
+  - Return realistic `git diff --cached --name-status` output
+  - Verify filtering logic works correctly
+
 ## Type Safety Improvements
 
 - [x] **TASK-041: Identify all instances of `any` usage in the codebase**
@@ -475,6 +544,31 @@ This document outlines the tasks needed to address the critical issues identifie
 - [ ] **T015: Update accessibility best practices documentation**
   - Document color contrast requirements
   - List common accessibility pitfalls and solutions
+
+### CI Resolution Prevention Measures
+
+- [ ] **T016CI: Update mocking policy documentation**
+  - Add clear examples of correct vs incorrect mocking
+  - Emphasize "Mock ONLY True External System Boundaries"
+  - Include practical examples
+
+- [ ] **T017CI: Fix and enforce local pre-commit accessibility hook**
+  - Ensure the hook correctly identifies staged story files
+  - Make it work reliably for all developers
+
+- [ ] **T018CI: Add jest-axe assertions to component tests**
+  - Include accessibility assertions in critical component unit tests
+  - Provide an additional layer of a11y testing
+
+- [ ] **T019CI: Create accessibility guidelines**
+  - Document common accessibility patterns
+  - Include approved color palettes with validated contrast ratios
+  - Provide ARIA attribute usage examples
+
+- [ ] **T020CI: Implement CI failure post-mortem process**
+  - Create a template for CI failure analysis
+  - Establish a regular review schedule
+  - Document learnings and improvements
 
 ## Clarifications & Assumptions
 
