@@ -30,12 +30,13 @@ This document outlines the tasks needed to address the critical issues identifie
   - Update the corresponding test to assert correct behavior
   - **Depends on:** T003CI
 
-- [~] **T002CI-FIX: Fix TypeScript errors from dependency injection refactoring**
+- [x] **T002CI-FIX: Fix TypeScript errors from dependency injection refactoring**
   - Fix IOctokitClient type errors in various route files (contributors, my-activity, etc.)
   - Update function signatures that are expecting string instead of IOctokitClient
   - Fix GitHub module tests that have breaking type issues
   - These errors are from the T002CI refactoring and need to be addressed
   - **Priority**: Critical - blocking CI
+  - **Completed:** 2025-05-18
 
 - [ ] **T005CI: Correct mocks and async handling in github/repositories tests**
   - Remove internal mocks from `src/lib/github/__tests__/repositories.test.ts`
