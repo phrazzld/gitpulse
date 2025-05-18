@@ -38,7 +38,7 @@ This document outlines the tasks needed to address the critical issues identifie
   - **Priority**: Critical - blocking CI
   - **Completed:** 2025-05-18
 
-- [ ] **T005CI: Correct mocks and async handling in github/repositories tests**
+- [x] **T005CI: Correct mocks and async handling in github/repositories tests**
   - Remove internal mocks from `src/lib/github/__tests__/repositories.test.ts`
   - Mock only injected Octokit client
   - Update assertions and ensure proper async handling
