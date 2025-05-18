@@ -44,7 +44,7 @@ This document outlines the tasks needed to address the critical issues identifie
   - Update assertions and ensure proper async handling
   - **Depends on:** T001CI
 
-- [ ] **T006CI: Correct mocks and async handling in github/auth tests**
+- [x] **T006CI: Correct mocks and async handling in github/auth tests**
   - Remove internal mocks from `src/lib/github/__tests__/auth.test.ts`
   - Mock only injected dependencies
   - Update assertions and ensure proper async handling
