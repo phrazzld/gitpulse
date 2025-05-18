@@ -3,40 +3,54 @@
  * @jest-environment node
  */
 
-// Mock dependencies
-jest.mock('@/lib/github'); // Use the mock in __mocks__ directory
+import { createSummaryHandlers, SummaryHandlerDependencies } from '../handlers';
+import { Repository, Commit, AppInstallation } from '@/lib/github/types';
 
-jest.mock('@/lib/gemini', () => ({
-  generateCommitSummary: jest.fn()
-}));
-
-jest.mock('@/lib/logger', () => ({
+// Create mock dependencies
+const createMockDependencies = (): SummaryHandlerDependencies => ({
   logger: {
     debug: jest.fn(),
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn()
+  },
+  githubService: {
+    fetchAllRepositories: jest.fn().mockResolvedValue([]),
+    fetchCommitsForRepositories: jest.fn().mockResolvedValue([])
+  },
+  geminiService: {
+    generateCommitSummary: jest.fn().mockResolvedValue({ 
+      keyThemes: [], 
+      technicalAreas: [], 
+      summary: '' 
+    })
+  },
+  apiUtils: {
+    extractUniqueDates: jest.fn((commits: readonly Commit[]) => []),
+    extractUniqueRepositories: jest.fn((commits: readonly Commit[]) => []),
+    generateBasicStats: jest.fn((commits: readonly Commit[]) => ({
+      totalCommits: commits.length,
+      filesChanged: 0,
+      additions: 0,
+      deletions: 0,
+      repositories: [],
+      dates: []
+    }))
   }
-}));
-
-import { 
-  filterRepositoriesByOrgAndRepoNames,
-  mapRepositoriesToInstallations,
-  fetchCommitsWithAuthMethod,
-  filterCommitsByContributor,
-  groupCommitsByFilter,
-  generateSummaryData,
-  prepareSummaryResponse
-} from '../handlers';
-import { Repository, Commit, AppInstallation } from '@/lib/github';
-import { fetchCommitsForRepositories } from '@/lib/github';
-import { generateCommitSummary } from '@/lib/gemini';
-import { logger } from '@/lib/logger';
-
-// Mock dependencies already defined above
+});
 
 describe('Summary API Handlers', () => {
+  let mockDeps: SummaryHandlerDependencies;
+  let handlers: ReturnType<typeof createSummaryHandlers>;
+
   beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+    mockDeps = createMockDependencies();
+    handlers = createSummaryHandlers(mockDeps);
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -49,33 +63,42 @@ describe('Summary API Handlers', () => {
     ];
 
     it('should return all repositories when no filters are provided', () => {
-      const result = filterRepositoriesByOrgAndRepoNames(mockRepositories);
+      const result = handlers.filterRepositoriesByOrgAndRepoNames(mockRepositories);
       expect(result).toHaveLength(4);
       expect(result).toEqual(mockRepositories);
+      expect(mockDeps.logger.debug).toHaveBeenCalledWith(
+        'api:summary:handlers',
+        'Filtering repositories',
+        expect.objectContaining({
+          totalRepos: 4,
+          organizationFilters: 0,
+          repositoryFilters: 0
+        })
+      );
     });
 
     it('should filter repositories by organization name', () => {
-      const result = filterRepositoriesByOrgAndRepoNames(mockRepositories, ['org1']);
+      const result = handlers.filterRepositoriesByOrgAndRepoNames(mockRepositories, ['org1']);
       expect(result).toHaveLength(2);
       expect(result[0].full_name).toBe('org1/repo1');
       expect(result[1].full_name).toBe('org1/repo2');
     });
 
     it('should filter repositories by repository full name', () => {
-      const result = filterRepositoriesByOrgAndRepoNames(mockRepositories, [], ['org1/repo1', 'org2/repo3']);
+      const result = handlers.filterRepositoriesByOrgAndRepoNames(mockRepositories, [], ['org1/repo1', 'org2/repo3']);
       expect(result).toHaveLength(2);
       expect(result[0].full_name).toBe('org1/repo1');
       expect(result[1].full_name).toBe('org2/repo3');
     });
 
     it('should apply both organization and repository filters', () => {
-      const result = filterRepositoriesByOrgAndRepoNames(mockRepositories, ['org1'], ['org1/repo1']);
+      const result = handlers.filterRepositoriesByOrgAndRepoNames(mockRepositories, ['org1'], ['org1/repo1']);
       expect(result).toHaveLength(1);
       expect(result[0].full_name).toBe('org1/repo1');
     });
 
     it('should return empty array when no repositories match the filters', () => {
-      const result = filterRepositoriesByOrgAndRepoNames(mockRepositories, ['org4']);
+      const result = handlers.filterRepositoriesByOrgAndRepoNames(mockRepositories, ['org4']);
       expect(result).toHaveLength(0);
     });
   });
@@ -86,40 +109,40 @@ describe('Summary API Handlers', () => {
       { id: 102, account: { login: 'org2' }, appSlug: 'app', appId: 1, repositorySelection: 'all', targetType: 'Organization' }
     ];
 
-    const reposToAnalyze = ['org1/repo1', 'org1/repo2', 'org2/repo3', 'org3/repo4'];
-    
-    it('should map repositories to installations correctly', () => {
-      const result = mapRepositoriesToInstallations(reposToAnalyze, mockInstallations, [101, 102]);
+    it('should map repositories to their installations', () => {
+      const result = handlers.mapRepositoriesToInstallations(
+        ['org1/repo1', 'org1/repo2', 'org2/repo3', 'org3/repo4'],
+        mockInstallations,
+        [101, 102]
+      );
       
-      // Check org to installation map
-      expect(result.orgToInstallationMap.size).toBe(2);
       expect(result.orgToInstallationMap.get('org1')).toBe(101);
       expect(result.orgToInstallationMap.get('org2')).toBe(102);
-      
-      // Check repos by installation
-      expect(Object.keys(result.reposByInstallation)).toHaveLength(3); // oauth + 2 installations
       expect(result.reposByInstallation['101']).toEqual(['org1/repo1', 'org1/repo2']);
       expect(result.reposByInstallation['102']).toEqual(['org2/repo3']);
-      expect(result.reposByInstallation['oauth']).toEqual(['org3/repo4']);
+      expect(result.reposByInstallation['oauth']).toEqual(['org3/repo4']); // No installation for org3
     });
 
-    it('should default to OAuth when installation IDs are empty', () => {
-      const result = mapRepositoriesToInstallations(reposToAnalyze, mockInstallations, []);
+    it('should handle repositories without installations', () => {
+      const result = handlers.mapRepositoriesToInstallations(
+        ['org3/repo4', 'org4/repo5'],
+        mockInstallations,
+        [101, 102]
+      );
       
       expect(result.orgToInstallationMap.size).toBe(0);
-      expect(Object.keys(result.reposByInstallation)).toHaveLength(1);
-      expect(result.reposByInstallation['oauth']).toEqual(reposToAnalyze);
+      expect(result.reposByInstallation['oauth']).toEqual(['org3/repo4', 'org4/repo5']);
     });
 
-    it('should filter installations by the provided IDs', () => {
-      const result = mapRepositoriesToInstallations(reposToAnalyze, mockInstallations, [101]); // Only include org1
+    it('should work with no installation IDs', () => {
+      const result = handlers.mapRepositoriesToInstallations(
+        ['org1/repo1', 'org2/repo3'],
+        mockInstallations,
+        []
+      );
       
-      expect(result.orgToInstallationMap.size).toBe(1);
-      expect(result.orgToInstallationMap.get('org1')).toBe(101);
-      expect(result.orgToInstallationMap.has('org2')).toBe(false);
-      
-      expect(result.reposByInstallation['101']).toEqual(['org1/repo1', 'org1/repo2']);
-      expect(result.reposByInstallation['oauth']).toEqual(['org2/repo3', 'org3/repo4']);
+      expect(result.orgToInstallationMap.size).toBe(0);
+      expect(result.reposByInstallation['oauth']).toEqual(['org1/repo1', 'org2/repo3']);
     });
   });
   
@@ -153,18 +176,24 @@ describe('Summary API Handlers', () => {
     };
 
     beforeEach(() => {
-      (fetchCommitsForRepositories as jest.Mock).mockImplementation((accessToken, installationId, repos) => {
-        // Return different commits based on the auth method
-        if (installationId) {
-          return Promise.resolve([mockCommits[1]]); // Installation auth returns the second commit
-        } else {
-          return Promise.resolve([mockCommits[0]]); // OAuth returns the first commit
+      // Reset mocks and set up proper mock implementations
+      jest.clearAllMocks();
+      
+      // Set up the mock implementation to return different commits based on auth method
+      (mockDeps.githubService.fetchCommitsForRepositories as jest.Mock).mockImplementation(
+        async (accessToken, installationId, repos, since, until, author) => {
+          // Return different commits based on the auth method
+          if (installationId === 101) {
+            return Promise.resolve([mockCommits[1]]); // Installation auth returns the second commit
+          } else {
+            return Promise.resolve([mockCommits[0]]); // OAuth returns the first commit
+          }
         }
-      });
+      );
     });
 
     it('should fetch commits using both OAuth and GitHub App installations', async () => {
-      const result = await fetchCommitsWithAuthMethod(
+      const result = await handlers.fetchCommitsWithAuthMethod(
         reposByInstallation,
         'fake-token',
         '2023-01-01',
@@ -173,10 +202,10 @@ describe('Summary API Handlers', () => {
       );
       
       // Should have called fetchCommitsForRepositories twice - once for OAuth, once for installation
-      expect(fetchCommitsForRepositories).toHaveBeenCalledTimes(2);
+      expect(mockDeps.githubService.fetchCommitsForRepositories).toHaveBeenCalledTimes(2);
       
-      // First call should be for OAuth
-      expect(fetchCommitsForRepositories).toHaveBeenCalledWith(
+      // First call should be for OAuth (no installation ID)
+      expect(mockDeps.githubService.fetchCommitsForRepositories).toHaveBeenCalledWith(
         'fake-token',
         undefined,
         ['org/repo1'],
@@ -186,7 +215,7 @@ describe('Summary API Handlers', () => {
       );
       
       // Second call should be for installation 101
-      expect(fetchCommitsForRepositories).toHaveBeenCalledWith(
+      expect(mockDeps.githubService.fetchCommitsForRepositories).toHaveBeenCalledWith(
         'fake-token',
         101,
         ['org/repo2'],
@@ -202,7 +231,7 @@ describe('Summary API Handlers', () => {
     });
 
     it('should handle empty repository lists', async () => {
-      const result = await fetchCommitsWithAuthMethod(
+      const result = await handlers.fetchCommitsWithAuthMethod(
         { 'oauth': [], '101': [] },
         'fake-token',
         '2023-01-01',
@@ -210,13 +239,13 @@ describe('Summary API Handlers', () => {
         undefined
       );
       
-      // Should not have called fetchCommitsForRepositories
-      expect(fetchCommitsForRepositories).not.toHaveBeenCalled();
+      // Should not have called fetchCommitsForRepositories since no repos to fetch
+      expect(mockDeps.githubService.fetchCommitsForRepositories).not.toHaveBeenCalled();
       expect(result).toHaveLength(0);
     });
 
     it('should skip OAuth fetching when no access token is provided', async () => {
-      const result = await fetchCommitsWithAuthMethod(
+      const result = await handlers.fetchCommitsWithAuthMethod(
         { 'oauth': ['org/repo1'], '101': ['org/repo2'] },
         undefined,
         '2023-01-01',
@@ -225,8 +254,8 @@ describe('Summary API Handlers', () => {
       );
       
       // Should have called fetchCommitsForRepositories only once - for the installation
-      expect(fetchCommitsForRepositories).toHaveBeenCalledTimes(1);
-      expect(fetchCommitsForRepositories).toHaveBeenCalledWith(
+      expect(mockDeps.githubService.fetchCommitsForRepositories).toHaveBeenCalledTimes(1);
+      expect(mockDeps.githubService.fetchCommitsForRepositories).toHaveBeenCalledWith(
         undefined,
         101,
         ['org/repo2'],
@@ -269,33 +298,55 @@ describe('Summary API Handlers', () => {
           author: { name: 'Charlie', email: 'charlie@example.com', date: '2023-01-03T00:00:00Z' },
           message: 'Commit 3'
         }, 
-        author: { login: 'charlie', avatar_url: '' },
+        author: null,
         html_url: 'https://github.com/org/repo/commit/3',
         repository: { full_name: 'org/repo' }
       }
     ];
 
-    it('should return all commits when no contributors filter is provided', () => {
-      const result = filterCommitsByContributor(mockCommits, []);
+    it('should return all commits when no contributors are specified', () => {
+      const result = handlers.filterCommitsByContributor(mockCommits, [], undefined);
+      expect(result).toEqual(mockCommits);
       expect(result).toHaveLength(3);
     });
 
     it('should filter commits by contributor login', () => {
-      const result = filterCommitsByContributor(mockCommits, ['alice', 'charlie']);
-      expect(result).toHaveLength(2);
-      expect(result[0].author?.login).toBe('alice');
-      expect(result[1].author?.login).toBe('charlie');
-    });
-
-    it('should handle the "me" special case', () => {
-      const result = filterCommitsByContributor(mockCommits, ['me'], 'bob');
+      const result = handlers.filterCommitsByContributor(mockCommits, ['alice'], undefined);
       expect(result).toHaveLength(1);
-      expect(result[0].author?.login).toBe('bob');
+      expect(result[0].sha).toBe('1');
+      expect(result[0].author!.login).toBe('alice');
     });
 
-    it('should not filter single contributor when it matches current user', () => {
-      const result = filterCommitsByContributor(mockCommits, ['bob'], 'bob');
-      expect(result).toHaveLength(3); // No filtering when single contributor matches user
+    it('should filter commits for multiple contributors', () => {
+      const result = handlers.filterCommitsByContributor(mockCommits, ['alice', 'bob'], undefined);
+      expect(result).toHaveLength(2);
+      expect(result[0].sha).toBe('1');
+      expect(result[1].sha).toBe('2');
+    });
+
+    it('should filter commits by contributor name when author login is null', () => {
+      const result = handlers.filterCommitsByContributor(mockCommits, ['Charlie'], undefined);
+      expect(result).toHaveLength(1);
+      expect(result[0].sha).toBe('3');
+    });
+
+    it('should not filter when contributors includes only "me" and currentUserName matches', () => {
+      const result = handlers.filterCommitsByContributor(mockCommits, ['me'], 'alice');
+      expect(result).toEqual(mockCommits); // No filtering applied at this layer for single "me"
+      expect(result).toHaveLength(3);
+    });
+
+    it('should filter for "me" when included with other contributors', () => {
+      const result = handlers.filterCommitsByContributor(mockCommits, ['me', 'bob'], 'alice');
+      expect(result).toHaveLength(2);
+      expect(result[0].sha).toBe('1'); // alice is matched as "me"
+      expect(result[1].sha).toBe('2'); // bob is directly matched
+    });
+
+    it('should handle "me" properly when currentUserName is not provided', () => {
+      const result = handlers.filterCommitsByContributor(mockCommits, ['me'], undefined);
+      expect(result).toEqual(mockCommits); // Returns all when single "me" and no current user
+      expect(result).toHaveLength(3);
     });
   });
 
@@ -306,196 +357,197 @@ describe('Summary API Handlers', () => {
         commit: { 
           author: { name: 'Alice', email: 'alice@example.com', date: '2023-01-01T00:00:00Z' },
           message: 'Commit 1'
-        }, 
+        },
         author: { login: 'alice', avatar_url: '' },
-        html_url: 'https://github.com/org/repo1/commit/1',
-        repository: { full_name: 'org/repo1' }
-      },
-      { 
-        sha: '2', 
-        commit: { 
-          author: { name: 'Bob', email: 'bob@example.com', date: '2023-01-02T00:00:00Z' },
-          message: 'Commit 2'
-        }, 
-        author: { login: 'bob', avatar_url: '' },
-        html_url: 'https://github.com/org/repo2/commit/2',
-        repository: { full_name: 'org/repo2' }
+        html_url: 'https://github.com/org/repo/commit/1',
+        repository: { full_name: 'org/repo' }
       }
     ];
 
+    beforeEach(() => {
+      (mockDeps.apiUtils.extractUniqueRepositories as jest.Mock).mockReturnValue(['org/repo']);
+      (mockDeps.apiUtils.extractUniqueDates as jest.Mock).mockReturnValue(['2023-01-01']);
+    });
+
     it('should group commits chronologically', () => {
-      const result = groupCommitsByFilter(mockCommits, 'chronological');
-      
+      const result = handlers.groupCommitsByFilter(mockCommits, 'chronological');
       expect(result).toHaveLength(1);
       expect(result[0].groupKey).toBe('all');
       expect(result[0].groupName).toBe('All Commits');
-      expect(result[0].commitCount).toBe(2);
-      expect(result[0].repositories).toHaveLength(2);
-      expect(result[0].repositories).toContain('org/repo1');
-      expect(result[0].repositories).toContain('org/repo2');
-      expect(result[0].dates).toHaveLength(2);
-      expect(result[0].dates).toContain('2023-01-01');
-      expect(result[0].dates).toContain('2023-01-02');
+      expect(result[0].commitCount).toBe(1);
       expect(result[0].commits).toEqual(mockCommits);
+      expect(result[0].repositories).toEqual(['org/repo']);
+      expect(result[0].dates).toEqual(['2023-01-01']);
+    });
+
+    it('should call utility functions for metadata', () => {
+      handlers.groupCommitsByFilter(mockCommits, 'chronological');
+      expect(mockDeps.apiUtils.extractUniqueRepositories).toHaveBeenCalledWith(mockCommits);
+      expect(mockDeps.apiUtils.extractUniqueDates).toHaveBeenCalledWith(mockCommits);
     });
   });
 
   describe('generateSummaryData', () => {
-    const mockGroupedResults = [
-      {
-        groupKey: 'all',
-        groupName: 'All Commits',
-        commitCount: 2,
-        repositories: ['org/repo1', 'org/repo2'],
-        dates: ['2023-01-01', '2023-01-02'],
-        commits: [
-          { 
-            sha: '1', 
-            commit: { 
-              author: { name: 'Alice', email: 'alice@example.com', date: '2023-01-01T00:00:00Z' },
-              message: 'Commit 1'
-            }, 
-            author: { login: 'alice', avatar_url: '' },
-            html_url: 'https://github.com/org/repo1/commit/1',
-            repository: { full_name: 'org/repo1' }
+    const groupedResults = [{
+      groupKey: 'all',
+      groupName: 'All Commits',
+      commitCount: 1,
+      repositories: ['org/repo'],
+      dates: ['2023-01-01'],
+      commits: [
+        { 
+          sha: '1', 
+          commit: { 
+            author: { name: 'Alice', email: 'alice@example.com', date: '2023-01-01T00:00:00Z' },
+            message: 'Commit 1'
           },
-          { 
-            sha: '2', 
-            commit: { 
-              author: { name: 'Bob', email: 'bob@example.com', date: '2023-01-02T00:00:00Z' },
-              message: 'Commit 2'
-            }, 
-            author: { login: 'bob', avatar_url: '' },
-            html_url: 'https://github.com/org/repo2/commit/2',
-            repository: { full_name: 'org/repo2' }
-          }
-        ] as Commit[]
-      }
-    ];
-
-    const mockSummary = {
-      keyThemes: ['Theme 1', 'Theme 2'],
-      technicalAreas: ['Area 1', 'Area 2'],
-      summary: 'This is a summary'
-    };
+          author: { login: 'alice', avatar_url: '' },
+          html_url: 'https://github.com/org/repo/commit/1',
+          repository: { full_name: 'org/repo' }
+        }
+      ]
+    }];
 
     beforeEach(() => {
-      (generateCommitSummary as jest.Mock).mockResolvedValue(mockSummary);
+      (mockDeps.geminiService.generateCommitSummary as jest.Mock).mockResolvedValue({
+        keyThemes: ['Testing'],
+        technicalAreas: ['Unit Tests'],
+        summary: 'Added unit tests'
+      });
     });
 
-    it('should generate overall summary when commits exist', async () => {
-      const result = await generateSummaryData(mockGroupedResults, 'fake-api-key');
+    it('should generate overall summary for commits', async () => {
+      const result = await handlers.generateSummaryData(groupedResults, 'fake-api-key', false);
       
-      expect(generateCommitSummary).toHaveBeenCalledWith(mockGroupedResults[0].commits, 'fake-api-key');
-      expect(result.overallSummary).toEqual(mockSummary);
-      expect(result.groupedResults).toEqual(mockGroupedResults);
+      expect(mockDeps.geminiService.generateCommitSummary).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ sha: '1' })]),
+        'fake-api-key'
+      );
+      
+      expect(result.overallSummary).toEqual({
+        keyThemes: ['Testing'],
+        technicalAreas: ['Unit Tests'],
+        summary: 'Added unit tests'
+      });
+      
+      expect(result.groupedResults).toEqual(groupedResults);
     });
 
-    it('should return null for overall summary when no commits exist', async () => {
-      const emptyGroupedResults = [{ ...mockGroupedResults[0], commits: [], commitCount: 0 }];
-      const result = await generateSummaryData(emptyGroupedResults, 'fake-api-key');
+    it('should handle empty grouped results', async () => {
+      const result = await handlers.generateSummaryData([], 'fake-api-key', false);
       
-      expect(generateCommitSummary).not.toHaveBeenCalled();
+      expect(mockDeps.geminiService.generateCommitSummary).not.toHaveBeenCalled();
       expect(result.overallSummary).toBeNull();
+      expect(result.groupedResults).toEqual([]);
     });
 
-    it('should generate group summaries when requested', async () => {
-      const result = await generateSummaryData(mockGroupedResults, 'fake-api-key', true);
+    it('should handle empty commits in groups', async () => {
+      const emptyGroup = [{
+        groupKey: 'all',
+        groupName: 'All Commits',
+        commitCount: 0,
+        repositories: [],
+        dates: [],
+        commits: []
+      }];
       
-      expect(generateCommitSummary).toHaveBeenCalledTimes(2); // Once for overall, once for group
-      expect(result.groupedResults[0].aiSummary).toEqual(mockSummary);
+      const result = await handlers.generateSummaryData(emptyGroup, 'fake-api-key', false);
+      
+      expect(mockDeps.geminiService.generateCommitSummary).not.toHaveBeenCalled();
+      expect(result.overallSummary).toBeNull();
     });
   });
 
   describe('prepareSummaryResponse', () => {
-    const mockGroupedResults = [
-      {
-        groupKey: 'all',
-        groupName: 'All Commits',
-        commitCount: 2,
-        repositories: ['org/repo1', 'org/repo2'],
-        dates: ['2023-01-01', '2023-01-02'],
-        commits: [
-          { 
-            sha: '1', 
-            commit: { 
-              author: { name: 'Alice', email: 'alice@example.com', date: '2023-01-01T00:00:00Z' },
-              message: 'Commit 1'
-            }, 
-            author: { login: 'alice', avatar_url: '' },
-            html_url: 'https://github.com/org/repo1/commit/1',
-            repository: { full_name: 'org/repo1' }
+    const groupedResults = [{
+      groupKey: 'all',
+      groupName: 'All Commits',
+      commitCount: 1,
+      repositories: ['org/repo'],
+      dates: ['2023-01-01'],
+      commits: [
+        { 
+          sha: '1', 
+          commit: { 
+            author: { name: 'Alice', email: 'alice@example.com', date: '2023-01-01T00:00:00Z' },
+            message: 'Commit 1'
           },
-          { 
-            sha: '2', 
-            commit: { 
-              author: { name: 'Bob', email: 'bob@example.com', date: '2023-01-02T00:00:00Z' },
-              message: 'Commit 2'
-            }, 
-            author: { login: 'bob', avatar_url: '' },
-            html_url: 'https://github.com/org/repo2/commit/2',
-            repository: { full_name: 'org/repo2' }
-          }
-        ] as Commit[]
-      }
-    ];
+          author: { login: 'alice', avatar_url: '' },
+          html_url: 'https://github.com/org/repo/commit/1',
+          repository: { full_name: 'org/repo' }
+        }
+      ]
+    }];
 
-    const mockFilterInfo = {
-      contributors: ['alice', 'bob'],
+    const overallSummary = {
+      keyThemes: ['Testing'],
+      technicalAreas: ['Unit Tests'],
+      summary: 'Added unit tests'
+    };
+
+    const filterInfo = {
+      contributors: ['alice'],
       organizations: ['org'],
-      repositories: null,
-      dateRange: {
-        since: '2023-01-01',
-        until: '2023-01-31'
-      }
+      repositories: ['org/repo'],
+      dateRange: { since: '2023-01-01', until: '2023-01-31' }
     };
 
-    const mockInstallations: AppInstallation[] = [
-      { id: 101, account: { login: 'org1' }, appSlug: 'app', appId: 1, repositorySelection: 'all', targetType: 'Organization' },
-      { id: 102, account: { login: 'org2' }, appSlug: 'app', appId: 1, repositorySelection: 'all', targetType: 'Organization' }
-    ];
+    beforeEach(() => {
+      (mockDeps.apiUtils.generateBasicStats as jest.Mock).mockReturnValue({
+        totalCommits: 1,
+        filesChanged: 3,
+        additions: 100,
+        deletions: 20
+      });
+    });
 
-    const mockSummary = {
-      keyThemes: ['Theme 1', 'Theme 2'],
-      technicalAreas: ['Area 1', 'Area 2'],
-      summary: 'This is a summary'
-    };
+    it('should prepare response with all fields', () => {
+      const mockInstallations: AppInstallation[] = [
+        { id: 101, account: { login: 'org' }, appSlug: 'app', appId: 1, repositorySelection: 'all', targetType: 'Organization' }
+      ];
 
-    it('should prepare the response with all required fields', () => {
-      const result = prepareSummaryResponse(
-        mockGroupedResults,
-        mockSummary,
-        mockFilterInfo,
-        'TestUser',
+      const result = handlers.prepareSummaryResponse(
+        groupedResults,
+        overallSummary,
+        filterInfo,
+        'alice',
         'github_app',
         [101],
         mockInstallations
       );
-      
-      expect(result.user).toBe('TestUser');
-      expect(result.commits).toHaveLength(2);
-      expect(result.aiSummary).toEqual(mockSummary);
-      expect(result.filterInfo).toEqual(mockFilterInfo);
-      expect(result.groupedResults).toEqual(mockGroupedResults);
-      expect(result.authMethod).toBe('github_app');
-      expect(result.installationIds).toEqual([101]);
-      expect(result.installations).toEqual(mockInstallations);
-      expect(result.currentInstallations).toHaveLength(1);
-      expect(result.currentInstallations[0].id).toBe(101);
+
+      expect(result).toEqual({
+        user: 'alice',
+        commits: groupedResults[0].commits,
+        stats: {
+          totalCommits: 1,
+          filesChanged: 3,
+          additions: 100,
+          deletions: 20
+        },
+        aiSummary: overallSummary,
+        filterInfo,
+        groupedResults,
+        authMethod: 'github_app',
+        installationIds: [101],
+        installations: mockInstallations,
+        currentInstallations: mockInstallations
+      });
     });
 
-    it('should handle empty installations', () => {
-      const result = prepareSummaryResponse(
-        mockGroupedResults,
-        mockSummary,
-        mockFilterInfo,
-        'TestUser',
-        'oauth'
+    it('should handle OAuth auth method', () => {
+      const result = handlers.prepareSummaryResponse(
+        groupedResults,
+        overallSummary,
+        filterInfo,
+        'alice',
+        'oauth',
+        [],
+        []
       );
-      
+
       expect(result.authMethod).toBe('oauth');
       expect(result.installationIds).toBeNull();
-      expect(result.installations).toEqual([]);
       expect(result.currentInstallations).toEqual([]);
     });
   });

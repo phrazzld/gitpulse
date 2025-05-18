@@ -6,15 +6,11 @@
  * handler to make it more testable and maintainable.
  */
 
-import { logger } from "@/lib/logger";
 import { 
   AppInstallation,
   Repository,
   Commit
 } from "@/lib/github/types";
-import { fetchAllRepositories } from "@/lib/github/repositories"; 
-import { fetchCommitsForRepositories } from "@/lib/github/commits";
-import { generateCommitSummary } from "@/lib/gemini";
 import { 
   FilterInfo, 
   GroupBy, 
@@ -22,60 +18,108 @@ import {
   CommitStats, 
   SummaryResponse
 } from "@/types/api";
-import { extractUniqueDates, extractUniqueRepositories, generateBasicStats } from "@/lib/api-utils";
 
+/**
+ * Configuration for logging module name
+ */
 const MODULE_NAME = "api:summary:handlers";
 
 /**
- * Filter repositories by organization and repository names
- * 
- * @param repositories - Array of repositories to filter
- * @param organizations - Array of organization names to include (empty means no filter)
- * @param repositoryFilters - Array of repository full names to include (empty means no filter)
- * @returns Filtered array of repositories
+ * External dependencies for summary handlers
  */
-export function filterRepositoriesByOrgAndRepoNames(
-  repositories: readonly Repository[],
-  organizations: readonly string[] = [],
-  repositoryFilters: readonly string[] = []
-): Repository[] {
-  logger.debug(MODULE_NAME, "Filtering repositories", {
-    totalRepos: repositories.length,
-    organizationFilters: organizations.length,
-    repositoryFilters: repositoryFilters.length
-  });
-
-  let filteredRepos = [...repositories];
-
-  // Apply organization filter if specified
-  if (organizations.length > 0) {
-    filteredRepos = filteredRepos.filter(repo => {
-      const orgName = repo.full_name.split('/')[0];
-      return organizations.includes(orgName);
-    });
-    
-    logger.debug(MODULE_NAME, "Applied organization filters", {
-      originalCount: repositories.length,
-      filteredCount: filteredRepos.length,
-      organizations
-    });
-  }
-
-  // Apply repository filter if specified
-  if (repositoryFilters.length > 0) {
-    filteredRepos = filteredRepos.filter(repo => 
-      repositoryFilters.includes(repo.full_name)
-    );
-    
-    logger.debug(MODULE_NAME, "Applied repository filters", {
-      originalCount: repositories.length,
-      filteredCount: filteredRepos.length,
-      repositoryFilters
-    });
-  }
-
-  return filteredRepos;
+export interface SummaryHandlerDependencies {
+  /** Logger for debugging and info messages */
+  logger: {
+    debug: (module: string, message: string, data?: any) => void;
+    info: (module: string, message: string, data?: any) => void;
+    warn: (module: string, message: string, data?: any) => void;
+    error: (module: string, message: string, data?: any) => void;
+  };
+  
+  /** GitHub service functions */
+  githubService: {
+    fetchAllRepositories: (accessToken: string | undefined, installationId?: number) => Promise<Repository[]>;
+    fetchCommitsForRepositories: (
+      accessToken: string | undefined,
+      installationId: number | undefined,
+      repositories: string[],
+      since: string,
+      until: string,
+      author?: string
+    ) => Promise<Commit[]>;
+  };
+  
+  /** Gemini service for AI summaries */
+  geminiService: {
+    generateCommitSummary: (commits: Commit[], apiKey: string) => Promise<any>;
+  };
+  
+  /** API utilities for data processing */
+  apiUtils: {
+    extractUniqueDates: (commits: readonly Commit[]) => readonly string[];
+    extractUniqueRepositories: (commits: readonly Commit[]) => readonly string[];
+    generateBasicStats: (commits: readonly Commit[]) => CommitStats;
+  };
 }
+
+/**
+ * Factory function to create summary handlers with injected dependencies
+ * @param deps External dependencies for the handlers
+ * @returns Object containing all handler functions
+ */
+export function createSummaryHandlers(deps: SummaryHandlerDependencies) {
+  const { logger, githubService, geminiService, apiUtils } = deps;
+
+  /**
+   * Filter repositories by organization and repository names
+   * 
+   * @param repositories - Array of repositories to filter
+   * @param organizations - Array of organization names to include (empty means no filter)
+   * @param repositoryFilters - Array of repository full names to include (empty means no filter)
+   * @returns Filtered array of repositories
+   */
+  function filterRepositoriesByOrgAndRepoNames(
+    repositories: readonly Repository[],
+    organizations: readonly string[] = [],
+    repositoryFilters: readonly string[] = []
+  ): Repository[] {
+    logger.debug(MODULE_NAME, "Filtering repositories", {
+      totalRepos: repositories.length,
+      organizationFilters: organizations.length,
+      repositoryFilters: repositoryFilters.length
+    });
+
+    let filteredRepos = [...repositories];
+
+    // Apply organization filter if specified
+    if (organizations.length > 0) {
+      filteredRepos = filteredRepos.filter(repo => {
+        const orgName = repo.full_name.split('/')[0];
+        return organizations.includes(orgName);
+      });
+      
+      logger.debug(MODULE_NAME, "Applied organization filters", {
+        originalCount: repositories.length,
+        filteredCount: filteredRepos.length,
+        organizations
+      });
+    }
+
+    // Apply repository filter if specified
+    if (repositoryFilters.length > 0) {
+      filteredRepos = filteredRepos.filter(repo => 
+        repositoryFilters.includes(repo.full_name)
+      );
+      
+      logger.debug(MODULE_NAME, "Applied repository filters", {
+        originalCount: repositories.length,
+        filteredCount: filteredRepos.length,
+        repositoryFilters
+      });
+    }
+
+    return filteredRepos;
+  }
 
 /**
  * Maps repositories to installations for efficient fetching
@@ -85,7 +129,7 @@ export function filterRepositoriesByOrgAndRepoNames(
  * @param installationIds - Array of selected installation IDs
  * @returns Object mapping repositories to installation IDs
  */
-export function mapRepositoriesToInstallations(
+  function mapRepositoriesToInstallations(
   reposToAnalyze: readonly string[],
   installations: readonly AppInstallation[],
   installationIds: readonly number[]
@@ -167,7 +211,7 @@ export function mapRepositoriesToInstallations(
  * @param authorFilter - Optional filter for commit author
  * @returns Array of fetched commits
  */
-export async function fetchCommitsWithAuthMethod(
+  async function fetchCommitsWithAuthMethod(
   reposByInstallation: Record<string, string[]>,
   accessToken: string | undefined,
   since: string,
@@ -193,7 +237,7 @@ export async function fetchCommitsWithAuthMethod(
       // Fetch with OAuth if the user has an access token
       if (accessToken) {
         commitFetchPromises.push(
-          fetchCommitsForRepositories(
+          githubService.fetchCommitsForRepositories(
             accessToken,
             undefined, // No installation ID for OAuth
             repos,
@@ -207,7 +251,7 @@ export async function fetchCommitsWithAuthMethod(
       // Fetch with installation ID
       const installId = parseInt(key, 10);
       commitFetchPromises.push(
-        fetchCommitsForRepositories(
+        githubService.fetchCommitsForRepositories(
           accessToken,
           installId,
           repos,
@@ -243,7 +287,7 @@ export async function fetchCommitsWithAuthMethod(
  * @param currentUserName - Name of the currently authenticated user (for 'me' filter)
  * @returns Filtered array of commits
  */
-export function filterCommitsByContributor(
+  function filterCommitsByContributor(
   commits: readonly Commit[],
   contributors: readonly string[],
   currentUserName?: string
@@ -283,7 +327,7 @@ export function filterCommitsByContributor(
  * @param groupBy - Grouping strategy to apply
  * @returns Array of grouped results
  */
-export function groupCommitsByFilter(
+  function groupCommitsByFilter(
   commits: readonly Commit[],
   groupBy: GroupBy = 'chronological'
 ): GroupedResult[] {
@@ -298,8 +342,8 @@ export function groupCommitsByFilter(
     groupKey: 'all',
     groupName: 'All Commits',
     commitCount: commits.length,
-    repositories: extractUniqueRepositories(commits),
-    dates: extractUniqueDates(commits),
+    repositories: apiUtils.extractUniqueRepositories(commits),
+    dates: apiUtils.extractUniqueDates(commits),
     commits: commits,
     // AI summary will be added later
   }];
@@ -315,7 +359,7 @@ export function groupCommitsByFilter(
  * @param generateGroupSummaries - Whether to generate summaries for each group
  * @returns Updated grouped results with AI summaries
  */
-export async function generateSummaryData(
+  async function generateSummaryData(
   groupedResults: GroupedResult[],
   geminiApiKey: string,
   generateGroupSummaries: boolean = false
@@ -336,7 +380,7 @@ export async function generateSummaryData(
   if (groupedResults.length > 0 && groupedResults[0].commits.length > 0) {
     // Cast readonly array to mutable array for API compatibility
     const commits = [...groupedResults[0].commits];
-    overallSummary = await generateCommitSummary(commits, geminiApiKey);
+    overallSummary = await geminiService.generateCommitSummary(commits, geminiApiKey);
     logger.info(MODULE_NAME, "Generated overall AI summary", {
       timeMs: Date.now() - aiSummaryStartTime,
       keyThemes: overallSummary?.keyThemes?.length || 0,
@@ -352,7 +396,7 @@ export async function generateSummaryData(
         if (group.commits.length > 0) {
           // Cast readonly array to mutable array for API compatibility
           const commits = [...group.commits];
-          const groupSummary = await generateCommitSummary(commits, geminiApiKey);
+          const groupSummary = await geminiService.generateCommitSummary(commits, geminiApiKey);
           return { ...group, aiSummary: groupSummary };
         }
         return group;
@@ -377,7 +421,7 @@ export async function generateSummaryData(
  * @param installations - Array of all GitHub App installations
  * @returns Prepared summary response object
  */
-export function prepareSummaryResponse(
+  function prepareSummaryResponse(
   groupedResults: GroupedResult[],
   overallSummary: any,
   filterInfo: FilterInfo,
@@ -395,7 +439,7 @@ export function prepareSummaryResponse(
 
   // Always use the first group (all commits) for overall stats
   const allCommits = groupedResults.length > 0 ? groupedResults[0].commits : [];
-  const stats = generateBasicStats(allCommits);
+  const stats = apiUtils.generateBasicStats(allCommits);
 
   return {
     user: userName,
@@ -414,4 +458,21 @@ export function prepareSummaryResponse(
       ? installations.filter(i => installationIds.includes(i.id))
       : []
   };
+  }
+
+  // Return all handler functions
+  return {
+    filterRepositoriesByOrgAndRepoNames,
+    mapRepositoriesToInstallations,
+    fetchCommitsWithAuthMethod,
+    filterCommitsByContributor,
+    groupCommitsByFilter,
+    generateSummaryData,
+    prepareSummaryResponse
+  };
 }
+
+/**
+ * Type for the object returned by createSummaryHandlers
+ */
+export type SummaryHandlers = ReturnType<typeof createSummaryHandlers>;

@@ -11,14 +11,14 @@ This document outlines the tasks needed to address the critical issues identifie
   - Export interfaces for external dependencies where needed
   - Modules should no longer instantiate external clients internally
 
-- [ ] **T002CI: Refactor summary API handlers for dependency injection**
+- [x] **T002CI: Refactor summary API handlers for dependency injection**
   - Modify `src/app/api/summary/handlers.ts` to accept external dependencies explicitly
   - Dependencies should be injected via parameters or constructor arguments
   - **Depends on:** T001CI
 
 ### Unit Test Failures - Test Corrections
 
-- [ ] **T003CI: Correct mocks and async handling in summary API handler tests**
+- [x] **T003CI: Correct mocks and async handling in summary API handler tests**
   - Remove internal mocks from `src/app/api/summary/__tests__/handlers.test.ts`
   - Mock only injected external dependencies
   - Update assertions to focus on public behavior
@@ -29,6 +29,13 @@ This document outlines the tasks needed to address the critical issues identifie
   - Investigate and correct the "me" special case logic in handlers
   - Update the corresponding test to assert correct behavior
   - **Depends on:** T003CI
+
+- [ ] **T002CI-FIX: Fix TypeScript errors from dependency injection refactoring**
+  - Fix IOctokitClient type errors in various route files (contributors, my-activity, etc.)
+  - Update function signatures that are expecting string instead of IOctokitClient
+  - Fix GitHub module tests that have breaking type issues
+  - These errors are from the T002CI refactoring and need to be addressed
+  - **Priority**: Critical - blocking CI
 
 - [ ] **T005CI: Correct mocks and async handling in github/repositories tests**
   - Remove internal mocks from `src/lib/github/__tests__/repositories.test.ts`
