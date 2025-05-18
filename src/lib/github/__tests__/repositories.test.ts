@@ -2,20 +2,6 @@
  * Tests for the GitHub repositories module
  */
 
-// Test type declarations
-declare function describe(name: string, fn: () => void): void;
-declare function beforeEach(fn: () => void): void;
-declare function afterEach(fn: () => void): void;
-declare function it(name: string, fn: () => void): void;
-declare function expect(actual: any): any;
-declare namespace jest {
-  function resetModules(): void;
-  function clearAllMocks(): void;
-  function spyOn(object: any, methodName: string): any;
-  function fn(implementation?: (...args: any[]) => any): any;
-  function mock(moduleName: string, factory?: () => any): void;
-}
-
 import { 
   fetchAllRepositoriesOAuth, 
   fetchAllRepositoriesApp, 
@@ -23,9 +9,18 @@ import {
 } from '../repositories';
 import { IOctokitClient } from '../interfaces';
 import { logger } from '@/lib/logger';
+import { createMockOctokitClient } from './testUtils.helper';
 
-// Create a mock implementation of IOctokitClient
-const createMockOctokitClient = (): jest.Mocked<IOctokitClient> => {
+// Test globals
+declare const describe: any;
+declare const it: any;
+declare const beforeEach: any;
+declare const afterEach: any;
+declare const expect: any;
+declare const jest: any;
+
+// Custom mock implementation that works with our test setup
+const createTestMockOctokitClient = (): IOctokitClient => {
   const mockClient: jest.Mocked<IOctokitClient> = {
     rest: {
       rateLimit: {
@@ -83,24 +78,22 @@ const createMockOctokitClient = (): jest.Mocked<IOctokitClient> => {
         })
       }
     },
-    paginate: jest.fn(async (endpoint, params) => {
-      // Simulate pagination behavior
-      const response = await endpoint(params);
-      return response.data;
-    })
+    paginate: jest.fn()
   };
   
   return mockClient;
 };
 
 describe('repositories module', () => {
-  let mockClient: jest.Mocked<IOctokitClient>;
-  let loggerSpy: jest.SpyInstance;
+  let mockClient: IOctokitClient;
+  let loggerSpy: any;
+  let infoSpy: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockClient = createMockOctokitClient();
+    mockClient = createTestMockOctokitClient();
     loggerSpy = jest.spyOn(logger, 'debug');
+    infoSpy = jest.spyOn(logger, 'info');
   });
 
   afterEach(() => {
@@ -114,18 +107,18 @@ describe('repositories module', () => {
         { id: 2, name: 'repo2', full_name: 'user/repo2', private: true }
       ];
       
-      mockClient.paginate.mockResolvedValue(mockRepos);
+      (mockClient.paginate as any).mockResolvedValue(mockRepos);
       
       const result = await fetchAllRepositoriesOAuth(mockClient);
       
-      expect(mockClient.rest.rateLimit.get).toHaveBeenCalled();
-      expect(mockClient.rest.users.getAuthenticated).toHaveBeenCalled();
-      expect(mockClient.paginate).toHaveBeenCalled();
+      expect((mockClient.rest.rateLimit.get as any)).toHaveBeenCalled();
+      expect((mockClient.rest.users.getAuthenticated as any)).toHaveBeenCalled();
+      expect((mockClient.paginate as any)).toHaveBeenCalled();
       expect(result).toEqual(mockRepos);
     });
 
     it('should throw error if token is missing repo scope', async () => {
-      mockClient.rest.users.getAuthenticated.mockResolvedValue({
+      (mockClient.rest.users.getAuthenticated as any).mockResolvedValue({
         data: {
           login: 'testuser',
           id: 123,
@@ -149,7 +142,7 @@ describe('repositories module', () => {
         { id: 1, name: 'repo1', full_name: 'org/repo1', private: false }
       ];
       
-      mockClient.paginate.mockResolvedValue(mockRepos);
+      (mockClient.paginate as any).mockResolvedValue(mockRepos);
       
       const result = await fetchAllRepositoriesApp(mockClient);
       
@@ -165,15 +158,18 @@ describe('repositories module', () => {
         { id: 1, name: 'repo1', full_name: 'user/repo1', private: false }
       ];
       
-      mockClient.paginate.mockResolvedValue(mockRepos);
+      (mockClient.paginate as any).mockResolvedValue(mockRepos);
       
       const result = await fetchAllRepositories(mockClient, 'oauth');
       
       expect(result).toEqual(mockRepos);
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.any(String),
-        'Using OAuth token for repository access'
+      
+      // Check all calls made to logger.info
+      const hasCorrectCall = infoSpy.mock.calls.some((call: any[]) => 
+        call[0] === 'github:repositories' && 
+        call[1] === 'Using OAuth token for repository access'
       );
+      expect(hasCorrectCall).toBe(true);
     });
 
     it('should use App when authMethod is app', async () => {
@@ -181,15 +177,18 @@ describe('repositories module', () => {
         { id: 1, name: 'repo1', full_name: 'org/repo1', private: false }
       ];
       
-      mockClient.paginate.mockResolvedValue(mockRepos);
+      (mockClient.paginate as any).mockResolvedValue(mockRepos);
       
       const result = await fetchAllRepositories(mockClient, 'app');
       
       expect(result).toEqual(mockRepos);
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.any(String),
-        'Using GitHub App installation for repository access'
+      
+      // Check all calls made to logger.info
+      const hasCorrectCall = infoSpy.mock.calls.some((call: any[]) => 
+        call[0] === 'github:repositories' && 
+        call[1] === 'Using GitHub App installation for repository access'
       );
+      expect(hasCorrectCall).toBe(true);
     });
   });
 });

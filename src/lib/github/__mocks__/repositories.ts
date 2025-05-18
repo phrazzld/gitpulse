@@ -6,45 +6,34 @@
  */
 
 import { Repository } from '../types';
+import { IOctokitClient } from '../interfaces';
 
-// Mock function for fetchUserRepositories
-export const fetchUserRepositories = jest.fn(
+// Mock function for fetchAllRepositoriesOAuth
+export const fetchAllRepositoriesOAuth = jest.fn(
+  async (client: IOctokitClient): Promise<Repository[]> => {
+    return [];
+  }
+);
+
+// Mock function for fetchAllRepositoriesApp
+export const fetchAllRepositoriesApp = jest.fn(
+  async (client: IOctokitClient): Promise<Repository[]> => {
+    return [];
+  }
+);
+
+// Mock function for fetchAllRepositories
+export const fetchAllRepositories = jest.fn(
   async (
-    accessToken: string, 
-    options?: { per_page?: number; page?: number }
+    client: IOctokitClient,
+    authMethod: 'oauth' | 'app'
   ): Promise<Repository[]> => {
     return [];
   }
 );
 
-// Mock function for fetchInstallationRepositories
-export const fetchInstallationRepositories = jest.fn(
-  async (
-    installationId: number, 
-    options?: { per_page?: number; page?: number }
-  ): Promise<Repository[]> => {
-    return [];
-  }
-);
-
-// Mock function for fetchOrganizationRepositories
-export const fetchOrganizationRepositories = jest.fn(
-  async (
-    accessToken: string,
-    organization: string,
-    options?: { per_page?: number; page?: number }
-  ): Promise<Repository[]> => {
-    return [];
-  }
-);
-
-// Mock function for getAllRepositories
-export const getAllRepositories = jest.fn(
-  async (
-    accessToken?: string,
-    installationId?: number,
-    organizations?: string[]
-  ): Promise<Repository[]> => {
-    return [];
-  }
-);
+// Add aliases for backward compatibility
+export const fetchInstallationRepositories = fetchAllRepositoriesApp;
+export const fetchOrganizationRepositories = fetchAllRepositoriesOAuth;
+export const fetchUserRepositories = fetchAllRepositoriesOAuth;
+export const getAllRepositories = fetchAllRepositories;

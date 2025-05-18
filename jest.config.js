@@ -20,6 +20,7 @@ const customJestConfig = {
     '<rootDir>/.next/',
     '<rootDir>/src/.*/__tests__/glance.md',
     '<rootDir>/e2e/', // Exclude Playwright E2E test files
+    '.*\\.helper\\.ts$', // Exclude helper files
   ],
   // Expanding the list of ESM modules to process with Jest transformer
   transformIgnorePatterns: [

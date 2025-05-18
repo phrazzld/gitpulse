@@ -151,13 +151,19 @@ const createDefaultProps = () => ({
 
 // Simple React test renderer for assertion
 const renderComponent = (element: React.ReactElement) => {
-  const rendered: any = { type: '', props: {}, children: [] };
   const renderElement = (el: any): any => {
     if (!el) return null;
     if (typeof el === 'string' || typeof el === 'number') return el;
     
+    // If this is a function component, render it
+    if (typeof el.type === 'function') {
+      const Component = el.type;
+      const rendered = Component(el.props);
+      return renderElement(rendered);
+    }
+    
     const result: any = { 
-      type: typeof el.type === 'function' ? el.type.name : el.type,
+      type: el.type,
       props: { ...el.props },
       children: []
     };
@@ -174,6 +180,31 @@ const renderComponent = (element: React.ReactElement) => {
         result.children = [renderElement(el.props.children)].filter(Boolean);
       }
     }
+    
+    // Add helper method to find child by props
+    result.findByProps = (propsToMatch: Record<string, any>) => {
+      const findInChildren = (children: any[]): any => {
+        for (const child of children) {
+          if (!child || typeof child !== 'object') continue;
+          
+          // Check if props match
+          const match = Object.entries(propsToMatch).every(([key, value]) => 
+            child.props && child.props[key] === value
+          );
+          
+          if (match) return child;
+          
+          // Recursively search in children
+          if (child.children) {
+            const found = findInChildren(Array.isArray(child.children) ? child.children : [child.children]);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      
+      return findInChildren(result.children);
+    };
     
     return result;
   };
@@ -204,13 +235,18 @@ describe('OperationsPanel', () => {
     const props = createDefaultProps();
     const rendered = renderComponent(<OperationsPanel {...props} />);
     
-    // Find the AuthStatusBanner
-    const authBanner = rendered.children.find((child: any) => 
-      child.type === 'AuthStatusBanner'
-    );
-    
+    // AuthStatusBanner is a mocked component - find it by test id
+    const authBanner = rendered.findByProps({ 'data-testid': 'auth-banner' });
     expect(authBanner).toBeTruthy();
-    expect(authBanner.props.authMethod).toBe('github_app');
+    
+    // Verify auth method was passed correctly (mocked component adds data- prefixes)
+    expect(authBanner.props).toMatchObject({
+      'data-testid': 'auth-banner',
+      'data-auth-method': 'github_app',
+      'data-needs-installation': false,
+      'data-installations-count': 1,
+      'data-current-installations-count': 0
+    });
   });
   
   it('renders with error message', () => {

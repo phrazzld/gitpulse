@@ -8,6 +8,7 @@ import {
 } from "@/lib/github/types";
 import { fetchAllRepositories } from "@/lib/github/repositories";
 import { fetchCommitsForRepositories } from "@/lib/github/commits";
+import { createOAuthClient, createAppClient } from "@/lib/github/adapter";
 import { logger } from "@/lib/logger";
 import { getErrorMessage, isError, isGitHubApiError } from "@/lib/utils/types";
 import { GitPulseSession } from "@/lib/auth/sessionTypes";
@@ -140,10 +141,16 @@ export async function GET(request: NextRequest) {
       });
     }
     
+    // Create Octokit client based on authentication type
+    const authMethod = installationId ? 'app' : 'oauth';
+    const client = installationId 
+      ? await createAppClient(installationId)
+      : createOAuthClient(accessToken);
+      
     // Fetch all repositories accessible to the user
     let allRepositories: Repository[] = [];
     try {
-      allRepositories = await fetchAllRepositories(accessToken, installationId);
+      allRepositories = await fetchAllRepositories(client, authMethod);
     } catch (error: unknown) {
       logger.error(MODULE_NAME, "Error fetching repositories", { error });
       
@@ -204,8 +211,8 @@ export async function GET(request: NextRequest) {
     let allCommits: Commit[] = [];
     try {
       allCommits = await fetchCommitsForRepositories(
-        accessToken,
-        installationId,
+        client,
+        authMethod,
         repoFullNames,
         since,
         until,

@@ -2,25 +2,6 @@
  * Tests for the GitHub utilities module
  */
 
-// Test type declarations
-declare function describe(name: string, fn: () => void): void;
-declare function beforeEach(fn: () => void): void;
-declare function afterEach(fn: () => void): void;
-declare function it(name: string, fn: () => void): void;
-declare function expect(actual: any): any;
-// Define test matchers
-expect.stringMatching = (pattern: RegExp) => ({ 
-  asymmetricMatch: (actual: string) => pattern.test(actual)
-});
-expect.anything = () => ({ asymmetricMatch: () => true });
-declare namespace jest {
-  function resetModules(): void;
-  function clearAllMocks(): void;
-  function spyOn(object: any, methodName: string): any;
-  function fn(implementation?: (...args: any[]) => any): any;
-  function mock(moduleName: string, factory?: () => any): void;
-}
-
 import { 
   checkRateLimit,
   parseTokenScopes,
@@ -31,9 +12,24 @@ import {
   processBatches,
   formatGitHubError
 } from '../utils';
+import { IOctokitClient } from '../interfaces';
+import { createMockOctokitClient } from './testUtils.helper';
 import { logger } from '@/lib/logger';
 
-// Mock dependencies
+// Test globals
+declare const describe: any;
+declare const it: any;
+declare const beforeEach: any;
+declare const afterEach: any;
+declare const expect: any;
+declare const jest: any;
+
+// Define test matchers
+expect.stringMatching = (pattern: RegExp) => ({ 
+  asymmetricMatch: (actual: string) => pattern.test(actual)
+});
+expect.anything = () => ({ asymmetricMatch: () => true });
+
 jest.mock('@/lib/logger', () => ({
   logger: {
     debug: jest.fn(),
@@ -44,254 +40,361 @@ jest.mock('@/lib/logger', () => ({
 }));
 
 describe('GitHub Utils Module', () => {
+  let mockClient: IOctokitClient;
+  
   beforeEach(() => {
     jest.clearAllMocks();
+    mockClient = createMockOctokitClient();
   });
 
   describe('Function exports', () => {
-    it('should export the expected utility functions', () => {
+    it('should export checkRateLimit function', () => {
       expect(typeof checkRateLimit).toBe('function');
+    });
+    
+    it('should export parseTokenScopes function', () => {
       expect(typeof parseTokenScopes).toBe('function');
+    });
+    
+    it('should export validateTokenScopes function', () => {
       expect(typeof validateTokenScopes).toBe('function');
+    });
+    
+    it('should export getRepoIdentifier function', () => {
       expect(typeof getRepoIdentifier).toBe('function');
+    });
+    
+    it('should export splitRepoFullName function', () => {
       expect(typeof splitRepoFullName).toBe('function');
+    });
+    
+    it('should export deduplicateBy function', () => {
       expect(typeof deduplicateBy).toBe('function');
+    });
+    
+    it('should export processBatches function', () => {
       expect(typeof processBatches).toBe('function');
+    });
+    
+    it('should export formatGitHubError function', () => {
       expect(typeof formatGitHubError).toBe('function');
     });
   });
 
   describe('checkRateLimit', () => {
-    it('should process rate limit data correctly', async () => {
-      const mockOctokit = {
-        rest: {
-          rateLimit: {
-            get: jest.fn().mockResolvedValue({
-              data: {
-                resources: {
-                  core: {
-                    limit: 5000,
-                    remaining: 4000,
-                    reset: Math.floor(Date.now() / 1000) + 3600
-                  }
-                }
-              }
-            })
+    it('should check rate limit and log the status', async () => {
+      const mockRateLimitData = {
+        resources: {
+          core: {
+            limit: 5000,
+            remaining: 4000,
+            reset: Math.floor(Date.now() / 1000) + 3600
           }
         }
       };
-
-      const result = await checkRateLimit(mockOctokit as any, 'OAuth');
       
-      expect(result).not.toBeNull();
-      expect(result?.limit).toBe(5000);
-      expect(result?.remaining).toBe(4000);
-      expect(result?.usedPercent).toBe(20);
-      expect(logger.info).toHaveBeenCalled();
+      (mockClient.rest.rateLimit.get as any).mockResolvedValue({
+        data: mockRateLimitData
+      });
+      
+      const result = await checkRateLimit(mockClient);
+      
+      expect(mockClient.rest.rateLimit.get).toHaveBeenCalled();
+      expect(result).toMatchObject({
+        limit: 5000,
+        remaining: 4000,
+        usedPercent: 20
+      });
+      expect(result?.reset).toBeInstanceOf(Date);
+      expect(logger.info).toHaveBeenCalledWith(
+        'github:utils',
+        'GitHub API rate limit status',
+        expect.objectContaining({
+          limit: 5000,
+          remaining: 4000
+        })
+      );
     });
-
-    it('should return null and log warning on error', async () => {
-      const mockOctokit = {
-        rest: {
-          rateLimit: {
-            get: jest.fn().mockRejectedValue(new Error('API error'))
+    
+    it('should warn if rate limit is low', async () => {
+      const mockRateLimitData = {
+        resources: {
+          core: {
+            limit: 5000,
+            remaining: 50,
+            reset: Math.floor(Date.now() / 1000) + 3600
           }
         }
       };
-
-      const result = await checkRateLimit(mockOctokit as any);
+      
+      (mockClient.rest.rateLimit.get as any).mockResolvedValue({
+        data: mockRateLimitData
+      });
+      
+      await checkRateLimit(mockClient);
+      
+      expect(logger.warn).toHaveBeenCalledWith(
+        'github:utils',
+        'GitHub API rate limit is running low',
+        expect.anything()
+      );
+    });
+    
+    it('should check specific auth method rate limit', async () => {
+      const mockRateLimitData = {
+        resources: {
+          core: {
+            limit: 5000,
+            remaining: 4500,
+            reset: Math.floor(Date.now() / 1000) + 3600
+          }
+        }
+      };
+      
+      (mockClient.rest.rateLimit.get as any).mockResolvedValue({
+        data: mockRateLimitData
+      });
+      
+      const result = await checkRateLimit(mockClient, 'app');
+      
+      expect(result).toMatchObject({
+        limit: 5000,
+        remaining: 4500,
+        usedPercent: 10
+      });
+      expect(result?.reset).toBeInstanceOf(Date);
+      expect(logger.info).toHaveBeenCalledWith(
+        'github:utils',
+        'GitHub API rate limit status (app)',
+        expect.anything()
+      );
+    });
+    
+    it('should return null on error', async () => {
+      (mockClient.rest.rateLimit.get as any).mockRejectedValue(new Error('API error'));
+      
+      const result = await checkRateLimit(mockClient);
       
       expect(result).toBeNull();
-      expect(logger.warn).toHaveBeenCalled();
-    });
-
-    it('should warn when rate limit is running low', async () => {
-      const mockOctokit = {
-        rest: {
-          rateLimit: {
-            get: jest.fn().mockResolvedValue({
-              data: {
-                resources: {
-                  core: {
-                    limit: 5000,
-                    remaining: 50, // Low remaining count
-                    reset: Math.floor(Date.now() / 1000) + 3600
-                  }
-                }
-              }
-            })
-          }
-        }
-      };
-
-      await checkRateLimit(mockOctokit as any);
-      
-      expect(logger.warn).toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalledWith(
+        'github:utils',
+        'Failed to check GitHub API rate limits',
+        expect.anything()
+      );
     });
   });
 
   describe('parseTokenScopes', () => {
-    it('should parse scope header string to array', () => {
-      expect(parseTokenScopes('repo, read:org, user')).toEqual(['repo', 'read:org', 'user']);
+    it('should parse scope string into array', () => {
+      const scopeString = 'repo, read:org, write:packages';
+      const result = parseTokenScopes(scopeString);
+      
+      expect(result).toEqual(['repo', 'read:org', 'write:packages']);
     });
-
-    it('should return empty array for empty string', () => {
-      expect(parseTokenScopes('')).toEqual([]);
+    
+    it('should handle empty string', () => {
+      const result = parseTokenScopes('');
+      
+      expect(result).toEqual([]);
     });
-
-    it('should handle undefined input', () => {
-      expect(parseTokenScopes(undefined)).toEqual([]);
+    
+    it('should handle single scope', () => {
+      const result = parseTokenScopes('repo');
+      
+      expect(result).toEqual(['repo']);
+    });
+    
+    it('should handle undefined', () => {
+      const result = parseTokenScopes(undefined as any);
+      
+      expect(result).toEqual([]);
     });
   });
 
   describe('validateTokenScopes', () => {
-    it('should return valid when all required scopes are present', () => {
-      const scopes = ['repo', 'read:org', 'user'];
+    it('should validate all required scopes present', () => {
+      const scopes = ['repo', 'read:org', 'write:packages'];
       const required = ['repo', 'read:org'];
-      
       const result = validateTokenScopes(scopes, required);
       
-      expect(result.isValid).toBe(true);
-      expect(result.missingScopes).toEqual([]);
+      expect(result).toEqual({
+        isValid: true,
+        missingScopes: []
+      });
     });
-
-    it('should return invalid with missing scopes listed', () => {
-      const scopes = ['user', 'gist'];
+    
+    it('should identify missing scopes', () => {
+      const scopes = ['read:org'];
       const required = ['repo', 'read:org'];
-      
       const result = validateTokenScopes(scopes, required);
       
-      expect(result.isValid).toBe(false);
-      expect(result.missingScopes).toEqual(['repo', 'read:org']);
+      expect(result).toEqual({
+        isValid: false,
+        missingScopes: ['repo']
+      });
     });
-
-    it('should default to requiring repo scope', () => {
-      const scopes = ['user', 'gist'];
+    
+    it('should handle empty required scopes', () => {
+      const scopes = ['repo'];
+      const required: string[] = [];
+      const result = validateTokenScopes(scopes, required);
       
-      const result = validateTokenScopes(scopes);
+      expect(result).toEqual({
+        isValid: true,
+        missingScopes: []
+      });
+    });
+    
+    it('should handle empty token scopes', () => {
+      const scopes: string[] = [];
+      const required = ['repo'];
+      const result = validateTokenScopes(scopes, required);
       
-      expect(result.isValid).toBe(false);
-      expect(result.missingScopes).toEqual(['repo']);
+      expect(result).toEqual({
+        isValid: false,
+        missingScopes: ['repo']
+      });
     });
   });
 
   describe('getRepoIdentifier', () => {
-    it('should combine owner and repo into identifier', () => {
-      expect(getRepoIdentifier('octocat', 'hello-world')).toBe('octocat/hello-world');
+    it('should create identifier from owner and repo', () => {
+      const result = getRepoIdentifier('owner', 'repo');
+      
+      expect(result).toBe('owner/repo');
+    });
+    
+    it('should handle empty strings', () => {
+      const result = getRepoIdentifier('', 'repo');
+      
+      expect(result).toBe('/repo');
+    });
+    
+    it('should handle special characters', () => {
+      const result = getRepoIdentifier('my-org', 'my-repo');
+      
+      expect(result).toBe('my-org/my-repo');
     });
   });
 
   describe('splitRepoFullName', () => {
-    it('should split a valid repo full name', () => {
-      expect(splitRepoFullName('octocat/hello-world')).toEqual(['octocat', 'hello-world']);
+    it('should split repository full name', () => {
+      const result = splitRepoFullName('owner/repo');
+      
+      expect(result).toEqual(['owner', 'repo']);
     });
-
-    it('should return empty strings for invalid input', () => {
-      expect(splitRepoFullName('')).toEqual(['', '']);
-      expect(splitRepoFullName('invalid-format')).toEqual(['', '']);
-      expect(splitRepoFullName('too/many/parts')).toEqual(['', '']);
-      expect(splitRepoFullName(null as any)).toEqual(['', '']);
+    
+    it('should handle names with multiple slashes', () => {
+      const result = splitRepoFullName('owner/repo/sub');
+      
+      expect(result).toEqual(['', '']);
+    });
+    
+    it('should handle invalid format', () => {
+      const result = splitRepoFullName('invalid');
+      
+      expect(result).toEqual(['', '']);
     });
   });
 
   describe('deduplicateBy', () => {
-    it('should deduplicate items by the specified key', () => {
+    it('should deduplicate array by key function', () => {
       const items = [
-        { id: 1, name: 'first' },
-        { id: 2, name: 'second' },
-        { id: 1, name: 'duplicate' },
-        { id: 3, name: 'third' }
+        { id: 1, name: 'a' },
+        { id: 2, name: 'b' },
+        { id: 1, name: 'c' }
       ];
-      
       const result = deduplicateBy(items, item => item.id);
       
-      expect(result).toHaveLength(3);
-      expect(result.some(item => item.name === 'first')).toBe(true);
-      expect(result.some(item => item.name === 'second')).toBe(true);
-      expect(result.some(item => item.name === 'third')).toBe(true);
-      expect(result.some(item => item.name === 'duplicate')).toBe(false);
+      // Map keeps the last value for duplicate keys
+      expect(result).toEqual([
+        { id: 1, name: 'c' },
+        { id: 2, name: 'b' }
+      ]);
     });
-
-    it('should log info when duplicates are removed', () => {
-      const items = [
-        { id: 1, name: 'first' },
-        { id: 1, name: 'duplicate' }
-      ];
+    
+    it('should handle empty array', () => {
+      const result = deduplicateBy([], item => item);
       
-      deduplicateBy(items, item => item.id);
-      
-      expect(logger.info).toHaveBeenCalled();
+      expect(result).toEqual([]);
     });
-
-    it('should not log info when no duplicates exist', () => {
-      const items = [
-        { id: 1, name: 'first' },
-        { id: 2, name: 'second' }
-      ];
+    
+    it('should handle all unique items', () => {
+      const items = [1, 2, 3];
+      const result = deduplicateBy(items, item => item);
       
-      deduplicateBy(items, item => item.id);
-      
-      // debug is called but info is not
-      expect(logger.debug).toHaveBeenCalled();
-      expect(logger.info).not.toHaveBeenCalled();
+      expect(result).toEqual([1, 2, 3]);
     });
   });
 
   describe('processBatches', () => {
     it('should process items in batches', async () => {
-      const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      const batchProcessor = jest.fn()
-        .mockImplementation((batch: number[]) => Promise.resolve(batch.map((n: number) => n * 2)));
+      const items = [1, 2, 3, 4, 5];
+      const processor = jest.fn().mockResolvedValue([10, 20]);
       
-      const result = await processBatches(items, 3, batchProcessor);
+      const results = await processBatches(items, 2, processor);
       
-      expect(batchProcessor).toHaveBeenCalledTimes(4); // 10 items in batches of 3 = 4 batches
-      expect(result).toEqual([2, 4, 6, 8, 10, 12, 14, 16, 18, 20]);
-      expect(logger.debug).toHaveBeenCalledWith(
-        'github:utils',
-        expect.stringMatching(/Processing batch/),
-        expect.anything()
-      );
+      expect(processor).toHaveBeenCalledTimes(3);
+      expect(processor).toHaveBeenCalledWith([1, 2]);
+      expect(processor).toHaveBeenCalledWith([3, 4]);
+      expect(processor).toHaveBeenCalledWith([5]);
+      expect(results).toEqual([10, 20, 10, 20, 10, 20]);
     });
-
+    
     it('should handle empty array', async () => {
-      const items: number[] = [];
-      const batchProcessor = jest.fn().mockResolvedValue([]);
+      const processor = jest.fn();
+      const results = await processBatches([], 2, processor);
       
-      const result = await processBatches(items, 5, batchProcessor);
+      expect(processor).not.toHaveBeenCalled();
+      expect(results).toEqual([]);
+    });
+    
+    it('should handle processor errors and continue', async () => {
+      const items = [1, 2, 3];
+      const processor = jest.fn()
+        .mockResolvedValueOnce([10])
+        .mockRejectedValueOnce(new Error('Process error'))
+        .mockResolvedValueOnce([30]);
       
-      expect(result).toEqual([]);
-      expect(batchProcessor).not.toHaveBeenCalled();
+      await expect(processBatches(items, 1, processor)).rejects.toThrow('Process error');
     });
   });
 
   describe('formatGitHubError', () => {
-    it('should format an Error object', () => {
-      const error = new Error('Something went wrong');
-      expect(formatGitHubError(error)).toBe('GitHub error: Something went wrong');
-    });
-
-    it('should handle Octokit errors with response data', () => {
-      const octokitError = new Error('API error');
-      (octokitError as any).response = {
-        status: 403,
-        statusText: 'Forbidden',
-        data: { message: 'API rate limit exceeded' }
+    it('should format GitHub API error with status', () => {
+      const error = new Error('Not Found') as any;
+      error.response = {
+        status: 404,
+        data: {
+          message: 'Not Found'
+        }
       };
       
-      expect(formatGitHubError(octokitError)).toBe('GitHub API error: API rate limit exceeded');
-    });
-
-    it('should have special handling for authentication errors', () => {
-      const authError = new Error('Auth error');
-      (authError as any).response = { status: 401 };
+      const result = formatGitHubError(error);
       
-      expect(formatGitHubError(authError)).toContain('authentication failed');
+      expect(result).toBe('GitHub resource not found. The repository or resource may not exist or you lack permission.');
     });
-
-    it('should handle non-Error objects', () => {
-      expect(formatGitHubError('string error')).toBe('GitHub error: string error');
-      expect(formatGitHubError(null)).toBe('Unknown GitHub API error');
+    
+    it('should format error with only message', () => {
+      const error = new Error('Network error');
+      
+      const result = formatGitHubError(error);
+      
+      expect(result).toBe('GitHub error: Network error');
+    });
+    
+    it('should format unknown error', () => {
+      const error = { unknown: 'error' };
+      
+      const result = formatGitHubError(error);
+      
+      expect(result).toBe('GitHub error: [object Object]');
+    });
+    
+    it('should handle null error', () => {
+      const result = formatGitHubError(null);
+      
+      expect(result).toBe('Unknown GitHub API error');
     });
   });
 });

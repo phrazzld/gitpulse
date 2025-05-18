@@ -3,6 +3,7 @@ import type { JWT } from "next-auth/jwt";
 import GitHubProvider from "next-auth/providers/github"; 
 import { logger } from "@/lib/logger";
 import { checkAppInstallation } from "@/lib/github/auth";
+import { createOAuthClient } from "@/lib/github/adapter";
 import { GitHubProviderCallbackConfig } from "./githubProviderTypes";
 
 // Add type for JWT token
@@ -71,7 +72,8 @@ export const createAuthOptions = (): NextAuthOptions => ({
         // Check for GitHub App installation when we first get an access token
         try {
           if (account.access_token) {
-            const installationId = await checkAppInstallation(account.access_token);
+            const client = createOAuthClient(account.access_token);
+            const installationId = await checkAppInstallation(client);
             if (installationId) {
               logger.info(MODULE_NAME, "Found GitHub App installation during auth", { installationId });
               token.installationId = installationId;

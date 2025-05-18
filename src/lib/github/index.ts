@@ -17,7 +17,42 @@ export * from './adapter';
 // For backward compatibility, also export individual module functions
 // Note: These exports are for backward compatibility only. 
 // New code should use the adapter pattern via createGitHubClient or createGitHubServices
-export { getInstallationManagementUrl } from './auth';
+export { 
+  getInstallationManagementUrl,
+  getAllAppInstallations,
+  checkAppInstallation,
+  getInstallationOctokit,
+  createOAuthOctokit,
+  validateOAuthToken
+} from './auth';
+
+export {
+  fetchAllRepositories,
+  fetchAllRepositoriesOAuth,
+  fetchAllRepositoriesApp,
+  fetchAllRepositoriesApp as fetchInstallationRepositories, // backward compatibility alias
+  fetchAllRepositoriesOAuth as fetchOrganizationRepositories, // backward compatibility alias
+  fetchAllRepositoriesOAuth as fetchUserRepositories, // backward compatibility alias
+  fetchAllRepositories as getAllRepositories // backward compatibility alias
+} from './repositories';
+
+export {
+  fetchRepositoryCommits,
+  fetchRepositoryCommitsOAuth,
+  fetchRepositoryCommitsApp,
+  fetchCommitsForRepositories
+} from './commits';
+
+export {
+  checkRateLimit,
+  parseTokenScopes,
+  validateTokenScopes,
+  getRepoIdentifier,
+  splitRepoFullName,
+  deduplicateBy,
+  processBatches,
+  formatGitHubError
+} from './utils';
 
 // Set the module name for logging
 export const MODULE_NAME = "github";

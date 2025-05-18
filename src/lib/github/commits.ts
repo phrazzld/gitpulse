@@ -186,38 +186,34 @@ export async function fetchRepositoryCommits(
     },
   );
 
-  try {
-    if (authMethod === 'app') {
-      logger.info(
-        MODULE_NAME,
-        "Using GitHub App installation for commit access",
-      );
-      return await fetchRepositoryCommitsApp(
-        client,
-        owner,
-        repo,
-        since,
-        until,
-        author,
-      );
-    } else {
-      logger.info(MODULE_NAME, "Using OAuth token for commit access");
-      return await fetchRepositoryCommitsOAuth(
-        client,
-        owner,
-        repo,
-        since,
-        until,
-        author,
-      );
-    }
-  } catch (error) {
-    logger.error(
+  if (authMethod === 'app') {
+    logger.info(
       MODULE_NAME,
-      `Error in unified fetchRepositoryCommits for ${owner}/${repo}`,
-      { error },
+      "Using GitHub App installation for commit access",
     );
-    return [];
+    return await fetchRepositoryCommitsApp(
+      client,
+      owner,
+      repo,
+      since,
+      until,
+      author,
+    );
+  } else if (authMethod === 'oauth') {
+    logger.info(MODULE_NAME, "Using OAuth token for commit access");
+    return await fetchRepositoryCommitsOAuth(
+      client,
+      owner,
+      repo,
+      since,
+      until,
+      author,
+    );
+  } else {
+    // Explicitly handle unsupported auth methods
+    const error = new Error(`Unsupported auth method: ${authMethod}`);
+    logger.error(MODULE_NAME, error.message);
+    throw error;
   }
 }
 
@@ -249,7 +245,8 @@ export async function fetchCommitsForRepositories(
 
   const allCommits: Commit[] = [];
   let githubUsername = author;
-  const batchSize = 5;
+  // Use larger batch size for app auth, smaller for OAuth to avoid rate limits
+  const batchSize = authMethod === 'app' ? 30 : 5;
 
   // first pass with "author" if provided
   for (let i = 0; i < repositories.length; i += batchSize) {
