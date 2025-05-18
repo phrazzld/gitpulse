@@ -50,7 +50,7 @@ This document outlines the tasks needed to address the critical issues identifie
   - Update assertions and ensure proper async handling
   - **Depends on:** T001CI
 
-- [ ] **T007CI: Correct mocks and async handling in github/commits tests**
+- [x] **T007CI: Correct mocks and async handling in github/commits tests**
   - Remove internal mocks from `src/lib/github/__tests__/commits.test.ts`
   - Mock only injected dependencies
   - Fix promise rejection handling
