@@ -296,11 +296,28 @@ export function createSummaryHandlers(deps: SummaryHandlerDependencies) {
     return [...commits];
   }
   
-  // If single contributor that is 'me' or matches current user, we already filtered
-  // at the GitHub API level, so don't filter again
-  if (contributors.length === 1 && 
-      (contributors[0] === 'me' || contributors[0] === currentUserName)) {
-    return [...commits];
+  // If single contributor is 'me', filter for current user
+  if (contributors.length === 1 && contributors[0] === 'me') {
+    if (!currentUserName) {
+      // If we don't know who "me" is, return empty array
+      logger.warn(MODULE_NAME, "Cannot filter for 'me' without current user name");
+      return [];
+    }
+    // Filter for commits by the current user
+    const filteredCommits = commits.filter(commit => {
+      const commitAuthor = commit.author?.login || commit.commit.author?.name;
+      return commitAuthor === currentUserName;
+    });
+    return filteredCommits;
+  }
+  
+  // If single contributor matches current user directly, filter for that user
+  if (contributors.length === 1 && contributors[0] === currentUserName) {
+    const filteredCommits = commits.filter(commit => {
+      const commitAuthor = commit.author?.login || commit.commit.author?.name;
+      return commitAuthor === currentUserName;
+    });
+    return filteredCommits;
   }
 
   // Filter for multiple contributors or a specific contributor that isn't 'me'

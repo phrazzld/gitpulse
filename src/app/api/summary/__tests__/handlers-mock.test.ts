@@ -139,7 +139,8 @@ describe('Summary API Handlers with Direct Mocks', () => {
 
     it('should handle "me" filter correctly', () => {
       const result = handlers.filterCommitsByContributor(mockCommits, ['me'], 'alice');
-      expect(result).toEqual(mockCommits); // "me" special case doesn't filter at this layer
+      expect(result).toHaveLength(1);
+      expect(result[0].author!.login).toBe('alice'); // Only alice's commit
     });
   });
 

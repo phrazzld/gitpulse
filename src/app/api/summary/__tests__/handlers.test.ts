@@ -330,10 +330,11 @@ describe('Summary API Handlers', () => {
       expect(result[0].sha).toBe('3');
     });
 
-    it('should not filter when contributors includes only "me" and currentUserName matches', () => {
+    it('should filter for current user when contributors includes only "me"', () => {
       const result = handlers.filterCommitsByContributor(mockCommits, ['me'], 'alice');
-      expect(result).toEqual(mockCommits); // No filtering applied at this layer for single "me"
-      expect(result).toHaveLength(3);
+      expect(result).toHaveLength(1);
+      expect(result[0].sha).toBe('1'); // Only alice's commit
+      expect(result[0].author!.login).toBe('alice');
     });
 
     it('should filter for "me" when included with other contributors', () => {
@@ -343,10 +344,17 @@ describe('Summary API Handlers', () => {
       expect(result[1].sha).toBe('2'); // bob is directly matched
     });
 
-    it('should handle "me" properly when currentUserName is not provided', () => {
+    it('should return empty array when "me" is used without currentUserName', () => {
       const result = handlers.filterCommitsByContributor(mockCommits, ['me'], undefined);
-      expect(result).toEqual(mockCommits); // Returns all when single "me" and no current user
-      expect(result).toHaveLength(3);
+      expect(result).toEqual([]); // Returns empty when can't resolve "me"
+      expect(result).toHaveLength(0);
+    });
+
+    it('should filter correctly when using actual username instead of "me"', () => {
+      const result = handlers.filterCommitsByContributor(mockCommits, ['alice'], 'alice');
+      expect(result).toHaveLength(1);
+      expect(result[0].sha).toBe('1');
+      expect(result[0].author!.login).toBe('alice');
     });
   });
 

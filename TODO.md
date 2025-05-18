@@ -25,7 +25,7 @@ This document outlines the tasks needed to address the critical issues identifie
   - Ensure proper async/await usage and Promise handling
   - **Depends on:** T002CI
 
-- [ ] **T004CI: Fix "me" special case logic in summary API handlers**
+- [x] **T004CI: Fix "me" special case logic in summary API handlers**
   - Investigate and correct the "me" special case logic in handlers
   - Update the corresponding test to assert correct behavior
   - **Depends on:** T003CI
