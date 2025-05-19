@@ -545,9 +545,16 @@ This document outlines the tasks needed to address the critical issues identifie
 
 ## Priority 2 (Medium)
 
-- [ ] **T005: Update testing guidelines to mandate `dateMock.ts`**
+- [x] **T005: Update testing guidelines to mandate `dateMock.ts`**
   - Document proper date mocking approach in project guidelines
   - Include examples of correct usage patterns
+  - **Completed:** 2025-05-19
+  - **Implementation Notes:**
+    - Updated `docs/TESTING_GUIDELINES.md` with comprehensive date mocking guidance
+    - Added multiple usage examples and common patterns
+    - Documented anti-patterns and common mistakes to avoid
+    - Included best practices and migration guide
+    - Added detailed explanations of when and why to use date mocking
 
 - [ ] **T007: Add mocking and test utility checks to code review checklist**
   - Update PR template with specific validation criteria
