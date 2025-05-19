@@ -10,6 +10,17 @@ const path = require("path");
 // Mock external dependencies
 jest.mock("child_process");
 jest.mock("fs");
+jest.mock("../check-a11y-staged-stories-server", () => ({
+  startStaticServer: jest
+    .fn()
+    .mockResolvedValue({
+      server: { close: jest.fn((cb) => cb()) },
+      port: 3001,
+    }),
+  getRelevantStoryIds: jest.fn().mockReturnValue(null),
+  cleanupAndExit: jest.fn().mockImplementation((code) => process.exit(code)),
+  setGlobalServer: jest.fn(),
+}));
 
 describe("check-a11y-staged-stories", () => {
   beforeEach(() => {
@@ -100,7 +111,7 @@ describe("check-a11y-staged-stories", () => {
       expect(mockExit).toHaveBeenCalledWith(0);
     });
 
-    test("should run test-storybook for staged files", () => {
+    test("should run test-storybook for staged files", async () => {
       const storyFiles = ["src/components/Button.stories.tsx"];
       execSync.mockImplementation((cmd) => {
         if (cmd.includes("test-storybook")) {
@@ -108,7 +119,7 @@ describe("check-a11y-staged-stories", () => {
         }
       });
 
-      runAccessibilityCheck(storyFiles, mockStorybookPath);
+      await runAccessibilityCheck(storyFiles, mockStorybookPath);
 
       expect(execSync).toHaveBeenCalledWith(
         expect.stringContaining("test-storybook"),
@@ -116,7 +127,7 @@ describe("check-a11y-staged-stories", () => {
       );
     });
 
-    test("should handle test failures and display violations", () => {
+    test("should handle test failures and display violations", async () => {
       const storyFiles = ["src/components/Button.stories.tsx"];
       const mockExit = jest.spyOn(process, "exit").mockImplementation();
       const mockError = jest.spyOn(console, "error").mockImplementation();
@@ -130,7 +141,7 @@ describe("check-a11y-staged-stories", () => {
         }
       });
 
-      runAccessibilityCheck(storyFiles, mockStorybookPath);
+      await runAccessibilityCheck(storyFiles, mockStorybookPath);
 
       expect(mockError).toHaveBeenCalledWith(
         expect.stringContaining("Accessibility violations found"),
@@ -175,14 +186,14 @@ describe("check-a11y-staged-stories", () => {
   });
 
   describe("main function", () => {
-    test("should exit early when no story files are staged", () => {
+    test("should exit early when no story files are staged", async () => {
       execSync.mockReturnValue("src/components/utils.ts\n");
       const mockExit = jest.spyOn(process, "exit").mockImplementation();
       const mockLog = jest.spyOn(console, "log").mockImplementation();
 
       // Import the module and run main function
       const { main } = require("../check-a11y-staged-stories");
-      main();
+      await main();
 
       expect(mockLog).toHaveBeenCalledWith(
         "No staged Storybook files to check for accessibility.",

@@ -89,12 +89,19 @@ This document outlines the tasks needed to address the critical issues identifie
   - Verify filtering logic works correctly
   - **Completed:** 2025-05-18
 
-- [ ] **T012CI: Fix accessibility test infrastructure**
+- [x] **T012CI: Fix accessibility test infrastructure**
   - Fix `test-storybook` command to work with static builds in pre-commit hook
   - Update `check-a11y-staged-stories.js` to properly serve static build with HTTP server
   - Ensure server cleanup happens properly on both success and failure
   - Investigate if Button stories have actual accessibility violations or if they're false positives
   - **Note:** T010CI introduced intentional TypeScript errors in Button tests that demonstrate type safety
+  - **Completed:** 2025-05-19
+  - **Implementation Notes:**
+    - Replaced external HTTP server process with in-process Node.js server
+    - Added dynamic port allocation using get-port package
+    - Implemented story filtering based on staged files for performance
+    - Added comprehensive error handling and signal handlers for cleanup
+    - Created separate module for server functionality with full test coverage
 
 ## Type Safety Improvements
 
