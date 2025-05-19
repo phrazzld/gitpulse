@@ -83,10 +83,11 @@ This document outlines the tasks needed to address the critical issues identifie
 
 ### Pre-commit Script Test
 
-- [ ] **T011CI: Fix pre-commit script test**
+- [x] **T011CI: Fix pre-commit script test**
   - Update execSync mock in `scripts/__tests__/check-a11y-staged-stories.test.js`
   - Return realistic `git diff --cached --name-status` output
   - Verify filtering logic works correctly
+  - **Completed:** 2025-05-18
 
 - [ ] **T012CI: Fix accessibility test infrastructure**
   - Fix `test-storybook` command to work with static builds in pre-commit hook
