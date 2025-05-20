@@ -599,9 +599,18 @@ This document outlines the tasks needed to address the critical issues identifie
     - Added comprehensive documentation in docs/JEST_ERROR_OUTPUT.md
     - Added tests to verify correct functionality
 
-- [ ] **T013: Configure detailed accessibility violation reporting**
+- [x] **T013: Configure detailed accessibility violation reporting**
   - Update `storybook-a11y` to show specific selectors and WCAG rules
   - Improve violation details in CI output
+  - **Completed:** 2025-05-20
+  - **Implementation Notes:**
+    - Enhanced custom-axe-reporter with detailed element selectors and context
+    - Added WCAG criteria to violation reports
+    - Improved markdown summary with actionable guidelines
+    - Added rule-based grouping for better analysis
+    - Enhanced local pre-commit checks with better violation presentation
+    - Added comprehensive documentation in docs/ACCESSIBILITY_REPORTING.md
+    - Improved CI output formatting for better readability in GitHub Actions
 
 - [ ] **T014: Document approved testing patterns**
   - Create guidelines for mocking external dependencies

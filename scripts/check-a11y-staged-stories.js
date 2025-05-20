@@ -167,6 +167,8 @@ function parseViolations(output) {
   let currentFile = null;
   let currentViolations = [];
   let inViolationTable = false;
+  let inViolationDetail = false;
+  let currentViolation = null;
 
   for (const line of lines) {
     // Detect test file
@@ -181,9 +183,10 @@ function parseViolations(output) {
       }
     }
 
-    // Detect violation table
+    // Detect violation summary table
     if (line.includes("│ (index) │ id") && line.includes("│ impact")) {
       inViolationTable = true;
+      inViolationDetail = false;
       continue;
     }
 
@@ -191,7 +194,7 @@ function parseViolations(output) {
       inViolationTable = false;
     }
 
-    // Parse violation row
+    // Parse violation row in summary table
     if (inViolationTable && line.includes("│") && !line.includes("├─")) {
       const parts = line.split("│").map((p) => p.trim());
       if (parts.length >= 5 && parts[2]) {
@@ -200,8 +203,57 @@ function parseViolations(output) {
           impact: parts[3].replace(/['"]/g, ""),
           description: parts[4].replace(/['"]/g, ""),
           nodes: parseInt(parts[5]) || 1,
+          help: "", // Will be populated from detail section
+          helpUrl: ""
         };
         currentViolations.push(violation);
+      }
+    }
+    
+    // Look for detailed violation information
+    if (line.includes("----- Violation #") && line.includes("-----")) {
+      inViolationDetail = true;
+      inViolationTable = false;
+      continue;
+    }
+    
+    // End of detailed violation
+    if (inViolationDetail && line.includes("==============================")) {
+      inViolationDetail = false;
+      currentViolation = null;
+      continue;
+    }
+    
+    // Extract information from detailed violation sections
+    if (inViolationDetail) {
+      // Extract help text
+      if (line.includes("Help:")) {
+        const match = line.match(/Help:\s+(.+)/);
+        if (match && match[1] && currentViolations.length > 0) {
+          // Update the last violation with help text
+          const index = currentViolations.length - 1;
+          currentViolations[index].help = match[1].trim();
+        }
+      }
+      
+      // Extract help URL
+      if (line.includes("Help URL:")) {
+        const match = line.match(/Help URL:\s+(.+)/);
+        if (match && match[1] && currentViolations.length > 0) {
+          // Update the last violation with help URL
+          const index = currentViolations.length - 1;
+          currentViolations[index].helpUrl = match[1].trim();
+        }
+      }
+      
+      // Extract WCAG criteria if available
+      if (line.includes("WCAG Criteria:")) {
+        const match = line.match(/WCAG Criteria:\s+(.+)/);
+        if (match && match[1] && currentViolations.length > 0) {
+          // Update the last violation with WCAG criteria
+          const index = currentViolations.length - 1;
+          currentViolations[index].wcagCriteria = match[1].trim();
+        }
       }
     }
   }
@@ -215,8 +267,53 @@ function parseViolations(output) {
 }
 
 function displayViolations(violationsByFile) {
+  // Overall violations summary
+  const allViolations = violationsByFile.flatMap(file => file.violations);
+  
+  // Count by impact and rule
+  const impactCounts = {};
+  const ruleCounts = {};
+  
+  allViolations.forEach(v => {
+    // Count by impact
+    impactCounts[v.impact] = (impactCounts[v.impact] || 0) + 1;
+    
+    // Count by rule
+    ruleCounts[v.id] = (ruleCounts[v.id] || 0) + 1;
+  });
+  
+  // Print a clear summary header
+  console.error('\n========== ACCESSIBILITY VIOLATIONS SUMMARY ==========');
+  
+  // Print impact counts
+  console.error('\nImpact Breakdown:');
+  ['critical', 'serious', 'moderate', 'minor'].forEach(impact => {
+    if (impactCounts[impact]) {
+      // Add visual indicators for severity
+      let indicator = '  ';
+      if (impact === 'critical') indicator = '❌ ';
+      else if (impact === 'serious') indicator = '❌ ';
+      else if (impact === 'moderate') indicator = '⚠️ ';
+      else if (impact === 'minor') indicator = 'ℹ️ ';
+      
+      console.error(`${indicator}${impact.toUpperCase()}: ${impactCounts[impact]} violations`);
+    }
+  });
+  
+  // Print top rules
+  console.error('\nTop Violation Rules:');
+  Object.entries(ruleCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .forEach(([rule, count]) => {
+      console.error(`  - ${rule}: ${count} violations`);
+    });
+  
+  console.error('\n=== Violations By Component ===');
+  
+  // Detailed violations by file
   violationsByFile.forEach(({ file, violations }) => {
-    console.error(`\n  ${file}:`);
+    console.error(`\n📁 ${file}:`);
 
     // Group by impact level
     const byImpact = violations.reduce((acc, v) => {
@@ -227,15 +324,45 @@ function displayViolations(violationsByFile) {
 
     ["critical", "serious", "moderate", "minor"].forEach((impact) => {
       if (byImpact[impact]) {
+        // Add impact header with visual severity indicator
+        let indicator = '  ';
+        if (impact === 'critical') indicator = '❌ ';
+        else if (impact === 'serious') indicator = '❌ ';
+        else if (impact === 'moderate') indicator = '⚠️ ';
+        else if (impact === 'minor') indicator = 'ℹ️ ';
+        
+        console.error(`\n  ${indicator}${impact.toUpperCase()} violations:`);
+        
         byImpact[impact].forEach((v) => {
           const instances = v.nodes > 1 ? ` (${v.nodes} instances)` : "";
           console.error(
-            `    - ${impact.toUpperCase()}: ${v.description}${instances}`,
+            `    • Rule: ${v.id}\n      Description: ${v.description}${instances}`,
           );
+          
+          // Add help text when available
+          if (v.help) {
+            console.error(`      How to fix: ${v.help}`);
+          }
+          
+          // Add URL for more information
+          console.error(`      Documentation: https://dequeuniversity.com/rules/axe/${v.id}`);
         });
       }
     });
   });
+  
+  // Print remediation guidance
+  console.error('\n=== How to Fix Accessibility Issues ===');
+  console.error('1. Run `npm run storybook` and open the "Accessibility" panel');
+  console.error('2. Check components individually to see detailed violation information');
+  console.error('3. Use the Axe DevTools extension for more detailed debugging');
+  console.error('4. Visit rule documentation links for remediation guidance');
+  console.error('\nCommon fixes:');
+  console.error('• color-contrast: Ensure text has 4.5:1 contrast ratio with its background');
+  console.error('• button-name: All buttons must have accessible names (text or aria-label)');
+  console.error('• aria-roles: Use valid ARIA role values on elements');
+  console.error('• image-alt: All images must have alt text describing their purpose');
+  console.error('\n======================================================');
 }
 
 // Main execution

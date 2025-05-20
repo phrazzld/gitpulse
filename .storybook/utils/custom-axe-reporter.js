@@ -77,39 +77,80 @@ class CustomAxeReporter {
       return;
     }
 
-    // Count violations by impact
+    // Count violations by impact and type
     const impactCounts = this.violations.reduce((counts, violation) => {
       const impact = violation.impact.toLowerCase();
       counts[impact] = (counts[impact] || 0) + 1;
       return counts;
     }, {});
 
-    // Log summary of violations
-    console.warn({
-      name: 'A11Y Violation Summary',
-      message: `${this.violations.length} accessibility violation${this.violations.length === 1 ? '' : 's'} found in: ${storyTitle} - ${storyName}`,
-      violationCount: this.violations.length,
-      impactBreakdown: impactCounts
+    // Group violations by rule for better analysis
+    const violationsByRule = this.violations.reduce((byRule, violation) => {
+      if (!byRule[violation.id]) {
+        byRule[violation.id] = {
+          count: 0,
+          impact: violation.impact,
+          description: violation.description,
+          helpUrl: violation.helpUrl,
+          elementsAffected: 0
+        };
+      }
+      byRule[violation.id].count++;
+      byRule[violation.id].elementsAffected += violation.nodes.length;
+      return byRule;
+    }, {});
+
+    // Create a more detailed summary box
+    console.warn(`
+========== ACCESSIBILITY VIOLATIONS SUMMARY ==========
+Component: ${storyTitle} - ${storyName}
+Total Violations: ${this.violations.length}
+Violation Impacts: ${Object.entries(impactCounts)
+      .map(([impact, count]) => `${impact}: ${count}`)
+      .join(', ')}
+Failing WCAG Criteria: ${Array.from(new Set(this.violations.flatMap(v => 
+        v.tags.filter(tag => tag.startsWith('wcag') || tag.match(/^[1-4]\.[1-4]\.[1-5]$/))
+      ))).join(', ')}
+=======================================================
+    `);
+
+    // Log rule summary (grouped by rule for better organization)
+    console.warn('Rule-based Violation Summary:');
+    Object.entries(violationsByRule).forEach(([ruleId, data], index) => {
+      console.warn(`
+      ${index + 1}. Rule: ${ruleId} (${data.impact})
+         Description: ${data.description}
+         Occurrences: ${data.count} (affecting ${data.elementsAffected} elements)
+         Help URL: ${data.helpUrl}
+      `);
     });
 
-    // Log each violation with details
+    // Log detailed violations with component attribution
+    console.warn('\nDetailed Violations:');
     this.violations.forEach((violation, index) => {
-      console.warn({
-        index: index + 1,
-        id: violation.id,
-        impact: violation.impact,
-        description: violation.description,
-        help: violation.help,
-        helpUrl: violation.helpUrl,
-        nodes: violation.nodes.map(node => ({
-          html: node.html,
-          failureSummary: node.failureSummary
-        }))
-      });
+      const formattedViolation = this.formatViolation(violation);
+      console.warn(`
+----- Violation #${index + 1} -----
+Component: ${storyTitle} - ${storyName}
+${formattedViolation}
+`);
     });
+
+    // Add recommendation section when available
+    const hasRecommendations = this.violations.some(v => v.help);
+    if (hasRecommendations) {
+      console.warn('\nRecommended Fixes:');
+      this.violations.forEach((violation, index) => {
+        console.warn(`
+${index + 1}. For '${violation.id}' (${violation.impact}):
+   ${violation.help}
+   Learn more: ${violation.helpUrl}
+        `);
+      });
+    }
 
     // Display a separator for better readability in logs
-    console.log('-------------------------------------');
+    console.log('=======================================================');
   }
 
   /**
@@ -118,12 +159,40 @@ class CustomAxeReporter {
    * @returns {string} Formatted violation message
    */
   formatViolation(violation) {
+    // Format each node for better readability
+    const nodeDetails = violation.nodes.map((node, idx) => {
+      const selector = node.target ? 
+        (Array.isArray(node.target) ? node.target.join(' ') : node.target) : 
+        'Unknown selector';
+        
+      return `
+      Element ${idx + 1}: ${selector}
+      HTML: ${node.html.trim()}
+      Issue: ${node.failureSummary?.replace(/\n/g, '\n        ') || 'Not specified'}
+      ${node.ancestry ? `DOM path: ${node.ancestry}` : ''}
+      ${node.xpath ? `XPath: ${node.xpath}` : ''}
+      `;
+    }).join('\n');
+
+    // Include WCAG success criteria for better context
+    let wcagCriteria = '';
+    if (violation.tags) {
+      const wcagTags = violation.tags.filter(tag => tag.startsWith('wcag') || tag.match(/^[1-4]\.[1-4]\.[1-5]$/));
+      if (wcagTags.length > 0) {
+        wcagCriteria = `WCAG Criteria: ${wcagTags.join(', ')}`;
+      }
+    }
+
     return `
       Rule: ${violation.id} (${violation.impact})
       Description: ${violation.description}
       Help: ${violation.help}
       Help URL: ${violation.helpUrl}
+      ${wcagCriteria}
       Affected elements: ${violation.nodes.length}
+      
+      Element Details:
+      ${nodeDetails}
     `;
   }
 

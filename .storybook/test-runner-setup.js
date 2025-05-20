@@ -83,13 +83,32 @@ module.exports = {
     // Configure axe based on story parameters or use defaults
     const a11yConfig = storyContext.parameters?.a11y?.config || {};
     await configureAxe(page, {
-      // Default configuration that can be overridden by story parameters
+      // Enhanced default configuration with improved rule details
       rules: [
-        // Examples of rules that can be configured
+        // Core rules with detailed reporting
         { id: 'color-contrast', reviewOnFail: true },
-        // Add more rule configurations as needed
+        { id: 'aria-valid-attr', reviewOnFail: true },
+        { id: 'aria-roles', reviewOnFail: true },
+        { id: 'aria-hidden-focus', reviewOnFail: true },
+        { id: 'document-title', reviewOnFail: true },
+        { id: 'duplicate-id', reviewOnFail: true },
+        { id: 'button-name', reviewOnFail: true },
+        { id: 'image-alt', reviewOnFail: true },
+        { id: 'label', reviewOnFail: true },
+        { id: 'landmark-one-main', reviewOnFail: true },
+        { id: 'heading-order', reviewOnFail: true },
+        { id: 'label-title-only', reviewOnFail: true },
+        { id: 'link-name', reviewOnFail: true },
+        { id: 'region', reviewOnFail: true },
       ],
+      // Merge with any story-specific configurations
       ...a11yConfig,
+      // Advanced options for better details
+      resultTypes: ['violations', 'incomplete', 'inapplicable'],
+      reporter: 'v2',
+      // Provide more context about the violations
+      xpath: true,
+      ancestry: true,
     });
     
     // Create a custom reporter instance
