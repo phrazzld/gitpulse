@@ -251,15 +251,24 @@ describe("Button Accessibility", () => {
 
       const consoleError = jest.spyOn(console, "error").mockImplementation();
 
-      // This button will intentionally fail the TypeScript check if uncommented
-      // as it demonstrates the requirement for aria-label on icon-only buttons
-      const ButtonWithoutAriaLabel = () => (
-        <Button leftIcon={<span>Icon</span>}>{}</Button>
-      );
+      // We're using type assertion to bypass the TypeScript check intentionally
+      // This demonstrates the runtime enforcement of aria-label for icon-only buttons
+      // TypeScript would normally catch this error at compile time
+      type IconButtonWithoutAriaLabel = Omit<React.ComponentProps<typeof Button>, 'aria-label'> & {
+        leftIcon: React.ReactNode;
+        children?: never;
+      };
+      
+      const buttonProps: IconButtonWithoutAriaLabel = {
+        leftIcon: <span>Icon</span>,
+        children: undefined
+      };
 
+      // Using type assertion to bypass TypeScript's type checking
+      // This is intentional to demonstrate the runtime validation
       render(
         <div data-testid="wrapper">
-          {React.createElement(ButtonWithoutAriaLabel as any)}
+          <Button {...buttonProps as any} />
         </div>,
       );
 

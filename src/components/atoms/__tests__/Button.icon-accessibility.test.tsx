@@ -54,12 +54,20 @@ describe("Button Icon-Only Accessibility", () => {
     it("should console error when icon-only button lacks aria-label", async () => {
       const consoleError = jest.spyOn(console, "error").mockImplementation();
 
-      // This demonstrates the TypeScript requirement for aria-label on icon-only buttons
-      const ButtonWithoutAriaLabel = () => (
-        <Button leftIcon={<IconSettings />}>{}</Button>
-      );
+      // We're intentionally bypassing TypeScript type checking to demonstrate
+      // the runtime validation of aria-label requirement for icon-only buttons
+      type IconButtonWithoutAriaLabel = Omit<React.ComponentProps<typeof Button>, 'aria-label'> & {
+        leftIcon: React.ReactNode;
+        children?: never;
+      };
+      
+      const buttonProps: IconButtonWithoutAriaLabel = {
+        leftIcon: <IconSettings />,
+        children: undefined
+      };
 
-      render(React.createElement(ButtonWithoutAriaLabel as any));
+      // Using type assertion to bypass TypeScript's compile-time checking
+      render(<Button {...buttonProps as any} />);
 
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalledWith(
@@ -73,12 +81,20 @@ describe("Button Icon-Only Accessibility", () => {
     it("should console error for empty string children with icon", async () => {
       const consoleError = jest.spyOn(console, "error").mockImplementation();
 
-      // This demonstrates the TypeScript requirement for aria-label on icon-only buttons
-      const ButtonWithEmptyChildren = () => (
-        <Button leftIcon={<IconSettings />}>{}</Button>
-      );
+      // We're intentionally bypassing TypeScript type checking to demonstrate
+      // the runtime validation of aria-label requirement for icon-only buttons
+      type IconButtonWithoutAriaLabel = Omit<React.ComponentProps<typeof Button>, 'aria-label'> & {
+        leftIcon: React.ReactNode;
+        children?: React.ReactNode;
+      };
+      
+      const buttonProps: IconButtonWithoutAriaLabel = {
+        leftIcon: <IconSettings />,
+        children: null
+      };
 
-      render(React.createElement(ButtonWithEmptyChildren as any));
+      // Using type assertion to bypass TypeScript's compile-time checking
+      render(<Button {...buttonProps as any} />);
 
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalledWith(
@@ -92,12 +108,20 @@ describe("Button Icon-Only Accessibility", () => {
     it("should console error for whitespace-only children with icon", async () => {
       const consoleError = jest.spyOn(console, "error").mockImplementation();
 
-      // This demonstrates the TypeScript requirement for aria-label on icon-only buttons
-      const ButtonWithWhitespace = () => (
-        <Button leftIcon={<IconSettings />}> </Button>
-      );
+      // We're intentionally bypassing TypeScript type checking to demonstrate
+      // the runtime validation of aria-label requirement for icon-only buttons with whitespace
+      type ButtonWithWhitespaceProps = Omit<React.ComponentProps<typeof Button>, 'aria-label'> & {
+        leftIcon: React.ReactNode;
+        children: string;
+      };
+      
+      const buttonProps: ButtonWithWhitespaceProps = {
+        leftIcon: <IconSettings />,
+        children: ' '
+      };
 
-      render(React.createElement(ButtonWithWhitespace as any));
+      // Using type assertion to bypass TypeScript's compile-time checking
+      render(<Button {...buttonProps as any} />);
 
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalledWith(

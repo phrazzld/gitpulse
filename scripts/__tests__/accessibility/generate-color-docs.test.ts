@@ -161,7 +161,7 @@ describe('generate-color-docs', () => {
         backgroundColor: '#1b2b34'
       });
 
-      mockFs.readFileSync.mockImplementation((filePath: string) => {
+      mockFs.readFileSync.mockImplementation((filePath: fs.PathOrFileDescriptor) => {
         if (typeof filePath === 'string' && filePath.includes('globals.css')) {
           return ':root { --foreground: #ffffff; --background: #1b2b34; }';
         }
@@ -203,7 +203,7 @@ describe('generate-color-docs', () => {
         backgroundColor: '#888888'
       });
 
-      mockFs.readFileSync.mockImplementation((filePath: string) => {
+      mockFs.readFileSync.mockImplementation((filePath: fs.PathOrFileDescriptor) => {
         if (typeof filePath === 'string' && filePath.includes('globals.css')) {
           return ':root { --low-contrast: #777777; --background: #888888; }';
         }

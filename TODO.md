@@ -708,7 +708,7 @@ This document outlines the tasks needed to address the critical issues identifie
 
 ## Repository Maintenance Tasks
 
-- [ ] **T021CI: Fix TypeScript errors in Button accessibility tests**
+- [x] **T021CI: Fix TypeScript errors in Button accessibility tests**
   - Fix TS2322 errors in src/components/atoms/__tests__/Button.accessibility.test.tsx and Button.icon-accessibility.test.tsx
   - Address the missing 'aria-label' property in IconButtonProps
   - Fix TypeScript errors introduced by the TypeScript discriminated unions for icon-only buttons
