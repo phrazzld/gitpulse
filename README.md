@@ -212,6 +212,7 @@ When adding new features or making changes, follow these guidelines:
 - Use immutable patterns where possible (readonly modifiers, const, etc.)
 - Document the "why" not just the "how" in comments
 - Follow [dependency management guidelines](docs/DEPENDENCY_MANAGEMENT.md) for adding, updating, and removing dependencies
+- For CI failures, follow the [CI Failure Post-mortem Process](docs/CI_FAILURE_POSTMORTEM_PROCESS.md)
 
 ### Error Handling Principles
 

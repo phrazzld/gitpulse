@@ -57,6 +57,11 @@ Describe your testing approach and what tests you've added/modified.
 - [ ] Type checking passes with no errors
 - [ ] Test coverage meets project requirements
 
+## CI Environment Verification
+- [ ] I have verified that my changes do not introduce CI failures
+- [ ] All dependencies required by CI are explicitly listed in package.json
+- [ ] I have tested my changes in a CI-like environment
+
 ## Breaking Changes
 List any breaking changes and migration instructions if applicable.
 
@@ -65,3 +70,9 @@ Closes #issue_number (if applicable)
 
 ## Additional Notes
 Add any other context about the PR here.
+
+## CI Failure Resolution
+If this PR is fixing a CI failure:
+- [ ] I have created a post-mortem document following the [CI Failure Post-mortem Process](../docs/CI_FAILURE_POSTMORTEM_PROCESS.md)
+- [ ] I have implemented preventive measures to avoid similar failures in the future
+- [ ] I have updated any relevant documentation
