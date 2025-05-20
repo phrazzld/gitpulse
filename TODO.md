@@ -612,9 +612,17 @@ This document outlines the tasks needed to address the critical issues identifie
     - Added comprehensive documentation in docs/ACCESSIBILITY_REPORTING.md
     - Improved CI output formatting for better readability in GitHub Actions
 
-- [ ] **T014: Document approved testing patterns**
+- [x] **T014: Document approved testing patterns**
   - Create guidelines for mocking external dependencies
   - Include examples for handling async operations properly
+  - **Completed:** 2025-05-20
+  - **Implementation Notes:**
+    - Created comprehensive documentation in `docs/APPROVED_TESTING_PATTERNS.md`
+    - Documented mocking strategy with clear examples of what to mock and what not to mock
+    - Added detailed patterns for async testing with examples using our test utilities
+    - Included specific patterns for components, hooks, and API/service testing
+    - Documented common anti-patterns to avoid
+    - Added reference section for all available test utilities
 
 - [ ] **T015: Update accessibility best practices documentation**
   - Document color contrast requirements
