@@ -638,10 +638,18 @@ This document outlines the tasks needed to address the critical issues identifie
 
 ### CI Resolution Prevention Measures
 
-- [ ] **T016CI: Update mocking policy documentation**
+- [x] **T016CI: Update mocking policy documentation**
   - Add clear examples of correct vs incorrect mocking
   - Emphasize "Mock ONLY True External System Boundaries"
   - Include practical examples
+  - **Completed:** 2025-05-20
+  - **Implementation Notes:**
+    - Created comprehensive `docs/MOCKING_POLICY.md` document
+    - Added detailed explanation of external system boundaries
+    - Provided numerous examples of correct and incorrect mocking practices
+    - Included real-world examples from our codebase
+    - Added refactoring patterns to improve testability without internal mocking
+    - Cross-referenced with existing testing documentation
 
 - [ ] **T017CI: Fix and enforce local pre-commit accessibility hook**
   - Ensure the hook correctly identifies staged story files
