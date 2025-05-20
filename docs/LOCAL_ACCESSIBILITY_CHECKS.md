@@ -209,6 +209,8 @@ To improve the accessibility check system:
 
 ## Related Documentation
 
+- [Accessibility Guidelines](./ACCESSIBILITY_GUIDELINES.md) - Implementation patterns and ARIA reference
+- [Accessibility Best Practices](./ACCESSIBILITY_BEST_PRACTICES.md) - General accessibility principles
 - [Accessibility CI Setup](./ACCESSIBILITY_CI_SETUP.md) - CI/CD accessibility configuration
 - [Storybook Documentation](./STORYBOOK.md) - General Storybook setup
 - [Development Philosophy](./DEVELOPMENT_PHILOSOPHY.md) - Overall development principles

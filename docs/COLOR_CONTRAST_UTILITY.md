@@ -151,6 +151,8 @@ The color contrast utility can be integrated with Storybook for visual testing:
 
 ## Additional Resources
 
+- [Accessibility Guidelines](./ACCESSIBILITY_GUIDELINES.md) - Comprehensive implementation patterns
+- [Approved Color Pairings](./APPROVED_COLOR_PAIRINGS.md) - Pre-validated color combinations
 - [WCAG 2.1 Contrast Guidelines](https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html)
 - [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
 - [Colour Contrast Analyzer](https://developer.paciellogroup.com/resources/contrastanalyser/)

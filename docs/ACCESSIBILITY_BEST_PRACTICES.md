@@ -491,6 +491,7 @@ Report accessibility issues you find:
 
 ### Related Documents
 
+- [Accessibility Guidelines](./ACCESSIBILITY_GUIDELINES.md) - Implementation patterns and ARIA reference
 - [Accessibility CI Setup](./ACCESSIBILITY_CI_SETUP.md)
 - [Local Accessibility Checks](./LOCAL_ACCESSIBILITY_CHECKS.md)
 - [Accessibility Reporting](./ACCESSIBILITY_REPORTING.md)

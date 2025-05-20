@@ -1,5 +1,7 @@
 # Accessibility CI Setup
 
+> **Note**: For comprehensive accessibility implementation patterns and ARIA attribute usage, see the [Accessibility Guidelines](./ACCESSIBILITY_GUIDELINES.md).
+
 ## Overview
 
 The Storybook accessibility tests are now configured to block pull requests when critical or serious accessibility violations are detected. This ensures that our UI components meet WCAG standards before being merged.
