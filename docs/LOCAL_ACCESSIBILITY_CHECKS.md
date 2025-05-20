@@ -105,6 +105,41 @@ git diff --cached --name-only | grep stories
 # Consider committing in smaller batches
 ```
 
+### Debug Mode
+
+If you're having problems with the pre-commit hook, use debug mode:
+```bash
+# Run with debug output enabled
+DEBUG=1 npm run check:a11y:staged
+
+# Shows detailed information about:
+# - Detected story files
+# - Path normalization
+# - Story matching
+# - Command execution
+# - Error details
+```
+
+### Cross-Platform Issues
+
+If you're experiencing issues on Windows or different OSes:
+1. Make sure your Git is configured to use Unix-style line endings
+2. Run in debug mode to check path normalization 
+3. If a specific story isn't being detected, try comparing the normalized paths
+
+### Server Cleanup Issues
+
+If the server doesn't shut down properly:
+1. The script now includes a timeout that will force shutdown after 5 seconds
+2. You can check running Node processes with:
+   ```bash
+   # On Unix-like systems
+   ps aux | grep node
+   
+   # On Windows
+   tasklist | findstr node
+   ```
+
 ## Override Mechanism
 
 For emergency commits when you can't fix violations immediately:

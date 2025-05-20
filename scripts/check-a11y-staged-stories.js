@@ -16,6 +16,7 @@ const STORYBOOK_BUILD_CACHE_MINUTES = 5;
 function detectStagedStoryFiles() {
   try {
     // Get only added or modified files, not deleted ones
+    // Use porcelain format for more reliable parsing
     const output = execSync("git diff --cached --name-status", {
       encoding: "utf-8",
     });
@@ -28,14 +29,21 @@ function detectStagedStoryFiles() {
       const file = fileParts.join("\t"); // Handle filenames with tabs
 
       // Skip deleted files (status 'D')
-      if (status !== "D" && /\.stories\.(js|jsx|ts|tsx)$/.test(file)) {
-        storyFiles.push(file);
+      // Match story files with cross-platform path handling
+      if (status !== "D" && /\.stories\.(js|jsx|ts|tsx)$/i.test(file)) {
+        // Normalize path with forward slashes for consistency
+        storyFiles.push(path.normalize(file).replace(/\\/g, '/'));
       }
+    }
+
+    if (process.env.DEBUG === "1") {
+      console.log("Detected staged story files:", storyFiles);
     }
 
     return storyFiles;
   } catch (error) {
     console.error("Error detecting staged files:", error.message);
+    console.error(error.stack);
     return [];
   }
 }
@@ -90,9 +98,15 @@ async function runAccessibilityCheck(storyFiles, storybookPath) {
       storyFiles,
       absoluteStorybookPath,
     );
-    let filterArg = "";
+    
+    // Check if we have any stories to test
+    if (relevantStoryIds && relevantStoryIds.length === 0) {
+      console.log("No relevant stories found in staged files. Skipping checks.");
+      return;
+    }
 
-    if (relevantStoryIds) {
+    let filterArg = "";
+    if (relevantStoryIds && relevantStoryIds.length > 0) {
       filterArg = `--filter "^(${relevantStoryIds.join("|")})$"`;
       console.log(`Testing ${relevantStoryIds.length} relevant stories`);
     }
@@ -105,7 +119,10 @@ async function runAccessibilityCheck(storyFiles, storybookPath) {
     // Run tests
     const command = `npx test-storybook --url http://localhost:${port} ${filterArg}`;
     console.log("Running accessibility checks...");
-    console.log(`Command: ${command}`);
+    
+    if (process.env.DEBUG === "1") {
+      console.log(`Command: ${command}`);
+    }
 
     try {
       execSync(command, {
@@ -119,12 +136,26 @@ async function runAccessibilityCheck(storyFiles, storybookPath) {
       const output = (error.stdout || "") + "\n" + (error.stderr || "");
       const allViolations = parseViolations(output);
 
-      // Filter to staged files
-      const stagedViolations = allViolations.filter((v) =>
-        storyFiles.some((staged) =>
-          v.file.includes(staged.replace("src/", "")),
-        ),
-      );
+      if (process.env.DEBUG === "1") {
+        console.log("All detected violations:", JSON.stringify(allViolations, null, 2));
+      }
+
+      // Filter to staged files - Improved matching logic
+      const stagedViolations = allViolations.filter((v) => {
+        return storyFiles.some((staged) => {
+          // Remove src/ prefix and normalize paths for comparison
+          const normalizedStaged = staged.replace(/^src\//, "").replace(/\\/g, '/');
+          const normalizedVFile = v.file.replace(/\\/g, '/');
+          
+          // Check if the story file path includes the staged file path
+          return normalizedVFile.includes(normalizedStaged);
+        });
+      });
+
+      if (process.env.DEBUG === "1") {
+        console.log("Staged files:", storyFiles);
+        console.log("Filtered violations:", JSON.stringify(stagedViolations, null, 2));
+      }
 
       if (stagedViolations.length === 0 && allViolations.length > 0) {
         console.log("✅ All staged story files passed accessibility checks!");
@@ -149,13 +180,22 @@ async function runAccessibilityCheck(storyFiles, storybookPath) {
     }
   } catch (error) {
     console.error("Accessibility check error:", error);
+    if (process.env.DEBUG === "1") {
+      console.error(error.stack);
+    }
     await cleanupAndExit(1);
   } finally {
     // Always cleanup
     if (storybookServer) {
-      await new Promise((resolve) => storybookServer.close(resolve));
-      storybookServer = null;
-      setGlobalServer(null); // Clear global reference
+      try {
+        await new Promise((resolve) => storybookServer.close(resolve));
+        console.log("Server closed successfully.");
+      } catch (err) {
+        console.error("Error closing server:", err.message);
+      } finally {
+        storybookServer = null;
+        setGlobalServer(null); // Clear global reference
+      }
     }
   }
 }
@@ -367,29 +407,57 @@ function displayViolations(violationsByFile) {
 
 // Main execution
 async function main() {
-  const stagedStoryFiles = detectStagedStoryFiles();
+  try {
+    console.log("📋 Running accessibility checks on staged story files...");
+    
+    // Log debug information if requested
+    if (process.env.DEBUG === "1") {
+      console.log("Running in debug mode - verbose output enabled");
+      console.log(`Current working directory: ${process.cwd()}`);
+      console.log(`Platform: ${process.platform}`);
+    }
 
-  if (stagedStoryFiles.length === 0) {
-    console.log("No staged Storybook files to check for accessibility.");
-    process.exit(0);
-  }
+    const stagedStoryFiles = detectStagedStoryFiles();
 
-  console.log(
-    `Checking accessibility for ${stagedStoryFiles.length} staged story file(s)...`,
-  );
-
-  const projectRoot = path.resolve(__dirname, "..");
-  const storybookStaticDir = path.join(projectRoot, "storybook-static");
-
-  // Check if we need to build Storybook
-  if (!isStorybookBuildRecent(storybookStaticDir)) {
-    if (!buildStorybook()) {
-      console.error("⚠️  Skipping accessibility checks due to build failure.");
+    if (stagedStoryFiles.length === 0) {
+      console.log("✅ No staged Storybook files to check for accessibility.");
       process.exit(0);
     }
-  }
 
-  await runAccessibilityCheck(stagedStoryFiles, storybookStaticDir);
+    console.log(
+      `📊 Found ${stagedStoryFiles.length} staged story file(s) to check...`,
+    );
+
+    const projectRoot = path.resolve(__dirname, "..");
+    const storybookStaticDir = path.join(projectRoot, "storybook-static");
+
+    // Check if Storybook static dir exists
+    if (!fs.existsSync(storybookStaticDir)) {
+      console.log("⚙️ Storybook static directory doesn't exist. Building Storybook...");
+      if (!buildStorybook()) {
+        console.error("⚠️  Skipping accessibility checks due to build failure.");
+        process.exit(0);
+      }
+    }
+    // Check if we need to build Storybook
+    else if (!isStorybookBuildRecent(storybookStaticDir)) {
+      console.log("⚙️ Storybook build is outdated. Rebuilding...");
+      if (!buildStorybook()) {
+        console.error("⚠️  Skipping accessibility checks due to build failure.");
+        process.exit(0);
+      }
+    } else {
+      console.log("📦 Using existing Storybook build (less than 5 minutes old)");
+    }
+
+    await runAccessibilityCheck(stagedStoryFiles, storybookStaticDir);
+  } catch (error) {
+    console.error("❌ Fatal error in accessibility checks:", error.message);
+    if (process.env.DEBUG === "1") {
+      console.error(error.stack);
+    }
+    process.exit(1);
+  }
 }
 
 // Export for testing

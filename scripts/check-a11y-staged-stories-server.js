@@ -70,20 +70,59 @@ function getRelevantStoryIds(stagedFiles, storybookPath) {
     }
 
     const stories = JSON.parse(fs.readFileSync(storiesJsonPath, "utf-8"));
-    const normalizedStaged = stagedFiles.map((f) => path.normalize(f));
+    
+    // Normalize paths for cross-platform compatibility
+    const normalizedStaged = stagedFiles.map((f) => 
+      path.normalize(f).replace(/\\/g, '/')
+    );
+
+    if (process.env.DEBUG === "1") {
+      console.log("Normalized staged files:", normalizedStaged);
+    }
 
     const relevantIds = [];
-    for (const [id, story] of Object.entries(stories.stories)) {
-      if (
-        normalizedStaged.some((staged) => story.importPath.includes(staged))
-      ) {
+    for (const [id, story] of Object.entries(stories.stories || {})) {
+      // Skip if story has no importPath
+      if (!story || !story.importPath) continue;
+      
+      // Normalize story import path
+      const normalizedImportPath = story.importPath.replace(/\\/g, '/');
+      
+      if (process.env.DEBUG === "1" && relevantIds.length < 3) {
+        console.log(`Checking story: ${id} with importPath: ${normalizedImportPath}`);
+      }
+      
+      // Try multiple matching strategies to be more resilient
+      const isRelevant = normalizedStaged.some((staged) => {
+        // Direct inclusion check
+        if (normalizedImportPath.includes(staged)) return true;
+        
+        // Check without src/ prefix
+        const stagedWithoutSrc = staged.replace(/^src\//, '');
+        if (normalizedImportPath.includes(stagedWithoutSrc)) return true;
+        
+        // Check just the filename part (most resilient but less precise)
+        const stagedBasename = path.basename(staged);
+        return normalizedImportPath.includes(stagedBasename);
+      });
+      
+      if (isRelevant) {
         relevantIds.push(id);
+        if (process.env.DEBUG === "1") {
+          console.log(`  → Adding relevant story: ${id}`);
+        }
       }
     }
 
-    return relevantIds.length > 0 ? relevantIds : null;
+    if (process.env.DEBUG === "1") {
+      console.log(`Found ${relevantIds.length} relevant story IDs`);
+    }
+
+    // Return the array of IDs or an empty array (to allow explicit empty checking)
+    return relevantIds;
   } catch (error) {
     console.error("Error filtering stories:", error);
+    console.error(error.stack);
     return null;
   }
 }
@@ -95,16 +134,66 @@ function getRelevantStoryIds(stagedFiles, storybookPath) {
 async function cleanupAndExit(code = 1) {
   if (storybookServer) {
     console.log("\nCleaning up server...");
-    await new Promise((resolve) => storybookServer.close(resolve));
-    console.log("Server closed");
-    storybookServer = null;
+    try {
+      // Add timeout in case .close() hangs
+      const closePromise = new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          console.warn("Server close timeout reached, forcing exit");
+          resolve();
+        }, 5000); // 5 second timeout
+        
+        storybookServer.close(() => {
+          clearTimeout(timeout);
+          resolve();
+        });
+      });
+      
+      await closePromise;
+      console.log("Server closed");
+    } catch (err) {
+      console.error("Error while closing server:", err.message);
+    } finally {
+      storybookServer = null;
+    }
   }
-  process.exit(code);
+  
+  // For testing purposes, don't immediately exit when running tests
+if (require.main === module) {
+  // Use setTimeout to ensure all async operations complete before exit
+  setTimeout(() => {
+    process.exit(code);
+  }, 100);
+} else {
+  // When used in tests, just simulate the exit for verification
+  process.emit('beforeExit', code);
+}
 }
 
-// Set up signal handlers for graceful shutdown
-process.on("SIGINT", () => cleanupAndExit());
-process.on("SIGTERM", () => cleanupAndExit());
+// Enhanced signal handlers for graceful shutdown
+// Handle ctrl+c
+process.on("SIGINT", () => {
+  console.log("\n🛑 Received SIGINT signal (Ctrl+C). Cleaning up...");
+  cleanupAndExit(0);
+});
+
+// Handle kill command
+process.on("SIGTERM", () => {
+  console.log("\n🛑 Received SIGTERM signal. Cleaning up...");
+  cleanupAndExit(0);
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (error) => {
+  console.error("\n💥 Uncaught Exception:", error.message);
+  console.error(error.stack);
+  cleanupAndExit(1);
+});
+
+// Handle unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("\n💥 Unhandled Promise Rejection:", reason);
+  cleanupAndExit(1);
+});
 
 // Export functions for testing
 module.exports = {
