@@ -664,9 +664,16 @@ This document outlines the tasks needed to address the critical issues identifie
     - Updated documentation with troubleshooting guidance
     - Added detailed status messages for better user experience
 
-- [ ] **T018CI: Add jest-axe assertions to component tests**
+- [x] **T018CI: Add jest-axe assertions to component tests**
   - Include accessibility assertions in critical component unit tests
   - Provide an additional layer of a11y testing
+  - **Completed:** 2025-05-20
+  - **Implementation Notes:**
+    - Created a utility function to standardize axe testing across components
+    - Added comprehensive jest-axe tests for ErrorAlert, DateRangePicker, OperationsPanel, and AuthLoadingScreen
+    - Implemented helper functions for testing multiple component states
+    - Added specific tests for accessibility properties like ARIA attributes
+    - Included tests for color contrast, keyboard interactions, and screen reader support
 
 - [ ] **T019CI: Create accessibility guidelines**
   - Document common accessibility patterns
