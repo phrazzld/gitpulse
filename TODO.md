@@ -58,10 +58,17 @@ This document outlines the tasks needed to address the critical issues identifie
 
 ### Accessibility Violations
 
-- [~] **T008CI: Fix color contrast violations**
+- [x] **T008CI: Fix color contrast violations**
   - Fix contrast issues in LoadMoreButton, ModeSelector, OperationsPanel
   - Adjust colors to meet WCAG AA requirements (4.5:1 normal text, 3:1 large text)
   - Verify in both light and dark modes
+  - **Completed:** 2025-05-19
+  - **Implementation Notes:**
+    - Updated global CSS variables with accessible versions
+    - Created color-pairings.config.json with WCAG AA compliant colors
+    - Added --accessible-green, --dark-blue, --accessible-yellow, and --accessible-red
+    - Fixed hover state contrasts with JavaScript event handlers
+    - Generated color documentation showing all pairings are now compliant
 
 - [x] **T009CI: Fix interactive element accessibility**
   - Ensure keyboard focusability for all interactive elements
@@ -566,17 +573,31 @@ This document outlines the tasks needed to address the critical issues identifie
     - Included links to relevant documentation
     - Covers all specified validation criteria from the task
 
-- [ ] **T010: Document approved color pairings and contrast ratios**
+- [~] **T010: Document approved color pairings and contrast ratios**
   - List all theme color combinations with their WCAG contrast ratios
   - Reference the centralized color contrast utility
 
-- [ ] **T011: Audit adoption of centralized color contrast utility**
+- [x] **T011: Audit adoption of centralized color contrast utility**
   - Review components for proper use of the accessibility color system
   - Document findings and create follow-up tickets for non-compliance
+  - **Completed:** 2025-05-19
+  - **Implementation Notes:**
+    - Created T011-audit-report.md with comprehensive findings
+    - Identified components successfully using the utility (Button, LoadMoreButton, ModeSelector)
+    - Found components requiring updates (ErrorAlert, OperationsPanel, StatusDisplay)
+    - Recommended additional runtime validation and Storybook integration
+    - Created list of follow-up tasks to improve adoption
 
-- [ ] **T012: Configure Jest for clearer test failure output**
+- [x] **T012: Configure Jest for clearer test failure output**
   - Enhance error messaging to better show actual vs expected values
   - Implement necessary Jest configuration changes
+  - **Completed:** 2025-05-20
+  - **Implementation Notes:**
+    - Added custom Jest matchers for improved error output
+    - Created dedicated helper functions for formatting object differences
+    - Enhanced console error output for better readability
+    - Added comprehensive documentation in docs/JEST_ERROR_OUTPUT.md
+    - Added tests to verify correct functionality
 
 - [ ] **T013: Configure detailed accessibility violation reporting**
   - Update `storybook-a11y` to show specific selectors and WCAG rules

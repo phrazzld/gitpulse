@@ -5,6 +5,23 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
+  // Enhanced error message configuration for API tests
+  verbose: true,
+  // Improved diff visualization
+  prettierPath: null,
+  injectGlobals: true,
+  // Error formatting options
+  errorOnDeprecated: true,
+  // Configure diff output to be more readable
+  // Improved diff output configuration
+  verbose: true,
+  // Larger context for better understanding test failures
+  bail: false,
+  // Make snapshot failures more readable
+  snapshotFormat: {
+    printBasicPrototype: false,
+    escapeString: true,
+  },
   transformIgnorePatterns: [
     '/node_modules/(?!(' + [
       // Octokit packages

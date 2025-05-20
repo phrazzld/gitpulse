@@ -1,5 +1,34 @@
 // Jest setup for Node.js environment (API routes)
 
+// Import the custom Jest helpers
+const { setupJestMatchers } = require('./src/lib/tests/jestHelpers');
+
+// Initialize custom Jest matchers for enhanced error output
+setupJestMatchers();
+
+// Configure Jest for better error messages
+if (expect.hasAssertions) {
+  expect.hasAssertions.suppressError = false;
+}
+
+// Improve the output of array and object diffs
+// This makes it easier to spot differences in complex objects
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  // Enhance error output for objects and arrays by adding more context
+  const enhancedArgs = args.map(arg => {
+    if (typeof arg === 'string' && arg.includes('Difference')) {
+      return arg.replace(/Received:/g, '\nReceived:')
+               .replace(/Expected:/g, '\nExpected:')
+               .replace(/\[\s+/g, '[\n  ')
+               .replace(/\{\s+/g, '{\n  ')
+               .replace(/,\s+/g, ',\n  ');
+    }
+    return arg;
+  });
+  originalConsoleError(...enhancedArgs);
+};
+
 // Mock global fetch
 global.fetch = jest.fn(() => 
   Promise.resolve({

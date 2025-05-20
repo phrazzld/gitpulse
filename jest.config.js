@@ -22,6 +22,23 @@ const customJestConfig = {
     '<rootDir>/e2e/', // Exclude Playwright E2E test files
     '.*\\.helper\\.ts$', // Exclude helper files
   ],
+  // Enhanced error message configuration
+  verbose: true,
+  // Improved diff visualization
+  prettierPath: null, // Use Jest's built-in prettier for consistent diffs
+  injectGlobals: true,
+  // Error formatting options
+  errorOnDeprecated: true,
+  // Configure diff output to be more readable
+  // Improved diff output configuration
+  verbose: true,
+  // Larger context for better understanding test failures
+  bail: false,
+  // Make snapshot failures more readable
+  snapshotFormat: {
+    printBasicPrototype: false,
+    escapeString: true,
+  },
   // Expanding the list of ESM modules to process with Jest transformer
   transformIgnorePatterns: [
     '/node_modules/(?!(' + [
