@@ -720,6 +720,35 @@ This document outlines the tasks needed to address the critical issues identifie
   - Fix TypeScript errors introduced by the TypeScript discriminated unions for icon-only buttons
   - **Priority**: Medium
   - **Effort**: Small
+  - **Completed**: 2025-05-20
   - **Description**: 
     - These tests were intentionally made to fail TypeScript to demonstrate the type safety of the Button component
     - Need to update with proper aria-label while keeping the test purpose intact
+
+- [ ] **T022CI: Fix import paths in accessibility test scripts**
+  - **Priority**: Critical - Blocking CI
+  - **Effort**: Small
+  - **Description**:
+    - Fix module import paths in scripts/__tests__/accessibility/check-a11y-staged-stories-server.test.js
+    - Fix module import paths in scripts/__tests__/accessibility/check-a11y-staged-stories.test.js
+    - Fix module import paths in scripts/__tests__/accessibility/generate-color-docs.test.ts
+    - Update imports to point to the new script locations in scripts/accessibility/
+    - Ensure tests run successfully after relocation
+
+- [ ] **T023CI: Fix failing API route tests**
+  - **Priority**: Critical - Blocking CI
+  - **Effort**: Medium
+  - **Description**:
+    - Fix failing tests in src/app/api/summary/__tests__/route.test.ts
+    - Fix 500 status error responses in API routes
+    - Ensure API route tests pass with 200 OK responses
+    - Update mocking approach to match new dependency injection pattern
+
+- [ ] **T024CI: Fix OperationsPanel component tests**
+  - **Priority**: High
+  - **Effort**: Medium
+  - **Description**:
+    - Fix failing tests in src/components/dashboard/__tests__/OperationsPanel.test.tsx
+    - Address undefined filtersPanel issue in assertions
+    - Update component rendering or test approach
+    - Ensure all test cases pass with proper component rendering
