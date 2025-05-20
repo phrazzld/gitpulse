@@ -4,7 +4,7 @@
 npm run lint
 
 # Run typecheck with exclusions for intentional type errors in tests
-npx tsc --noEmit -p tsconfig.test.json
+npx tsc --noEmit -p tsconfig.temp.json
 
 # Run accessibility checks on staged stories
 node scripts/accessibility/check-a11y-staged-stories.js

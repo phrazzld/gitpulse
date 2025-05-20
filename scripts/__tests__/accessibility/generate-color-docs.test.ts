@@ -1,10 +1,10 @@
-const { generateColorDocs, validateColorPairings, parseCSSVariables } = require('../generate-color-docs.js');
+const { generateColorDocs, validateColorPairings, parseCSSVariables } = require('../../accessibility/generate-color-docs.js');
 import * as fs from 'fs';
 import * as path from 'path';
-import { checkColorContrast } from '../../src/lib/accessibility/colorContrast';
+import { checkColorContrast } from '../../../src/lib/accessibility/colorContrast';
 
 jest.mock('fs');
-jest.mock('../../src/lib/accessibility/colorContrast');
+jest.mock('../../../src/lib/accessibility/colorContrast');
 
 const mockFs = fs as jest.Mocked<typeof fs>;
 const mockCheckColorContrast = checkColorContrast as jest.MockedFunction<typeof checkColorContrast>;
@@ -161,11 +161,11 @@ describe('generate-color-docs', () => {
         backgroundColor: '#1b2b34'
       });
 
-      mockFs.readFileSync.mockImplementation((filePath) => {
-        if (filePath.includes('globals.css')) {
+      mockFs.readFileSync.mockImplementation((filePath: string) => {
+        if (typeof filePath === 'string' && filePath.includes('globals.css')) {
           return ':root { --foreground: #ffffff; --background: #1b2b34; }';
         }
-        if (filePath.includes('config.json')) {
+        if (typeof filePath === 'string' && filePath.includes('config.json')) {
           return JSON.stringify(config);
         }
         return '';
@@ -203,11 +203,11 @@ describe('generate-color-docs', () => {
         backgroundColor: '#888888'
       });
 
-      mockFs.readFileSync.mockImplementation((filePath) => {
-        if (filePath.includes('globals.css')) {
+      mockFs.readFileSync.mockImplementation((filePath: string) => {
+        if (typeof filePath === 'string' && filePath.includes('globals.css')) {
           return ':root { --low-contrast: #777777; --background: #888888; }';
         }
-        if (filePath.includes('config.json')) {
+        if (typeof filePath === 'string' && filePath.includes('config.json')) {
           return JSON.stringify(config);
         }
         return '';

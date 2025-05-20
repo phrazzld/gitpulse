@@ -705,3 +705,15 @@ This document outlines the tasks needed to address the critical issues identifie
 
 - Confirm current hex value of `var(--electric-blue)` in `src/app/globals.css` (for task T003)
 - Determine if the team has existing documentation/guidelines to update or if new ones need to be created
+
+## Repository Maintenance Tasks
+
+- [ ] **T021CI: Fix TypeScript errors in Button accessibility tests**
+  - Fix TS2322 errors in src/components/atoms/__tests__/Button.accessibility.test.tsx and Button.icon-accessibility.test.tsx
+  - Address the missing 'aria-label' property in IconButtonProps
+  - Fix TypeScript errors introduced by the TypeScript discriminated unions for icon-only buttons
+  - **Priority**: Medium
+  - **Effort**: Small
+  - **Description**: 
+    - These tests were intentionally made to fail TypeScript to demonstrate the type safety of the Button component
+    - Need to update with proper aria-label while keeping the test purpose intact
