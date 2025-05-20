@@ -195,8 +195,9 @@ describe("check-a11y-staged-stories", () => {
       const { main } = require("../check-a11y-staged-stories");
       await main();
 
+      // Check for the new log message (it may be called multiple times)
       expect(mockLog).toHaveBeenCalledWith(
-        "No staged Storybook files to check for accessibility.",
+        "✅ No staged Storybook files to check for accessibility.",
       );
       expect(mockExit).toHaveBeenCalledWith(0);
     });

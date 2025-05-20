@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    :root {
+      --electric-blue: #2563eb;
+      --dark-slate: #1b2b34;
+    }
+    
+    button {
+      background-color: var(--dark-slate);
+      color: var(--electric-blue);
+      padding: 10px 20px;
+      margin: 10px;
+    }
+    
+    button:hover {
+      background-color: var(--electric-blue);
+      color: white;
+    }
+    
+    .test-contrast {
+      display: block;
+      width: 200px;
+      height: 50px;
+      margin: 10px;
+      text-align: center;
+      line-height: 50px;
+    }
+    
+    .blue-on-white {
+      background-color: white;
+      color: #2563eb;
+    }
+    
+    .blue-bg-white-text {
+      background-color: #2563eb;
+      color: white;
+    }
+    
+    .old-blue-bg-white-text {
+      background-color: #5ba3ff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Color Contrast Test</h1>
+  
+  <button>Test Button</button>
+  
+  <div class="test-contrast blue-on-white">#2563eb on white</div>
+  <div class="test-contrast blue-bg-white-text">White on #2563eb</div>
+  <div class="test-contrast old-blue-bg-white-text">White on #5ba3ff (old)</div>
+  
+  <script>
+    // Get computed styles
+    const button = document.querySelector('button');
+    const styles = getComputedStyle(button);
+    console.log('--electric-blue value:', styles.getPropertyValue('--electric-blue'));
+    
+    // Test contrast
+    async function testContrast() {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/axe-core/4.8.3/axe.min.js';
+      document.head.appendChild(script);
+      
+      script.onload = async () => {
+        const results = await axe.run();
+        console.log('Accessibility results:', results);
+      };
+    }
+    
+    testContrast();
+  </script>
+</body>
+</html>

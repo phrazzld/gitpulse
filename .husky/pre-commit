@@ -7,7 +7,7 @@ npm run lint
 npx tsc --noEmit -p tsconfig.test.json
 
 # Run accessibility checks on staged stories
-node scripts/check-a11y-staged-stories.js
+node scripts/accessibility/check-a11y-staged-stories.js
 
 # File length check
 echo "Checking file lengths..."

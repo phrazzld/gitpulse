@@ -130,7 +130,7 @@ describe("check-a11y-staged-stories server functionality", () => {
       ]);
     });
 
-    test("should return null when no stories match", () => {
+    test("should return empty array when no stories match", () => {
       const mockStories = {
         stories: {
           "card--default": { importPath: "src/components/Card.stories.tsx" },
@@ -146,7 +146,7 @@ describe("check-a11y-staged-stories server functionality", () => {
         "/path/to/storybook-static",
       );
 
-      expect(result).toBeNull();
+      expect(result).toEqual([]);
     });
 
     test("should return null when stories.json is missing", () => {
@@ -185,8 +185,10 @@ describe("check-a11y-staged-stories server functionality", () => {
         close: jest.fn((callback) => callback()),
       };
 
-      // Mock process.exit
-      const mockExit = jest.spyOn(process, "exit").mockImplementation();
+      // Instead of mocking process.exit, listen for the beforeExit event
+      const exitHandler = jest.fn();
+      process.once('beforeExit', exitHandler);
+      
       const consoleSpy = jest.spyOn(console, "log").mockImplementation();
 
       // Set the server via the module
@@ -199,20 +201,20 @@ describe("check-a11y-staged-stories server functionality", () => {
       expect(mockServer.close).toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith("\nCleaning up server...");
       expect(consoleSpy).toHaveBeenCalledWith("Server closed");
-      expect(mockExit).toHaveBeenCalledWith(0);
+      expect(exitHandler).toHaveBeenCalledWith(0);
 
       // Cleanup
       require("../check-a11y-staged-stories-server").setGlobalServer(null);
-      mockExit.mockRestore();
     });
 
     test("should exit with code 1 by default", async () => {
-      const mockExit = jest.spyOn(process, "exit").mockImplementation();
+      // Listen for the beforeExit event
+      const exitHandler = jest.fn();
+      process.once('beforeExit', exitHandler);
 
       await cleanupAndExit();
 
-      expect(mockExit).toHaveBeenCalledWith(1);
-      mockExit.mockRestore();
+      expect(exitHandler).toHaveBeenCalledWith(1);
     });
   });
 });
