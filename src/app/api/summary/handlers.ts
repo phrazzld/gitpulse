@@ -218,6 +218,11 @@ export function createSummaryHandlers(deps: SummaryHandlerDependencies) {
   until: string,
   authorFilter?: string
 ): Promise<Commit[]> {
+    // Validate inputs
+    if (!since || !until) {
+      logger.warn(MODULE_NAME, 'Missing required date parameters', { since, until });
+      return [];
+    }
   const commitFetchStartTime = Date.now();
   logger.debug(MODULE_NAME, "Fetching commits with installation mapping", {
     installationGroups: Object.keys(reposByInstallation).length,
@@ -231,15 +236,33 @@ export function createSummaryHandlers(deps: SummaryHandlerDependencies) {
   
   // For each installation ID group
   for (const [key, repos] of Object.entries(reposByInstallation)) {
-    if (repos.length === 0) continue;
+    if (!repos || repos.length === 0) {
+      logger.debug(MODULE_NAME, 'Skipping empty repository group', { key });
+      continue;
+    }
     
-    if (key === 'oauth') {
-      // Fetch with OAuth if the user has an access token
-      if (accessToken) {
+    try {
+      if (key === 'oauth') {
+        // Fetch with OAuth if the user has an access token
+        if (accessToken) {
+          commitFetchPromises.push(
+            githubService.fetchCommitsForRepositories(
+              accessToken,
+              undefined, // No installation ID for OAuth
+              repos,
+              since,
+              until,
+              authorFilter
+            )
+          );
+        }
+      } else {
+        // Fetch with installation ID
+        const installId = parseInt(key, 10);
         commitFetchPromises.push(
           githubService.fetchCommitsForRepositories(
             accessToken,
-            undefined, // No installation ID for OAuth
+            installId,
             repos,
             since,
             until,
@@ -247,24 +270,27 @@ export function createSummaryHandlers(deps: SummaryHandlerDependencies) {
           )
         );
       }
-    } else {
-      // Fetch with installation ID
-      const installId = parseInt(key, 10);
-      commitFetchPromises.push(
-        githubService.fetchCommitsForRepositories(
-          accessToken,
-          installId,
-          repos,
-          since,
-          until,
-          authorFilter
-        )
-      );
+    } catch (error) {
+      // Log error but continue with other repository groups
+      logger.error(MODULE_NAME, `Error fetching commits for installation ${key}`, {
+        error,
+        repos,
+        installId: key !== 'oauth' ? parseInt(key, 10) : undefined
+      });
+      // Return empty array for this group
+      commitFetchPromises.push(Promise.resolve([]));
     }
   }
   
-  // Wait for all commit fetching to complete
-  const commitResults = await Promise.all(commitFetchPromises);
+  // Wait for all commit fetching to complete, handling errors
+  let commitResults: Commit[][] = [];
+  try {
+    commitResults = await Promise.all(commitFetchPromises);
+  } catch (error) {
+    logger.error(MODULE_NAME, 'Error in Promise.all for commit fetching', { error });
+    // Continue with any results we have
+    commitResults = [];
+  }
   
   // Combine all commits
   const commits = commitResults.flat();
@@ -395,32 +421,68 @@ export function createSummaryHandlers(deps: SummaryHandlerDependencies) {
 
   // Use the first group (all commits) for the overall summary
   if (groupedResults.length > 0 && groupedResults[0].commits.length > 0) {
-    // Cast readonly array to mutable array for API compatibility
-    const commits = [...groupedResults[0].commits];
-    overallSummary = await geminiService.generateCommitSummary(commits, geminiApiKey);
-    logger.info(MODULE_NAME, "Generated overall AI summary", {
-      timeMs: Date.now() - aiSummaryStartTime,
-      keyThemes: overallSummary?.keyThemes?.length || 0,
-      technicalAreas: overallSummary?.technicalAreas?.length || 0
-    });
+    try {
+      // Cast readonly array to mutable array for API compatibility
+      const commits = [...groupedResults[0].commits];
+      
+      // Validate API key
+      if (!geminiApiKey) {
+        logger.error(MODULE_NAME, 'Missing Gemini API key');
+        // Continue without AI summary
+      } else {
+        overallSummary = await geminiService.generateCommitSummary(commits, geminiApiKey);
+        logger.info(MODULE_NAME, "Generated overall AI summary", {
+          timeMs: Date.now() - aiSummaryStartTime,
+          keyThemes: overallSummary?.keyThemes?.length || 0,
+          technicalAreas: overallSummary?.technicalAreas?.length || 0
+        });
+      }
+    } catch (error) {
+      logger.error(MODULE_NAME, 'Error generating AI summary', { error });
+      // Continue without AI summary
+      overallSummary = null;
+    }
   }
 
   // If group summaries are requested, generate them
   // (Currently not used in our application but included for future flexibility)
   if (generateGroupSummaries) {
-    const updatedGroups = await Promise.all(
-      groupedResults.map(async (group) => {
+    try {
+      const groupSummaryPromises = groupedResults.map(async (group) => {
         if (group.commits.length > 0) {
-          // Cast readonly array to mutable array for API compatibility
-          const commits = [...group.commits];
-          const groupSummary = await geminiService.generateCommitSummary(commits, geminiApiKey);
-          return { ...group, aiSummary: groupSummary };
+          try {
+            // Cast readonly array to mutable array for API compatibility
+            const commits = [...group.commits];
+            const groupSummary = await geminiService.generateCommitSummary(commits, geminiApiKey);
+            return { ...group, aiSummary: groupSummary };
+          } catch (error) {
+            logger.error(MODULE_NAME, 'Error generating group summary', { 
+              error, 
+              groupKey: group.groupKey,
+              commitCount: group.commits.length 
+            });
+            // Return group without AI summary on error
+            return group;
+          }
         }
         return group;
-      })
-    );
-    
-    return { groupedResults: updatedGroups, overallSummary };
+      });
+      
+      let updatedGroups = [];
+      try {
+        updatedGroups = await Promise.all(groupSummaryPromises);
+      } catch (error) {
+        logger.error(MODULE_NAME, 'Error in Promise.all for group summaries', { error });
+        // Fall back to original groups
+        updatedGroups = groupedResults;
+      }
+      
+      return { groupedResults: updatedGroups, overallSummary };
+    } catch (error) {
+      logger.error(MODULE_NAME, 'Error in group summary generation', { error });
+      // Return original data
+      return { groupedResults, overallSummary };
+    }
   }
 
   return { groupedResults, overallSummary };

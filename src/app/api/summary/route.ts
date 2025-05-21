@@ -368,6 +368,15 @@ export async function GET(request: NextRequest) {
     const errorName = errorObj.name || '';
     const errorMsg = errorObj.message || '';
     
+    // Log detailed error information for debugging
+    logger.error(MODULE_NAME, 'Detailed error information', {
+      errorName,
+      errorMsg,
+      errorObj,
+      isError: error instanceof Error,
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
     const isAuthError = errorName === 'HttpError' && 
                       (errorMsg.includes('credentials') || 
                       errorMsg.includes('authentication'));
@@ -385,12 +394,22 @@ export async function GET(request: NextRequest) {
       errorCode = "GITHUB_AUTH_ERROR";
     }
     
+    // Ensure we're properly setting the response status code
+    const statusCode = (isAuthError || isAppError) ? 403 : 500;
+    
+    // Log the response we're about to send
+    logger.info(MODULE_NAME, 'Sending error response', {
+      errorMessage,
+      errorCode,
+      statusCode
+    });
+    
     return new NextResponse(JSON.stringify({ 
       error: errorMessage, 
       details: error instanceof Error ? error.message : "Unknown error",
       code: errorCode
     }), {
-      status: (isAuthError || isAppError) ? 403 : 500,
+      status: statusCode,
       headers: {
         "Content-Type": "application/json",
       },

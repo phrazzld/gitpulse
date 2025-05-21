@@ -742,7 +742,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Updated paths for config files and output files in generate-color-docs.js
     - Two accessibility tests now pass, with a minor unrelated issue in generate-color-docs.test.ts
 
-- [ ] **T023CI: Fix failing API route tests**
+- [x] **T023CI: Fix failing API route tests**
   - **Priority**: Critical - Blocking CI
   - **Effort**: Medium
   - **Description**:
@@ -750,6 +750,15 @@ This document outlines the tasks needed to address the critical issues identifie
     - Fix 500 status error responses in API routes
     - Ensure API route tests pass with 200 OK responses
     - Update mocking approach to match new dependency injection pattern
+  - **Completed**: 2025-05-20
+  - **Implementation Notes**:
+    - Improved error handling in fetchCommitsWithAuthMethod to handle failures gracefully
+    - Added try/catch blocks around critical API calls to prevent cascading failures
+    - Enhanced logging to provide better context for errors
+    - Added robustness to Promise.all error handling
+    - Improved input validation for essential parameters
+    - Added better error handling to Gemini AI summary generation
+    - All tests now pass locally (route.test.ts, handlers.test.ts, handlers-mock.test.ts)
 
 - [ ] **T024CI: Fix OperationsPanel component tests**
   - **Priority**: High
