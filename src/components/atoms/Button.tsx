@@ -170,14 +170,19 @@ export default function Button(props: ButtonProps) {
       (leftIcon || rightIcon)
     : true; // If no children prop, it's an IconButtonProps which is always icon-only
 
-  // Development warning for missing aria-label on icon-only buttons
+  // Enforce aria-label for icon-only buttons in all environments
   React.useEffect(() => {
-    if (
-      process.env.NODE_ENV === "development" &&
-      isIconOnly &&
-      !props["aria-label"]
-    ) {
-      console.error("Icon-only button must have an accessible name");
+    if (isIconOnly && !props["aria-label"]) {
+      if (process.env.NODE_ENV === "development") {
+        // More detailed error in development
+        console.error(
+          "Accessibility Error: Icon-only button must have an aria-label attribute that describes its action. " +
+          "This is required for screen reader users to understand the button's purpose."
+        );
+      } else {
+        // Still show error in production but less verbose
+        console.error("Accessibility Error: Icon-only button missing aria-label");
+      }
     }
   }, [isIconOnly, props]);
 

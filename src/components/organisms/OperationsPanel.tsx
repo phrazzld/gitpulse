@@ -129,12 +129,17 @@ export default function OperationsPanel({
   onSignOut
 }: OperationsPanelProps) {
   return (
-    <div className="border rounded-lg p-6 mb-8" style={{ 
-      backgroundColor: 'rgba(27, 43, 52, 0.7)',
-      backdropFilter: 'blur(5px)',
-      borderColor: 'var(--neon-green, #00994f)', /* #00994f - Meets WCAG AA 3.51:1 contrast ratio */
-      boxShadow: '0 0 15px rgba(0, 153, 79, 0.3)' /* Using #00994f with increased opacity for better contrast */
-    }}>
+    <section 
+      className="border rounded-lg p-6 mb-8" 
+      style={{ 
+        backgroundColor: 'rgba(27, 43, 52, 0.7)',
+        backdropFilter: 'blur(5px)',
+        borderColor: 'var(--neon-green, #00994f)', /* #00994f - Meets WCAG AA 3.51:1 contrast ratio */
+        boxShadow: '0 0 15px rgba(0, 153, 79, 0.3)' /* Using #00994f with increased opacity for better contrast */
+      }}
+      role="region"
+      aria-label="Commit Analysis Controls"
+    >
       {/* Terminal-like header */}
       <TerminalHeader title="COMMIT ANALYSIS MODULE" />
       
@@ -177,6 +182,6 @@ export default function OperationsPanel({
         onModeChange={onModeChange}
         onOrganizationChange={onOrganizationChange}
       />
-    </div>
+    </section>
   );
 }

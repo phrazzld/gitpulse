@@ -1,4 +1,6 @@
 import { useId } from 'react';
+import { useAriaAnnouncer } from '@/lib/accessibility/useAriaAnnouncer';
+import { useKeyboardNavigation } from '@/lib/accessibility/useKeyboardNavigation';
 
 /**
  * Activity mode options for data display filtering
@@ -150,10 +152,19 @@ export default function ModeSelector({
   const headerId = useId();
   const groupId = useId();
   
+  // Initialize accessibility hooks
+  const { announce } = useAriaAnnouncer();
+  
   // Handle mode change
   const handleModeChange = (mode: ActivityMode) => {
     if (!disabled) {
       onChange(mode);
+      
+      // Find the selected mode to announce for screen readers
+      const selectedModeOption = modes.find(m => m.id === mode);
+      if (selectedModeOption) {
+        announce(`Selected: ${selectedModeOption.label}. ${selectedModeOption.description}`, 'polite');
+      }
     }
   };
 
@@ -195,6 +206,8 @@ export default function ModeSelector({
       role="radiogroup"
       aria-labelledby={headerId}
       aria-disabled={disabled}
+      aria-roledescription="Activity mode selection"
+      aria-orientation="vertical"
     >
       <div className="p-3 border-b" style={{ borderColor: accentColor }}>
         <div className="flex items-center">
@@ -220,10 +233,11 @@ export default function ModeSelector({
             const optionId = `${groupId}-option-${index}`;
             
             return (
-              <div 
+              <button 
+                type="button"
                 id={optionId}
                 key={mode.id}
-                className={`p-3 rounded-md transition-all duration-200 
+                className={`p-3 rounded-md transition-all duration-200 w-full text-left
                   ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                   ${isSelected ? 'ring-2' : ''}
                   focus:outline-none focus:ring-2 focus:ring-offset-1`}
@@ -237,6 +251,8 @@ export default function ModeSelector({
                 onClick={() => handleModeChange(mode.id)}
                 role="radio"
                 aria-checked={isSelected}
+                aria-labelledby={`${optionId}-label`}
+                aria-describedby={`${optionId}-description`}
                 tabIndex={disabled ? -1 : (isSelected ? 0 : -1)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 data-testid={`mode-option-${mode.id}`}
@@ -273,7 +289,7 @@ export default function ModeSelector({
                     </div>
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

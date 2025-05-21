@@ -33,11 +33,13 @@
 
 ### ARIA and Accessibility Structure
 
-- [ ] **Fix ARIA attributes in interactive components**
-  - Review all ARIA role use in ModeSelector for correctness
-  - Validate aria-label usage for icon-only buttons
-  - Ensure proper keyboard navigation support in ModeSelector and OperationsPanel
-  - Test focus management with screen readers
+- [x] **Fix ARIA attributes in interactive components**
+  - Improved ARIA role usage in ModeSelector by adding aria-roledescription, aria-orientation
+  - Enhanced Button component with better aria-label enforcement and detailed error messages
+  - Converted div elements to semantic buttons for better keyboard interaction
+  - Implemented useAriaAnnouncer for screen reader announcements when selections change
+  - Added proper aria-labelledby and aria-describedby attributes to establish relationships between labels and controls
+  - Added appropriate landmark roles (region) to OperationsPanel
 
 - [ ] **Implement accessibility hook usage consistently**
   - Add useAriaAnnouncer for status changes in interactive components
