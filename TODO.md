@@ -56,7 +56,7 @@
   - Verify test coverage exceeds 90% threshold for atoms
   - Include tests for keyboard navigation and screen reader compatibility
 
-- [ ] **Add Jest accessibility tests for molecules components**
+- [x] **Add Jest accessibility tests for molecules components**
   - Add tests for ErrorAlert component accessibility
   - Add tests for TerminalHeader component
   - Add tests for AuthStatusBanner component
