@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { AppInstallation, Repository } from "@/lib/github/types";
 import { fetchAllRepositories } from "@/lib/github/repositories";
 import { checkAppInstallation, getAllAppInstallations } from "@/lib/github/auth";
+import { createOAuthClient, createAppClient } from "@/lib/github/adapter";
 import { logger } from "@/lib/logger";
 import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl } from "@/lib/cache";
 import { withAuthValidation } from "@/lib/auth/apiAuth";
+import { GitPulseSession } from "@/lib/auth/sessionTypes";
 
 const MODULE_NAME = "api:repos";
 
@@ -34,7 +36,7 @@ function optimizeRepositoryData(repo: Repository): OptimizedRepository {
   };
 }
 
-async function handleGetRepositories(request: NextRequest, session: any) {
+async function handleGetRepositories(request: NextRequest, session: GitPulseSession) {
   logger.debug(MODULE_NAME, "GET /api/repos request received", { 
     url: request.url,
     headers: Object.fromEntries([...request.headers.entries()])
@@ -63,11 +65,14 @@ async function handleGetRepositories(request: NextRequest, session: any) {
     return notModifiedResponse(etag, generateCacheControl(CacheTTL.LONG, CacheTTL.LONG * 2));
   }
   
+  // Create Octokit client for OAuth operations
+  const oauthClient = session.accessToken ? createOAuthClient(session.accessToken) : null;
+  
   // Get all available installations if we have an access token
   let allInstallations: AppInstallation[] = [];
-  if (session.accessToken) {
+  if (oauthClient) {
     try {
-      allInstallations = await getAllAppInstallations(session.accessToken);
+      allInstallations = await getAllAppInstallations(oauthClient);
       logger.info(MODULE_NAME, "Retrieved all GitHub App installations", {
         count: allInstallations.length,
         accounts: allInstallations.filter(i => i.account).map(i => i.account?.login)
@@ -148,8 +153,14 @@ async function handleGetRepositories(request: NextRequest, session: any) {
       logger.debug(MODULE_NAME, "Using GitHub access token", tokenInfo);
     }
     
+    // Create Octokit client based on authentication type
+    const authMethod = installationId ? 'app' : 'oauth';
+    const client = installationId 
+      ? await createAppClient(installationId)
+      : createOAuthClient(session.accessToken!);
+      
     // Get all repositories the user has access to (owned, org, and collaborative)
-    const rawRepositories = await fetchAllRepositories(session.accessToken, installationId);
+    const rawRepositories = await fetchAllRepositories(client, authMethod);
     
     // Optimize the repository data by extracting only necessary fields
     const repositories = rawRepositories.map(optimizeRepositoryData);

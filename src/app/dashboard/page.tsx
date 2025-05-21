@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { getDefaultDateRange } from '@/lib/dashboard-utils';
+import { getDefaultDateRange, getGitHubAppInstallUrl } from '@/lib/dashboard-utils';
 import { FilterState, DateRange } from '@/types/dashboard';
 
 // Custom hooks
@@ -13,13 +13,13 @@ import { useFilters } from '@/hooks/dashboard/useFilters';
 import { useSummary } from '@/hooks/dashboard/useSummary';
 
 // Components
-import Header from '@/components/dashboard/Header';
-import DashboardLoadingState from '@/components/DashboardLoadingState';
-import OperationsPanel from '@/components/dashboard/OperationsPanel';
+import Header from '@/components/organisms/Header';
+import DashboardLoadingState from '@/components/organisms/DashboardLoadingState';
+import OperationsPanel from '@/components/organisms/OperationsPanel';
 import RepositorySection from '@/components/dashboard/RepositorySection';
-import DateRangePicker from '@/components/DateRangePicker';
-import AnalysisParameters from '@/components/dashboard/AnalysisParameters';
-import SummaryView from '@/components/dashboard/SummaryView';
+import DateRangePicker from '@/components/molecules/DateRangePicker';
+import AnalysisParameters from '@/components/organisms/AnalysisParameters';
+import SummaryView from '@/components/organisms/SummaryView';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -92,7 +92,7 @@ export default function Dashboard() {
   }, []);
   
   // Handle organization selection changes
-  const handleOrganizationChange = useCallback((selectedOrgs: string[]) => {
+  const handleOrganizationChange = useCallback((selectedOrgs: readonly string[]) => {
     setOrganizations(selectedOrgs);
   }, [setOrganizations]);
   
@@ -229,6 +229,9 @@ export default function Dashboard() {
               repositories: [...filters.repositories]
             }}
             userName={session?.user?.name}
+            installationUrl={getGitHubAppInstallUrl()}
+            isGitHubAppAuth={authMethod === 'github_app'}
+            hasInstallations={installations.length > 0}
             onModeChange={setActivityMode}
             onOrganizationChange={handleOrganizationChange}
             onFilterChange={handleFilterChange}

@@ -1,5 +1,5 @@
 import React from 'react';
-import ActivityFeed from '@/components/ActivityFeed';
+import ActivityFeed from '@/components/organisms/ActivityFeed';
 import SummaryStats from '@/components/dashboard/SummaryStats';
 import SummaryDetails from '@/components/dashboard/SummaryDetails';
 import { createActivityFetcher } from '@/lib/activity';

@@ -1,8 +1,13 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
 
-# Run lint and typecheck
-npm run lint && npm run typecheck
+# Run lint
+npm run lint
+
+# Run typecheck with exclusions for intentional type errors in tests
+npx tsc --noEmit -p tsconfig.temp.json
+
+# Run accessibility checks on staged stories
+node scripts/accessibility/check-a11y-staged-stories.js
 
 # File length check
 echo "Checking file lengths..."

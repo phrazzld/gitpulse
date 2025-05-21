@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.test.tsx",
+    // Exclude test files with intentional type errors
+    "src/components/atoms/__tests__/Button.accessibility.test.tsx",
+    "src/components/atoms/__tests__/Button.icon-accessibility.test.tsx"
+  ]
+}

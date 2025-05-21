@@ -4,6 +4,7 @@ import { createAuthOptions } from "@/lib/auth/authConfig";
 import { Commit } from "@/lib/github/types";
 import { fetchAllRepositories } from "@/lib/github/repositories";
 import { fetchCommitsForRepositories } from "@/lib/github/commits";
+import { createOAuthClient, createAppClient } from "@/lib/github/adapter";
 import { logger } from "@/lib/logger";
 import { generateETag, isCacheValid, notModifiedResponse, cachedJsonResponse, CacheTTL, generateCacheControl } from "@/lib/cache";
 
@@ -92,9 +93,15 @@ export async function GET(request: NextRequest) {
     dateRange: { since, until }
   });
 
+  // Create Octokit client based on authentication type
+  const authMethod = installationId ? 'app' : 'oauth';
+  const client = installationId 
+    ? await createAppClient(installationId)
+    : createOAuthClient(session.accessToken!);
+
   try {
     // Fetch repositories
-    const repositories = await fetchAllRepositories(session.accessToken, installationId);
+    const repositories = await fetchAllRepositories(client, authMethod);
     
     // Apply organization and repository filters
     let filteredRepos = repositories;
@@ -120,8 +127,8 @@ export async function GET(request: NextRequest) {
     let commits: Commit[] = [];
     if (needCommits && repoNames.length > 0) {
       commits = await fetchCommitsForRepositories(
-        session.accessToken,
-        installationId,
+        client,
+        authMethod,
         repoNames,
         since,
         until
@@ -168,8 +175,8 @@ export async function GET(request: NextRequest) {
         
         try {
           const defaultCommits = await fetchCommitsForRepositories(
-            session.accessToken,
-            installationId,
+            client,
+            authMethod,
             repoNames,
             startDate,
             endDate

@@ -87,7 +87,7 @@ export async function compressBody(body: string, method: 'gzip' | 'deflate' | 'b
 
 /**
  * Creates a compressed NextResponse with appropriate headers
- * 
+ *
  * @param data - The data to compress and send
  * @param request - The original NextRequest
  * @param status - The HTTP status code
@@ -95,7 +95,7 @@ export async function compressBody(body: string, method: 'gzip' | 'deflate' | 'b
  * @returns NextResponse - The compressed response
  */
 export async function compressedJsonResponse(
-  data: any,
+  data: unknown,
   request: NextRequest,
   status: number = 200,
   headers: Record<string, string> = {}

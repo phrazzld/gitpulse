@@ -13,7 +13,7 @@ const MODULE_NAME = 'cache';
  * @param data The data to generate an ETag for
  * @returns A string ETag value
  */
-export function generateETag(data: any): string {
+export function generateETag(data: unknown): string {
   try {
     const jsonString = JSON.stringify(data);
     // Use MD5 as it's fast and sufficient for ETag purposes
@@ -74,7 +74,7 @@ export function notModifiedResponse(etag: string, cacheControl?: string): NextRe
  * @returns A NextResponse with the data and caching headers
  */
 export function cachedJsonResponse(
-  data: any, 
+  data: unknown, 
   status: number = 200,
   options: {
     etag?: string,
@@ -119,7 +119,7 @@ export function cachedJsonResponse(
  */
 export async function optimizedJsonResponse(
   request: NextRequest,
-  data: any, 
+  data: unknown, 
   status: number = 200,
   options: {
     etag?: string,

@@ -6,10 +6,9 @@
  * GitHub App installations.
  */
 
-import { Octokit } from "octokit";
-import { createAppAuth } from "@octokit/auth-app";
 import { logger } from "../logger";
 import { AppInstallation, InstallationTargetType } from "./types";
+import { IOctokitClient, IOctokitFactory, IAppAuthProvider } from "./interfaces";
 
 const MODULE_NAME = "github:auth";
 
@@ -40,18 +39,15 @@ export function getInstallationManagementUrl(
  * @returns Array of GitHub App installations
  */
 export async function getAllAppInstallations(
-  accessToken: string,
+  client: IOctokitClient,
 ): Promise<AppInstallation[]> {
-  logger.debug(MODULE_NAME, "getAllAppInstallations called", {
-    accessTokenLength: accessToken?.length,
-  });
+  logger.debug(MODULE_NAME, "getAllAppInstallations called");
 
   try {
-    const octokit = new Octokit({ auth: accessToken });
 
     // Get all installations for the authenticated user
     const { data } =
-      await octokit.rest.apps.listInstallationsForAuthenticatedUser();
+      await client.rest.apps.listInstallationsForAuthenticatedUser();
 
     // Find our app's installations
     const appName = process.env.NEXT_PUBLIC_GITHUB_APP_NAME;
@@ -67,12 +63,12 @@ export async function getAllAppInstallations(
     let filteredInstallations = data.installations;
     if (appName || appId) {
       filteredInstallations = data.installations.filter(
-        (inst) => inst.app_slug === appName || inst.app_id.toString() === appId,
+        (inst: any) => inst.app_slug === appName || inst.app_id.toString() === appId,
       );
     }
 
     // Map to our simplified format
-    const installations: AppInstallation[] = filteredInstallations.map((inst) => {
+    const installations: AppInstallation[] = filteredInstallations.map((inst: any) => {
       // Ensure we have a valid account object
       if (!inst.account || typeof inst.account !== 'object') {
         return {
@@ -126,15 +122,13 @@ export async function getAllAppInstallations(
  * @returns The first installation ID if found, null otherwise
  */
 export async function checkAppInstallation(
-  accessToken: string,
+  client: IOctokitClient,
 ): Promise<number | null> {
-  logger.debug(MODULE_NAME, "checkAppInstallation called", {
-    accessTokenLength: accessToken?.length,
-  });
+  logger.debug(MODULE_NAME, "checkAppInstallation called");
 
   try {
     // Get all installations
-    const installations = await getAllAppInstallations(accessToken);
+    const installations = await getAllAppInstallations(client);
 
     if (installations.length > 0) {
       // For now, return the first installation ID
@@ -162,11 +156,15 @@ export async function checkAppInstallation(
 /**
  * Get an Octokit instance with installation access token
  * @param installationId The GitHub App installation ID
+ * @param appAuthProvider The app auth provider
+ * @param octokitFactory The Octokit factory function
  * @returns An Octokit instance authenticated with the installation
  */
 export async function getInstallationOctokit(
   installationId: number,
-): Promise<Octokit> {
+  appAuthProvider: IAppAuthProvider,
+  octokitFactory: IOctokitFactory,
+): Promise<IOctokitClient> {
   logger.debug(MODULE_NAME, "getInstallationOctokit called", {
     installationId,
   });
@@ -185,7 +183,7 @@ export async function getInstallationOctokit(
     }
 
     // Create an Octokit instance authenticated as the GitHub App installation
-    const auth = createAppAuth({
+    const auth = appAuthProvider.createAppAuth({
       appId: appId,
       privateKey: privateKey.replace(/\\n/g, "\n"), // Handle newlines in the key
       installationId,
@@ -199,7 +197,7 @@ export async function getInstallationOctokit(
     });
 
     // Create an Octokit instance with the installation token
-    return new Octokit({ auth: installationAuth.token });
+    return octokitFactory({ auth: installationAuth.token });
   } catch (error) {
     logger.error(MODULE_NAME, "Error creating installation Octokit", { error });
     throw error;
@@ -209,22 +207,26 @@ export async function getInstallationOctokit(
 /**
  * Create an Octokit instance with OAuth token authentication
  * @param accessToken The OAuth access token
+ * @param octokitFactory The Octokit factory function
  * @returns An Octokit instance authenticated with the OAuth token
  */
-export function createOAuthOctokit(accessToken: string): Octokit {
+export function createOAuthOctokit(
+  accessToken: string,
+  octokitFactory: IOctokitFactory,
+): IOctokitClient {
   logger.debug(MODULE_NAME, "createOAuthOctokit called", {
     accessTokenLength: accessToken?.length,
   });
   
-  return new Octokit({ auth: accessToken });
+  return octokitFactory({ auth: accessToken });
 }
 
 /**
  * Validate an OAuth token by checking if it has the necessary scopes
- * @param accessToken The OAuth access token to validate
+ * @param client The Octokit client to use for validation
  * @returns An object with validation results
  */
-export async function validateOAuthToken(accessToken: string): Promise<{
+export async function validateOAuthToken(client: IOctokitClient): Promise<{
   isValid: boolean;
   login?: string;
   scopes: string[];
@@ -232,15 +234,11 @@ export async function validateOAuthToken(accessToken: string): Promise<{
   hasReadOrgScope: boolean;
   error?: string;
 }> {
-  logger.debug(MODULE_NAME, "validateOAuthToken called", {
-    accessTokenLength: accessToken?.length,
-  });
+  logger.debug(MODULE_NAME, "validateOAuthToken called");
 
   try {
-    const octokit = createOAuthOctokit(accessToken);
-    
     // Attempt to get authenticated user info
-    const userInfo = await octokit.rest.users.getAuthenticated();
+    const userInfo = await client.rest.users.getAuthenticated();
     
     // Extract scopes from response headers
     const scopesHeader = userInfo.headers["x-oauth-scopes"] || "";

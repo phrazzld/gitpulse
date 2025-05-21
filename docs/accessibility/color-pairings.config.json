@@ -1,0 +1,94 @@
+{
+  "pairings": [
+    {
+      "name": "Primary Text on Dark Background",
+      "foreground": "var(--foreground)",
+      "background": "var(--background)",
+      "contextDescription": "Main body text, headers, and general content",
+      "wcagLevel": "AA",
+      "textSize": "normal", 
+      "themes": ["dark"]
+    },
+    {
+      "name": "Primary Text on Secondary Background",
+      "foreground": "var(--foreground)",
+      "background": "var(--background-secondary)",
+      "contextDescription": "Text on card backgrounds, modals, and secondary surfaces",
+      "wcagLevel": "AA",
+      "textSize": "normal",
+      "themes": ["dark"]
+    },
+    {
+      "name": "Neon Green Text on Dark Slate",
+      "foreground": "#00803d",
+      "background": "var(--background)",
+      "contextDescription": "Primary buttons, interactive elements, and accent text",
+      "wcagLevel": "AA",
+      "textSize": "normal",
+      "themes": ["dark"]
+    },
+    {
+      "name": "White Text on Electric Blue",
+      "foreground": "#ffffff",
+      "background": "#1a4bbd",
+      "contextDescription": "Secondary buttons, active states, and highlighted elements",
+      "wcagLevel": "AA",
+      "textSize": "normal",
+      "themes": ["dark"]
+    },
+    {
+      "name": "Dark Slate Text on Neon Green",
+      "foreground": "#0c1821",
+      "background": "var(--accent-primary)",
+      "contextDescription": "Button hover states, inverted accent elements",
+      "wcagLevel": "AA",
+      "textSize": "normal",
+      "themes": ["dark"]
+    },
+    {
+      "name": "Warning Text on Dark Background",
+      "foreground": "#a26100",
+      "background": "var(--background)",
+      "contextDescription": "Warning messages, alerts, and cautionary UI elements",
+      "wcagLevel": "AA",
+      "textSize": "normal",
+      "themes": ["dark"]
+    },
+    {
+      "name": "Error Text on Dark Background",
+      "foreground": "#c22f2f",
+      "background": "var(--background)",
+      "contextDescription": "Error messages, validation states, and error indicators",
+      "wcagLevel": "AA",
+      "textSize": "normal",
+      "themes": ["dark"]
+    },
+    {
+      "name": "Large Neon Green Text on Dark Slate",
+      "foreground": "#00994f",
+      "background": "var(--background)",
+      "contextDescription": "Large headings, hero text, and prominent display text",
+      "wcagLevel": "AA",
+      "textSize": "large",
+      "themes": ["dark"]
+    },
+    {
+      "name": "Electric Blue Text on Dark Slate",
+      "foreground": "var(--accent-secondary)",
+      "background": "var(--background)",
+      "contextDescription": "Links, secondary accent text, and interactive hints",
+      "wcagLevel": "AA",
+      "textSize": "normal",
+      "themes": ["dark"]
+    },
+    {
+      "name": "High Contrast Body Text",
+      "foreground": "var(--foreground)",
+      "background": "var(--background)",
+      "contextDescription": "Maximum readability for extended reading",
+      "wcagLevel": "AAA",
+      "textSize": "normal",
+      "themes": ["dark"]
+    }
+  ]
+}

@@ -1,46 +1,53 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
 
-# testing
+# Testing
 /coverage
+/test-artifacts
+/playwright-report
 
-# next.js
+# Keep placeholder report files
+!/test-results/
+!/test-results/a11y-summary.md
+!/lighthouse-results/
+!/lighthouse-results/performance-summary.md
+e2e/storageState.json
+e2e/storageState-debug.json
+
+# Build outputs
 /.next/
 /out/
-
-# production
 /build
 /storybook-static
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Logs
+/logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*storybook.log
+build-storybook.log
 
-# local env files
+# Environment and local configs
 .env*.local
+**/.claude/settings.local.json
+.DS_Store
 
-# vercel
+# Deploy-related
 .vercel
 
-# typescript
+# TypeScript
 *.tsbuildinfo
+tsconfig.*.tsbuildinfo
 next-env.d.ts
 
-# logs
-/logs
-*.log
-
-# planning files
+# Planning and temporary files
 AESTHETIC.md
 AESTHETIC_*.jpeg
 CONTEXT.md
@@ -48,10 +55,18 @@ DEV-REF.md
 **/glance.md
 thinktank_output/
 thinktank_output_tasks/
+thinktank_*/
 consultation-report/
 *-plan.md
+*-task.md
+*-SUMMARY.md
 diff.md
 CODE_REVIEW.md
 GROOM-PROMPT.md
+commit-message.txt
 
-*storybook.log
+# Security sensitive (unless explicitly needed)
+*.pem
+
+# Misc
+.DS_Store

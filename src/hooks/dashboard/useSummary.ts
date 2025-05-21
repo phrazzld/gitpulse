@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { ActivityMode, CommitSummary, DateRange, Installation } from '@/types/dashboard';
 import { logger } from '@/lib/logger';
+import { useFetch } from '@/contexts/FetchContext';
 
 const MODULE_NAME = 'hooks:useSummary';
 
@@ -42,12 +43,22 @@ export function useSummary({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<CommitSummary | null>(null);
-  const [installations, setInstallations] = useState<Installation[] | readonly Installation[]>([]);
-  const [currentInstallations, setCurrentInstallations] = useState<Installation[] | readonly Installation[]>([]);
+  const [installations, setInstallations] = useState<readonly Installation[]>([]);
+  const [currentInstallations, setCurrentInstallations] = useState<readonly Installation[]>([]);
   const [authMethod, setAuthMethod] = useState<string | null>(null);
+  // Get the fetch function from context
+  const fetchFn = useFetch();
+
+  interface ApiErrorData {
+    needsInstallation?: boolean;
+    code?: string;
+    error?: string;
+    message?: string;
+    [key: string]: unknown;
+  }
 
   // Function to handle API errors
-  const handleApiError = useCallback((errorData: any, response: Response) => {
+  const handleApiError = useCallback((errorData: ApiErrorData, response: Response) => {
     // Check for installation needed error
     if (errorData.needsInstallation) {
       throw new Error('GitHub App installation required. Please install the GitHub App to access all your repositories, including private ones.');
@@ -61,7 +72,7 @@ export function useSummary({
       throw new Error('GitHub authentication issue detected. Your token may be invalid, expired, or missing required permissions. Please sign out and sign in again to grant all necessary permissions.');
     }
     
-    throw new Error(errorData.error || 'Failed to generate summary');
+    throw new Error(errorData.error || errorData.message || 'Failed to generate summary');
   }, []);
 
   // Function to generate a summary based on current filters
@@ -115,7 +126,7 @@ export function useSummary({
         }
       });
 
-      const response = await fetch(`/api/summary?${params.toString()}`);
+      const response = await fetchFn(`/api/summary?${params.toString()}`);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -157,14 +168,20 @@ export function useSummary({
         commitCount: data.stats?.totalCommits || 0,
         repositoryCount: data.stats?.repositories?.length || 0
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : typeof error === 'string' 
+          ? error 
+          : 'Failed to generate summary';
+      
       logger.error(MODULE_NAME, 'Error generating summary', { 
-        error: error.message,
+        error: errorMessage,
         activityMode,
         dateRange
       });
       
-      setError(error.message || 'Failed to generate summary. Please try again.');
+      setError(errorMessage || 'Failed to generate summary. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -176,7 +193,8 @@ export function useSummary({
     repositories,
     contributors,
     installationIds,
-    handleApiError
+    handleApiError,
+    fetchFn
   ]);
 
   return {

@@ -1,6 +1,8 @@
 import React from 'react';
-import OperationsPanel from '../OperationsPanel';
-import { ActivityMode } from '@/components/ui/ModeSelector';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import OperationsPanel from '@/components/organisms/OperationsPanel';
+import { ActivityMode } from '@/components/atoms/ModeSelector';
 
 // Mock the dashboard-utils module
 jest.mock('@/lib/dashboard-utils', () => ({
@@ -13,315 +15,260 @@ jest.mock('@/lib/github', () => ({
 }));
 
 // Mock components used by OperationsPanel
-jest.mock('@/components/ui/ModeSelector', () => ({
+jest.mock('@/components/molecules/TerminalHeader', () => ({
   __esModule: true,
-  default: jest.fn().mockImplementation(({ selectedMode, onChange, disabled }) => (
-    <div data-testid="mode-selector" data-selected-mode={selectedMode} data-disabled={disabled}>
-      <button onClick={() => onChange('my-activity')}>My Activity</button>
-      <button onClick={() => onChange('my-work-activity')}>My Work Activity</button>
-      <button onClick={() => onChange('team-activity')}>Team Activity</button>
-    </div>
-  ))
+  default: jest.fn().mockImplementation(({ title }) => (
+    <div data-testid="terminal-header" data-title={title}></div>
+  )),
 }));
 
-jest.mock('@/components/OrganizationPicker', () => ({
+jest.mock('@/components/molecules/ErrorAlert', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(({ message, needsInstallation, installationUrl, onSignOut }) => (
+    <div 
+      data-testid="error-alert" 
+      data-message={message}
+      data-needs-installation={`${needsInstallation}`}
+      data-installation-url={installationUrl}
+    >
+      {needsInstallation && <button data-testid="install-button">Install</button>}
+      {message && message.includes('authentication') && (
+        <button 
+          data-testid="sign-out-button" 
+          onClick={() => onSignOut && onSignOut({ callbackUrl: '/' })}
+        >
+          Sign Out
+        </button>
+      )}
+    </div>
+  )),
+}));
+
+jest.mock('@/components/molecules/AuthStatusBanner', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(({ authMethod, needsInstallation, installations, currentInstallations }) => (
+    <div 
+      data-testid="auth-banner" 
+      data-auth-method={authMethod}
+      data-needs-installation={`${needsInstallation}`}
+      data-installations-count={`${installations.length}`}
+      data-current-installations-count={`${currentInstallations.length}`}
+    ></div>
+  )),
+}));
+
+jest.mock('@/components/organisms/AccountSelectionPanel', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(({ installations, currentInstallations, onSwitchInstallations }) => (
+    <div 
+      data-testid="account-panel" 
+      data-installations-count={`${installations.length}`}
+      data-current-installations-count={`${currentInstallations.length}`}
+    >
+      <button 
+        data-testid="switch-installations-button" 
+        onClick={() => onSwitchInstallations([installations[0]?.id || 0])}
+      >
+        Switch
+      </button>
+    </div>
+  )),
+}));
+
+jest.mock('@/components/organisms/AnalysisFiltersPanel', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(({ 
-    organizations, 
-    selectedOrganizations, 
-    onSelectionChange,
-    mode,
-    disabled,
-    isLoading,
-    currentUsername
-  }) => {
-    // Only render for appropriate modes
-    if (mode !== 'my-work-activity' && mode !== 'team-activity') {
-      return null;
-    }
-    
-    return (
-      <div 
-        data-testid="org-picker" 
-        data-selected-orgs={JSON.stringify(selectedOrganizations)}
-        data-disabled={disabled}
-        data-loading={isLoading}
-        data-username={currentUsername}
-        data-mode={mode}
+    activityMode, 
+    loading, 
+    installations, 
+    activeFilters, 
+    userName, 
+    onModeChange, 
+    onOrganizationChange 
+  }) => (
+    <div 
+      data-testid="filters-panel" 
+      data-activity-mode={activityMode}
+      data-loading={`${loading}`}
+      data-installations-count={`${installations.length}`}
+      data-username={userName || ''}
+    >
+      <button 
+        data-testid="mode-change-button" 
+        onClick={() => onModeChange(activityMode === 'my-activity' ? 'team-activity' : 'my-activity')}
       >
-        <button onClick={() => onSelectionChange(['org1'])}>Select Org1</button>
-        <button onClick={() => onSelectionChange(['org1', 'org2'])}>Select Multiple</button>
-        <button onClick={() => onSelectionChange([])}>Clear Selection</button>
-      </div>
-    );
-  })
+        Toggle Mode
+      </button>
+      <button 
+        data-testid="org-change-button" 
+        onClick={() => onOrganizationChange(['org1', 'org2'])}
+      >
+        Select Orgs
+      </button>
+    </div>
+  )),
 }));
 
-// Mock next/navigation
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn().mockReturnValue({
-    push: jest.fn(),
-    replace: jest.fn(),
-    refresh: jest.fn()
-  })
-}));
-
-// Create mock element for testing
-interface MockElement {
-  type: string;
-  props: Record<string, any>;
-  children?: MockElement[] | string | number;
-}
-
-interface MockRenderer {
-  render: (component: React.ReactElement) => MockElement;
-}
-
-const createMockRenderer = (): MockRenderer => {
-  return {
-    render: (component: React.ReactElement): MockElement => {
-      // Extract type and props from component
-      const type = component.type;
-      const props = component.props as Record<string, any>;
-      
-      let renderedType = '';
-      if (typeof type === 'string') {
-        renderedType = type;
-      } else if (typeof type === 'function') {
-        // For function components, use the name
-        renderedType = type.name || 'Unknown';
-      } else {
-        renderedType = 'Unknown';
-      }
-      
-      let children: MockElement[] | string | number | undefined;
-      
-      // Handle children prop
-      if (props.children) {
-        if (Array.isArray(props.children)) {
-          children = props.children.map((child: any) => {
-            if (React.isValidElement(child)) {
-              // @ts-ignore - We know the render method exists on this
-              return this.render(child);
-            }
-            return child;
-          });
-        } else if (React.isValidElement(props.children)) {
-          // @ts-ignore - We know the render method exists on this
-          children = this.render(props.children);
-        } else {
-          children = props.children;
-        }
-      }
-      
-      // Create the rendered element
-      const renderedElement: MockElement = {
-        type: renderedType,
-        props: { ...props, children: undefined },
-      };
-      
-      if (children !== undefined) {
-        renderedElement.children = children;
-      }
-      
-      return renderedElement;
+// Create a base mock props object
+const createDefaultProps = () => ({
+  error: null,
+  loading: false,
+  needsInstallation: false,
+  authMethod: 'github_app',
+  installations: [
+    {
+      id: 123,
+      account: {
+        login: 'testorg',
+        type: 'Organization',
+        avatarUrl: 'https://github.com/testorg.png'
+      },
+      appSlug: 'gitpulse',
+      appId: 12345,
+      repositorySelection: 'all',
+      targetType: 'Organization',
+      permissions: {},
+      createdAt: '2023-01-01T00:00:00Z',
+      updatedAt: '2023-01-01T00:00:00Z'
     }
-  };
-};
+  ],
+  currentInstallations: [],
+  activityMode: 'my-activity' as ActivityMode,
+  activeFilters: {
+    contributors: ['me'],
+    organizations: [],
+    repositories: []
+  },
+  userName: 'testuser',
+  installationUrl: 'https://github.com/apps/gitpulse/installations/new',
+  isGitHubAppAuth: true,
+  hasInstallations: true,
+  onModeChange: jest.fn(),
+  onOrganizationChange: jest.fn(),
+  onFilterChange: jest.fn(),
+  onSwitchInstallations: jest.fn(),
+  onSignOut: jest.fn()
+});
 
 describe('OperationsPanel', () => {
-  // Sample test data
-  const defaultProps = {
-    error: null,
-    loading: false,
-    needsInstallation: false,
-    authMethod: 'github_app',
-    installations: [
-      {
-        id: 123,
-        account: {
-          login: 'org1',
-          type: 'Organization',
-          avatarUrl: 'https://github.com/org1.png'
-        },
-        appSlug: 'gitpulse',
-        appId: 1,
-        repositorySelection: 'all',
-        targetType: 'Organization'
-      },
-      {
-        id: 456,
-        account: {
-          login: 'user1',
-          type: 'User',
-          avatarUrl: 'https://github.com/user1.png'
-        },
-        appSlug: 'gitpulse',
-        appId: 1,
-        repositorySelection: 'all',
-        targetType: 'User'
-      }
-    ],
-    currentInstallations: [
-      {
-        id: 123,
-        account: {
-          login: 'org1',
-          type: 'Organization',
-          avatarUrl: 'https://github.com/org1.png'
-        },
-        appSlug: 'gitpulse',
-        appId: 1,
-        repositorySelection: 'all',
-        targetType: 'Organization'
-      }
-    ],
-    activityMode: 'my-activity' as ActivityMode,
-    activeFilters: {
-      contributors: ['me'],
-      organizations: [],
-      repositories: []
-    },
-    userName: 'testuser',
-    onModeChange: jest.fn(),
-    onOrganizationChange: jest.fn(),
-    onFilterChange: jest.fn(),
-    onSwitchInstallations: jest.fn(),
-    onSignOut: jest.fn()
-  };
-
-  // Create the mock renderer
-  const mockRenderer = createMockRenderer();
-  
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  test('renders component with github_app auth method', () => {
-    const rendered = mockRenderer.render(<OperationsPanel {...defaultProps} />);
+  
+  it('renders without error', () => {
+    const props = createDefaultProps();
+    render(<OperationsPanel {...props} />);
     
-    // Check if it renders the right auth method message
-    expect(rendered).toBeDefined();
-    expect(JSON.stringify(rendered)).toContain('GITHUB APP INTEGRATION ACTIVE');
+    // Verify terminal header is rendered
+    expect(screen.getByTestId('terminal-header')).toBeInTheDocument();
   });
   
-  test('renders component with oauth auth method', () => {
-    const rendered = mockRenderer.render(
-      <OperationsPanel 
-        {...defaultProps} 
-        authMethod="oauth"
-        currentInstallations={[]}
-      />
-    );
+  it('renders with GitHub App auth', () => {
+    const props = createDefaultProps();
+    render(<OperationsPanel {...props} />);
     
-    // Check if it renders the right auth method message
-    expect(rendered).toBeDefined();
-    expect(JSON.stringify(rendered)).toContain('USING OAUTH AUTHENTICATION');
+    // Find auth banner and check props
+    const authBanner = screen.getByTestId('auth-banner');
+    expect(authBanner).toBeInTheDocument();
+    expect(authBanner).toHaveAttribute('data-auth-method', 'github_app');
+    expect(authBanner).toHaveAttribute('data-needs-installation', 'false');
+    expect(authBanner).toHaveAttribute('data-installations-count', '1');
+    expect(authBanner).toHaveAttribute('data-current-installations-count', '0');
   });
   
-  test('renders with error message', () => {
-    const rendered = mockRenderer.render(
-      <OperationsPanel 
-        {...defaultProps} 
-        error="Something went wrong"
-      />
-    );
+  it('renders with error message', () => {
+    const props = {
+      ...createDefaultProps(),
+      error: 'Test error message'
+    };
     
-    // Check if it renders the error message
-    expect(rendered).toBeDefined();
-    expect(JSON.stringify(rendered)).toContain('SYSTEM ALERT: Something went wrong');
+    render(<OperationsPanel {...props} />);
+    
+    // Find error alert and check props
+    const errorAlert = screen.getByTestId('error-alert');
+    expect(errorAlert).toBeInTheDocument();
+    expect(errorAlert).toHaveAttribute('data-message', 'Test error message');
   });
   
-  test('renders with authentication error and reinitialize button', () => {
-    const rendered = mockRenderer.render(
-      <OperationsPanel 
-        {...defaultProps} 
-        error="GitHub authentication issue detected"
-      />
-    );
+  it('renders with authentication error', () => {
+    const props = {
+      ...createDefaultProps(),
+      error: 'Error with authentication'
+    };
     
-    // Check if it renders the error message and the reinitialize button
-    expect(rendered).toBeDefined();
-    expect(JSON.stringify(rendered)).toContain('SYSTEM ALERT: GitHub authentication issue detected');
-    expect(JSON.stringify(rendered)).toContain('REINITIALIZE SESSION');
+    render(<OperationsPanel {...props} />);
+    
+    // Find error alert and check props
+    const errorAlert = screen.getByTestId('error-alert');
+    expect(errorAlert).toBeInTheDocument();
+    expect(errorAlert).toHaveAttribute('data-message', 'Error with authentication');
+    expect(screen.getByTestId('sign-out-button')).toBeInTheDocument();
   });
   
-  test('renders with needsInstallation message and button', () => {
-    const rendered = mockRenderer.render(
-      <OperationsPanel 
-        {...defaultProps} 
-        needsInstallation={true}
-        error="GitHub App installation required"
-      />
-    );
+  it('renders with needs installation', () => {
+    const props = {
+      ...createDefaultProps(),
+      needsInstallation: true,
+      error: 'GitHub App installation required'
+    };
     
-    // Check if it renders the installation button
-    expect(rendered).toBeDefined();
-    expect(JSON.stringify(rendered)).toContain('INSTALL GITHUB APP');
+    render(<OperationsPanel {...props} />);
+    
+    // Find error alert and check props
+    const errorAlert = screen.getByTestId('error-alert');
+    expect(errorAlert).toBeInTheDocument();
+    expect(errorAlert).toHaveAttribute('data-needs-installation', 'true');
+    expect(screen.getByTestId('install-button')).toBeInTheDocument();
   });
   
-  test('renders mode selector with correct props', () => {
-    const rendered = mockRenderer.render(<OperationsPanel {...defaultProps} />);
+  it('renders account selection panel', () => {
+    const props = createDefaultProps();
+    render(<OperationsPanel {...props} />);
     
-    // Find the mode selector in the rendered output
-    const renderedJson = JSON.stringify(rendered);
-    expect(renderedJson).toContain('mode-selector');
-    expect(renderedJson).toContain('my-activity');
+    // Find account panel
+    expect(screen.getByTestId('account-panel')).toBeInTheDocument();
   });
   
-  test('renders organization picker for my-work-activity mode', () => {
-    const rendered = mockRenderer.render(
-      <OperationsPanel 
-        {...defaultProps} 
-        activityMode="my-work-activity"
-      />
-    );
+  it('renders with My Work Activity mode', () => {
+    const props = {
+      ...createDefaultProps(),
+      activityMode: 'my-work-activity' as ActivityMode
+    };
     
-    // Check if organization picker is rendered for this mode
-    const renderedJson = JSON.stringify(rendered);
-    expect(renderedJson).toContain('org-picker');
-    expect(renderedJson).toContain('my-work-activity');
+    render(<OperationsPanel {...props} />);
+    
+    // Find filters panel and check mode
+    const filtersPanel = screen.getByTestId('filters-panel');
+    expect(filtersPanel).toBeInTheDocument();
+    expect(filtersPanel).toHaveAttribute('data-activity-mode', 'my-work-activity');
   });
   
-  test('renders organization picker for team-activity mode', () => {
-    const rendered = mockRenderer.render(
-      <OperationsPanel 
-        {...defaultProps} 
-        activityMode="team-activity"
-      />
-    );
+  it('renders with Team Activity mode', () => {
+    const props = {
+      ...createDefaultProps(),
+      activityMode: 'team-activity' as ActivityMode
+    };
     
-    // Check if organization picker is rendered for this mode
-    const renderedJson = JSON.stringify(rendered);
-    expect(renderedJson).toContain('org-picker');
-    expect(renderedJson).toContain('team-activity');
+    render(<OperationsPanel {...props} />);
+    
+    // Find filters panel and check mode
+    const filtersPanel = screen.getByTestId('filters-panel');
+    expect(filtersPanel).toBeInTheDocument();
+    expect(filtersPanel).toHaveAttribute('data-activity-mode', 'team-activity');
   });
   
-  test('does not render organization picker for my-activity mode', () => {
-    const rendered = mockRenderer.render(
-      <OperationsPanel 
-        {...defaultProps} 
-        activityMode="my-activity"
-      />
-    );
+  it('renders with loading state', () => {
+    const props = {
+      ...createDefaultProps(),
+      loading: true,
+      activityMode: 'team-activity' as ActivityMode
+    };
     
-    // Check if organization picker is not rendered for this mode
-    const renderedJson = JSON.stringify(rendered);
-    expect(renderedJson).not.toContain('org-picker');
-  });
-  
-  test('passes loading state to child components', () => {
-    const rendered = mockRenderer.render(
-      <OperationsPanel 
-        {...defaultProps} 
-        loading={true}
-        activityMode="team-activity"
-      />
-    );
+    render(<OperationsPanel {...props} />);
     
-    // Check if loading prop is passed to child components
-    const renderedJson = JSON.stringify(rendered);
-    expect(renderedJson).toContain('"data-loading":true');
-    expect(renderedJson).toContain('"data-disabled":true');
+    // Find filters panel and check loading state
+    const filtersPanel = screen.getByTestId('filters-panel');
+    expect(filtersPanel).toBeInTheDocument();
+    expect(filtersPanel).toHaveAttribute('data-loading', 'true');
   });
 });

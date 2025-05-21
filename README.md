@@ -24,6 +24,7 @@ GitPulse is a web application that generates summaries of GitHub commits for ind
 - **State Management**: React hooks with context for local state management
 - **Styling**: TailwindCSS for responsive design
 - **Component Development**: Storybook for UI component development and documentation
+- **Visual Testing**: Chromatic for visual regression testing of UI components
 - **Error Handling**: Structured error handling chain with fallbacks
 - **Logging**: Structured JSON logging with correlation IDs
 - **Deployment**: Vercel (recommended)
@@ -130,7 +131,7 @@ npm run dev:log
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-### Storybook
+### Storybook and Visual Testing
 
 GitPulse uses Storybook for UI component development and documentation:
 
@@ -140,6 +141,9 @@ npm run storybook
 
 # Build static Storybook site
 npm run build-storybook
+
+# Run visual regression tests using Chromatic
+npm run chromatic
 ```
 
 Storybook provides an isolated environment for developing and testing UI components without needing to run the full application. It helps with:
@@ -150,6 +154,17 @@ Storybook provides an isolated environment for developing and testing UI compone
 - Showcasing the component library
 
 After running `npm run storybook`, open the displayed URL in your browser (typically http://localhost:6006) to view the component library.
+
+#### Visual Regression Testing
+
+The project uses Chromatic for automated visual regression testing:
+
+- Automatically compares UI components across branches and commits
+- Detects unintended visual changes during development
+- Runs on every PR and merge to the main branch
+- Provides a visual review interface for approving/rejecting changes
+
+For setup instructions and workflow details, see [docs/CHROMATIC_SETUP.md](docs/CHROMATIC_SETUP.md).
 
 ## Usage
 
@@ -196,6 +211,8 @@ When adding new features or making changes, follow these guidelines:
 - Keep files under 500 lines (warning threshold)
 - Use immutable patterns where possible (readonly modifiers, const, etc.)
 - Document the "why" not just the "how" in comments
+- Follow [dependency management guidelines](docs/DEPENDENCY_MANAGEMENT.md) for adding, updating, and removing dependencies
+- For CI failures, follow the [CI Failure Post-mortem Process](docs/CI_FAILURE_POSTMORTEM_PROCESS.md)
 
 ### Error Handling Principles
 

@@ -2,34 +2,23 @@
  * Tests for the GitHub commits module
  */
 
-// Test type declarations
-declare function describe(name: string, fn: () => void): void;
-declare function beforeEach(fn: () => void): void;
-declare function afterEach(fn: () => void): void;
-declare function it(name: string, fn: () => void): void;
-declare function expect(actual: any): any;
-declare namespace jest {
-  function resetModules(): void;
-  function clearAllMocks(): void;
-  function spyOn(object: any, methodName: string): any;
-  function fn(implementation?: (...args: any[]) => any): any;
-  function mock(moduleName: string, factory?: () => any): void;
-}
-
 import { 
   fetchRepositoryCommitsOAuth, 
   fetchRepositoryCommitsApp, 
   fetchRepositoryCommits,
   fetchCommitsForRepositories
 } from '../commits';
-import { createOAuthOctokit, getInstallationOctokit } from '../auth';
+import { IOctokitClient } from '../interfaces';
+import { createMockOctokitClient } from './testUtils.helper';
 import { logger } from '@/lib/logger';
 
-// Mock the dependencies
-jest.mock('../auth', () => ({
-  createOAuthOctokit: jest.fn(),
-  getInstallationOctokit: jest.fn()
-}));
+// Test globals
+declare const describe: any;
+declare const it: any;
+declare const beforeEach: any;
+declare const afterEach: any;
+declare const expect: any;
+declare const jest: any;
 
 jest.mock('@/lib/logger', () => ({
   logger: {
@@ -41,8 +30,11 @@ jest.mock('@/lib/logger', () => ({
 }));
 
 describe('GitHub Commits Module', () => {
+  let mockClient: IOctokitClient;
+  
   beforeEach(() => {
     jest.clearAllMocks();
+    mockClient = createMockOctokitClient();
   });
 
   describe('Function exports', () => {
@@ -64,21 +56,26 @@ describe('GitHub Commits Module', () => {
   });
 
   describe('fetchRepositoryCommitsOAuth', () => {
-    it('should call createOAuthOctokit with the correct token', async () => {
-      // Set up mock octokit instance
-      const mockOctokit = {
-        paginate: jest.fn().mockResolvedValue([
-          { sha: '123abc', commit: { message: 'Test commit' }, html_url: 'https://github.com/test/repo/commit/123abc' }
-        ]),
-        rest: { repos: { listCommits: jest.fn() } }
-      };
+    it('should fetch commits using the provided client', async () => {
+      const mockCommits = [
+        { sha: '123abc', commit: { message: 'Test commit' }, html_url: 'https://github.com/test/repo/commit/123abc' }
+      ];
       
-      (createOAuthOctokit as any).mockReturnValue(mockOctokit);
+      (mockClient.paginate as any).mockResolvedValue(mockCommits);
       
-      await fetchRepositoryCommitsOAuth('test-token', 'owner', 'repo', '2023-01-01', '2023-12-31');
+      const result = await fetchRepositoryCommitsOAuth(mockClient, 'owner', 'repo', '2023-01-01', '2023-12-31');
       
-      expect(createOAuthOctokit).toHaveBeenCalledWith('test-token');
-      expect(mockOctokit.paginate).toHaveBeenCalled();
+      expect(mockClient.paginate).toHaveBeenCalledWith(
+        mockClient.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: 'owner',
+          repo: 'repo',
+          since: '2023-01-01',
+          until: '2023-12-31',
+          per_page: 100
+        })
+      );
+      expect(result[0].repository).toEqual({ full_name: 'owner/repo' });
     });
     
     it('should add repository information to each commit', async () => {
@@ -87,14 +84,9 @@ describe('GitHub Commits Module', () => {
         { sha: '456def', commit: { message: 'Test commit 2' }, html_url: 'https://github.com/test/repo/commit/456def' }
       ];
       
-      const mockOctokit = {
-        paginate: jest.fn().mockResolvedValue(mockCommits),
-        rest: { repos: { listCommits: jest.fn() } }
-      };
+      (mockClient.paginate as any).mockResolvedValue(mockCommits);
       
-      (createOAuthOctokit as any).mockReturnValue(mockOctokit);
-      
-      const result = await fetchRepositoryCommitsOAuth('test-token', 'owner', 'repo', '2023-01-01', '2023-12-31');
+      const result = await fetchRepositoryCommitsOAuth(mockClient, 'owner', 'repo', '2023-01-01', '2023-12-31');
       
       expect(result.length).toBe(2);
       expect(result[0].repository).toEqual({ full_name: 'owner/repo' });
@@ -102,14 +94,9 @@ describe('GitHub Commits Module', () => {
     });
     
     it('should return empty array on error', async () => {
-      const mockOctokit = {
-        paginate: jest.fn().mockRejectedValue(new Error('API error')),
-        rest: { repos: { listCommits: jest.fn() } }
-      };
+      (mockClient.paginate as any).mockRejectedValue(new Error('API error'));
       
-      (createOAuthOctokit as any).mockReturnValue(mockOctokit);
-      
-      const result = await fetchRepositoryCommitsOAuth('test-token', 'owner', 'repo', '2023-01-01', '2023-12-31');
+      const result = await fetchRepositoryCommitsOAuth(mockClient, 'owner', 'repo', '2023-01-01', '2023-12-31');
       
       expect(result).toEqual([]);
       expect(logger.error).toHaveBeenCalled();
@@ -117,115 +104,123 @@ describe('GitHub Commits Module', () => {
   });
 
   describe('fetchRepositoryCommitsApp', () => {
-    it('should call getInstallationOctokit with the installation ID', async () => {
-      // Set up mock octokit instance
-      const mockOctokit = {
-        paginate: jest.fn().mockResolvedValue([]),
-        rest: { repos: { listCommits: jest.fn() } }
-      };
+    it('should fetch commits using the provided client', async () => {
+      const mockCommits = [
+        { sha: '123abc', commit: { message: 'Test commit' }, html_url: 'https://github.com/test/repo/commit/123abc' }
+      ];
       
-      (getInstallationOctokit as any).mockResolvedValue(mockOctokit);
+      (mockClient.paginate as any).mockResolvedValue(mockCommits);
       
-      await fetchRepositoryCommitsApp(12345, 'owner', 'repo', '2023-01-01', '2023-12-31');
+      const result = await fetchRepositoryCommitsApp(mockClient, 'owner', 'repo', '2023-01-01', '2023-12-31');
       
-      expect(getInstallationOctokit).toHaveBeenCalledWith(12345);
+      expect(mockClient.paginate).toHaveBeenCalledWith(
+        mockClient.rest.repos.listCommits,
+        expect.objectContaining({
+          owner: 'owner',
+          repo: 'repo',
+          since: '2023-01-01',
+          until: '2023-12-31',
+          per_page: 100
+        })
+      );
+      expect(result[0].repository).toEqual({ full_name: 'owner/repo' });
+    });
+    
+    it('should pass author parameter when provided', async () => {
+      (mockClient.paginate as any).mockResolvedValue([]);
+      
+      await fetchRepositoryCommitsApp(mockClient, 'owner', 'repo', '2023-01-01', '2023-12-31', 'testuser');
+      
+      expect(mockClient.paginate).toHaveBeenCalledWith(
+        mockClient.rest.repos.listCommits,
+        expect.objectContaining({
+          author: 'testuser'
+        })
+      );
     });
   });
 
   describe('fetchRepositoryCommits', () => {
-    it('should call fetchRepositoryCommitsApp when installation ID is provided', async () => {
-      // Set up mock for getInstallationOctokit and octokit
-      const mockOctokit = {
-        paginate: jest.fn().mockResolvedValue([]),
-        rest: { repos: { listCommits: jest.fn() } }
-      };
+    it('should call OAuth method when auth method is oauth', async () => {
+      const mockCommits = [{ sha: '123', commit: { message: 'Test' }, html_url: 'http://test.com' }];
+      (mockClient.paginate as any).mockResolvedValue(mockCommits);
       
-      (getInstallationOctokit as any).mockResolvedValue(mockOctokit);
+      const result = await fetchRepositoryCommits(mockClient, 'oauth', 'owner', 'repo', '2023-01-01', '2023-12-31');
       
-      await fetchRepositoryCommits('token', 12345, 'owner', 'repo', '2023-01-01', '2023-12-31');
-      
-      // Verify getInstallationOctokit was called (indicating fetchRepositoryCommitsApp was used)
-      expect(getInstallationOctokit).toHaveBeenCalledWith(12345);
-      
-      // Verify the logger shows we're using GitHub App installation
-      expect(logger.info).toHaveBeenCalledWith(
-        'github:commits',
-        'Using GitHub App installation for commit access',
-        { installationId: 12345 }
-      );
+      expect(result).toHaveLength(1);
+      expect(result[0].repository).toEqual({ full_name: 'owner/repo' });
     });
     
-    it('should call fetchRepositoryCommitsOAuth when only access token is provided', async () => {
-      // Set up mock for createOAuthOctokit and octokit
-      const mockOctokit = {
-        paginate: jest.fn().mockResolvedValue([]),
-        rest: { repos: { listCommits: jest.fn() } }
-      };
+    it('should call App method when auth method is app', async () => {
+      const mockCommits = [{ sha: '456', commit: { message: 'Test' }, html_url: 'http://test.com' }];
+      (mockClient.paginate as any).mockResolvedValue(mockCommits);
       
-      (createOAuthOctokit as any).mockReturnValue(mockOctokit);
+      const result = await fetchRepositoryCommits(mockClient, 'app', 'owner', 'repo', '2023-01-01', '2023-12-31');
       
-      await fetchRepositoryCommits('token', undefined, 'owner', 'repo', '2023-01-01', '2023-12-31');
-      
-      // Verify createOAuthOctokit was called (indicating fetchRepositoryCommitsOAuth was used)
-      expect(createOAuthOctokit).toHaveBeenCalledWith('token');
-      
-      // Verify the logger shows we're using OAuth
-      expect(logger.info).toHaveBeenCalledWith(
-        'github:commits',
-        'Using OAuth token for commit access'
-      );
+      expect(result).toHaveLength(1);
+      expect(result[0].repository).toEqual({ full_name: 'owner/repo' });
     });
     
-    it('should throw error when no authentication is provided', async () => {
-      await expect(fetchRepositoryCommits(undefined, undefined, 'owner', 'repo')).rejects.toThrow(
-        'No GitHub authentication available'
-      );
+    it('should throw error for unsupported auth method', async () => {
+      await expect(
+        fetchRepositoryCommits(mockClient, 'unsupported' as any, 'owner', 'repo', '2023-01-01', '2023-12-31')
+      ).rejects.toThrow('Unsupported auth method: unsupported');
     });
   });
 
   describe('fetchCommitsForRepositories', () => {
-    it('should call fetchRepositoryCommits for each repository', async () => {
-      // Create spies for fetchRepositoryCommits
-      const fetchSpy = jest.spyOn(await import('../commits'), 'fetchRepositoryCommits')
-        .mockResolvedValue([]);
+    it('should fetch commits for multiple repositories', async () => {
+      const mockRepoCommits = [
+        { sha: '123', commit: { message: 'Test 1' }, html_url: 'http://test.com', repository: { full_name: 'owner/repo1' } },
+        { sha: '456', commit: { message: 'Test 2' }, html_url: 'http://test.com', repository: { full_name: 'owner/repo2' } }
+      ];
       
-      await fetchCommitsForRepositories('token', undefined, ['owner1/repo1', 'owner2/repo2'], '2023-01-01', '2023-12-31');
-      
-      expect(fetchSpy).toHaveBeenCalledTimes(2);
-      expect(fetchSpy).toHaveBeenCalledWith('token', undefined, 'owner1', 'repo1', '2023-01-01', '2023-12-31', undefined);
-      expect(fetchSpy).toHaveBeenCalledWith('token', undefined, 'owner2', 'repo2', '2023-01-01', '2023-12-31', undefined);
-    });
-    
-    it('should try fallback approaches when no commits are found with the provided author', async () => {
-      const fetchSpy = jest.spyOn(await import('../commits'), 'fetchRepositoryCommits');
-      
-      // First call returns empty array (no commits found with author)
-      fetchSpy.mockResolvedValueOnce([]);
-      // Second call with fallback author returns commits
-      fetchSpy.mockResolvedValueOnce([
-        { sha: '123abc', commit: { message: 'Test commit' }, repository: { full_name: 'owner/repo' } }
-      ] as any);
+      (mockClient.paginate as any).mockResolvedValue([mockRepoCommits[0]])
+        .mockResolvedValueOnce([mockRepoCommits[0]])
+        .mockResolvedValueOnce([mockRepoCommits[1]]);
       
       const result = await fetchCommitsForRepositories(
-        'token', 
-        undefined, 
-        ['owner/repo'], 
+        mockClient, 
+        'oauth',
+        ['owner/repo1', 'owner/repo2'], 
         '2023-01-01', 
-        '2023-12-31',
-        'non-existent-author'
+        '2023-12-31'
       );
       
-      expect(result.length).toBe(1);
-      expect(logger.info).toHaveBeenCalledWith(
-        'github:commits',
-        'No commits found with provided author name; retrying with the repo owner as author'
-      );
+      expect(result).toHaveLength(2);
+      expect(mockClient.paginate).toHaveBeenCalledTimes(2);
     });
     
-    it('should throw error when no authentication is provided', async () => {
-      await expect(fetchCommitsForRepositories()).rejects.toThrow(
-        'No GitHub authentication available'
+    it('should batch repository requests for app auth', async () => {
+      const repos = Array.from({ length: 50 }, (_, i) => `owner/repo${i}`);
+      (mockClient.paginate as any).mockResolvedValue([]);
+      
+      await fetchCommitsForRepositories(mockClient, 'app', repos, '2023-01-01', '2023-12-31');
+      
+      // Should fetch commits for all 50 repositories, with batching handled in parallel
+      expect(mockClient.paginate).toHaveBeenCalledTimes(50);
+    });
+    
+    it('should handle empty repository list', async () => {
+      const result = await fetchCommitsForRepositories(mockClient, 'oauth', [], '2023-01-01', '2023-12-31');
+      
+      expect(result).toEqual([]);
+      expect(mockClient.paginate).not.toHaveBeenCalled();
+    });
+    
+    it('should handle repository processing errors', async () => {
+      (mockClient.paginate as any).mockRejectedValue(new Error('API error'));
+      
+      const result = await fetchCommitsForRepositories(
+        mockClient, 
+        'oauth',
+        ['owner/repo1'], 
+        '2023-01-01', 
+        '2023-12-31'
       );
+      
+      expect(result).toEqual([]);
+      expect(logger.error).toHaveBeenCalled();
     });
   });
 });

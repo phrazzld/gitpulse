@@ -1,7 +1,9 @@
-import { renderHook, act } from '@testing-library/react';
+import React from 'react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
 import { useSummary } from '../useSummary';
 import { logger } from '@/lib/logger';
+import { FetchProvider } from '@/contexts/FetchContext';
 
 // Mock dependencies
 jest.mock('next-auth/react');
@@ -14,8 +16,23 @@ jest.mock('@/lib/logger', () => ({
   }
 }));
 
-// Mock global fetch
-global.fetch = jest.fn();
+// Create a mock fetch function for testing
+const mockFetch = jest.fn();
+
+// Helper function to create wrapper with FetchProvider
+const createWrapper = () => {
+  const FetchProviderWrapper = ({ children }: { children: React.ReactNode }) => {
+    // Pass children as third argument, not as a prop
+    return React.createElement(
+      FetchProvider,
+      // @ts-ignore - Bypass TypeScript error about missing children prop
+      { fetchImplementation: mockFetch },
+      children
+    );
+  };
+  FetchProviderWrapper.displayName = 'FetchProviderWrapper';
+  return FetchProviderWrapper;
+};
 
 // Helper to create a mock response
 const createMockResponse = (data: any, status = 200) => {
@@ -37,6 +54,7 @@ describe('useSummary', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFetch.mockReset();
     (useSession as jest.Mock).mockReturnValue(mockSession);
   });
 
@@ -50,7 +68,9 @@ describe('useSummary', () => {
   };
 
   it('should initialize with default values', () => {
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHook(() => useSummary(defaultProps), {
+      wrapper: createWrapper()
+    });
     
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
@@ -77,9 +97,11 @@ describe('useSummary', () => {
       currentInstallations: [{ id: 1, account: { login: 'org1' } }]
     };
 
-    (fetch as jest.Mock).mockResolvedValueOnce(createMockResponse(mockSummaryData));
+    mockFetch.mockResolvedValueOnce(createMockResponse(mockSummaryData));
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHook(() => useSummary(defaultProps), {
+      wrapper: createWrapper()
+    });
     
     await act(async () => {
       await result.current.generateSummary();
@@ -93,7 +115,7 @@ describe('useSummary', () => {
     expect(result.current.currentInstallations).toEqual([{ id: 1, account: { login: 'org1' } }]);
     
     // Check if fetch was called with the right arguments
-    expect(fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('/api/summary?since=2023-01-01&until=2023-01-31&groupBy=chronological')
     );
   });
@@ -104,7 +126,9 @@ describe('useSummary', () => {
       status: 'unauthenticated'
     });
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHook(() => useSummary(defaultProps), {
+      wrapper: createWrapper()
+    });
     
     await act(async () => {
       await result.current.generateSummary();
@@ -120,26 +144,28 @@ describe('useSummary', () => {
   });
 
   it('should include installation IDs in the request', async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce(createMockResponse({}));
+    mockFetch.mockResolvedValueOnce(createMockResponse({}));
 
     const propsWithInstallations = {
       ...defaultProps,
       installationIds: [123, 456]
     };
 
-    const { result } = renderHook(() => useSummary(propsWithInstallations));
+    const { result } = renderHook(() => useSummary(propsWithInstallations), {
+      wrapper: createWrapper()
+    });
     
     await act(async () => {
       await result.current.generateSummary();
     });
 
-    expect(fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining('installation_ids=123%2C456')
     );
   });
 
   it('should include filter parameters in the request', async () => {
-    (fetch as jest.Mock).mockResolvedValueOnce(createMockResponse({}));
+    mockFetch.mockResolvedValueOnce(createMockResponse({}));
 
     const propsWithFilters = {
       ...defaultProps,
@@ -148,19 +174,21 @@ describe('useSummary', () => {
       contributors: ['user1']
     };
 
-    const { result } = renderHook(() => useSummary(propsWithFilters));
+    const { result } = renderHook(() => useSummary(propsWithFilters), {
+      wrapper: createWrapper()
+    });
     
     await act(async () => {
       await result.current.generateSummary();
     });
 
-    expect(fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       expect.stringMatching(/contributors=user1/)
     );
-    expect(fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       expect.stringMatching(/organizations=org1%2Corg2/)
     );
-    expect(fetch).toHaveBeenCalledWith(
+    expect(mockFetch).toHaveBeenCalledWith(
       expect.stringMatching(/repositories=repo1/)
     );
   });
@@ -171,13 +199,15 @@ describe('useSummary', () => {
       code: 'GITHUB_AUTH_ERROR'
     };
 
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,
       json: jest.fn().mockResolvedValue(errorResponse)
     });
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHook(() => useSummary(defaultProps), {
+      wrapper: createWrapper()
+    });
     
     await act(async () => {
       await result.current.generateSummary();
@@ -201,13 +231,15 @@ describe('useSummary', () => {
       needsInstallation: true
     };
 
-    (fetch as jest.Mock).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 403,
       json: jest.fn().mockResolvedValue(errorResponse)
     });
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHook(() => useSummary(defaultProps), {
+      wrapper: createWrapper()
+    });
     
     await act(async () => {
       await result.current.generateSummary();
@@ -219,9 +251,11 @@ describe('useSummary', () => {
   });
 
   it('should handle network errors', async () => {
-    (fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+    mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-    const { result } = renderHook(() => useSummary(defaultProps));
+    const { result } = renderHook(() => useSummary(defaultProps), {
+      wrapper: createWrapper()
+    });
     
     await act(async () => {
       await result.current.generateSummary();

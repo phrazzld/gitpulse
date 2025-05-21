@@ -8,21 +8,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { createAuthOptions } from "@/lib/auth/authConfig";
+import { logger } from "@/lib/logger";
+import { createSummaryHandlers } from "./handlers";
 import { 
   getAllAppInstallations,
   fetchAllRepositories,
+  fetchCommitsForRepositories,
   AppInstallation
 } from "@/lib/github";
-import { logger } from "@/lib/logger";
-import {
-  filterRepositoriesByOrgAndRepoNames,
-  mapRepositoriesToInstallations,
-  fetchCommitsWithAuthMethod,
-  filterCommitsByContributor,
-  groupCommitsByFilter,
-  generateSummaryData,
-  prepareSummaryResponse
-} from "./handlers";
+import { extractUniqueDates, extractUniqueRepositories, generateBasicStats } from "@/lib/api-utils";
+import { generateCommitSummary } from "@/lib/gemini";
 import { FilterInfo, GroupBy } from "@/types/api";
 
 const MODULE_NAME = "api:summary";
@@ -218,6 +213,17 @@ export async function GET(request: NextRequest) {
     
     // 5. Core Business Logic - Use handlers
 
+    // Create handlers with injected dependencies
+    const handlers = createSummaryHandlers({
+      logger,
+      githubService: {
+        fetchAllRepositories,
+        fetchCommitsForRepositories
+      },
+      geminiService: { generateCommitSummary },
+      apiUtils: { extractUniqueDates, extractUniqueRepositories, generateBasicStats }
+    });
+
     // Start measuring request time
     const requestStartTime = Date.now();
 
@@ -259,7 +265,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Filter repositories by organization and repository name
-    const filteredRepos = filterRepositoriesByOrgAndRepoNames(allRepos, organizations, repositoryFilters);
+    const filteredRepos = handlers.filterRepositoriesByOrgAndRepoNames(allRepos, organizations, repositoryFilters);
     
     const reposToAnalyze = filteredRepos.map(repo => repo.full_name);
     
@@ -281,7 +287,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Map repositories to installations for efficient fetching
-    const { reposByInstallation } = mapRepositoriesToInstallations(
+    const { reposByInstallation } = handlers.mapRepositoriesToInstallations(
       reposToAnalyze, 
       allInstallations, 
       installationIds
@@ -305,7 +311,7 @@ export async function GET(request: NextRequest) {
     
     // Fetch commits with appropriate auth methods
     const commitFetchStartTime = Date.now();
-    const commits = await fetchCommitsWithAuthMethod(
+    const commits = await handlers.fetchCommitsWithAuthMethod(
       reposByInstallation,
       session.accessToken,
       since,
@@ -318,21 +324,21 @@ export async function GET(request: NextRequest) {
     });
     
     // Apply further contributor filtering if needed
-    const filteredCommits = filterCommitsByContributor(commits, contributors, session.user?.name || undefined);
+    const filteredCommits = handlers.filterCommitsByContributor(commits, contributors, session.user?.name || undefined);
     
     // Group commits chronologically
-    const groupedResults = groupCommitsByFilter(filteredCommits, groupBy);
+    const groupedResults = handlers.groupCommitsByFilter(filteredCommits, groupBy);
     
     // Generate AI summary
     const aiSummaryStartTime = Date.now();
-    const { groupedResults: summaryResults, overallSummary } = await generateSummaryData(
+    const { groupedResults: summaryResults, overallSummary } = await handlers.generateSummaryData(
       groupedResults,
       geminiApiKey,
       generateGroupSummaries
     );
     
     // Prepare final response
-    const summaryResponse = prepareSummaryResponse(
+    const summaryResponse = handlers.prepareSummaryResponse(
       summaryResults,
       overallSummary,
       filterInfo,
@@ -362,6 +368,15 @@ export async function GET(request: NextRequest) {
     const errorName = errorObj.name || '';
     const errorMsg = errorObj.message || '';
     
+    // Log detailed error information for debugging
+    logger.error(MODULE_NAME, 'Detailed error information', {
+      errorName,
+      errorMsg,
+      errorObj,
+      isError: error instanceof Error,
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
     const isAuthError = errorName === 'HttpError' && 
                       (errorMsg.includes('credentials') || 
                       errorMsg.includes('authentication'));
@@ -379,12 +394,22 @@ export async function GET(request: NextRequest) {
       errorCode = "GITHUB_AUTH_ERROR";
     }
     
+    // Ensure we're properly setting the response status code
+    const statusCode = (isAuthError || isAppError) ? 403 : 500;
+    
+    // Log the response we're about to send
+    logger.info(MODULE_NAME, 'Sending error response', {
+      errorMessage,
+      errorCode,
+      statusCode
+    });
+    
     return new NextResponse(JSON.stringify({ 
       error: errorMessage, 
       details: error instanceof Error ? error.message : "Unknown error",
       code: errorCode
     }), {
-      status: (isAuthError || isAppError) ? 403 : 500,
+      status: statusCode,
       headers: {
         "Content-Type": "application/json",
       },
