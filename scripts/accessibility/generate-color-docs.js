@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { checkColorContrast } = require('../src/lib/accessibility/colorContrast');
+const { checkColorContrast } = require('../../src/lib/accessibility/colorContrast');
 
 /**
  * Parse CSS file and extract CSS variables
@@ -157,13 +157,13 @@ All defined color pairings meet their specified WCAG requirements.
   markdown += `
 ## Usage
 
-When implementing UI components, use only the approved color pairings listed above. For new color combinations, add them to \`docs/color-pairings.config.json\` and regenerate this documentation.
+When implementing UI components, use only the approved color pairings listed above. For new color combinations, add them to \`docs/accessibility/color-pairings.config.json\` and regenerate this documentation.
 
 ## Updating This Document
 
 This document is automatically generated. To update:
 
-1. Edit \`docs/color-pairings.config.json\`
+1. Edit \`docs/accessibility/color-pairings.config.json\`
 2. Run \`npm run generate-color-docs\`
 3. Commit both files
 
@@ -184,7 +184,7 @@ async function generateColorDocs(validateOnly = false) {
     const cssVariables = parseCSSVariables(cssContent);
     
     // Read configuration
-    const configPath = path.join(process.cwd(), 'docs/color-pairings.config.json');
+    const configPath = path.join(process.cwd(), 'docs/accessibility/color-pairings.config.json');
     const configContent = fs.readFileSync(configPath, 'utf-8');
     const config = JSON.parse(configContent);
     
@@ -207,9 +207,9 @@ async function generateColorDocs(validateOnly = false) {
     // Generate documentation if not in validate-only mode
     if (!validateOnly) {
       const markdown = generateMarkdown(results);
-      const outputPath = path.join(process.cwd(), 'docs/APPROVED_COLOR_PAIRINGS.md');
+      const outputPath = path.join(process.cwd(), 'docs/accessibility/APPROVED_COLOR_PAIRINGS.md');
       fs.writeFileSync(outputPath, markdown);
-      console.log('✅ Generated color documentation at docs/APPROVED_COLOR_PAIRINGS.md');
+      console.log('✅ Generated color documentation at docs/accessibility/APPROVED_COLOR_PAIRINGS.md');
     } else {
       console.log('✅ All color pairings are compliant with WCAG standards');
     }

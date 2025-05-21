@@ -15,7 +15,7 @@ const {
   startStaticServer,
   getRelevantStoryIds,
   cleanupAndExit,
-} = require("../check-a11y-staged-stories-server");
+} = require("../../accessibility/check-a11y-staged-stories-server");
 
 describe("check-a11y-staged-stories server functionality", () => {
   beforeEach(() => {
@@ -192,7 +192,7 @@ describe("check-a11y-staged-stories server functionality", () => {
       const consoleSpy = jest.spyOn(console, "log").mockImplementation();
 
       // Set the server via the module
-      require("../check-a11y-staged-stories-server").setGlobalServer(
+      require("../../accessibility/check-a11y-staged-stories-server").setGlobalServer(
         mockServer,
       );
 
@@ -204,7 +204,7 @@ describe("check-a11y-staged-stories server functionality", () => {
       expect(exitHandler).toHaveBeenCalledWith(0);
 
       // Cleanup
-      require("../check-a11y-staged-stories-server").setGlobalServer(null);
+      require("../../accessibility/check-a11y-staged-stories-server").setGlobalServer(null);
     });
 
     test("should exit with code 1 by default", async () => {

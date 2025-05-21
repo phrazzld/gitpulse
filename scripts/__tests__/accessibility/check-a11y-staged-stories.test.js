@@ -2,7 +2,7 @@ const {
   detectStagedStoryFiles,
   runAccessibilityCheck,
   parseViolations,
-} = require("../check-a11y-staged-stories");
+} = require("../../accessibility/check-a11y-staged-stories");
 const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
@@ -10,7 +10,7 @@ const path = require("path");
 // Mock external dependencies
 jest.mock("child_process");
 jest.mock("fs");
-jest.mock("../check-a11y-staged-stories-server", () => ({
+jest.mock("../../accessibility/check-a11y-staged-stories-server", () => ({
   startStaticServer: jest
     .fn()
     .mockResolvedValue({
@@ -192,7 +192,7 @@ describe("check-a11y-staged-stories", () => {
       const mockLog = jest.spyOn(console, "log").mockImplementation();
 
       // Import the module and run main function
-      const { main } = require("../check-a11y-staged-stories");
+      const { main } = require("../../accessibility/check-a11y-staged-stories");
       await main();
 
       // Check for the new log message (it may be called multiple times)
