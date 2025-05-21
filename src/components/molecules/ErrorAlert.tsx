@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAriaAnnouncer } from '@/lib/accessibility/useAriaAnnouncer';
 
 export interface ErrorAlertProps {
   /**
@@ -31,8 +32,18 @@ export default function ErrorAlert({
   installationUrl, 
   onSignOut 
 }: ErrorAlertProps) {
+  // Initialize the aria announcer
+  const { announce } = useAriaAnnouncer();
+  
   const isAuthError = message.includes('authentication');
   const isAppNotConfigured = installationUrl === "#github-app-not-configured";
+  
+  // Announce error message when component mounts
+  useEffect(() => {
+    if (message) {
+      announce(`Alert: ${message}`, 'assertive');
+    }
+  }, [message, announce]);
   
   return (
     <div className="mb-6 p-4 rounded-md border flex flex-col md:flex-row md:items-center" style={{
@@ -99,7 +110,10 @@ export default function ErrorAlert({
               e.currentTarget.style.backgroundColor = 'var(--dark-slate)';
               e.currentTarget.style.color = 'var(--electric-blue, #0066cc)';
             }}
-            onClick={() => onSignOut({ callbackUrl: '/' })}
+            onClick={() => {
+              announce('Reinitializing session...', 'polite');
+              onSignOut({ callbackUrl: '/' });
+            }}
           >
             REINITIALIZE SESSION
           </button>

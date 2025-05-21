@@ -1,5 +1,8 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useDebounceCallback } from '@/hooks/useDebounce';
+import { useAriaAnnouncer } from '@/lib/accessibility/useAriaAnnouncer';
+import { useKeyboardNavigation } from '@/lib/accessibility/useKeyboardNavigation';
+import LoadingAnnouncer from '@/components/atoms/LoadingAnnouncer';
 
 export type DateRange = {
   since: string; // YYYY-MM-DD format
@@ -17,6 +20,16 @@ const formatDate = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
+// Format date to a more readable format for screen readers
+const formatReadableDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
 // Debounce delay for date changes (in milliseconds)
 const DATE_DEBOUNCE_DELAY = 300;
 
@@ -25,6 +38,9 @@ export default function DateRangePicker({
   onChange,
   disabled = false
 }: DateRangePickerProps) {
+  // Initialize accessibility hooks
+  const { announce } = useAriaAnnouncer();
+  const quickSelectRef = useRef<HTMLDivElement>(null);
   // Internal state for immediate UI feedback
   const [internalDateRange, setInternalDateRange] = useState<DateRange>(dateRange);
   
@@ -89,8 +105,13 @@ export default function DateRangePicker({
       setInternalDateRange(newRange);
       // Trigger the debounced change
       debouncedOnChange(newRange);
+      // Announce the change to screen readers
+      announce(
+        `Date range set to ${preset.replace(/([A-Z])/g, ' $1').toLowerCase()}: from ${formatReadableDate(newRange.since)} to ${formatReadableDate(newRange.until)}`,
+        'polite'
+      );
     }
-  }, [disabled, presets, debouncedOnChange]);
+  }, [disabled, presets, debouncedOnChange, announce]);
   
   // Handle manual date changes
   const handleDateChange = useCallback((field: keyof DateRange, value: string) => {
@@ -103,13 +124,48 @@ export default function DateRangePicker({
       setInternalDateRange(newRange);
       // Trigger the debounced change
       debouncedOnChange(newRange);
+      // Announce the change to screen readers
+      const fieldName = field === 'since' ? 'start date' : 'end date';
+      announce(`${fieldName} changed to ${formatReadableDate(value)}`, 'polite');
     }
-  }, [internalDateRange, disabled, debouncedOnChange]);
+  }, [internalDateRange, disabled, debouncedOnChange, announce]);
   
   // Check if a preset is currently active
   const isPresetActive = useCallback((preset: DateRange): boolean => {
     return internalDateRange.since === preset.since && internalDateRange.until === preset.until;
   }, [internalDateRange]);
+  
+  // Set up keyboard navigation for quick select buttons
+  const handleKeyDown = useKeyboardNavigation({
+    'ArrowRight': (e) => {
+      if (disabled || !quickSelectRef.current) return;
+      // Find all presets buttons
+      const buttons = Array.from(quickSelectRef.current.querySelectorAll('button'));
+      const currentIndex = buttons.findIndex(btn => btn === document.activeElement);
+      if (currentIndex >= 0 && currentIndex < buttons.length - 1) {
+        buttons[currentIndex + 1].focus();
+      } else if (currentIndex === -1 && buttons.length > 0) {
+        buttons[0].focus();
+      }
+    },
+    'ArrowLeft': (e) => {
+      if (disabled || !quickSelectRef.current) return;
+      const buttons = Array.from(quickSelectRef.current.querySelectorAll('button'));
+      const currentIndex = buttons.findIndex(btn => btn === document.activeElement);
+      if (currentIndex > 0) {
+        buttons[currentIndex - 1].focus();
+      } else if (currentIndex === -1 && buttons.length > 0) {
+        buttons[buttons.length - 1].focus();
+      }
+    }
+  }, { preventDefault: true, disabled });
+  
+  // Announce loading state
+  useEffect(() => {
+    if (isDebouncing) {
+      announce('Updating date range...', 'polite');
+    }
+  }, [isDebouncing, announce]);
 
   return (
     <div className="rounded-lg border" style={{ 
@@ -141,7 +197,7 @@ export default function DateRangePicker({
       
       <div className="p-4">
         {/* Preset buttons */}
-        <div className="mb-4">
+        <div className="mb-4" ref={quickSelectRef} onKeyDown={handleKeyDown}>
           <div className="text-xs mb-2" style={{ color: 'var(--electric-blue)' }}>
             QUICK SELECT
           </div>
@@ -157,6 +213,7 @@ export default function DateRangePicker({
                 type="button"
                 onClick={() => applyPreset(preset.id as keyof typeof presets)}
                 disabled={disabled || isDebouncing}
+                aria-pressed={isPresetActive(presets[preset.id as keyof typeof presets])}
                 className={`px-3 py-2 text-xs rounded-md transition-all duration-200 ${
                   isPresetActive(presets[preset.id as keyof typeof presets]) 
                     ? 'border-2' 
@@ -272,6 +329,13 @@ export default function DateRangePicker({
           </div>
         </div>
       </div>
+      
+      {/* Loading announcer component for screen readers */}
+      <LoadingAnnouncer 
+        isLoading={isDebouncing}
+        loadingMessage="Updating date range" 
+        successMessage="Date range updated successfully" 
+      />
     </div>
   );
 }

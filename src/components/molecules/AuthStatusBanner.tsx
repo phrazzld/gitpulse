@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAriaAnnouncer } from '@/lib/accessibility/useAriaAnnouncer';
 import { Installation } from '@/types/dashboard';
 import { getGitHubAppInstallUrl } from '@/lib/dashboard-utils';
 import { getInstallationManagementUrl } from '@/lib/github/auth';
@@ -34,10 +35,21 @@ export default function AuthStatusBanner({
   installations,
   currentInstallations
 }: AuthStatusBannerProps) {
+  // Initialize the aria announcer
+  const { announce } = useAriaAnnouncer();
+  
   const isGitHubApp = authMethod === 'github_app';
   const hasInstallations = installations.length > 0;
   const hasCurrentInstallations = currentInstallations.length > 0;
   const isAppNotConfigured = getGitHubAppInstallUrl() === "#github-app-not-configured";
+  
+  // Announce authentication status when component mounts
+  useEffect(() => {
+    const authStatus = isGitHubApp 
+      ? 'GitHub App integration is active' 
+      : 'Using OAuth authentication';
+    announce(authStatus, 'polite');
+  }, [isGitHubApp, announce]);
   
   return (
     <div className="mb-6 p-3 rounded-md border" style={{
@@ -123,6 +135,7 @@ export default function AuthStatusBanner({
                     color: 'var(--neon-green)',
                     border: '1px solid var(--neon-green)'
                   }}
+                  onClick={() => announce('Upgrading to GitHub App...', 'polite')}
                   onMouseOver={(e) => {
                     e.currentTarget.style.backgroundColor = 'var(--neon-green)';
                     e.currentTarget.style.color = 'var(--dark-slate)';

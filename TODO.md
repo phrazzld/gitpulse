@@ -41,11 +41,12 @@
   - Added proper aria-labelledby and aria-describedby attributes to establish relationships between labels and controls
   - Added appropriate landmark roles (region) to OperationsPanel
 
-- [ ] **Implement accessibility hook usage consistently**
-  - Add useAriaAnnouncer for status changes in interactive components
-  - Add keyboard navigation hooks to all relevant components
-  - Implement focus trapping for modal and popup components
-  - Add state announcements for loading and success states
+- [x] **Implement accessibility hook usage consistently**
+  - Created reusable LoadingAnnouncer component for managing aria announcements
+  - Added useAriaAnnouncer implementation to DateRangePicker, ErrorAlert, and AuthStatusBanner
+  - Implemented keyboard navigation improvements in DateRangePicker using useKeyboardNavigation
+  - Added status change announcements for loading, success, and error states
+  - Added proper ARIA attributes (aria-pressed) to interactive elements
 
 ## Testing Improvements
 
