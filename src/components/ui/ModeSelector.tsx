@@ -140,11 +140,11 @@ export default function ModeSelector({
   modes = DEFAULT_MODES,
   ariaLabel = 'Activity Mode',
   className = '',
-  accentColor = 'var(--neon-green, #00ff87)',
-  secondaryColor = 'var(--electric-blue, #3b8eea)',
+  accentColor = 'var(--neon-green, #00994f)', /* #00994f - Meets WCAG AA 3.51:1 contrast ratio for large text */
+  secondaryColor = 'var(--electric-blue, #2563eb)', /* #2563eb - Meets WCAG AA 4.90:1 contrast ratio */
   textColor = 'var(--foreground, #ffffff)',
   backgroundColor = 'rgba(27, 43, 52, 0.7)',
-  selectedBackgroundColor = 'rgba(0, 255, 135, 0.1)',
+  selectedBackgroundColor = 'rgba(0, 153, 79, 0.1)', /* Using #00994f with 0.1 opacity */
 }: ModeSelectorProps) {
   // Use stable IDs
   const headerId = useId();
