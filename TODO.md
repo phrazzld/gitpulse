@@ -760,7 +760,7 @@ This document outlines the tasks needed to address the critical issues identifie
     - Added better error handling to Gemini AI summary generation
     - All tests now pass locally (route.test.ts, handlers.test.ts, handlers-mock.test.ts)
 
-- [ ] **T024CI: Fix OperationsPanel component tests**
+- [x] **T024CI: Fix OperationsPanel component tests**
   - **Priority**: High
   - **Effort**: Medium
   - **Description**:
@@ -768,3 +768,12 @@ This document outlines the tasks needed to address the critical issues identifie
     - Address undefined filtersPanel issue in assertions
     - Update component rendering or test approach
     - Ensure all test cases pass with proper component rendering
+  - **Completed**: 2025-05-20
+  - **Implementation Notes**:
+    - Completely rewrote component tests using @testing-library/react
+    - Added proper data-testid attributes to all mock components
+    - Implemented proper DOM querying with screen.getByTestId()
+    - Replaced custom component rendering with RTL's render function
+    - Added string conversion to boolean attributes with template literals
+    - Ensured proper Jest DOM matchers with toBeInTheDocument() and toHaveAttribute()
+    - All 9 test cases now pass successfully

@@ -1,7 +1,8 @@
 import React from 'react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import OperationsPanel from '@/components/organisms/OperationsPanel';
-import { ActivityMode } from '@/components/ui/ModeSelector';
-import { getGitHubAppInstallUrl } from '@/lib/dashboard-utils';
+import { ActivityMode } from '@/components/atoms/ModeSelector';
 
 // Mock the dashboard-utils module
 jest.mock('@/lib/dashboard-utils', () => ({
@@ -18,7 +19,7 @@ jest.mock('@/components/molecules/TerminalHeader', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(({ title }) => (
     <div data-testid="terminal-header" data-title={title}></div>
-  ))
+  )),
 }));
 
 jest.mock('@/components/molecules/ErrorAlert', () => ({
@@ -27,20 +28,20 @@ jest.mock('@/components/molecules/ErrorAlert', () => ({
     <div 
       data-testid="error-alert" 
       data-message={message}
-      data-needs-installation={needsInstallation}
+      data-needs-installation={`${needsInstallation}`}
       data-installation-url={installationUrl}
     >
       {needsInstallation && <button data-testid="install-button">Install</button>}
-      {message.includes('authentication') && (
+      {message && message.includes('authentication') && (
         <button 
           data-testid="sign-out-button" 
-          onClick={() => onSignOut({ callbackUrl: '/' })}
+          onClick={() => onSignOut && onSignOut({ callbackUrl: '/' })}
         >
           Sign Out
         </button>
       )}
     </div>
-  ))
+  )),
 }));
 
 jest.mock('@/components/molecules/AuthStatusBanner', () => ({
@@ -49,11 +50,11 @@ jest.mock('@/components/molecules/AuthStatusBanner', () => ({
     <div 
       data-testid="auth-banner" 
       data-auth-method={authMethod}
-      data-needs-installation={needsInstallation}
-      data-installations-count={installations.length}
-      data-current-installations-count={currentInstallations.length}
+      data-needs-installation={`${needsInstallation}`}
+      data-installations-count={`${installations.length}`}
+      data-current-installations-count={`${currentInstallations.length}`}
     ></div>
-  ))
+  )),
 }));
 
 jest.mock('@/components/organisms/AccountSelectionPanel', () => ({
@@ -61,8 +62,8 @@ jest.mock('@/components/organisms/AccountSelectionPanel', () => ({
   default: jest.fn().mockImplementation(({ installations, currentInstallations, onSwitchInstallations }) => (
     <div 
       data-testid="account-panel" 
-      data-installations-count={installations.length}
-      data-current-installations-count={currentInstallations.length}
+      data-installations-count={`${installations.length}`}
+      data-current-installations-count={`${currentInstallations.length}`}
     >
       <button 
         data-testid="switch-installations-button" 
@@ -71,7 +72,7 @@ jest.mock('@/components/organisms/AccountSelectionPanel', () => ({
         Switch
       </button>
     </div>
-  ))
+  )),
 }));
 
 jest.mock('@/components/organisms/AnalysisFiltersPanel', () => ({
@@ -88,8 +89,8 @@ jest.mock('@/components/organisms/AnalysisFiltersPanel', () => ({
     <div 
       data-testid="filters-panel" 
       data-activity-mode={activityMode}
-      data-loading={loading}
-      data-installations-count={installations.length}
+      data-loading={`${loading}`}
+      data-installations-count={`${installations.length}`}
       data-username={userName || ''}
     >
       <button 
@@ -105,10 +106,10 @@ jest.mock('@/components/organisms/AnalysisFiltersPanel', () => ({
         Select Orgs
       </button>
     </div>
-  ))
+  )),
 }));
 
-// Create a base mock props object and helper function
+// Create a base mock props object
 const createDefaultProps = () => ({
   error: null,
   loading: false,
@@ -149,69 +150,6 @@ const createDefaultProps = () => ({
   onSignOut: jest.fn()
 });
 
-// Simple React test renderer for assertion
-const renderComponent = (element: React.ReactElement) => {
-  const renderElement = (el: any): any => {
-    if (!el) return null;
-    if (typeof el === 'string' || typeof el === 'number') return el;
-    
-    // If this is a function component, render it
-    if (typeof el.type === 'function') {
-      const Component = el.type;
-      const rendered = Component(el.props);
-      return renderElement(rendered);
-    }
-    
-    const result: any = { 
-      type: el.type,
-      props: { ...el.props },
-      children: []
-    };
-    
-    // Delete children from props
-    delete result.props.children;
-    
-    if (el.props && el.props.children) {
-      if (Array.isArray(el.props.children)) {
-        result.children = el.props.children
-          .filter(Boolean)
-          .map((child: any) => renderElement(child));
-      } else {
-        result.children = [renderElement(el.props.children)].filter(Boolean);
-      }
-    }
-    
-    // Add helper method to find child by props
-    result.findByProps = (propsToMatch: Record<string, any>) => {
-      const findInChildren = (children: any[]): any => {
-        for (const child of children) {
-          if (!child || typeof child !== 'object') continue;
-          
-          // Check if props match
-          const match = Object.entries(propsToMatch).every(([key, value]) => 
-            child.props && child.props[key] === value
-          );
-          
-          if (match) return child;
-          
-          // Recursively search in children
-          if (child.children) {
-            const found = findInChildren(Array.isArray(child.children) ? child.children : [child.children]);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-      
-      return findInChildren(result.children);
-    };
-    
-    return result;
-  };
-  
-  return renderElement(element);
-};
-
 describe('OperationsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -219,34 +157,23 @@ describe('OperationsPanel', () => {
   
   it('renders without error', () => {
     const props = createDefaultProps();
-    const rendered = renderComponent(<OperationsPanel {...props} />);
+    render(<OperationsPanel {...props} />);
     
-    expect(rendered.type).toBe('OperationsPanel');
-    // Since the component structure has changed with the Atomic Design refactoring,
-    // we now check for specific child components instead of looking at children.length
-    const hasTerminalHeader = rendered.children.some((child: any) => child.type === 'TerminalHeader');
-    const hasAuthBanner = rendered.children.some((child: any) => child.type === 'AuthStatusBanner');
-    
-    expect(hasTerminalHeader).toBe(true);
-    expect(hasAuthBanner).toBe(true);
+    // Verify terminal header is rendered
+    expect(screen.getByTestId('terminal-header')).toBeInTheDocument();
   });
   
   it('renders with GitHub App auth', () => {
     const props = createDefaultProps();
-    const rendered = renderComponent(<OperationsPanel {...props} />);
+    render(<OperationsPanel {...props} />);
     
-    // AuthStatusBanner is a mocked component - find it by test id
-    const authBanner = rendered.findByProps({ 'data-testid': 'auth-banner' });
-    expect(authBanner).toBeTruthy();
-    
-    // Verify auth method was passed correctly (mocked component adds data- prefixes)
-    expect(authBanner.props).toMatchObject({
-      'data-testid': 'auth-banner',
-      'data-auth-method': 'github_app',
-      'data-needs-installation': false,
-      'data-installations-count': 1,
-      'data-current-installations-count': 0
-    });
+    // Find auth banner and check props
+    const authBanner = screen.getByTestId('auth-banner');
+    expect(authBanner).toBeInTheDocument();
+    expect(authBanner).toHaveAttribute('data-auth-method', 'github_app');
+    expect(authBanner).toHaveAttribute('data-needs-installation', 'false');
+    expect(authBanner).toHaveAttribute('data-installations-count', '1');
+    expect(authBanner).toHaveAttribute('data-current-installations-count', '0');
   });
   
   it('renders with error message', () => {
@@ -255,15 +182,12 @@ describe('OperationsPanel', () => {
       error: 'Test error message'
     };
     
-    const rendered = renderComponent(<OperationsPanel {...props} />);
+    render(<OperationsPanel {...props} />);
     
-    // Find the ErrorAlert
-    const errorAlert = rendered.children.find((child: any) => 
-      child.type === 'ErrorAlert'
-    );
-    
-    expect(errorAlert).toBeTruthy();
-    expect(errorAlert.props.message).toBe('Test error message');
+    // Find error alert and check props
+    const errorAlert = screen.getByTestId('error-alert');
+    expect(errorAlert).toBeInTheDocument();
+    expect(errorAlert).toHaveAttribute('data-message', 'Test error message');
   });
   
   it('renders with authentication error', () => {
@@ -272,15 +196,13 @@ describe('OperationsPanel', () => {
       error: 'Error with authentication'
     };
     
-    const rendered = renderComponent(<OperationsPanel {...props} />);
+    render(<OperationsPanel {...props} />);
     
-    // Find the ErrorAlert
-    const errorAlert = rendered.children.find((child: any) => 
-      child.type === 'ErrorAlert'
-    );
-    
-    expect(errorAlert).toBeTruthy();
-    expect(errorAlert.props.message).toBe('Error with authentication');
+    // Find error alert and check props
+    const errorAlert = screen.getByTestId('error-alert');
+    expect(errorAlert).toBeInTheDocument();
+    expect(errorAlert).toHaveAttribute('data-message', 'Error with authentication');
+    expect(screen.getByTestId('sign-out-button')).toBeInTheDocument();
   });
   
   it('renders with needs installation', () => {
@@ -290,27 +212,21 @@ describe('OperationsPanel', () => {
       error: 'GitHub App installation required'
     };
     
-    const rendered = renderComponent(<OperationsPanel {...props} />);
+    render(<OperationsPanel {...props} />);
     
-    // Find the ErrorAlert
-    const errorAlert = rendered.children.find((child: any) => 
-      child.type === 'ErrorAlert'
-    );
-    
-    expect(errorAlert).toBeTruthy();
-    expect(errorAlert.props.needsInstallation).toBe(true);
+    // Find error alert and check props
+    const errorAlert = screen.getByTestId('error-alert');
+    expect(errorAlert).toBeInTheDocument();
+    expect(errorAlert).toHaveAttribute('data-needs-installation', 'true');
+    expect(screen.getByTestId('install-button')).toBeInTheDocument();
   });
   
   it('renders account selection panel', () => {
     const props = createDefaultProps();
-    const rendered = renderComponent(<OperationsPanel {...props} />);
+    render(<OperationsPanel {...props} />);
     
-    // Find the AccountSelectionPanel
-    const accountPanel = rendered.children.find((child: any) => 
-      child.type === 'AccountSelectionPanel'
-    );
-    
-    expect(accountPanel).toBeTruthy();
+    // Find account panel
+    expect(screen.getByTestId('account-panel')).toBeInTheDocument();
   });
   
   it('renders with My Work Activity mode', () => {
@@ -319,15 +235,12 @@ describe('OperationsPanel', () => {
       activityMode: 'my-work-activity' as ActivityMode
     };
     
-    const rendered = renderComponent(<OperationsPanel {...props} />);
+    render(<OperationsPanel {...props} />);
     
-    // Find the AnalysisFiltersPanel
-    const filtersPanel = rendered.children.find((child: any) => 
-      child.type === 'AnalysisFiltersPanel'
-    );
-    
-    expect(filtersPanel).toBeTruthy();
-    expect(filtersPanel.props.activityMode).toBe('my-work-activity');
+    // Find filters panel and check mode
+    const filtersPanel = screen.getByTestId('filters-panel');
+    expect(filtersPanel).toBeInTheDocument();
+    expect(filtersPanel).toHaveAttribute('data-activity-mode', 'my-work-activity');
   });
   
   it('renders with Team Activity mode', () => {
@@ -336,15 +249,12 @@ describe('OperationsPanel', () => {
       activityMode: 'team-activity' as ActivityMode
     };
     
-    const rendered = renderComponent(<OperationsPanel {...props} />);
+    render(<OperationsPanel {...props} />);
     
-    // Find the AnalysisFiltersPanel
-    const filtersPanel = rendered.children.find((child: any) => 
-      child.type === 'AnalysisFiltersPanel'
-    );
-    
-    expect(filtersPanel).toBeTruthy();
-    expect(filtersPanel.props.activityMode).toBe('team-activity');
+    // Find filters panel and check mode
+    const filtersPanel = screen.getByTestId('filters-panel');
+    expect(filtersPanel).toBeInTheDocument();
+    expect(filtersPanel).toHaveAttribute('data-activity-mode', 'team-activity');
   });
   
   it('renders with loading state', () => {
@@ -354,14 +264,11 @@ describe('OperationsPanel', () => {
       activityMode: 'team-activity' as ActivityMode
     };
     
-    const rendered = renderComponent(<OperationsPanel {...props} />);
+    render(<OperationsPanel {...props} />);
     
-    // Find the AnalysisFiltersPanel
-    const filtersPanel = rendered.children.find((child: any) => 
-      child.type === 'AnalysisFiltersPanel'
-    );
-    
-    expect(filtersPanel).toBeTruthy();
-    expect(filtersPanel.props.loading).toBe(true);
+    // Find filters panel and check loading state
+    const filtersPanel = screen.getByTestId('filters-panel');
+    expect(filtersPanel).toBeInTheDocument();
+    expect(filtersPanel).toHaveAttribute('data-loading', 'true');
   });
 });
