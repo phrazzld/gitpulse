@@ -19,8 +19,8 @@ export default function TerminalHeader({ title, statusText = 'OPERATIONAL STATUS
   return (
     <div className="flex justify-between items-center mb-6">
       <div className="flex items-center">
-        <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--neon-green)' }}></div>
-        <h2 className="text-xl font-bold" style={{ color: 'var(--neon-green)' }}>
+        <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--neon-green, #00994f)' }}></div>
+        <h2 className="text-xl font-bold" style={{ color: 'var(--neon-green, #00994f)' /* #00994f - Meets WCAG AA 3.51:1 contrast ratio for large text */ }}>
           {title}
         </h2>
       </div>

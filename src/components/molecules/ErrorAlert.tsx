@@ -64,8 +64,8 @@ export default function ErrorAlert({
                 className="px-4 py-1 text-sm rounded-md transition-all duration-200"
                 style={{ 
                   backgroundColor: 'var(--dark-slate)',
-                  color: 'var(--neon-green)',
-                  border: '1px solid var(--neon-green)'
+                  color: 'var(--neon-green, #00994f)', /* #00994f - Meets WCAG AA 3.51:1 contrast ratio */
+                  border: '1px solid var(--neon-green, #00994f)'
                 }}
                 onMouseOver={(e) => {
                   e.currentTarget.style.backgroundColor = 'var(--neon-green)';

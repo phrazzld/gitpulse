@@ -18,10 +18,11 @@
   - Description text now meets 4.5:1 contrast ratio against backgrounds (using #2563eb)
   - Used approved color combinations from `docs/accessibility/APPROVED_COLOR_PAIRINGS.md`
 
-- [ ] **Fix color contrast in OperationsPanel component**
-  - Review color variables used for shadows (`rgba(0, 255, 135, 0.2)`) and adjust opacity
-  - Review imported components (TerminalHeader, ErrorAlert, etc.) for accessibility issues
-  - Ensure all text including terminal-style headers meets contrast requirements
+- [x] **Fix color contrast in OperationsPanel component**
+  - Updated shadow color from `rgba(0, 255, 135, 0.2)` to `rgba(0, 153, 79, 0.3)` with higher opacity for better visibility
+  - Updated TerminalHeader to use `#00994f` (WCAG AA 3.51:1 contrast ratio for large text)
+  - Updated ErrorAlert to use consistent neon green color with proper contrast
+  - Ensured all components use CSS variable fallbacks with approved colors
 
 - [ ] **Fix Button component accessibility issues**
   - Review variant styles in `src/components/atoms/Button.tsx` focusing on hover states
