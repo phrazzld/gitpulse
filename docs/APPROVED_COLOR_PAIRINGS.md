@@ -34,11 +34,6 @@ All contrast calculations use the centralized utility at `src/lib/accessibility/
 | Large Neon Green Text on Dark Slate | #00994f<br/>#00994f | var(--background)<br/>#f8f9fa | Large headings, hero text, and prominent display text | 3.51:1 | AA (large) | ✅ Pass |
 | Electric Blue Text on Dark Slate | var(--accent-secondary)<br/>#2563eb | var(--background)<br/>#f8f9fa | Links, secondary accent text, and interactive hints | 4.90:1 | AA (normal) | ✅ Pass |
 | High Contrast Body Text | var(--foreground)<br/>#1b2b34 | var(--background)<br/>#f8f9fa | Maximum readability for extended reading | 13.82:1 | AAA (normal) | ✅ Pass |
-| White Text on Dark Blue Button | #ffffff<br/>#ffffff | #1a4bbd<br/>#1a4bbd | Button components with primary variant, assured 7.54:1 contrast | 7.54:1 | AA (normal) | ✅ Pass |
-| White Text on Electric Blue Button | #ffffff<br/>#ffffff | #2563eb<br/>#2563eb | Button components with secondary variant, assured 4.90:1 contrast | 5.17:1 | AA (normal) | ✅ Pass |
-| ModeSelector Updated Neon Green | #00994f<br/>#00994f | var(--background)<br/>#f8f9fa | ModeSelector selected state indicators, meets 3.51:1 large text ratio | 3.51:1 | AA (large) | ✅ Pass |
-| ModeSelector Updated Electric Blue | #2563eb<br/>#2563eb | var(--background)<br/>#f8f9fa | ModeSelector description text, meets 4.90:1 contrast ratio | 4.90:1 | AA (normal) | ✅ Pass |
-| TerminalHeader Updated Green | #00994f<br/>#00994f | var(--background)<br/>#f8f9fa | TerminalHeader component using approved neon green with 3.51:1 contrast | 3.51:1 | AA (large) | ✅ Pass |
 
 ## ✅ All Pairings Compliant
 
@@ -46,14 +41,14 @@ All defined color pairings meet their specified WCAG requirements.
 
 ## Usage
 
-When implementing UI components, use only the approved color pairings listed above. For new color combinations, add them to `docs/accessibility/color-pairings.config.json` and regenerate this documentation.
+When implementing UI components, use only the approved color pairings listed above. For new color combinations, add them to `docs/color-pairings.config.json` and regenerate this documentation.
 
 ## Updating This Document
 
 This document is automatically generated. To update:
 
-1. Edit `docs/accessibility/color-pairings.config.json`
+1. Edit `docs/color-pairings.config.json`
 2. Run `npm run generate-color-docs`
 3. Commit both files
 
-Generated on: 2025-05-21T22:24:18.732Z
+Generated on: 2025-05-21T22:23:26.262Z
