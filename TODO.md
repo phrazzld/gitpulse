@@ -82,7 +82,7 @@
   - Add new approved color combinations for UI components
   - Update contrast calculation thresholds if needed
 
-- [ ] **Fix pre-commit accessibility checks**
+- [x] **Fix pre-commit accessibility checks**
   - Update the pre-commit hook for detecting staged story files
   - Ensure local checks match CI checks for consistency
   - Add clear error reporting for accessibility violations

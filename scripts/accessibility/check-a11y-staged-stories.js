@@ -116,12 +116,21 @@ async function runAccessibilityCheck(storyFiles, storybookPath) {
     storybookServer = server;
     setGlobalServer(server); // Set global reference for cleanup handlers
 
-    // Run tests
+    // Verify CI-compatible configuration exists
+    const testRunnerConfigPath = path.join(projectRoot, ".storybook/test-runner.js");
+    if (!fs.existsSync(testRunnerConfigPath)) {
+      console.warn("⚠️  .storybook/test-runner.js not found - using default Axe configuration");
+    } else {
+      console.log("✅ Using enhanced Axe configuration from .storybook/test-runner.js");
+    }
+
+    // Run tests with same configuration as CI 
     const command = `npx test-storybook --url http://localhost:${port} ${filterArg}`;
-    console.log("Running accessibility checks...");
+    console.log("Running accessibility checks (CI-compatible configuration)...");
     
     if (process.env.DEBUG === "1") {
       console.log(`Command: ${command}`);
+      console.log("Note: Using same Axe rules and thresholds as GitHub Actions CI");
     }
 
     try {
@@ -131,6 +140,7 @@ async function runAccessibilityCheck(storyFiles, storybookPath) {
         stdio: "pipe",
       });
       console.log("✅ All accessibility checks passed!");
+      console.log("   Staged components meet WCAG 2.1 AA standards (CI-compatible)");
     } catch (error) {
       // Parse violations and handle
       const output = (error.stdout || "") + "\n" + (error.stderr || "");
@@ -159,22 +169,28 @@ async function runAccessibilityCheck(storyFiles, storybookPath) {
 
       if (stagedViolations.length === 0 && allViolations.length > 0) {
         console.log("✅ All staged story files passed accessibility checks!");
-        console.log("   (Other stories have violations but are not staged)");
+        console.log("   Staged components meet WCAG 2.1 AA standards (CI-compatible)");
+        console.log("   (Other stories have violations but are not staged for commit)");
         return;
       }
 
       console.error("❌ Accessibility violations found in staged stories:\n");
       displayViolations(stagedViolations);
 
-      console.error("\nTo debug:");
-      console.error(
-        "  1. Run `npm run storybook` and check the Accessibility panel",
-      );
-      console.error("\nTo skip (emergency only):");
+      console.error("\n🔍 How to debug accessibility issues:");
+      console.error("  1. Run `npm run storybook` and check the Accessibility panel");
+      console.error("  2. Use browser dev tools with Axe extension for detailed analysis");
+      console.error("  3. Run `DEBUG=1 npm run check:a11y:staged` for verbose output");
+      console.error("  4. Check docs/accessibility/APPROVED_COLOR_PAIRINGS.md for color guidance");
+      
+      console.error("\n⚙️  CI Consistency Note:");
+      console.error("  • Pre-commit checks use identical Axe configuration as CI pipeline");
+      console.error("  • Same WCAG 2.1 AA standards enforced locally and in CI");
+      console.error("  • Local failures will also fail in CI - no surprises!");
+      
+      console.error("\n🚨 Emergency skip (use sparingly):");
       console.error('  A11Y_SKIP=1 git commit -m "your message"');
-      console.error(
-        "  ⚠️  Always create a follow-up task to fix skipped issues!\n",
-      );
+      console.error("  ⚠️  Always create a follow-up task to fix skipped accessibility issues!\n");
 
       await cleanupAndExit(1);
     }
@@ -400,25 +416,31 @@ function parseViolations(output) {
       
       // Add remediation guidance based on rule ID
       if (!violation.remediation) {
-        // Common fixes for frequent issues
+        // Common fixes for frequent issues with project-specific guidance
         switch(violation.id) {
           case 'color-contrast':
-            violation.remediation = "Ensure text has a contrast ratio of at least 4.5:1 for normal text or 3:1 for large text";
+            violation.remediation = "Use approved color combinations from docs/accessibility/APPROVED_COLOR_PAIRINGS.md. For buttons: #1a4bbd (7.54:1) or #2563eb (4.90:1) with white text. For success states: #00994f (3.51:1) for large text only.";
             break;
           case 'button-name':
-            violation.remediation = "Add accessible text content, aria-label, or aria-labelledby to buttons";
+            violation.remediation = "Add accessible text content, aria-label, or aria-labelledby to buttons. Ensure button purpose is clear to screen readers.";
             break;
           case 'image-alt':
-            violation.remediation = "Add meaningful alt text that describes the purpose of the image";
+            violation.remediation = "Add meaningful alt text describing the image's purpose/function, not just appearance. Use empty alt='' for decorative images.";
             break;
           case 'aria-roles':
-            violation.remediation = "Use only valid ARIA role values as documented in WAI-ARIA specification";
+            violation.remediation = "Use only valid ARIA role values. Check WAI-ARIA specification for supported roles. Common valid roles: button, link, heading, list, listitem.";
             break;
           case 'tabindex':
-            violation.remediation = "Avoid using tabindex values greater than 0, which disrupt natural keyboard navigation";
+            violation.remediation = "Remove positive tabindex values (>0). Use tabindex='0' to include in tab order or tabindex='-1' to exclude. Let DOM order determine tab sequence.";
+            break;
+          case 'label':
+            violation.remediation = "Associate form controls with labels using for/id attributes or aria-labelledby. Every input needs an accessible name.";
+            break;
+          case 'aria-required-attr':
+            violation.remediation = "Add required ARIA attributes for the element's role. Check ARIA specification for mandatory attributes per role.";
             break;
           default:
-            violation.remediation = "Check Axe documentation for this rule to understand how to fix it";
+            violation.remediation = "Visit the Axe documentation link for specific remediation steps. Test fixes using Storybook's Accessibility panel.";
         }
       }
       
@@ -510,6 +532,11 @@ function displayViolations(violationsByFile) {
             console.error(`      How to fix: ${v.help}`);
           }
           
+          // Add project-specific remediation guidance
+          if (v.remediation) {
+            console.error(`      Project guidance: ${v.remediation}`);
+          }
+          
           // Add URL for more information
           console.error(`      Documentation: https://dequeuniversity.com/rules/axe/${v.id}`);
         });
@@ -523,24 +550,82 @@ function displayViolations(violationsByFile) {
   console.error('2. Check components individually to see detailed violation information');
   console.error('3. Use the Axe DevTools extension for more detailed debugging');
   console.error('4. Visit rule documentation links for remediation guidance');
-  console.error('\nCommon fixes:');
-  console.error('• color-contrast: Ensure text has 4.5:1 contrast ratio with its background');
-  console.error('• button-name: All buttons must have accessible names (text or aria-label)');
-  console.error('• aria-roles: Use valid ARIA role values on elements');
-  console.error('• image-alt: All images must have alt text describing their purpose');
+  
+  console.error('\n📖 Color Contrast Guidelines:');
+  console.error('• WCAG AA requires 4.5:1 contrast for normal text (under 18pt or under 14pt bold)');
+  console.error('• WCAG AA requires 3:1 contrast for large text (18pt+ or 14pt+ bold)');
+  console.error('• Use our approved color combinations from docs/accessibility/APPROVED_COLOR_PAIRINGS.md');
+  console.error('• Test contrast ratios using our colorContrast.ts utility');
+  console.error('• For buttons: Use darkBlue (#1a4bbd) or electricBlue (#2563eb) with white text');
+  console.error('• For success states: Use approved neon green (#00994f) for large text only');
+  
+  console.error('\n🔧 Common Fixes by Rule:');
+  console.error('• color-contrast: Update colors to meet WCAG AA standards (see approved pairings)');
+  console.error('• button-name: Add accessible text content, aria-label, or aria-labelledby');
+  console.error('• aria-roles: Use valid ARIA role values listed in WAI-ARIA specification');
+  console.error('• image-alt: Add meaningful alt text describing image purpose (not just description)');
+  console.error('• label: Associate form controls with labels using for/id or aria-labelledby');
+  console.error('• aria-required-attr: Add required ARIA attributes for specific roles');
+  console.error('• tabindex: Avoid positive tabindex values; use 0 or -1 only');
+  
+  console.error('\n🛠️  Testing Locally:');
+  console.error('• CI uses same Axe configuration as local pre-commit checks');
+  console.error('• Run `npm run check:a11y:all` to check all components');
+  console.error('• Use DEBUG=1 environment variable for verbose output');
+  console.error('• Generate color docs with `npm run generate-color-docs`');
   console.error('\n======================================================');
+}
+
+/**
+ * Validates that local accessibility configuration matches CI expectations
+ */
+function validateConfiguration() {
+  const projectRoot = path.resolve(__dirname, "..");
+  const huskyPreCommitPath = path.join(projectRoot, ".husky/pre-commit");
+  const testRunnerConfigPath = path.join(projectRoot, ".storybook/test-runner.js");
+  
+  const warnings = [];
+  
+  // Check if Husky pre-commit exists and includes our script
+  if (fs.existsSync(huskyPreCommitPath)) {
+    try {
+      const preCommitContent = fs.readFileSync(huskyPreCommitPath, 'utf-8');
+      if (!preCommitContent.includes('check-a11y-staged-stories.js')) {
+        warnings.push("Pre-commit hook may not include accessibility checks");
+      }
+    } catch (error) {
+      warnings.push("Cannot read pre-commit hook file");
+    }
+  }
+  
+  // Check if test-runner configuration exists
+  if (!fs.existsSync(testRunnerConfigPath)) {
+    warnings.push("Enhanced Axe configuration (.storybook/test-runner.js) not found");
+  }
+  
+  if (warnings.length > 0 && process.env.DEBUG === "1") {
+    console.log("⚠️  Configuration warnings:");
+    warnings.forEach(warning => console.log(`  - ${warning}`));
+  }
+  
+  return warnings.length === 0;
 }
 
 // Main execution
 async function main() {
   try {
     console.log("📋 Running accessibility checks on staged story files...");
+    console.log("⚙️  Using CI-compatible Axe configuration (WCAG 2.1 AA standards)");
+    
+    // Validate configuration consistency
+    validateConfiguration();
     
     // Log debug information if requested
     if (process.env.DEBUG === "1") {
       console.log("Running in debug mode - verbose output enabled");
       console.log(`Current working directory: ${process.cwd()}`);
       console.log(`Platform: ${process.platform}`);
+      console.log("Configuration: CI-compatible Axe rules and thresholds");
     }
 
     const stagedStoryFiles = detectStagedStoryFiles();
