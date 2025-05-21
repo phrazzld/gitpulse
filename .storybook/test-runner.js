@@ -1,35 +1,250 @@
 const { injectAxe, checkA11y, configureAxe } = require('axe-playwright');
 const { getStoryContext } = require('@storybook/test-runner');
+const path = require('path');
+const fs = require('fs');
+const { A11yResultsCollector } = require('./utils/a11y-results-collector');
+const { customTestResultDependsOnViolations } = require('./utils/custom-a11y-test-utils');
+
+// Default axe configuration with enhanced rules
+const defaultAxeConfig = {
+  rules: {
+    // Color contrast rules
+    'color-contrast': { 
+      enabled: true,
+      options: {
+        noScroll: true,
+        // WCAG Level AA requires 4.5:1 for normal text, 3:1 for large text
+        // These are the default values but we're making them explicit
+        contrastRatio: { 
+          normal: 4.5,
+          large: 3,
+          nonText: 3
+        }
+      }
+    },
+    // Form field rules
+    'label': { enabled: true },
+    'aria-required-attr': { enabled: true },
+    'aria-roles': { enabled: true },
+    // Focus and keyboard navigation rules
+    'focus-order-semantics': { enabled: true },
+    'tabindex': { enabled: true },
+    // Image and media rules
+    'image-alt': { enabled: true },
+    // Structure and landmarks
+    'region': { enabled: true },
+    'landmark-banner-is-top-level': { enabled: true },
+    'landmark-complementary-is-top-level': { enabled: true },
+    'landmark-main-is-top-level': { enabled: true },
+    'landmark-no-duplicate': { enabled: true },
+    'landmark-one-main': { enabled: true },
+    'page-has-heading-one': { enabled: true },
+  }
+};
+
+// Initialize results collector
+const resultsCollector = new A11yResultsCollector();
+
+// Create results directory if it doesn't exist
+const ensureResultsDirectory = () => {
+  const resultsDir = path.resolve(__dirname, '../test-results');
+  if (!fs.existsSync(resultsDir)) {
+    fs.mkdirSync(resultsDir, { recursive: true });
+  }
+  return resultsDir;
+};
+
+// Get component type from title path (atoms/molecules/organisms)
+const getComponentType = (titlePath) => {
+  if (!titlePath) return 'unknown';
+  
+  const pathSegments = titlePath.toLowerCase().split('/');
+  
+  // Look for common component hierarchy terms
+  for (const segment of pathSegments) {
+    if (['atoms', 'molecules', 'organisms', 'templates', 'pages'].includes(segment)) {
+      return segment;
+    }
+  }
+  
+  return 'component';
+};
+
+// Configure rules based on component type
+const getTypeSpecificRules = (componentType) => {
+  // Rules can be customized based on component type
+  // For example, atomic design levels might have different requirements
+  switch(componentType) {
+    case 'atoms':
+      // Atoms often have specific accessibility requirements as building blocks
+      return {
+        'color-contrast': { enabled: true },
+        'button-name': { enabled: true },
+        'aria-roles': { enabled: true },
+        'tabindex': { enabled: true },
+        'aria-allowed-attr': { enabled: true },
+      };
+    case 'molecules':
+      // Molecules combine atoms and may have additional requirements
+      return {
+        'color-contrast': { enabled: true },
+        'label': { enabled: true }, 
+        'form-field-multiple-labels': { enabled: true },
+        'nested-interactive': { enabled: true },
+        'aria-required-attr': { enabled: true },
+      };
+    case 'organisms':
+      // Organisms may have complex structures that need specific testing
+      return {
+        'landmark-one-main': { enabled: true },
+        'region': { enabled: true },
+        'landmark-banner-is-top-level': { enabled: true },
+        'landmark-complementary-is-top-level': { enabled: true },
+        'duplicate-id-aria': { enabled: true },
+      };
+    default:
+      return {};
+  }
+};
+
+// Save results after all tests are complete
+const saveTestResults = () => {
+  // Check if this is the last test to run (only in test-storybook mode)
+  if (process.env.STORYBOOK_TESTING === 'true') {
+    const resultsDir = ensureResultsDirectory();
+    
+    // Save JSON results for CI processing
+    resultsCollector.saveResults(path.join(resultsDir, 'a11y-results.json'));
+    
+    // Generate and save Markdown summary
+    const markdownSummary = resultsCollector.generateMarkdownSummary();
+    fs.writeFileSync(
+      path.join(resultsDir, 'a11y-summary.md'),
+      markdownSummary,
+      'utf8'
+    );
+    
+    console.log('✅ Accessibility test results saved to test-results directory');
+  }
+};
 
 module.exports = {
   async preVisit(page) {
     await injectAxe(page);
   },
   async postVisit(page, context) {
-    // Get story context to access parameters
+    // Get story context to access parameters and check if it should be tested
     const storyContext = await getStoryContext(page, context);
     const a11yParams = storyContext.parameters?.a11y || {};
     
-    console.log(`Story: ${context.title} - ${context.name}`);
-    console.log('Story context:', JSON.stringify(storyContext.parameters, null, 2));
+    // Log info about current story for debugging
+    console.log(`Testing story: ${context.title} - ${context.name}`);
     
     // If skipTests is configured, skip a11y testing
     if (a11yParams.disable) {
-      console.log('Skipping a11y tests for this story');
+      console.log('⏭️ Skipping a11y tests for this story (disabled in parameters)');
       return;
     }
     
-    // Configure axe with story-specific rules if provided
-    if (a11yParams.config) {
-      await configureAxe(page, a11yParams.config);
+    try {
+      // Determine component type from context
+      const componentType = getComponentType(context.title);
+      console.log(`Component type: ${componentType}`);
+      
+      // Merge default config with type-specific rules and any story-specific config
+      const axeConfig = {
+        ...defaultAxeConfig,
+        rules: {
+          ...defaultAxeConfig.rules,
+          ...getTypeSpecificRules(componentType),
+          ...(a11yParams.config?.rules || {})
+        }
+      };
+      
+      // Configure axe with the merged configuration
+      await configureAxe(page, axeConfig);
+      
+      // Run accessibility checks with enhanced options
+      const violations = await checkA11y(
+        page, 
+        '#storybook-root', 
+        {
+          // Provide detailed report for better understanding of issues
+          detailedReport: true,
+          detailedReportOptions: {
+            html: true,
+          },
+          // Use custom test result handler to control test failures
+          resultHandler: async (axeResults) => {
+            // Extract total check count for reporting
+            const checkCount = axeResults.passes.length + 
+                              axeResults.incomplete.length + 
+                              axeResults.violations.length;
+            
+            // Track results in collector for comprehensive reporting
+            resultsCollector.recordResults(
+              context.title, 
+              context.name,
+              axeResults.violations,
+              checkCount
+            );
+            
+            const totalViolations = axeResults.violations.length;
+            
+            // Group violations by impact for better reporting
+            const violationsByImpact = {
+              critical: axeResults.violations.filter(v => v.impact === 'critical').length,
+              serious: axeResults.violations.filter(v => v.impact === 'serious').length,
+              moderate: axeResults.violations.filter(v => v.impact === 'moderate').length,
+              minor: axeResults.violations.filter(v => v.impact === 'minor').length,
+            };
+            
+            // Improved logging with structured information
+            if (totalViolations > 0) {
+              console.log('🔍 Accessibility violations found:');
+              console.log('----------------------------');
+              console.log(`Total: ${totalViolations} violation(s)`);
+              console.log(`Critical: ${violationsByImpact.critical}`);
+              console.log(`Serious: ${violationsByImpact.serious}`);
+              console.log(`Moderate: ${violationsByImpact.moderate}`);
+              console.log(`Minor: ${violationsByImpact.minor}`);
+              console.log('----------------------------');
+              
+              // Log individual violations with more details
+              axeResults.violations.forEach((violation, index) => {
+                console.log(`Violation #${index + 1}: ${violation.id} (${violation.impact})`);
+                console.log(`Description: ${violation.description}`);
+                console.log(`Help: ${violation.help}`);
+                console.log(`WCAG: ${violation.tags.filter(t => t.includes('wcag')).join(', ')}`);
+                console.log(`Help URL: ${violation.helpUrl}`);
+                console.log(`Affected nodes: ${violation.nodes.length}`);
+                console.log('----------------------------');
+              });
+            } else {
+              console.log('✅ No accessibility violations found');
+            }
+            
+            // Use custom function to determine if test should fail
+            const shouldFail = customTestResultDependsOnViolations(axeResults.violations);
+            return { violations: axeResults.violations, results: axeResults, shouldFail };
+          }
+        }
+      );
+      
+      // Save results after each story is tested (in case of early termination)
+      saveTestResults();
+      
+    } catch (error) {
+      console.error('❌ Error during accessibility testing:', error);
+      // Still try to save results if an error occurs
+      saveTestResults();
+      throw error;
     }
-    
-    // Run accessibility checks
-    await checkA11y(page, '#storybook-root', {
-      detailedReport: true,
-      detailedReportOptions: {
-        html: true,
-      },
-    });
   },
+  
+  // Provide a hook that runs after all tests are complete
+  async afterAll() {
+    // Save the final results
+    saveTestResults();
+  }
 };

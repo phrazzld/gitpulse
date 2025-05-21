@@ -209,6 +209,9 @@ function parseViolations(output) {
   let inViolationTable = false;
   let inViolationDetail = false;
   let currentViolation = null;
+  let currentViolationIndex = -1;
+  let capturingNodes = false;
+  let currentNodes = [];
 
   for (const line of lines) {
     // Detect test file
@@ -244,7 +247,9 @@ function parseViolations(output) {
           description: parts[4].replace(/['"]/g, ""),
           nodes: parseInt(parts[5]) || 1,
           help: "", // Will be populated from detail section
-          helpUrl: ""
+          helpUrl: "",
+          wcagCriteria: [],
+          nodeInfo: []
         };
         currentViolations.push(violation);
       }
@@ -254,45 +259,108 @@ function parseViolations(output) {
     if (line.includes("----- Violation #") && line.includes("-----")) {
       inViolationDetail = true;
       inViolationTable = false;
+      capturingNodes = false;
+      currentNodes = [];
+      
+      // Extract violation number from header
+      const violationMatch = line.match(/Violation #(\d+)/);
+      if (violationMatch && violationMatch[1]) {
+        currentViolationIndex = parseInt(violationMatch[1]) - 1;
+      } else {
+        currentViolationIndex = -1;
+      }
+      
       continue;
     }
     
     // End of detailed violation
     if (inViolationDetail && line.includes("==============================")) {
+      // Save nodes to the current violation if we have any
+      if (currentViolationIndex >= 0 && currentViolationIndex < currentViolations.length && currentNodes.length > 0) {
+        currentViolations[currentViolationIndex].nodeInfo = [...currentNodes];
+      }
+      
       inViolationDetail = false;
-      currentViolation = null;
+      currentViolationIndex = -1;
+      capturingNodes = false;
+      currentNodes = [];
       continue;
     }
     
     // Extract information from detailed violation sections
-    if (inViolationDetail) {
+    if (inViolationDetail && currentViolationIndex >= 0 && currentViolationIndex < currentViolations.length) {
       // Extract help text
       if (line.includes("Help:")) {
         const match = line.match(/Help:\s+(.+)/);
-        if (match && match[1] && currentViolations.length > 0) {
-          // Update the last violation with help text
-          const index = currentViolations.length - 1;
-          currentViolations[index].help = match[1].trim();
+        if (match && match[1]) {
+          currentViolations[currentViolationIndex].help = match[1].trim();
         }
       }
       
       // Extract help URL
       if (line.includes("Help URL:")) {
         const match = line.match(/Help URL:\s+(.+)/);
-        if (match && match[1] && currentViolations.length > 0) {
-          // Update the last violation with help URL
-          const index = currentViolations.length - 1;
-          currentViolations[index].helpUrl = match[1].trim();
+        if (match && match[1]) {
+          currentViolations[currentViolationIndex].helpUrl = match[1].trim();
         }
       }
       
       // Extract WCAG criteria if available
-      if (line.includes("WCAG Criteria:")) {
-        const match = line.match(/WCAG Criteria:\s+(.+)/);
-        if (match && match[1] && currentViolations.length > 0) {
-          // Update the last violation with WCAG criteria
-          const index = currentViolations.length - 1;
-          currentViolations[index].wcagCriteria = match[1].trim();
+      if (line.includes("WCAG:") || line.includes("WCAG Criteria:")) {
+        const match = line.match(/WCAG(?:\s+Criteria)?:\s+(.+)/);
+        if (match && match[1]) {
+          // Parse and clean up WCAG criteria tags
+          const wcagTags = match[1].trim()
+            .split(/,\s*/)
+            .filter(tag => tag.includes('wcag') || /^\d\.\d\.\d$/.test(tag));
+          
+          currentViolations[currentViolationIndex].wcagCriteria = wcagTags;
+        }
+      }
+      
+      // Start capturing node information
+      if (line.includes("Nodes:") || line.includes("Affected nodes:")) {
+        capturingNodes = true;
+        continue;
+      }
+      
+      // End of node section
+      if (capturingNodes && (line.trim() === "" || line.includes("---"))) {
+        capturingNodes = false;
+        continue;
+      }
+      
+      // Capture node details
+      if (capturingNodes && line.trim() !== "") {
+        // Try to extract HTML snippet
+        const htmlMatch = line.match(/<([^>]+)>/);
+        // Try to extract selector
+        const selectorMatch = line.match(/^([^:]+):/);
+        // Try to extract failure summary
+        const failureMatch = line.match(/Fix(?:es|ing):\s+(.+)/i) || 
+                            line.match(/Issue(?:s|):\s+(.+)/i) ||
+                            line.match(/Problem(?:s|):\s+(.+)/i);
+        
+        // Build node object with available information
+        const nodeInfo = {};
+        
+        if (htmlMatch) {
+          nodeInfo.html = line.trim();
+        } else if (selectorMatch) {
+          nodeInfo.selector = selectorMatch[1].trim();
+        } else if (failureMatch) {
+          nodeInfo.failureSummary = failureMatch[1].trim();
+        } else if (line.trim().startsWith("- ")) {
+          // List item with additional details
+          nodeInfo.detail = line.trim().substring(2);
+        } else {
+          // General info that doesn't match other patterns
+          nodeInfo.info = line.trim();
+        }
+        
+        // Only add if we have some meaningful content
+        if (Object.keys(nodeInfo).length > 0) {
+          currentNodes.push(nodeInfo);
         }
       }
     }
@@ -303,7 +371,65 @@ function parseViolations(output) {
     violations.push({ file: currentFile, violations: currentViolations });
   }
 
-  return violations;
+  // Post-process to enhance violation data
+  return violations.map(fileData => {
+    // Update each violation with more information
+    const enhancedViolations = fileData.violations.map(violation => {
+      // Add fixed URL if missing
+      if (!violation.helpUrl) {
+        violation.helpUrl = `https://dequeuniversity.com/rules/axe/${violation.id}`;
+      }
+      
+      // Clean up WCAG criteria if empty
+      if (!violation.wcagCriteria || !Array.isArray(violation.wcagCriteria) || violation.wcagCriteria.length === 0) {
+        // Try to infer from rule ID
+        switch(violation.id) {
+          case 'color-contrast':
+            violation.wcagCriteria = ['wcag2aa', 'wcag143'];
+            break;
+          case 'button-name':
+            violation.wcagCriteria = ['wcag2aa', 'wcag412', 'wcag244'];
+            break;
+          case 'image-alt':
+            violation.wcagCriteria = ['wcag2aa', 'wcag111'];
+            break;
+          default:
+            violation.wcagCriteria = [];
+        }
+      }
+      
+      // Add remediation guidance based on rule ID
+      if (!violation.remediation) {
+        // Common fixes for frequent issues
+        switch(violation.id) {
+          case 'color-contrast':
+            violation.remediation = "Ensure text has a contrast ratio of at least 4.5:1 for normal text or 3:1 for large text";
+            break;
+          case 'button-name':
+            violation.remediation = "Add accessible text content, aria-label, or aria-labelledby to buttons";
+            break;
+          case 'image-alt':
+            violation.remediation = "Add meaningful alt text that describes the purpose of the image";
+            break;
+          case 'aria-roles':
+            violation.remediation = "Use only valid ARIA role values as documented in WAI-ARIA specification";
+            break;
+          case 'tabindex':
+            violation.remediation = "Avoid using tabindex values greater than 0, which disrupt natural keyboard navigation";
+            break;
+          default:
+            violation.remediation = "Check Axe documentation for this rule to understand how to fix it";
+        }
+      }
+      
+      return violation;
+    });
+    
+    return {
+      file: fileData.file,
+      violations: enhancedViolations
+    };
+  });
 }
 
 function displayViolations(violationsByFile) {
