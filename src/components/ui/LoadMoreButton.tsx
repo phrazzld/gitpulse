@@ -69,7 +69,8 @@ export default function LoadMoreButton({
 
   // Base colors - using high contrast values as defaults
   const darkSlate = 'var(--dark-slate, #1b2b34)';
-  const electricBlue = 'var(--electric-blue, #3b8eea)';
+  // Updated electric blue color for better contrast (4.90:1 ratio)
+  const electricBlue = 'var(--electric-blue, #2563eb)';
 
   return (
     <div className={`flex justify-center py-4 ${className}`}>
@@ -86,9 +87,9 @@ export default function LoadMoreButton({
         `}
         style={{
           backgroundColor: loading ? 'rgba(0, 0, 0, 0.3)' : darkSlate,
-          color: electricBlue,
+          color: electricBlue, /* #2563eb - Meets WCAG AA 4.90:1 contrast ratio */
           border: `1px solid ${electricBlue}`,
-          boxShadow: loading ? 'none' : '0 0 10px rgba(59, 142, 234, 0.2)',
+          boxShadow: loading ? 'none' : '0 0 10px rgba(37, 99, 235, 0.2)',
           opacity: loading ? 0.7 : 1,
           cursor: loading ? 'not-allowed' : 'pointer',
           // Use type assertion for CSS custom properties

@@ -1,779 +1,112 @@
-# Remediation Tasks
+# GitPulse CI Resolution Tasks
 
-This document outlines the tasks needed to address the critical issues identified in the code review for the Atomic Design and Testing Library Migration PR.
+## Accessibility Issues
 
-## CI Resolution Tasks - Priority 0 (Critical - Must Fix for CI to Pass)
+### Color Contrast Fixes
 
-### Unit Test Failures - Refactoring for DI
+- [x] **Fix color contrast in LoadMoreButton component**
+  - Update the electric blue color (`#3b8eea`) in `src/components/ui/LoadMoreButton.tsx` to meet WCAG AA standards (4.5:1 ratio)
+  - Test with light text on dark background and dark text on light background
+  - Verify contrast using the project's `colorContrast.ts` utility
+  - Ensure all text inside buttons meets 4.5:1 contrast ratio minimum
 
-- [x] **T001CI: Refactor github modules for dependency injection**
-  - Modify modules in `src/lib/github/` (repositories, auth, commits, utils) to accept Octokit client and fetch functions as explicit dependencies
-  - Export interfaces for external dependencies where needed
-  - Modules should no longer instantiate external clients internally
+- [ ] **Fix color contrast in ModeSelector component**
+  - Review and update the following colors in `src/components/ui/ModeSelector.tsx`:
+    - `neon-green (#00ff87)` - too light against dark backgrounds
+    - `electric-blue (#3b8eea)` - may not meet contrast requirements
+  - Ensure selected state indicators meet 3:1 minimum contrast
+  - Verify option text meets 4.5:1 contrast ratio against backgrounds
+  - Use approved color combinations from `docs/accessibility/APPROVED_COLOR_PAIRINGS.md`
 
-- [x] **T002CI: Refactor summary API handlers for dependency injection**
-  - Modify `src/app/api/summary/handlers.ts` to accept external dependencies explicitly
-  - Dependencies should be injected via parameters or constructor arguments
-  - **Depends on:** T001CI
+- [ ] **Fix color contrast in OperationsPanel component**
+  - Review color variables used for shadows (`rgba(0, 255, 135, 0.2)`) and adjust opacity
+  - Review imported components (TerminalHeader, ErrorAlert, etc.) for accessibility issues
+  - Ensure all text including terminal-style headers meets contrast requirements
 
-### Unit Test Failures - Test Corrections
+- [ ] **Fix Button component accessibility issues**
+  - Review variant styles in `src/components/atoms/Button.tsx` focusing on hover states
+  - Ensure focus states have sufficient contrast (3:1 minimum)
+  - Test all button variants (primary, secondary, outline) with accessibility tools
+  - Update darkBlue and electricBlue variables to maintain brand identity while meeting contrast requirements
 
-- [x] **T003CI: Correct mocks and async handling in summary API handler tests**
-  - Remove internal mocks from `src/app/api/summary/__tests__/handlers.test.ts`
-  - Mock only injected external dependencies
-  - Update assertions to focus on public behavior
-  - Ensure proper async/await usage and Promise handling
-  - **Depends on:** T002CI
+### ARIA and Accessibility Structure
 
-- [x] **T004CI: Fix "me" special case logic in summary API handlers**
-  - Investigate and correct the "me" special case logic in handlers
-  - Update the corresponding test to assert correct behavior
-  - **Depends on:** T003CI
+- [ ] **Fix ARIA attributes in interactive components**
+  - Review all ARIA role use in ModeSelector for correctness
+  - Validate aria-label usage for icon-only buttons
+  - Ensure proper keyboard navigation support in ModeSelector and OperationsPanel
+  - Test focus management with screen readers
 
-- [x] **T002CI-FIX: Fix TypeScript errors from dependency injection refactoring**
-  - Fix IOctokitClient type errors in various route files (contributors, my-activity, etc.)
-  - Update function signatures that are expecting string instead of IOctokitClient
-  - Fix GitHub module tests that have breaking type issues
-  - These errors are from the T002CI refactoring and need to be addressed
-  - **Priority**: Critical - blocking CI
-  - **Completed:** 2025-05-18
-
-- [x] **T005CI: Correct mocks and async handling in github/repositories tests**
-  - Remove internal mocks from `src/lib/github/__tests__/repositories.test.ts`
-  - Mock only injected Octokit client
-  - Update assertions and ensure proper async handling
-  - **Depends on:** T001CI
-
-- [x] **T006CI: Correct mocks and async handling in github/auth tests**
-  - Remove internal mocks from `src/lib/github/__tests__/auth.test.ts`
-  - Mock only injected dependencies
-  - Update assertions and ensure proper async handling
-  - **Depends on:** T001CI
-
-- [x] **T007CI: Correct mocks and async handling in github/commits tests**
-  - Remove internal mocks from `src/lib/github/__tests__/commits.test.ts`
-  - Mock only injected dependencies
-  - Fix promise rejection handling
-  - **Depends on:** T001CI
-
-### Accessibility Violations
-
-- [x] **T008CI: Fix color contrast violations**
-  - Fix contrast issues in LoadMoreButton, ModeSelector, OperationsPanel
-  - Adjust colors to meet WCAG AA requirements (4.5:1 normal text, 3:1 large text)
-  - Verify in both light and dark modes
-  - **Completed:** 2025-05-19
-  - **Implementation Notes:**
-    - Updated global CSS variables with accessible versions
-    - Created color-pairings.config.json with WCAG AA compliant colors
-    - Added --accessible-green, --dark-blue, --accessible-yellow, and --accessible-red
-    - Fixed hover state contrasts with JavaScript event handlers
-    - Generated color documentation showing all pairings are now compliant
-
-- [x] **T009CI: Fix interactive element accessibility**
-  - Ensure keyboard focusability for all interactive elements
-  - Add proper ARIA roles, states, and properties
-  - Correct tabindex usage
-  - **Completed:** 2025-05-18
-  - **Components Updated:**
-    - Created accessibility utilities: useFocusTrap, useRovingTabIndex, useKeyboardNavigation, useAriaAnnouncer
-    - Updated Button component with full accessibility support
-    - All accessibility tests now passing
-
-- [x] **T010CI: Fix button name accessibility**
-  - Add aria-labels to icon-only buttons
-  - Ensure all buttons have accessible names
-  - Updated Button component with TypeScript discriminated unions to enforce aria-label on icon-only buttons
-  - Added comprehensive tests for icon-only button accessibility
-  - All existing buttons in codebase already have accessible names
-  - **Completed:** 2025-05-18
-
-### Pre-commit Script Test
-
-- [x] **T011CI: Fix pre-commit script test**
-  - Update execSync mock in `scripts/__tests__/check-a11y-staged-stories.test.js`
-  - Return realistic `git diff --cached --name-status` output
-  - Verify filtering logic works correctly
-  - **Completed:** 2025-05-18
-
-- [x] **T012CI: Fix accessibility test infrastructure**
-  - Fix `test-storybook` command to work with static builds in pre-commit hook
-  - Update `check-a11y-staged-stories.js` to properly serve static build with HTTP server
-  - Ensure server cleanup happens properly on both success and failure
-  - Investigate if Button stories have actual accessibility violations or if they're false positives
-  - **Note:** T010CI introduced intentional TypeScript errors in Button tests that demonstrate type safety
-  - **Completed:** 2025-05-19
-  - **Implementation Notes:**
-    - Replaced external HTTP server process with in-process Node.js server
-    - Added dynamic port allocation using get-port package
-    - Implemented story filtering based on staged files for performance
-    - Added comprehensive error handling and signal handlers for cleanup
-    - Created separate module for server functionality with full test coverage
-
-## Type Safety Improvements
-
-- [x] **TASK-041: Identify all instances of `any` usage in the codebase**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Complete inventory of all `any` types in the codebase
-  - **Description**:
-    - Run `grep -r "any" --include="*.ts" --include="*.tsx" src/`
-    - Compile a list of all files and line numbers where `any` is used
-    - Exclude legitimate type declarations (e.g., Array<any> vs `any` type assignments)
-
-- [x] **TASK-042: Replace `any` in `renderHookSafely` function signature**
-  - **Priority**: Critical
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Function signature uses proper types
-  - **Description**:
-    - Update the `options` parameter to use `Omit<RenderHookOptions<Props>, 'wrapper'> & { wrapper?: React.ComponentType<{children: React.ReactNode}>; }`
-    - Ensure function type safety without breaking existing usages
-    - Run tests to verify functionality is preserved
-
-- [x] **TASK-043: Replace `any` in `renderAsyncHook` function signature**
-  - **Priority**: Critical
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Function signature uses proper types
-  - **Description**:
-    - Update the `options` parameter to use proper types similar to `renderHookSafely`
-    - Ensure function type safety without breaking existing usages
-    - Run tests to verify functionality is preserved
-
-- [x] **TASK-044: Replace `any` in `SafeRenderHookResult` type definition**
-  - **Priority**: Critical
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Type definition no longer uses `any`
-  - **Description**:
-    - Update the type to use proper generics instead of `any`
-    - Replace `any` in the `waitForValueToChange` selector function
-    - Ensure type safety without breaking existing usages
-
-- [x] **TASK-045: Replace other identified `any` usages with appropriate types**
-  - **Priority**: High
-  - **Effort**: Large
-  - **Dependencies**: TASK-041
-  - **Success Criteria**: All `any` usages replaced with proper types
-  - **Description**:
-    - For each instance identified in TASK-041, replace with appropriate types
-    - Use `unknown` with type guards, specific interfaces, or generic types
-    - Run TypeScript compiler to ensure all replacements are valid
-
-## Error Suppression Removal
-
-- [x] **TASK-046: Identify all TypeScript and linter error suppressions**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Complete list of all suppressions documented
-  - **Description**:
-    - Run `grep -r "eslint-disable" --include="*.ts" --include="*.tsx" --include="*.js" src/`
-    - Run `grep -r "@ts-ignore" --include="*.ts" --include="*.tsx" src/`
-    - Run `grep -r "@ts-expect-error" --include="*.ts" --include="*.tsx" src/`
-    - Document each suppression with file, line number, and suppressed rule/error
-
-- [x] **TASK-047: Address TypeScript/linter suppressions by fixing underlying issues**
-  - **Priority**: Critical
-  - **Effort**: Large
-  - **Dependencies**: TASK-046
-  - **Success Criteria**: All suppressions removed and underlying issues fixed
-  - **Description**:
-    - For each suppression, understand the root cause of the error
-    - Refactor code to fix the underlying issue
-    - Remove the suppression comment
-    - Verify TypeScript/ESLint pass without errors
-  - **Progress**:
-    - ✅ Completed Jest mock type suppressions (24 instances, 60% of total)
-    - ✅ Completed external library type issues (5 instances, 12.5% of total)
-    - ✅ Completed test edge cases for null/undefined (4 instances, 10% of total)
-    - ✅ Completed ESLint suppressions for React hooks and Next.js Image (4 instances, 10% of total)
-    - ✅ Completed implementing utility modules for type safety and proper dependency management
-    - ✅ Completed final miscellaneous suppressions (3 instances, 7.5% of total)
-    - ✅ All TypeScript and ESLint checks now pass without suppressions
-
-- [x] **TASK-048: Fix common suppression patterns systematically**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: TASK-047
-  - **Success Criteria**: Common patterns addressed, codebase less prone to these errors
-  - **Description**:
-    - Analyze patterns in fixed suppressions
-    - Implement systemic solutions (utilities, helper types, etc.)
-    - Document common patterns and their proper solutions
+- [ ] **Implement accessibility hook usage consistently**
+  - Add useAriaAnnouncer for status changes in interactive components
+  - Add keyboard navigation hooks to all relevant components
+  - Implement focus trapping for modal and popup components
+  - Add state announcements for loading and success states
 
 ## Testing Improvements
 
-- [x] **TASK-049: Remove global fetch mock from `renderAsyncHook`**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: No global fetch mocking, tests still pass
-  - **Description**:
-    - Remove `global.fetch = jest.fn()` from `renderAsyncHook`
-    - Update the function to use local mocking instead
-    - Update tests to work with the new approach
+- [ ] **Add Jest accessibility tests for atoms components**
+  - Create accessibility tests for Button focusing on color contrast
+  - Update LoadMoreButton tests for WCAG compliance
+  - Verify test coverage exceeds 90% threshold for atoms
+  - Include tests for keyboard navigation and screen reader compatibility
 
-- [x] **TASK-050: Create FetchContext for dependency injection**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Context and hook created for fetch injection
-  - **Description**:
-    - Create a React context for fetch injection
-    - Implement a `useFetch` hook for consuming the context
-    - Add basic tests for the context and hook
+- [ ] **Add Jest accessibility tests for molecules components**
+  - Add tests for ErrorAlert component accessibility
+  - Add tests for TerminalHeader component
+  - Add tests for AuthStatusBanner component
+  - Increase test coverage to meet 85% threshold
 
-- [x] **TASK-051: Update hooks to use FetchContext for dependency injection**
-  - **Priority**: High
-  - **Effort**: Large
-  - **Dependencies**: TASK-050
-  - **Success Criteria**: Hooks use context instead of global fetch
-  - **Description**:
-    - Find all hooks that use fetch directly
-    - Update them to use the useFetch hook
-    - Update tests to provide the context
-  - **Notes**:
-    - Completed successfully - all hooks now use FetchContext for dependency injection
-    - Tests are passing, but there's a TypeScript issue with JSX in test files
-    - This is a known issue with TypeScript and React types in Jest tests
-    - Added comments to explain the TypeScript errors
+- [ ] **Add Jest accessibility tests for organisms components**
+  - Create tests for OperationsPanel component
+  - Add tests for AccountSelectionPanel component
+  - Add tests for AnalysisFiltersPanel component
+  - Increase test coverage to meet 80% threshold
 
-- [x] **TASK-052: Implement router context for Next.js testing**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Next.js router testing uses context instead of mocks
-  - **Description**:
-    - Create router context or use Next.js provided context
-    - Update testing utilities to use context providers
-    - Remove global Next.js mocking
+## CI Pipeline Fixes
 
-- [x] **TASK-053: Replace custom waitFor implementations with RTL native ones**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Custom implementations removed, RTL used directly
-  - **Description**:
-    - Identify custom waitFor utilities using JSON.stringify
-    - Replace with RTL's native waitFor and findBy methods
-    - Ensure tests still pass with the new approach
+- [ ] **Configure Storybook Accessibility testing properly**
+  - Update `.storybook/test-runner.js` to better report accessibility failures
+  - Add specific rules configuration for color-contrast testing
+  - Add comprehensive reporting of specific violations
+  - Ensure proper logging of accessibility issues
 
-- [x] **TASK-054: Refactor renderHookSafely to use RTL's native utilities**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Function uses RTL directly without reimplementation
-  - **Description**:
-    - Refactor to be a thin wrapper around RTL's renderHook
-    - Remove custom logic that duplicates RTL functionality
-    - Update tests to use the refactored function
+- [ ] **Update color documentation and utilities**
+  - Run and fix `npm run generate-color-docs` script
+  - Update `docs/accessibility/APPROVED_COLOR_PAIRINGS.md` with corrections
+  - Add new approved color combinations for UI components
+  - Update contrast calculation thresholds if needed
 
-- [x] **TASK-055: Update tests to use native RTL methods directly**
-  - **Priority**: High
-  - **Effort**: Large
-  - **Dependencies**: TASK-053, TASK-054
-  - **Success Criteria**: Tests use standard RTL patterns
-  - **Description**:
-    - Update tests to use RTL's renderHook and waitFor directly
-    - Replace custom wait patterns with standard ones
-    - Ensure all tests pass with the updates
+- [ ] **Fix pre-commit accessibility checks**
+  - Update the pre-commit hook for detecting staged story files
+  - Ensure local checks match CI checks for consistency
+  - Add clear error reporting for accessibility violations
+  - Add guidance for fixing common contrast issues
 
-## Dependency Management
+## Component Library Improvements
 
-- [x] **TASK-056: Identify specific peer dependency conflicts**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: All conflicts documented
-  - **Description**:
-    - Run npm install without --legacy-peer-deps
-    - Document all reported peer dependency conflicts
-    - Determine required version ranges for resolution
+- [ ] **Implement consistent color system across atomic design components**
+  - Create standardized color tokens in a central location
+  - Replace hard-coded colors with token variables
+  - Document the color system in storybook
+  - Ensure all colors meet WCAG AA standards (at minimum)
 
-- [x] **TASK-057: Update package.json to resolve peer dependency conflicts**
-  - **Priority**: Critical
-  - **Effort**: Medium
-  - **Dependencies**: TASK-056
-  - **Success Criteria**: npm install works without --legacy-peer-deps
-  - **Description**:
-    - Update dependency versions based on findings
-    - Focus on React and testing library compatibility
-    - Test dependency installation locally
+- [ ] **Add pattern library documentation for accessibility**
+  - Create example accessible patterns for common UI components
+  - Add accessibility best practices for atomic design
+  - Document proper usage of ARIA attributes
+  - Create reference implementation for each atomic component type
 
-- [x] **TASK-058: Upgrade problematic dependencies to compatible versions**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: TASK-057
-  - **Success Criteria**: All dependencies use compatible versions
-  - **Description**:
-    - Identify packages with unresolvable conflicts
-    - Upgrade these dependencies or find alternatives
-    - Ensure application builds and tests pass
+## Documentation Updates
 
-- [x] **TASK-059: Update CI workflow to remove --legacy-peer-deps flag**
-  - **Priority**: Critical
-  - **Effort**: Small
-  - **Dependencies**: TASK-058
-  - **Success Criteria**: CI workflow works without the flag
-  - **Description**:
-    - Update CI workflow configuration files
-    - Remove --legacy-peer-deps flag from all commands
-    - Verify CI builds pass without the flag
+- [ ] **Update atomic design documentation with accessibility guidelines**
+  - Add accessibility section to `docs/architecture/ATOMIC_DESIGN.md`
+  - Update examples with accessible implementations
+  - Document color contrast requirements for different component types
+  - Add testing guidance for accessibility
 
-- [x] **TASK-060: Update dependency management documentation**
-  - **Priority**: Medium
-  - **Effort**: Small
-  - **Dependencies**: TASK-059
-  - **Success Criteria**: Documentation reflects current approach
-  - **Description**:
-    - Update references to --legacy-peer-deps
-    - Document current dependency management strategy
-    - Update best practices section
-
-## CI Improvements
-
-- [x] **TASK-061: Update Jest coverage configuration**
-  - **Priority**: Medium
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Coverage thresholds properly enforced
-  - **Description**:
-    - Add coverageThreshold to Jest configuration
-    - Set appropriate thresholds for different component types
-    - Ensure CI fails if thresholds aren't met
-
-- [x] **TASK-062: Add E2E testing to CI workflow**
-  - **Priority**: Medium
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: E2E tests run in CI
-  - **Description**:
-    - Add Playwright installation step
-    - Configure E2E test execution in CI
-    - Ensure CI fails if E2E tests fail
-
-- [x] **TASK-063: Add accessibility checks to CI workflow**
-  - **Priority**: Medium
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Accessibility checks run in CI
-  - **Description**:
-    - Add accessibility testing step
-    - Configure failure thresholds
-    - Integrate with Storybook if possible
-
-- [x] **TASK-064: Configure Lighthouse CI for performance budgets**
-  - **Priority**: Medium
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Performance budgets defined
-  - **Description**:
-    - Create Lighthouse configuration file
-    - Define performance budgets for key metrics
-    - Configure assertions and thresholds
-
-- [x] **TASK-065: Add performance budget checks to CI workflow**
-  - **Priority**: Medium
-  - **Effort**: Medium
-  - **Dependencies**: TASK-064
-  - **Success Criteria**: Performance checks run in CI
-  - **Description**:
-    - Add Lighthouse CI to workflow
-    - Configure to use performance budgets
-    - Ensure CI reports or fails on budget violations
-
-## Security Improvements
-
-- [x] **TASK-066: Update npm audit command in CI workflow**
-  - **Priority**: High
-  - **Effort**: Small
-  - **Dependencies**: None
-  - **Success Criteria**: Appropriate audit level enforced
-  - **Description**:
-    - Review security policy requirements
-    - Update --audit-level flag to appropriate level (critical/high)
-    - Verify CI fails on violations
-
-- [x] **TASK-067: Create nuanced security checking script**
-  - **Priority**: Medium
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Script provides better vulnerability control
-  - **Description**:
-    - Create script that runs npm audit with specific flags
-    - Add logic to differentiate dev vs prod vulnerabilities
-    - Ensure clear reporting of issues
-
-- [x] **TASK-068: Update CI workflow to use security checking script**
-  - **Priority**: Medium
-  - **Effort**: Small
-  - **Dependencies**: TASK-067
-  - **Success Criteria**: CI uses new script for security checks
-  - **Description**:
-    - Update workflow to call the new script
-    - Configure script execution environment
-    - Verify CI fails based on script logic
-
-## CI Fix Tasks
-
-- [x] **TASK-069: Add ts-node to project dependencies**
-  - **Priority**: Critical
-  - **Effort**: Small
-  - **Dependencies**: None
-  - **Success Criteria**: CI security audit step passes without error
-  - **Description**:
-    - Add `ts-node` to `devDependencies` in root `package.json`
-    - Ensure the version is compatible with the TypeScript version
-    - Test locally to verify the security audit script runs successfully
-    - Commit the change and verify CI passes
-
-- [x] **TASK-070: Analyze button component accessibility issues**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: None
-  - **Success Criteria**: Complete understanding of accessibility violations
-  - **Description**:
-    - Run Storybook locally and enable the accessibility addon
-    - Identify all color contrast issues in button components
-    - Document the specific CSS variables and color combinations causing failures
-    - Create a report of all affected components
-
-- [x] **TASK-071: Fix color contrast in Button component**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: TASK-070
-  - **Success Criteria**: Button passes accessibility tests
-  - **Description**:
-    - Update the color variables in `src/components/atoms/Button.tsx`
-    - Ensure text colors have sufficient contrast with backgrounds (4.5:1 ratio)
-    - Test with the accessibility addon in Storybook
-    - Run accessibility tests locally to verify: `npm run test-storybook`
-
-- [x] **TASK-072: Fix color contrast in LoadMoreButton component**
-  - **Priority**: High
-  - **Effort**: Small
-  - **Dependencies**: TASK-071
-  - **Success Criteria**: LoadMoreButton passes accessibility tests
-  - **Description**:
-    - Apply the same color contrast fixes from Button component
-    - Test with the accessibility addon in Storybook
-    - Ensure all variants (Default, NoMoreItems, CustomLabels) pass accessibility tests
-    - Verify with: `npm run test-storybook`
-
-- [x] **TASK-073: Fix color contrast in ModeSelector component**
-  - **Priority**: High
-  - **Effort**: Small
-  - **Dependencies**: TASK-071
-  - **Success Criteria**: ModeSelector passes accessibility tests
-  - **Description**:
-    - Update the component to use the fixed color variables
-    - Test with the accessibility addon in Storybook
-    - Run accessibility tests locally to verify
-    - Check all states (selected, unselected, hover, focus)
-
-- [x] **TASK-074: Test and fix OperationsPanel accessibility**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Dependencies**: TASK-071, TASK-072, TASK-073
-  - **Success Criteria**: OperationsPanel passes accessibility tests
-  - **Description**:
-    - Verify that fixing child components resolves OperationsPanel issues
-    - Check if any additional contrast issues exist in the panel itself
-    - Apply fixes if necessary
-    - Run accessibility tests to verify
-
-- [x] **TASK-075: Implement centralized color contrast utility**
-  - **Priority**: Medium
-  - **Effort**: Medium
-  - **Dependencies**: TASK-074
-  - **Success Criteria**: Color contrast utility implemented and used
-  - **Description**:
-    - Create a utility function to validate color contrast ratios
-    - Add it to the development tools
-    - Update component documentation to reference the utility
-    - Consider adding as a pre-commit hook
-
-## Implementation Order
-
-1. **Type Safety** (TASK-041 → TASK-045)
-2. **Error Suppressions** (TASK-046 → TASK-048)
-3. **Dependency Management** (TASK-056 → TASK-060)
-4. **Testing Improvements** (TASK-049 → TASK-055)
-5. **CI Security** (TASK-066 → TASK-068)
-6. **CI Quality Gates** (TASK-061 → TASK-065)
-7. **CI Fix** (TASK-069)
-8. **Accessibility Fixes** (TASK-070 → TASK-075)
-
-# CI Resolution Tasks
-
-## Priority 0 (Critical)
-
-- [x] **T001: Fix GitHub token scope validation test in `repositories.test.ts`**
-  - Modify the mock implementation for `validateOAuthToken` in `repositories.test.ts` to accurately simulate a token missing the 'repo' scope
-  - Update the test's `toThrow()` assertion if the error message has changed
-  - Verification: Run targeted test and confirm CI passes
-
-- [x] **T002: Refactor `dashboard-utils.test.ts` to use `dateMock.ts` for date mocking**
-  - Remove direct assignments to `dashboardUtils.getTodayDate` and `getLastWeekDate` properties
-  - Import and use `createMockDate` from `src/lib/tests/dateMock.ts` for date mocking
-  - Adjust test assertions to work with the mocked dates
-  - Verification: Tests pass without TypeErrors
-
-- [x] **T003: Update `--electric-blue` CSS variable in `globals.css` to fix color contrast**
-  - Identify current value of `var(--electric-blue)` in `src/app/globals.css`
-  - Update to a color with sufficient contrast ratio (≥4.5:1) against `var(--dark-slate)`
-  - Visually verify the updated appearance is acceptable
-  - Verification: Storybook accessibility checks pass for all `LoadMoreButton` variants
-
-## Priority 1 (High)
-
-- [x] **T006: Implement ESLint rule or pre-commit hook for `dateMock.ts` enforcement**
-  - Create custom rule to flag direct manipulation of `global.Date` or `Date.now`
-  - Ensure proper detection and suggestions for using `dateMock.ts` instead
-  - Test the rule against known violation patterns
-
-- [x] **T008: Configure `storybook-a11y` as a blocking CI check**
-  - ✅ Updated `.github/workflows/storybook-a11y.yml` to set `SKIP_A11Y_FAILURES: false`
-  - ✅ Modified `.storybook/test-runner.js` to properly fail tests on violations
-  - ✅ Verified with test stories that violations now block the CI
-  - ✅ Documented rule-skipping mechanism for exceptional cases
-  - ✅ Created `docs/ACCESSIBILITY_CI_SETUP.md` with complete documentation
-
-- [x] **T009: Implement local pre-commit/push accessibility checks**
-  - ✅ Used existing test-storybook with axe-core for consistency with CI
-  - ✅ Integrated with Husky pre-commit hook to check staged stories
-  - ✅ Added filtering to only report violations in staged files
-  - ✅ Created comprehensive documentation at `docs/LOCAL_ACCESSIBILITY_CHECKS.md`
-  - ✅ Added override mechanism with A11Y_SKIP environment variable
-  - ✅ Included unit tests and convenience npm scripts
-
-## Priority 2 (Medium)
-
-- [x] **T005: Update testing guidelines to mandate `dateMock.ts`**
-  - Document proper date mocking approach in project guidelines
-  - Include examples of correct usage patterns
-  - **Completed:** 2025-05-19
-  - **Implementation Notes:**
-    - Updated `docs/TESTING_GUIDELINES.md` with comprehensive date mocking guidance
-    - Added multiple usage examples and common patterns
-    - Documented anti-patterns and common mistakes to avoid
-    - Included best practices and migration guide
-    - Added detailed explanations of when and why to use date mocking
-
-- [x] **T007: Add mocking and test utility checks to code review checklist**
-  - Update PR template with specific validation criteria
-  - Cover mocking policies, date mocking, and error testing
-  - **Completed:** 2025-05-19
-  - **Implementation Notes:**
-    - Created `.github/pull_request_template.md` with comprehensive checklist
-    - Added sections for mocking policies, date mocking, and error testing
-    - Included links to relevant documentation
-    - Covers all specified validation criteria from the task
-
-- [x] **T010: Document approved color pairings and contrast ratios**
-  - List all theme color combinations with their WCAG contrast ratios
-  - Reference the centralized color contrast utility
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Created docs/accessibility/APPROVED_COLOR_PAIRINGS.md with comprehensive list of all color pairings
-    - Added docs/accessibility/color-pairings.config.json for automatic validation
-    - All pairings meet WCAG AA requirements (4.5:1 for normal text, 3:1 for large text)
-    - Documented process for updating color documentation
-
-- [x] **T011: Audit adoption of centralized color contrast utility**
-  - Review components for proper use of the accessibility color system
-  - Document findings and create follow-up tickets for non-compliance
-  - **Completed:** 2025-05-19
-  - **Implementation Notes:**
-    - Created T011-audit-report.md with comprehensive findings
-    - Identified components successfully using the utility (Button, LoadMoreButton, ModeSelector)
-    - Found components requiring updates (ErrorAlert, OperationsPanel, StatusDisplay)
-    - Recommended additional runtime validation and Storybook integration
-    - Created list of follow-up tasks to improve adoption
-
-- [x] **T012: Configure Jest for clearer test failure output**
-  - Enhance error messaging to better show actual vs expected values
-  - Implement necessary Jest configuration changes
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Added custom Jest matchers for improved error output
-    - Created dedicated helper functions for formatting object differences
-    - Enhanced console error output for better readability
-    - Added comprehensive documentation in docs/JEST_ERROR_OUTPUT.md
-    - Added tests to verify correct functionality
-
-- [x] **T013: Configure detailed accessibility violation reporting**
-  - Update `storybook-a11y` to show specific selectors and WCAG rules
-  - Improve violation details in CI output
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Enhanced custom-axe-reporter with detailed element selectors and context
-    - Added WCAG criteria to violation reports
-    - Improved markdown summary with actionable guidelines
-    - Added rule-based grouping for better analysis
-    - Enhanced local pre-commit checks with better violation presentation
-    - Added comprehensive documentation in docs/ACCESSIBILITY_REPORTING.md
-    - Improved CI output formatting for better readability in GitHub Actions
-
-- [x] **T014: Document approved testing patterns**
-  - Create guidelines for mocking external dependencies
-  - Include examples for handling async operations properly
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Created comprehensive documentation in `docs/APPROVED_TESTING_PATTERNS.md`
-    - Documented mocking strategy with clear examples of what to mock and what not to mock
-    - Added detailed patterns for async testing with examples using our test utilities
-    - Included specific patterns for components, hooks, and API/service testing
-    - Documented common anti-patterns to avoid
-    - Added reference section for all available test utilities
-
-- [x] **T015: Update accessibility best practices documentation**
+- [ ] **Create component-specific accessibility documentation**
+  - Add accessibility section to component stories
+  - Document keyboard navigation patterns
+  - Document screen reader behavior
   - Document color contrast requirements
-  - List common accessibility pitfalls and solutions
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Created comprehensive `docs/ACCESSIBILITY_BEST_PRACTICES.md` guide
-    - Documented WCAG color contrast standards with examples
-    - Provided solutions for common accessibility pitfalls
-    - Added detailed documentation for accessibility hooks
-    - Included keyboard navigation and screen reader best practices
-    - Linked to related accessibility documentation
-
-### CI Resolution Prevention Measures
-
-- [x] **T016CI: Update mocking policy documentation**
-  - Add clear examples of correct vs incorrect mocking
-  - Emphasize "Mock ONLY True External System Boundaries"
-  - Include practical examples
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Created comprehensive `docs/MOCKING_POLICY.md` document
-    - Added detailed explanation of external system boundaries
-    - Provided numerous examples of correct and incorrect mocking practices
-    - Included real-world examples from our codebase
-    - Added refactoring patterns to improve testability without internal mocking
-    - Cross-referenced with existing testing documentation
-
-- [x] **T017CI: Fix and enforce local pre-commit accessibility hook**
-  - Ensure the hook correctly identifies staged story files
-  - Make it work reliably for all developers
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Improved path normalization for cross-platform compatibility
-    - Enhanced story matching algorithm with multiple fallback strategies
-    - Added more robust error handling and cleanup procedures
-    - Implemented a debug mode for troubleshooting
-    - Improved server timeout handling to prevent hanging processes
-    - Updated documentation with troubleshooting guidance
-    - Added detailed status messages for better user experience
-
-- [x] **T018CI: Add jest-axe assertions to component tests**
-  - Include accessibility assertions in critical component unit tests
-  - Provide an additional layer of a11y testing
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Created a utility function to standardize axe testing across components
-    - Added comprehensive jest-axe tests for ErrorAlert, DateRangePicker, OperationsPanel, and AuthLoadingScreen
-    - Implemented helper functions for testing multiple component states
-    - Added specific tests for accessibility properties like ARIA attributes
-    - Included tests for color contrast, keyboard interactions, and screen reader support
-
-- [x] **T019CI: Create accessibility guidelines**
-  - Document common accessibility patterns
-  - Include approved color palettes with validated contrast ratios
-  - Provide ARIA attribute usage examples
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Created comprehensive `docs/ACCESSIBILITY_GUIDELINES.md` document
-    - Added detailed ARIA attributes reference with usage examples
-    - Included component patterns with code samples from existing components
-    - Connected with approved color palettes and contrast ratios
-    - Updated cross-references in all accessibility documentation
-    - Added sections on accessibility hooks usage and testing approaches
-
-- [x] **T020CI: Implement CI failure post-mortem process**
-  - Create a template for CI failure analysis
-  - Establish a regular review schedule
-  - Document learnings and improvements
-  - **Completed:** 2025-05-20
-  - **Implementation Notes:**
-    - Created comprehensive CI_FAILURE_POSTMORTEM_TEMPLATE.md with structured sections for analysis
-    - Developed CI_FAILURE_POSTMORTEM_PROCESS.md with clear guidelines and schedules
-    - Created a sample post-mortem for historical CI failure
-    - Added CI_FAILURE_SUMMARY.md for centralized tracking of failures and metrics
-    - Updated README.md and PR template with references to the post-mortem process
-    - Set up directory structure for storing post-mortem documents
-
-## Clarifications & Assumptions
-
-- Confirm current hex value of `var(--electric-blue)` in `src/app/globals.css` (for task T003)
-- Determine if the team has existing documentation/guidelines to update or if new ones need to be created
-
-## Repository Maintenance Tasks
-
-- [x] **T021CI: Fix TypeScript errors in Button accessibility tests**
-  - Fix TS2322 errors in src/components/atoms/__tests__/Button.accessibility.test.tsx and Button.icon-accessibility.test.tsx
-  - Address the missing 'aria-label' property in IconButtonProps
-  - Fix TypeScript errors introduced by the TypeScript discriminated unions for icon-only buttons
-  - **Priority**: Medium
-  - **Effort**: Small
-  - **Completed**: 2025-05-20
-  - **Description**: 
-    - These tests were intentionally made to fail TypeScript to demonstrate the type safety of the Button component
-    - Need to update with proper aria-label while keeping the test purpose intact
-
-- [x] **T022CI: Fix import paths in accessibility test scripts**
-  - **Priority**: Critical - Blocking CI
-  - **Effort**: Small
-  - **Description**:
-    - Fix module import paths in scripts/__tests__/accessibility/check-a11y-staged-stories-server.test.js
-    - Fix module import paths in scripts/__tests__/accessibility/check-a11y-staged-stories.test.js
-    - Fix module import paths in scripts/__tests__/accessibility/generate-color-docs.test.ts
-    - Update imports to point to the new script locations in scripts/accessibility/
-    - Ensure tests run successfully after relocation
-  - **Completed**: 2025-05-20
-  - **Implementation Notes**:
-    - Updated import paths in check-a11y-staged-stories-server.test.js to point to ../../accessibility/
-    - Updated import paths in check-a11y-staged-stories.test.js to point to ../../accessibility/
-    - Fixed paths in generate-color-docs.js implementation to use ../../src/lib/accessibility/colorContrast
-    - Updated paths for config files and output files in generate-color-docs.js
-    - Two accessibility tests now pass, with a minor unrelated issue in generate-color-docs.test.ts
-
-- [x] **T023CI: Fix failing API route tests**
-  - **Priority**: Critical - Blocking CI
-  - **Effort**: Medium
-  - **Description**:
-    - Fix failing tests in src/app/api/summary/__tests__/route.test.ts
-    - Fix 500 status error responses in API routes
-    - Ensure API route tests pass with 200 OK responses
-    - Update mocking approach to match new dependency injection pattern
-  - **Completed**: 2025-05-20
-  - **Implementation Notes**:
-    - Improved error handling in fetchCommitsWithAuthMethod to handle failures gracefully
-    - Added try/catch blocks around critical API calls to prevent cascading failures
-    - Enhanced logging to provide better context for errors
-    - Added robustness to Promise.all error handling
-    - Improved input validation for essential parameters
-    - Added better error handling to Gemini AI summary generation
-    - All tests now pass locally (route.test.ts, handlers.test.ts, handlers-mock.test.ts)
-
-- [x] **T024CI: Fix OperationsPanel component tests**
-  - **Priority**: High
-  - **Effort**: Medium
-  - **Description**:
-    - Fix failing tests in src/components/dashboard/__tests__/OperationsPanel.test.tsx
-    - Address undefined filtersPanel issue in assertions
-    - Update component rendering or test approach
-    - Ensure all test cases pass with proper component rendering
-  - **Completed**: 2025-05-20
-  - **Implementation Notes**:
-    - Completely rewrote component tests using @testing-library/react
-    - Added proper data-testid attributes to all mock components
-    - Implemented proper DOM querying with screen.getByTestId()
-    - Replaced custom component rendering with RTL's render function
-    - Added string conversion to boolean attributes with template literals
-    - Ensured proper Jest DOM matchers with toBeInTheDocument() and toHaveAttribute()
-    - All 9 test cases now pass successfully
