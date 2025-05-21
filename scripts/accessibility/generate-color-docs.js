@@ -15,7 +15,7 @@ function parseCSSVariables(cssContent) {
   if (rootMatch && rootMatch[1]) {
     // From the root content, match CSS variable declarations
     const rootContent = rootMatch[1];
-    const varRegex = /(--[\w-]+):\s*([^;]+);/g;
+    const varRegex = /(--[\w-]+)\s*:\s*([^;]+);/g;
     let match;
     
     while ((match = varRegex.exec(rootContent)) !== null) {
