@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [master, main]
 
+# Set required permissions
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -53,6 +59,8 @@ jobs:
       
     - name: Run Tests with Coverage
       run: npm run test:ci
+      env:
+        GEMINI_API_KEY: 'test-api-key-for-testing-only'
       # This step will fail if:
       # 1. Any tests fail
       # 2. Coverage thresholds are not met (configured in jest.config.js)
@@ -145,10 +153,25 @@ jobs:
     - name: Install Storybook Test Runner
       run: npm install @storybook/test-runner --no-save
 
+    - name: Ensure report directories exist
+      run: |
+        mkdir -p test-results
+        mkdir -p lighthouse-results
+        
+        # Create placeholder reports if they don't exist
+        if [ ! -f "test-results/a11y-summary.md" ]; then
+          echo "# Accessibility Test Summary\n\nStorybook accessibility test results." > test-results/a11y-summary.md
+        fi
+        
+        if [ ! -f "lighthouse-results/performance-summary.md" ]; then
+          echo "# Performance Test Summary\n\nLighthouse performance test results." > lighthouse-results/performance-summary.md
+        fi
+    
     - name: Run Accessibility Tests
       env:
         CI: 'true'
         A11Y_FAILING_IMPACTS: 'critical,serious'
+        GEMINI_API_KEY: 'test-api-key-for-testing-only'
       run: |
         # Run accessibility tests with Storybook Test Runner
         # This will respect the CI=true environment and fail on critical/serious issues

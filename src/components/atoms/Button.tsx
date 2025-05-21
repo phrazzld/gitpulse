@@ -185,6 +185,8 @@ export default function Button(props: ButtonProps) {
   const darkSlate = "var(--dark-slate, #1b2b34)";
   // Electric blue CSS variable now meets WCAG AA requirements
   const electricBlue = "var(--electric-blue, #2563eb)";
+  // Darker blue meets better contrast ratio
+  const darkBlue = "var(--dark-blue, #1d4ed8)";
   const lightGray = "var(--light-gray, #f5f5f5)";
   const disabledGray = "var(--disabled-gray, #e0e0e0)";
   const textLight = "var(--text-light, #ffffff)";
@@ -217,7 +219,7 @@ export default function Button(props: ButtonProps) {
           color: textLight,
           borderColor: darkSlate,
           boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-          hoverBg: electricBlue,
+          hoverBg: darkBlue,
           hoverColor: textLight,
         };
       case "secondary":
@@ -236,8 +238,8 @@ export default function Button(props: ButtonProps) {
           borderColor: darkSlate,
           boxShadow: "none",
           hoverBg: "rgba(27, 43, 52, 0.05)",
-          // The darker blue now meets WCAG AA contrast requirements
-          hoverColor: electricBlue,
+          // Dark blue meets WCAG AA contrast requirements
+          hoverColor: darkBlue,
         };
       default:
         return {
@@ -245,7 +247,7 @@ export default function Button(props: ButtonProps) {
           color: textLight,
           borderColor: darkSlate,
           boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-          hoverBg: electricBlue,
+          hoverBg: darkBlue,
           hoverColor: textLight,
         };
     }
@@ -307,9 +309,12 @@ export default function Button(props: ButtonProps) {
         opacity: loading ? 0.85 : 1,
         // Add focus styles directly for test environment
         // Using darker blue for focus ring to meet WCAG 3:1 contrast requirement for non-text elements
-        ...({ "--tw-ring-color": electricBlue } as React.CSSProperties),
+        ...({ "--tw-ring-color": darkBlue } as React.CSSProperties),
         ...({ "--tw-ring-offset-color": darkSlate } as React.CSSProperties),
         ...({ "--tw-ring-offset-width": "2px" } as React.CSSProperties),
+        // Ensure proper contrast for focus states
+        outline: "2px solid transparent",
+        outlineOffset: "2px",
       }}
       data-focus-visible={true}
       {...rest}
