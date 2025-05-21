@@ -8,13 +8,20 @@ const { checkColorContrast } = require('../../src/lib/accessibility/colorContras
 function parseCSSVariables(cssContent) {
   const variables = { dark: {} };
   
-  // Match CSS variable declarations
-  const varRegex = /(--[\w-]+):\s*([^;]+);/g;
-  let match;
+  // First extract the root selector content
+  const rootSelectorRegex = /:root\s*{([^}]*)}/;
+  const rootMatch = cssContent.match(rootSelectorRegex);
   
-  while ((match = varRegex.exec(cssContent)) !== null) {
-    const [, varName, value] = match;
-    variables.dark[varName] = value.trim();
+  if (rootMatch && rootMatch[1]) {
+    // From the root content, match CSS variable declarations
+    const rootContent = rootMatch[1];
+    const varRegex = /(--[\w-]+):\s*([^;]+);/g;
+    let match;
+    
+    while ((match = varRegex.exec(rootContent)) !== null) {
+      const [, varName, value] = match;
+      variables.dark[varName] = value.trim();
+    }
   }
   
   return variables;

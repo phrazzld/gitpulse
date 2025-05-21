@@ -11,6 +11,21 @@ import { createSummaryHandlers } from '../handlers';
 import { logger } from '@/lib/logger';
 import { getAllAppInstallations, fetchAllRepositories } from '@/lib/github';
 
+// Set up environment variables for testing
+const originalEnv = process.env;
+beforeAll(() => {
+  // Mock environment variables needed by the route
+  process.env = {
+    ...originalEnv,
+    GEMINI_API_KEY: 'test-api-key-for-testing-only'
+  };
+});
+
+afterAll(() => {
+  // Restore original environment
+  process.env = originalEnv;
+});
+
 // Mock dependencies
 jest.mock('@/lib/auth/authConfig', () => ({
   createAuthOptions: jest.fn()
@@ -32,6 +47,15 @@ jest.mock('@/lib/logger', () => ({
 jest.mock('@/lib/github', () => ({
   getAllAppInstallations: jest.fn(),
   fetchAllRepositories: jest.fn()
+}));
+
+// Mock Gemini service
+jest.mock('@/lib/gemini', () => ({
+  generateCommitSummary: jest.fn().mockResolvedValue({
+    keyThemes: ['Testing'],
+    technicalAreas: ['Unit Tests'],
+    summary: 'Test summary for unit tests'
+  })
 }));
 
 const mockHandlers = {

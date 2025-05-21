@@ -8,9 +8,14 @@
 
 # Testing
 /coverage
-/test-results
 /test-artifacts
 /playwright-report
+
+# Keep placeholder report files
+!/test-results/
+!/test-results/a11y-summary.md
+!/lighthouse-results/
+!/lighthouse-results/performance-summary.md
 e2e/storageState.json
 e2e/storageState-debug.json
 

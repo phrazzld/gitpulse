@@ -1,0 +1,23 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Set testing environment variables
+export GEMINI_API_KEY="test-api-key-for-testing-only"
+
+# Ensure report directories exist
+mkdir -p test-results lighthouse-results
+
+# Create placeholder reports if they don't exist
+if [ ! -f "test-results/a11y-summary.md" ]; then
+  echo "# Accessibility Test Summary\n\nThis is a placeholder report." > test-results/a11y-summary.md
+fi
+
+if [ ! -f "lighthouse-results/performance-summary.md" ]; then
+  echo "# Performance Test Summary\n\nThis is a placeholder report." > lighthouse-results/performance-summary.md
+fi
+
+# Run API tests 
+npm test -- --selectProjects=api
+
+# Run CSS variable parsing tests
+npm test -- scripts/__tests__/accessibility/generate-color-docs.test.ts
