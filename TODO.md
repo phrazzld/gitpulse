@@ -62,7 +62,7 @@
   - Add tests for AuthStatusBanner component
   - Increase test coverage to meet 85% threshold
 
-- [ ] **Add Jest accessibility tests for organisms components**
+- [x] **Add Jest accessibility tests for organisms components**
   - Create tests for OperationsPanel component
   - Add tests for AccountSelectionPanel component
   - Add tests for AnalysisFiltersPanel component
