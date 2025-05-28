@@ -4,10 +4,18 @@ This directory contains documentation related to accessibility practices, standa
 
 ## Contents
 
+### Pattern Library Documentation
+- `PATTERN_LIBRARY_PRINCIPLES.md`: Foundational principles for accessibility in our atomic design system
+- `ATOMIC_ACCESSIBILITY_PATTERNS.md`: Accessibility patterns and best practices by atomic level
+- `COMPONENT_TEMPLATE.md`: Template for documenting accessibility in component READMEs
+
+### Guidelines and Standards
 - `ACCESSIBILITY_BEST_PRACTICES.md`: Guidelines and best practices for implementing accessible components
 - `ACCESSIBILITY_CI_SETUP.md`: Configuration and setup for accessibility CI checks
 - `ACCESSIBILITY_GUIDELINES.md`: Implementation patterns and ARIA attribute usage reference
 - `ACCESSIBILITY_REPORTING.md`: How to report and document accessibility violations
+
+### Color and Contrast
 - `APPROVED_COLOR_PAIRINGS.md`: Validated color combinations that meet WCAG requirements
 - `COLOR_CONTRAST_UTILITY.md`: Documentation for the color contrast utility
 - `color-pairings.config.json`: Configuration for approved color pairings

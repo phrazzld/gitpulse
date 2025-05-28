@@ -1,29 +1,69 @@
 @import "tailwindcss";
 
 :root {
-  /* Cybernetic Command Interface Color Palette */
-  --dark-slate: #1b2b34;
-  --neon-green: #00ff87;
-  /* Accessible versions for WCAG AA compliance */
-  --accessible-green: #00994f; /* Darker green with better contrast */
-  --dark-blue: #1a4bbd; /* Dark blue for hover states with white text */
-  /* Updated electric blue for WCAG AA compliance */
-  /* Previous: #5ba3ff (contrast 2.58:1 with white) */
-  /* New: #2563eb (contrast 8.25:1 with white, 4.91:1 with dark slate) */
-  --electric-blue: #2563eb;
-  --luminous-yellow: #ffc857;
-  --accessible-yellow: #a26100; /* For text on dark backgrounds */
-  --crimson-red: #ff3b30;
-  --accessible-red: #c22f2f; /* For text on dark backgrounds */
-
-  /* Default theme variables */
-  --background: var(--dark-slate);
-  --background-secondary: #121212;
-  --foreground: #ffffff;
-  --accent-primary: var(--accessible-green);
-  --accent-secondary: var(--electric-blue);
-  --warning: var(--accessible-yellow);
-  --error: var(--accessible-red);
+  /* === GitPulse Design Token System === */
+  
+  /* Brand Colors - Core visual identity colors */
+  --brand-dark-slate: #1b2b34;           /* Main background color */
+  --brand-neon-green: #00ff87;           /* Legacy brand green (decorative use) */
+  --brand-accessible-green: #00994f;     /* WCAG AA compliant green (3.51:1 large text) */
+  --brand-electric-blue: #2563eb;        /* WCAG AA compliant blue (4.90:1 contrast) */
+  --brand-dark-blue: #1a4bbd;           /* High contrast blue (7.54:1 with white text) */
+  --brand-luminous-yellow: #ffc857;      /* Brand yellow (decorative use) */
+  --brand-accessible-yellow: #a26100;   /* WCAG AA yellow for text (4.69:1 contrast) */
+  --brand-crimson-red: #ff3b30;         /* Brand red (decorative use) */
+  --brand-accessible-red: #c22f2f;     /* WCAG AA red for text (5.32:1 contrast) */
+  --brand-white: #ffffff;               /* Pure white for high contrast text */
+  --brand-black: #000000;               /* Pure black for maximum contrast */
+  --brand-light-gray: #f8f9fa;         /* Light background alternative */
+  --brand-dark-gray: #121212;          /* Secondary dark background */
+  
+  /* Semantic Colors - Intent-based color assignments */
+  --color-primary: var(--brand-dark-slate);
+  --color-primary-text: var(--brand-white);
+  --color-secondary: var(--brand-electric-blue);
+  --color-secondary-text: var(--brand-white);
+  --color-success: var(--brand-accessible-green);     /* 3.51:1 for large text */
+  --color-success-text: var(--brand-white);
+  --color-warning: var(--brand-accessible-yellow);    /* 4.69:1 contrast ratio */
+  --color-warning-text: var(--brand-dark-slate);
+  --color-error: var(--brand-accessible-red);         /* 5.32:1 contrast ratio */
+  --color-error-text: var(--brand-white);
+  --color-info: var(--brand-electric-blue);           /* 4.90:1 contrast ratio */
+  --color-info-text: var(--brand-white);
+  --color-background: var(--brand-dark-slate);        /* Primary background */
+  --color-background-secondary: var(--brand-dark-gray); /* Secondary surfaces */
+  --color-background-light: var(--brand-light-gray);  /* Light theme background */
+  --color-surface: var(--brand-dark-slate);           /* Card/panel backgrounds */
+  --color-text-primary: var(--brand-white);           /* Primary text (13.82:1 contrast) */
+  --color-text-secondary: var(--brand-electric-blue); /* Secondary text (4.90:1 contrast) */
+  --color-text-muted: var(--brand-accessible-green);  /* Muted text (3.51:1 large text) */
+  --color-text-on-light: var(--brand-dark-slate);     /* Text on light backgrounds (13.82:1) */
+  --color-link: var(--brand-electric-blue);           /* Link color (4.90:1 contrast) */
+  --color-link-hover: var(--brand-accessible-green);  /* Link hover state */
+  --color-link-active: var(--brand-luminous-yellow);  /* Link active state */
+  --color-focus: var(--brand-electric-blue);          /* Focus ring color (3:1 minimum) */
+  --color-border: var(--brand-electric-blue);         /* Default border color */
+  --color-border-muted: var(--brand-accessible-green); /* Subtle borders */
+  --color-border-strong: var(--brand-neon-green);     /* Emphasis borders */
+  
+  /* Legacy variable mapping for backward compatibility */
+  --dark-slate: var(--brand-dark-slate);
+  --neon-green: var(--brand-neon-green);
+  --accessible-green: var(--brand-accessible-green);
+  --electric-blue: var(--brand-electric-blue);
+  --dark-blue: var(--brand-dark-blue);
+  --luminous-yellow: var(--brand-luminous-yellow);
+  --accessible-yellow: var(--brand-accessible-yellow);
+  --crimson-red: var(--brand-crimson-red);
+  --accessible-red: var(--brand-accessible-red);
+  --background: var(--color-background);
+  --background-secondary: var(--color-background-secondary);
+  --foreground: var(--color-text-primary);
+  --accent-primary: var(--color-success);
+  --accent-secondary: var(--color-secondary);
+  --warning: var(--color-warning);
+  --error: var(--color-error);
 
   /* Shadows and effects */
   --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);

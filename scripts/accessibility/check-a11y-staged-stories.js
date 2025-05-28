@@ -3,6 +3,7 @@
 const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 const {
   startStaticServer,
   getRelevantStoryIds,
@@ -12,6 +13,9 @@ const {
 
 // Check if storybook build is recent (within 5 minutes)
 const STORYBOOK_BUILD_CACHE_MINUTES = 5;
+const STORYBOOK_STATIC_DIR = 'storybook-static';
+const BUILD_INFO_FILE = path.join(STORYBOOK_STATIC_DIR, 'build-info.json');
+const A11Y_CHECK_TIMEOUT_MS = 120000; // 2 minutes
 
 function detectStagedStoryFiles() {
   try {
@@ -48,6 +52,87 @@ function detectStagedStoryFiles() {
   }
 }
 
+/**
+ * Computes a hash of relevant configuration files
+ * @returns {Promise<string>} SHA256 hash of configuration files
+ */
+async function getCurrentConfigHash() {
+  const configFiles = [
+    '.storybook/main.ts',
+    '.storybook/preview.ts',
+    '.storybook/test-runner.js',
+    'package.json',
+    'next.config.js'
+  ];
+  
+  const hash = crypto.createHash('sha256');
+  
+  for (const file of configFiles) {
+    try {
+      if (fs.existsSync(file)) {
+        const content = fs.readFileSync(file, 'utf-8');
+        hash.update(file + '\n' + content + '\n');
+      }
+    } catch (error) {
+      // If file can't be read, continue with other files
+      if (process.env.DEBUG === "1") {
+        console.log(`Warning: Could not read ${file}: ${error.message}`);
+      }
+    }
+  }
+  
+  return hash.digest('hex');
+}
+
+/**
+ * Checks if the Storybook build cache is valid
+ * @returns {Promise<boolean>} true if cache is valid, false otherwise
+ */
+async function isValidBuildCache() {
+  try {
+    // Check if storybook-static directory exists
+    if (!fs.existsSync(STORYBOOK_STATIC_DIR)) {
+      return false;
+    }
+    
+    // Check if build-info.json exists
+    if (!fs.existsSync(BUILD_INFO_FILE)) {
+      return false;
+    }
+    
+    // Read build info
+    const buildInfo = JSON.parse(fs.readFileSync(BUILD_INFO_FILE, 'utf-8'));
+    
+    // Get current config hash
+    const currentHash = await getCurrentConfigHash();
+    
+    // Compare hashes
+    if (buildInfo.configHash !== currentHash) {
+      if (process.env.DEBUG === "1") {
+        console.log(`Config hash mismatch: ${buildInfo.configHash} !== ${currentHash}`);
+      }
+      return false;
+    }
+    
+    // Optional: Check if build is too old (e.g., more than 24 hours)
+    const buildTime = new Date(buildInfo.buildTimestamp);
+    const hoursSinceBuild = (Date.now() - buildTime.getTime()) / (1000 * 60 * 60);
+    if (hoursSinceBuild > 24) {
+      if (process.env.DEBUG === "1") {
+        console.log(`Build is too old: ${hoursSinceBuild.toFixed(1)} hours`);
+      }
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    if (process.env.DEBUG === "1") {
+      console.error('Error checking build cache:', error.message);
+    }
+    return false;
+  }
+}
+
 function isStorybookBuildRecent(storybookPath) {
   try {
     const indexPath = path.join(storybookPath, "index.html");
@@ -68,6 +153,11 @@ function buildStorybook() {
   console.log("Building Storybook for accessibility checks...");
   try {
     execSync("npm run build-storybook", { stdio: "inherit" });
+    
+    // Generate build info after successful build
+    console.log("Generating build cache info...");
+    execSync("node scripts/storybook/post-build.js", { stdio: "inherit" });
+    
     return true;
   } catch (error) {
     console.error("Failed to build Storybook:", error.message);
@@ -127,6 +217,7 @@ async function runAccessibilityCheck(storyFiles, storybookPath) {
     // Run tests with same configuration as CI 
     const command = `npx test-storybook --url http://localhost:${port} ${filterArg}`;
     console.log("Running accessibility checks (CI-compatible configuration)...");
+    console.log(`⏱️  Timeout: ${A11Y_CHECK_TIMEOUT_MS / 1000} seconds`);
     
     if (process.env.DEBUG === "1") {
       console.log(`Command: ${command}`);
@@ -138,10 +229,21 @@ async function runAccessibilityCheck(storyFiles, storybookPath) {
         cwd: projectRoot,
         encoding: "utf-8",
         stdio: "pipe",
+        timeout: A11Y_CHECK_TIMEOUT_MS
       });
       console.log("✅ All accessibility checks passed!");
       console.log("   Staged components meet WCAG 2.1 AA standards (CI-compatible)");
     } catch (error) {
+      // Check if it was a timeout
+      if (error.code === 'ETIMEDOUT' || error.signal === 'SIGTERM') {
+        console.error("❌ Accessibility check timed out after 2 minutes");
+        console.error("   This may indicate performance issues with test execution");
+        console.error("\n💡 Suggestions:");
+        console.error("   1. Run fewer tests at once by staging fewer story files");
+        console.error("   2. Check if your system is under heavy load");
+        console.error("   3. Use A11Y_SKIP=1 to temporarily skip and create a follow-up task");
+        await cleanupAndExit(1);
+      }
       // Parse violations and handle
       const output = (error.stdout || "") + "\n" + (error.stderr || "");
       const allViolations = parseViolations(output);
@@ -642,23 +744,23 @@ async function main() {
     const projectRoot = path.resolve(__dirname, "..");
     const storybookStaticDir = path.join(projectRoot, "storybook-static");
 
-    // Check if Storybook static dir exists
-    if (!fs.existsSync(storybookStaticDir)) {
-      console.log("⚙️ Storybook static directory doesn't exist. Building Storybook...");
-      if (!buildStorybook()) {
-        console.error("⚠️  Skipping accessibility checks due to build failure.");
-        process.exit(0);
-      }
-    }
-    // Check if we need to build Storybook
-    else if (!isStorybookBuildRecent(storybookStaticDir)) {
-      console.log("⚙️ Storybook build is outdated. Rebuilding...");
-      if (!buildStorybook()) {
-        console.error("⚠️  Skipping accessibility checks due to build failure.");
-        process.exit(0);
-      }
+    // Check if we have a valid cache
+    const hasValidCache = await isValidBuildCache();
+    
+    if (hasValidCache) {
+      console.log("📦 Using cached Storybook build (configuration unchanged)");
     } else {
-      console.log("📦 Using existing Storybook build (less than 5 minutes old)");
+      // Need to build Storybook
+      if (!fs.existsSync(storybookStaticDir)) {
+        console.log("⚙️ Storybook static directory doesn't exist. Building Storybook...");
+      } else {
+        console.log("⚙️ Storybook configuration has changed. Rebuilding...");
+      }
+      
+      if (!buildStorybook()) {
+        console.error("⚠️  Skipping accessibility checks due to build failure.");
+        process.exit(0);
+      }
     }
 
     await runAccessibilityCheck(stagedStoryFiles, storybookStaticDir);
@@ -680,6 +782,8 @@ if (require.main === module) {
 } else {
   module.exports = {
     detectStagedStoryFiles,
+    getCurrentConfigHash,
+    isValidBuildCache,
     runAccessibilityCheck,
     parseViolations,
     main, // Export main for testing

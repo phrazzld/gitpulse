@@ -15,14 +15,13 @@ function TestList({ orientation = 'horizontal' }: { orientation?: 'horizontal' |
   const { currentIndex, handleKeyDown } = useRovingTabIndex(itemRefs, orientation);
 
   return (
-    <div role="list" onKeyDown={handleKeyDown}>
+    <div role="group" aria-label="Button group" onKeyDown={handleKeyDown}>
       {['Item 1', 'Item 2', 'Item 3'].map((text, index) => (
         <button
           key={index}
           ref={itemRefs[index] as RefObject<HTMLButtonElement>}
-          role="listitem"
           // Let the hook manage tabindex - do NOT set it manually
-          aria-selected={currentIndex === index}
+          aria-pressed={currentIndex === index}
           data-testid={`item-${index}`}
         >
           {text}
@@ -51,7 +50,7 @@ describe('useRovingTabIndex', () => {
     const item1 = getByText('Item 1');
     const item2 = getByText('Item 2');
     const item3 = getByText('Item 3');
-    const list = getByRole('list');
+    const group = getByRole('group');
     
     // Initial state - first item should have tabindex 0
     expect(item1).toHaveAttribute('tabindex', '0');
@@ -59,25 +58,25 @@ describe('useRovingTabIndex', () => {
     expect(item3).toHaveAttribute('tabindex', '-1');
     
     // Press right arrow - should move to second item
-    fireEvent.keyDown(list, { key: 'ArrowRight' });
+    fireEvent.keyDown(group, { key: 'ArrowRight' });
     expect(item2).toHaveAttribute('tabindex', '0');
     expect(item1).toHaveAttribute('tabindex', '-1');
     expect(item3).toHaveAttribute('tabindex', '-1');
     
     // Press right arrow again - should move to third item
-    fireEvent.keyDown(list, { key: 'ArrowRight' });
+    fireEvent.keyDown(group, { key: 'ArrowRight' });
     expect(item3).toHaveAttribute('tabindex', '0');
     expect(item1).toHaveAttribute('tabindex', '-1');
     expect(item2).toHaveAttribute('tabindex', '-1');
     
     // Press right arrow to wrap around
-    fireEvent.keyDown(list, { key: 'ArrowRight' });
+    fireEvent.keyDown(group, { key: 'ArrowRight' });
     expect(item1).toHaveAttribute('tabindex', '0');
     expect(item2).toHaveAttribute('tabindex', '-1');
     expect(item3).toHaveAttribute('tabindex', '-1');
     
     // Press left arrow
-    fireEvent.keyDown(list, { key: 'ArrowLeft' });
+    fireEvent.keyDown(group, { key: 'ArrowLeft' });
     expect(item3).toHaveAttribute('tabindex', '0');
     expect(item1).toHaveAttribute('tabindex', '-1');
     expect(item2).toHaveAttribute('tabindex', '-1');
@@ -88,20 +87,20 @@ describe('useRovingTabIndex', () => {
     
     const item1 = getByText('Item 1');
     const item2 = getByText('Item 2');
-    const list = getByRole('list');
+    const group = getByRole('group');
     
     // Focus first item
     item1.focus();
     
     // Press down arrow
-    fireEvent.keyDown(list, { key: 'ArrowDown' });
+    fireEvent.keyDown(group, { key: 'ArrowDown' });
     await waitFor(() => {
       expect(item2).toHaveAttribute('tabindex', '0');
       expect(item1).toHaveAttribute('tabindex', '-1');
     });
     
     // Press up arrow
-    fireEvent.keyDown(list, { key: 'ArrowUp' });
+    fireEvent.keyDown(group, { key: 'ArrowUp' });
     await waitFor(() => {
       expect(item1).toHaveAttribute('tabindex', '0');
       expect(item2).toHaveAttribute('tabindex', '-1');
@@ -114,20 +113,20 @@ describe('useRovingTabIndex', () => {
     const item1 = getByText('Item 1');
     const item2 = getByText('Item 2');
     const item3 = getByText('Item 3');
-    const list = getByRole('list');
+    const group = getByRole('group');
     
     // Start with middle item focused
     item2.focus();
     
     // Press Home
-    fireEvent.keyDown(list, { key: 'Home' });
+    fireEvent.keyDown(group, { key: 'Home' });
     await waitFor(() => {
       expect(item1).toHaveAttribute('tabindex', '0');
       expect(item2).toHaveAttribute('tabindex', '-1');
     });
     
     // Press End
-    fireEvent.keyDown(list, { key: 'End' });
+    fireEvent.keyDown(group, { key: 'End' });
     await waitFor(() => {
       expect(item3).toHaveAttribute('tabindex', '0');
       expect(item1).toHaveAttribute('tabindex', '-1');
@@ -157,7 +156,7 @@ describe('useRovingTabIndex', () => {
       const { currentIndex, handleKeyDown } = useRovingTabIndex(itemRefs);
 
       return (
-        <div role="list" onKeyDown={handleKeyDown}>
+        <div role="group" aria-label="Empty group" onKeyDown={handleKeyDown}>
           <span>Empty list, currentIndex: {currentIndex}</span>
         </div>
       );
@@ -199,7 +198,7 @@ describe('useRovingTabIndex', () => {
       });
 
       return (
-        <div role="list">
+        <div role="group" aria-label="Scroll test group">
           {['Item 1', 'Item 2'].map((text, index) => (
             <button
               key={index}
