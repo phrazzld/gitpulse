@@ -71,25 +71,85 @@ const meta: Meta<typeof ModeSelector> = {
     },
     docs: {
       description: {
-        component: 'A radio group component for selecting between different activity modes with customizable appearance and accessibility features.'
+        component: `A radio group component for selecting between different activity modes with customizable appearance and accessibility features.
+
+## Accessibility Features
+
+The ModeSelector implements a fully accessible radio group pattern with comprehensive keyboard and screen reader support:
+
+### Purpose & User Impact
+The ModeSelector allows users to choose between different activity modes that affect how data is displayed. For users relying on keyboards or assistive technologies, proper radio group implementation ensures they can navigate options efficiently and understand the current selection. Poor implementation can make mode selection confusing or impossible for assistive technology users.
+
+### Keyboard Interaction
+
+| Key | Action | Notes |
+|-----|--------|-------|
+| \`Tab\` | Moves focus into/out of the radio group | Only the selected radio receives initial focus |
+| \`Shift + Tab\` | Moves focus out of the radio group | Standard reverse tab behavior |
+| \`Arrow Up\` / \`Arrow Down\` | Navigate between radio options | Moves selection and focus |
+| \`Arrow Left\` / \`Arrow Right\` | Navigate between radio options | Alternative navigation method |
+| \`Space\` | Selects the focused radio option | Standard radio selection |
+
+### Screen Reader Support
+
+- **Group Labeling**: Uses \`role="radiogroup"\` with \`aria-label\` or \`aria-labelledby\`
+- **Radio Identification**: Each option uses \`role="radio"\` with \`aria-checked\`
+- **State Announcements**: Screen readers announce "selected" or "not selected" for each option
+- **Group Navigation**: Announces entering/leaving radio group
+- **Option Details**: Label and description are both announced
+
+### ARIA Implementation
+
+| Attribute | When Used | Purpose |
+|-----------|-----------|---------|
+| \`role="radiogroup"\` | On container | Identifies the group of radio options |
+| \`aria-label\` | On container | Provides group label when no visible label exists |
+| \`aria-labelledby\` | On container | Associates group with visible label |
+| \`role="radio"\` | On each option | Identifies individual radio buttons |
+| \`aria-checked\` | On each option | Indicates selection state |
+| \`aria-disabled\` | When disabled | Communicates disabled state |
+
+### Color Contrast
+
+- **Text Contrast**: All text meets WCAG AA 4.5:1 ratio requirements
+- **Selection Indicators**: Selected state meets 3:1 contrast minimum
+- **Focus Indicators**: Focus ring has 3:1 contrast against adjacent colors
+- **Custom Colors**: Theme validation ensures contrast compliance
+
+### Focus Management
+
+1. **Initial Focus**: First Tab enters on selected radio
+2. **Arrow Navigation**: Moves both focus and selection together
+3. **Visual Focus**: Clear focus indicators on focused option
+4. **Focus Restoration**: Maintains logical focus order in parent components
+        `
       }
     },
     a11y: {
       config: {
         rules: [
           {
-            // Ensure proper contrast ratio
             id: 'color-contrast',
             enabled: true
           },
           {
-            // Ensure proper ARIA roles
             id: 'aria-valid-attr-value',
             enabled: true
           },
           {
-            // Ensure interactive elements are keyboard accessible
             id: 'interactive-supports-focus',
+            enabled: true
+          },
+          {
+            id: 'aria-allowed-attr',
+            enabled: true
+          },
+          {
+            id: 'aria-required-children',
+            enabled: true
+          },
+          {
+            id: 'keyboard-navigation',
             enabled: true
           }
         ]
@@ -117,7 +177,15 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Default state with "my-activity" selected. This component supports full keyboard navigation using tab, arrow keys, space, and enter.'
+        story: `**Default State**: Demonstrates the radio group with "my-activity" selected. 
+
+**Accessibility Testing**:
+- Use Tab to focus the radio group (focus goes to selected option)
+- Use Arrow keys to navigate between options and change selection
+- Verify screen reader announces "radiogroup" and current selection
+- Check that each option is announced with its label and description
+
+**Keyboard Navigation**: Tab → Arrow keys → Space (alternative selection method)`
       }
     }
   }
@@ -156,7 +224,18 @@ export const Disabled: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'The disabled state is visually indicated and properly communicated to assistive technologies.'
+        story: `**Disabled State**: Shows how the component behaves when disabled.
+
+**Accessibility Features**:
+- Uses \`aria-disabled="true"\` on the radiogroup
+- Visual styling indicates disabled state
+- Component is not focusable when disabled
+- Screen readers announce "disabled" when encountering the group
+
+**Testing**: 
+- Verify component cannot receive focus via Tab
+- Check that disabled state is announced by screen readers
+- Ensure visual indicators clearly show disabled state`
       }
     }
   }

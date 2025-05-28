@@ -16,6 +16,28 @@ import { FilterState, Installation } from '@/types/dashboard';
  * 
  * This component receives data and callbacks via props from a custom hook
  * (useOperationsPanel) in the parent component.
+ *
+ * ## Accessibility Features
+ *
+ * As a complex organism, OperationsPanel implements comprehensive accessibility patterns:
+ *
+ * ### Purpose & User Impact
+ * The OperationsPanel serves as the primary control interface for data analysis. For users with disabilities, proper accessibility ensures they can configure analysis parameters, understand system status, and navigate complex interactions effectively. Poor implementation can block access to core functionality.
+ *
+ * ### Landmark Structure
+ * - Uses semantic `<section>` with `role="region"` and accessible labels
+ * - Provides clear content structure for screen reader navigation
+ * - Groups related controls logically
+ *
+ * ### Dynamic Content Handling
+ * - Loading states are announced with `aria-busy` and live regions
+ * - Error messages use `role="alert"` for immediate announcement
+ * - Status changes are communicated to assistive technology
+ *
+ * ### Complex Interaction Patterns
+ * - Nested form controls maintain proper labeling relationships
+ * - Multi-step workflows preserve focus management
+ * - Progressive disclosure maintains keyboard navigation flow
  */
 const meta: Meta<typeof OperationsPanel> = {
   title: 'Organisms/OperationsPanel',
@@ -104,15 +126,77 @@ const meta: Meta<typeof OperationsPanel> = {
     },
     docs: {
       description: {
-        component: 'OperationsPanel is an organism component that provides a centralized control interface for the commit analysis functionality. It displays errors, authentication status, and allows users to select organizations, modes, and filters. This component is a pure presentation component that receives all data and callbacks via props.'
+        component: `OperationsPanel is an organism component that provides a centralized control interface for the commit analysis functionality. It displays errors, authentication status, and allows users to select organizations, modes, and filters.
+
+## Accessibility Implementation
+
+### Keyboard Navigation
+| Key | Action | Context |
+|-----|--------|---------|
+| \`Tab\` | Navigate between controls | Logical order through all interactive elements |
+| \`Shift + Tab\` | Navigate backwards | Reverse tab order |
+| \`Enter\` / \`Space\` | Activate buttons | Standard button activation |
+| \`Arrow Keys\` | Navigate radio groups | Within ModeSelector component |
+
+### Screen Reader Support
+- **Region Landmarks**: Uses \`role="region"\` with \`aria-label\` for main control area
+- **Error Announcements**: Error messages use \`role="alert"\` for immediate announcement
+- **Loading States**: Uses \`aria-busy\` and live regions for status updates
+- **Form Labels**: All form controls have proper label associations
+- **Group Semantics**: Related controls are grouped with appropriate ARIA attributes
+
+### ARIA Patterns
+| Pattern | Implementation | Purpose |
+|---------|----------------|---------|
+| \`role="region"\` | Main panel container | Identifies control panel landmark |
+| \`aria-label\` | Panel and sections | Provides accessible names for regions |
+| \`role="alert"\` | Error messages | Immediate screen reader announcement |
+| \`aria-busy\` | Loading states | Indicates processing status |
+| \`aria-live\` | Status updates | Announces dynamic content changes |
+
+### Focus Management
+1. **Error States**: Focus moves to error message when errors occur
+2. **Loading States**: Focus remains stable during loading
+3. **Dynamic Updates**: Focus preservation during content changes
+4. **Modal Interactions**: Proper focus trapping and restoration
+
+### Color Contrast
+- All text meets WCAG AA 4.5:1 contrast ratio
+- Interactive elements meet 3:1 contrast minimum
+- Error states use sufficient contrast for visibility
+- Focus indicators meet 3:1 contrast requirements
+        `
       }
     },
     a11y: {
       config: {
         rules: [
           {
-            // Ensure proper contrast ratio
             id: 'color-contrast',
+            enabled: true
+          },
+          {
+            id: 'landmark-one-main',
+            enabled: true
+          },
+          {
+            id: 'region',
+            enabled: true
+          },
+          {
+            id: 'aria-allowed-attr',
+            enabled: true
+          },
+          {
+            id: 'aria-required-attr',
+            enabled: true
+          },
+          {
+            id: 'button-name',
+            enabled: true
+          },
+          {
+            id: 'form-field-multiple-labels',
             enabled: true
           }
         ]
