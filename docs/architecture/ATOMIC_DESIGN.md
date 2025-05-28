@@ -23,6 +23,10 @@ This document explains the Atomic Design methodology implementation in GitPulse,
 - [UI Architecture Principles](#ui-architecture-principles)
   - [Presentation/Logic Separation](#presentationlogic-separation)
   - [Component Dependencies](#component-dependencies)
+- [Accessibility in Atomic Design](#accessibility-in-atomic-design)
+  - [Accessibility Principles by Level](#accessibility-principles-by-level)
+  - [Color Contrast Requirements](#color-contrast-requirements)
+  - [Testing for Accessibility](#testing-for-accessibility)
 - [Examples and Patterns](#examples-and-patterns)
   - [Atom Example](#atom-example)
   - [Molecule Example](#molecule-example)
@@ -87,6 +91,13 @@ Components are organized based on their complexity, reusability, and dependencie
 - `StatusDisplay`: Simple status indicator component
 - `ModeSelector`: Radio button group for selecting activity modes
 
+**Accessibility Requirements**:
+- Must have proper focus states (3:1 minimum contrast for focus indicators)
+- Interactive elements must be keyboard navigable
+- Must include appropriate ARIA labels when content is not self-descriptive
+- Color alone should not convey meaning
+- Must meet WCAG AA color contrast requirements (4.5:1 for normal text, 3:1 for large text)
+
 ### Molecules
 
 **Definition**: Combinations of atoms that form relatively simple UI components with a single responsibility.
@@ -104,6 +115,13 @@ Components are organized based on their complexity, reusability, and dependencie
 - `AuthLoadingCard`: Card displaying authentication status
 - `TerminalHeader`: Styled header with terminal-like appearance
 - `CommitItem`: Individual commit display in a list
+
+**Accessibility Requirements**:
+- Form inputs must have associated labels (using `for`/`id` or `aria-labelledby`)
+- Error messages must be announced to screen readers (using `role="alert"` or live regions)
+- Loading states must be communicated (using `aria-busy` and announcements)
+- Groups of related elements should use appropriate ARIA grouping
+- Must maintain focus management when adding/removing elements
 
 ### Organisms
 
@@ -123,6 +141,14 @@ Components are organized based on their complexity, reusability, and dependencie
 - `Header`: Application header with navigation and user info
 - `FilterPanel`: Panel for filtering data with multiple options
 
+**Accessibility Requirements**:
+- Should use appropriate landmark roles (`region`, `navigation`, `main`, etc.)
+- Complex widgets must follow ARIA authoring practices patterns
+- Must manage focus correctly during dynamic updates
+- Loading and error states must be announced appropriately
+- Must implement keyboard navigation patterns for complex interactions
+- Should provide skip links or navigation aids for lengthy content
+
 ### Templates
 
 **Definition**: Page-level layouts that arrange multiple organisms into a complete page structure.
@@ -137,6 +163,14 @@ Components are organized based on their complexity, reusability, and dependencie
 - `Dashboard Layout`: The layout structure for the dashboard
 - `App Layout`: The overall application layout
 - In many cases, Next.js page components like `dashboard/page.tsx` serve as templates
+
+**Accessibility Requirements**:
+- Must have proper semantic HTML structure (`header`, `main`, `footer`, `nav`)
+- Should include skip navigation links for keyboard users
+- Must ensure proper heading hierarchy (h1 → h2 → h3, etc.)
+- Page title must be descriptive and update with content changes
+- Must manage focus on route changes in single-page applications
+- Should include ARIA landmarks for major page sections
 
 ## Guidelines for Categorizing Components
 
@@ -221,21 +255,31 @@ Testing differs slightly by component category:
 - Focus on rendering variations and states
 - Test basic interactivity
 - Usually requires minimal mocking
+- **Accessibility**: Test focus states, keyboard navigation, ARIA attributes, color contrast
 
 **Molecules**
 - Test combinations of props and states
 - Test interactions between constituent atoms
 - May require limited mocking
+- **Accessibility**: Test label associations, announcement patterns, group semantics
 
 **Organisms**
 - Test overall functionality
 - Mock more complex dependencies
 - Test integration between sub-components
+- **Accessibility**: Test landmark usage, focus management, complex keyboard patterns
 
 **Templates**
 - Test layout responsiveness
 - Test placement of components
 - Focus on structure rather than functionality
+- **Accessibility**: Test semantic structure, heading hierarchy, skip links
+
+**Accessibility Testing Tools**:
+- Use `jest-axe` for automated accessibility testing in unit tests
+- Leverage Storybook's Accessibility addon for visual testing
+- Run `npm run check:a11y:staged` for pre-commit accessibility checks
+- See [Testing for Accessibility](#testing-for-accessibility) for detailed guidance
 
 ### Storybook Integration
 
@@ -293,6 +337,153 @@ Components should respect the Atomic Design hierarchy in their dependencies:
 
 This unidirectional dependency flow ensures proper separation and avoids circular dependencies.
 
+## Accessibility in Atomic Design
+
+Accessibility is a fundamental requirement at every level of our component hierarchy. Each atomic level has specific accessibility considerations that build upon each other to create a fully accessible user interface.
+
+### Accessibility Principles by Level
+
+**Atoms - Foundation of Accessibility**
+- **Focus Management**: All interactive atoms must have visible focus indicators meeting 3:1 contrast ratio
+- **Keyboard Navigation**: Must be fully operable with keyboard alone
+- **ARIA Basics**: Use semantic HTML first, add ARIA only when necessary
+- **State Communication**: Communicate states (disabled, loading, selected) both visually and programmatically
+
+Example patterns for atoms:
+```tsx
+// Good: Semantic button with proper states
+<button 
+  aria-pressed={isSelected}
+  aria-busy={isLoading}
+  disabled={isDisabled}
+>
+  {isLoading ? 'Loading...' : 'Click me'}
+</button>
+```
+
+**Molecules - Meaningful Relationships**
+- **Label Associations**: Form controls must have properly associated labels
+- **Error Handling**: Error messages must be programmatically associated and announced
+- **Group Semantics**: Related elements should be grouped with `fieldset`, `role="group"`, or ARIA
+- **Live Regions**: Dynamic updates should use appropriate ARIA live regions
+
+Example patterns for molecules:
+```tsx
+// Good: Properly labeled form field with error
+<div role="group" aria-labelledby="email-label">
+  <label id="email-label" htmlFor="email-input">Email</label>
+  <input 
+    id="email-input"
+    type="email"
+    aria-describedby={hasError ? 'email-error' : undefined}
+    aria-invalid={hasError}
+  />
+  {hasError && (
+    <div id="email-error" role="alert">
+      Please enter a valid email address
+    </div>
+  )}
+</div>
+```
+
+**Organisms - Complex Interactions**
+- **Landmark Roles**: Use appropriate landmarks (`navigation`, `main`, `region`) with labels
+- **Focus Management**: Manage focus during dynamic content changes and modal interactions
+- **Complex Widgets**: Follow ARIA Authoring Practices for complex patterns (tabs, accordions, etc.)
+- **Loading States**: Communicate loading and updates to assistive technology users
+
+Example patterns for organisms:
+```tsx
+// Good: Accessible data table with loading state
+<section aria-labelledby="activity-heading">
+  <h2 id="activity-heading">Recent Activity</h2>
+  <div aria-live="polite" aria-busy={isLoading}>
+    {isLoading ? (
+      <LoadingAnnouncer message="Loading activity data" />
+    ) : (
+      <ActivityTable data={data} />
+    )}
+  </div>
+</section>
+```
+
+**Templates - Page Structure**
+- **Skip Links**: Provide skip navigation links for keyboard users
+- **Heading Hierarchy**: Maintain logical h1→h2→h3 structure
+- **Page Titles**: Update document title to reflect current page content
+- **Route Announcements**: Announce page changes in single-page applications
+
+### Color Contrast Requirements
+
+All components must meet WCAG AA color contrast standards:
+
+**Text Contrast Requirements**:
+- Normal text (< 18pt or < 14pt bold): 4.5:1 minimum
+- Large text (≥ 18pt or ≥ 14pt bold): 3:1 minimum
+- UI components and graphics: 3:1 minimum
+
+**Approved Color Combinations**:
+- Primary text on background: Use colors from [APPROVED_COLOR_PAIRINGS.md](../accessibility/APPROVED_COLOR_PAIRINGS.md)
+- Interactive elements: 
+  - Default: `darkBlue (#1a4bbd)` with white text (7.54:1)
+  - Secondary: `electricBlue (#2563eb)` on light backgrounds (4.90:1)
+  - Success: `neonGreen (#00994f)` for large text only (3.51:1)
+- Focus indicators: Must have 3:1 contrast against adjacent colors
+
+**Testing Color Contrast**:
+```tsx
+import { checkColorContrast } from '@/lib/accessibility/colorContrast';
+
+// Verify contrast in tests
+expect(checkColorContrast('#1a4bbd', '#ffffff')).toBeGreaterThanOrEqual(4.5);
+```
+
+### Testing for Accessibility
+
+**Unit Testing with jest-axe**:
+```tsx
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
+
+describe('Button', () => {
+  it('should have no accessibility violations', async () => {
+    const { container } = render(<Button>Click me</Button>);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+  
+  it('should have proper ARIA attributes when loading', () => {
+    const { getByRole } = render(<Button loading>Loading</Button>);
+    expect(getByRole('button')).toHaveAttribute('aria-busy', 'true');
+  });
+});
+```
+
+**Storybook Testing**:
+- All stories automatically run through accessibility checks
+- Use the Accessibility panel to view violations
+- Document accessibility features in story descriptions
+- Create specific stories for different states and interactions
+
+**Manual Testing Checklist**:
+1. Navigate using only keyboard (Tab, Shift+Tab, Enter, Space, Arrow keys)
+2. Test with screen reader (NVDA on Windows, JAWS, or VoiceOver on Mac)
+3. Verify focus indicators are visible and meet contrast requirements
+4. Check color contrast using browser DevTools
+5. Test with browser zoom at 200%
+6. Verify functionality works without JavaScript (where applicable)
+
+**Continuous Integration**:
+- Pre-commit hooks run accessibility checks on staged story files
+- CI pipeline includes comprehensive accessibility testing
+- Use `A11Y_SKIP=1` only in emergencies, always create follow-up tasks
+
+For comprehensive accessibility patterns and guidelines, refer to:
+- [Pattern Library Principles](../accessibility/PATTERN_LIBRARY_PRINCIPLES.md)
+- [Atomic Accessibility Patterns](../accessibility/ATOMIC_ACCESSIBILITY_PATTERNS.md)
+- [Component Template](../accessibility/COMPONENT_TEMPLATE.md)
+
 ## Examples and Patterns
 
 ### Atom Example
@@ -319,7 +510,7 @@ export default function LoadMoreButton({
   loadText = 'LOAD MORE',
   loadingText = 'LOADING'
 }: LoadMoreButtonProps) {
-  // Simple atom with minimal logic
+  // Simple atom with minimal logic and proper accessibility
   if (!hasMore) return null;
 
   return (
@@ -329,11 +520,13 @@ export default function LoadMoreButton({
         onClick={onClick}
         disabled={loading}
         aria-busy={loading}
-        className="px-5 py-2 rounded-md text-sm font-medium flex items-center"
+        aria-label={loading ? loadingText : loadText} // Accessibility: clear label
+        className="px-5 py-2 rounded-md text-sm font-medium flex items-center
+                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" // Accessibility: visible focus
       >
         {loading ? (
           <>
-            <span className="mr-2 animate-spin">⟳</span>
+            <span className="mr-2 animate-spin" aria-hidden="true">⟳</span> {/* Accessibility: hide decorative icon */}
             {loadingText}
           </>
         ) : (
@@ -352,7 +545,7 @@ export default function LoadMoreButton({
 **ErrorAlert.tsx**
 
 ```tsx
-import React from 'react';
+import React, { useId } from 'react';
 
 interface ErrorAlertProps {
   message: string;
@@ -367,14 +560,26 @@ export default function ErrorAlert({
   variant = 'error',
   className = ''
 }: ErrorAlertProps) {
-  // A molecule combining atoms (text, button) for a specific purpose
+  // A molecule combining atoms with proper accessibility
+  const alertId = useId(); // Generate unique ID for ARIA relationships
+  
   return (
-    <div className={`alert alert-${variant} ${className}`} role="alert">
-      <div className="alert-icon">⚠️</div>
-      <div className="alert-content">{message}</div>
+    <div 
+      className={`alert alert-${variant} ${className}`} 
+      role="alert"
+      aria-live="polite" // Accessibility: announce to screen readers
+      aria-atomic="true" // Accessibility: announce entire alert
+    >
+      <div className="alert-icon" aria-hidden="true">⚠️</div> {/* Accessibility: decorative icon */}
+      <div className="alert-content" id={alertId}>{message}</div>
       {onDismiss && (
-        <button onClick={onDismiss} className="alert-dismiss">
-          ×
+        <button 
+          onClick={onDismiss} 
+          className="alert-dismiss focus:ring-2 focus:ring-offset-2"
+          aria-label="Dismiss alert" // Accessibility: clear action label
+          aria-describedby={alertId} // Accessibility: associate with message
+        >
+          <span aria-hidden="true">×</span>
         </button>
       )}
     </div>
@@ -391,6 +596,7 @@ import React, { useEffect, useState } from 'react';
 import IntersectionObserver from '@/components/organisms/IntersectionObserver';
 import LoadMoreButton from '@/components/atoms/LoadMoreButton';
 import CommitItem from '@/components/molecules/CommitItem';
+import { useAriaAnnouncer } from '@/lib/accessibility';
 import { Commit } from '@/types/dashboard';
 
 interface ActivityFeedProps {
@@ -406,7 +612,7 @@ interface ActivityFeedProps {
   emptyMessage?: string;
 }
 
-// A complex organism with multiple sub-components and state management
+// A complex organism with multiple sub-components, state management, and accessibility
 export default function ActivityFeed({
   loadCommits,
   useInfiniteScroll = false,
@@ -421,15 +627,33 @@ export default function ActivityFeed({
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  
+  // Use announcement hook for loading states
+  const { announce } = useAriaAnnouncer();
 
   // Complex logic for data loading, state management, and more...
+  // Announce loading state changes for screen readers
+  useEffect(() => {
+    if (loading) {
+      announce('Loading more commits');
+    } else if (commits.length > 0) {
+      announce(`Loaded ${commits.length} commits`);
+    }
+  }, [loading, commits.length]);
   
   return (
-    <div className="activity-feed">
+    <section 
+      className="activity-feed"
+      aria-label="Activity Feed" // Accessibility: landmark label
+      aria-busy={loading} // Accessibility: indicate loading state
+    >
       {commits.length === 0 && !loading ? (
-        <div className="empty-state">{emptyMessage}</div>
+        <div className="empty-state" role="status">{emptyMessage}</div>
       ) : (
-        <ul className="commit-list">
+        <ul 
+          className="commit-list"
+          aria-label="List of commits" // Accessibility: describe list content
+        >
           {commits.map(commit => (
             <CommitItem
               key={commit.id}
@@ -464,7 +688,10 @@ export default function ActivityFeed({
 **Dashboard Layout**
 
 ```tsx
-// In a Next.js app, templates often take the form of layouts
+import { RouteAnnouncer } from '@/components/molecules/RouteAnnouncer';
+import { Header, Sidebar, Footer } from '@/components/organisms';
+
+// In a Next.js app, templates often take the form of layouts with semantic structure
 export default function DashboardLayout({
   children,
 }: {
@@ -472,14 +699,25 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="dashboard-layout">
-      <Header />
+      {/* Accessibility: Skip to main content link for keyboard users */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4">
+        Skip to main content
+      </a>
+      
+      <Header /> {/* Should contain <header> with navigation role */}
+      
       <div className="dashboard-content">
-        <Sidebar />
-        <main className="main-content">
+        <Sidebar /> {/* Should use <aside> or nav role */}
+        
+        {/* Accessibility: Main landmark with ID for skip link */}
+        <main id="main-content" className="main-content">
+          {/* Accessibility: Announce route changes in SPA */}
+          <RouteAnnouncer />
           {children}
         </main>
       </div>
-      <Footer />
+      
+      <Footer /> {/* Should contain <footer> role */}
     </div>
   );
 }
