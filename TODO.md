@@ -144,3 +144,56 @@
   - Correct the `rules` property format to be an array as expected by axe-core
   - Test locally with `npm run test-storybook`
   - Expected time: 30 minutes
+
+### Phase 1: Critical Test Fixes (CI Blockers)
+
+- [x] **Fix Button accessibility test error message expectation**
+  - Update expected error message in `src/components/atoms/__tests__/Button.accessibility.test.tsx`
+  - Change from "Icon-only button must have an accessible name" to full message
+  - Ensure test passes locally before committing
+  - Expected time: 5 minutes
+
+- [ ] **Fix OperationsPanel test DOM query ambiguity**
+  - Investigate failing test in `src/components/organisms/__tests__/OperationsPanel.test.tsx`
+  - Replace ambiguous `/start/i` text selector with more specific query
+  - Use getByRole, data-testid, or more specific text matching
+  - Verify test passes locally
+  - Expected time: 10 minutes
+
+### Phase 2: ModeSelector Accessibility Violations
+
+- [ ] **Investigate ModeSelector accessibility violations**
+  - Run `npm run check:a11y:all` locally to get detailed violation reports
+  - Examine specific axe violations for ModeSelector stories
+  - Document findings: types of violations, affected elements, WCAG criteria
+  - Expected time: 15 minutes
+
+- [ ] **Fix ModeSelector color contrast violations** 
+  - Review color usage in ModeSelector component and stories
+  - Ensure all text meets 4.5:1 contrast ratio (normal text) or 3:1 (large text)
+  - Update any non-compliant colors using approved color tokens
+  - Test with colorContrast utility
+  - Expected time: 20 minutes
+
+- [ ] **Fix ModeSelector ARIA and semantic violations**
+  - Add missing ARIA labels, roles, and properties as identified
+  - Ensure proper semantic HTML structure (buttons vs divs)
+  - Implement proper keyboard navigation and focus management
+  - Add aria-describedby relationships where needed
+  - Expected time: 25 minutes
+
+- [ ] **Verify ModeSelector accessibility fixes**
+  - Run accessibility tests locally for all ModeSelector stories
+  - Manually test with keyboard navigation and screen reader
+  - Ensure no regressions in existing functionality
+  - Confirm all violations resolved
+  - Expected time: 10 minutes
+
+### Phase 3: Final Verification
+
+- [ ] **Run complete CI verification**
+  - Execute full test suite locally: `npm test`
+  - Run type checking: `npm run typecheck` 
+  - Run linting: `npm run lint`
+  - Build project: `npm run build`
+  - Expected time: 10 minutes

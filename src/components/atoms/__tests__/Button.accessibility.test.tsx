@@ -275,7 +275,8 @@ describe("Button Accessibility", () => {
       // Wait for useEffect to run
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalledWith(
-          "Icon-only button must have an accessible name",
+          "Accessibility Error: Icon-only button must have an aria-label attribute that describes its action. " +
+          "This is required for screen reader users to understand the button's purpose.",
         );
       });
 
