@@ -74,7 +74,7 @@ async function globalSetup(config: FullConfig) {
         domain,
         path: '/',
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: baseURL.startsWith('https://'),
         sameSite: 'Lax',
         expires: Math.floor(Date.now() / 1000) + 86400, // 24 hours from now
       }
