@@ -7,9 +7,10 @@ const { customTestResultDependsOnViolations } = require('./utils/custom-a11y-tes
 
 // Default axe configuration with enhanced rules
 const defaultAxeConfig = {
-  rules: {
+  rules: [
     // Color contrast rules
-    'color-contrast': { 
+    {
+      id: 'color-contrast',
       enabled: true,
       options: {
         noScroll: true,
@@ -23,23 +24,23 @@ const defaultAxeConfig = {
       }
     },
     // Form field rules
-    'label': { enabled: true },
-    'aria-required-attr': { enabled: true },
-    'aria-roles': { enabled: true },
+    { id: 'label', enabled: true },
+    { id: 'aria-required-attr', enabled: true },
+    { id: 'aria-roles', enabled: true },
     // Focus and keyboard navigation rules
-    'focus-order-semantics': { enabled: true },
-    'tabindex': { enabled: true },
+    { id: 'focus-order-semantics', enabled: true },
+    { id: 'tabindex', enabled: true },
     // Image and media rules
-    'image-alt': { enabled: true },
+    { id: 'image-alt', enabled: true },
     // Structure and landmarks
-    'region': { enabled: true },
-    'landmark-banner-is-top-level': { enabled: true },
-    'landmark-complementary-is-top-level': { enabled: true },
-    'landmark-main-is-top-level': { enabled: true },
-    'landmark-no-duplicate': { enabled: true },
-    'landmark-one-main': { enabled: true },
-    'page-has-heading-one': { enabled: true },
-  }
+    { id: 'region', enabled: true },
+    { id: 'landmark-banner-is-top-level', enabled: true },
+    { id: 'landmark-complementary-is-top-level', enabled: true },
+    { id: 'landmark-main-is-top-level', enabled: true },
+    { id: 'landmark-no-duplicate', enabled: true },
+    { id: 'landmark-one-main', enabled: true },
+    { id: 'page-has-heading-one', enabled: true },
+  ]
 };
 
 // Initialize results collector
@@ -77,33 +78,33 @@ const getTypeSpecificRules = (componentType) => {
   switch(componentType) {
     case 'atoms':
       // Atoms often have specific accessibility requirements as building blocks
-      return {
-        'color-contrast': { enabled: true },
-        'button-name': { enabled: true },
-        'aria-roles': { enabled: true },
-        'tabindex': { enabled: true },
-        'aria-allowed-attr': { enabled: true },
-      };
+      return [
+        { id: 'color-contrast', enabled: true },
+        { id: 'button-name', enabled: true },
+        { id: 'aria-roles', enabled: true },
+        { id: 'tabindex', enabled: true },
+        { id: 'aria-allowed-attr', enabled: true },
+      ];
     case 'molecules':
       // Molecules combine atoms and may have additional requirements
-      return {
-        'color-contrast': { enabled: true },
-        'label': { enabled: true }, 
-        'form-field-multiple-labels': { enabled: true },
-        'nested-interactive': { enabled: true },
-        'aria-required-attr': { enabled: true },
-      };
+      return [
+        { id: 'color-contrast', enabled: true },
+        { id: 'label', enabled: true }, 
+        { id: 'form-field-multiple-labels', enabled: true },
+        { id: 'nested-interactive', enabled: true },
+        { id: 'aria-required-attr', enabled: true },
+      ];
     case 'organisms':
       // Organisms may have complex structures that need specific testing
-      return {
-        'landmark-one-main': { enabled: true },
-        'region': { enabled: true },
-        'landmark-banner-is-top-level': { enabled: true },
-        'landmark-complementary-is-top-level': { enabled: true },
-        'duplicate-id-aria': { enabled: true },
-      };
+      return [
+        { id: 'landmark-one-main', enabled: true },
+        { id: 'region', enabled: true },
+        { id: 'landmark-banner-is-top-level', enabled: true },
+        { id: 'landmark-complementary-is-top-level', enabled: true },
+        { id: 'duplicate-id-aria', enabled: true },
+      ];
     default:
-      return {};
+      return [];
   }
 };
 
@@ -152,13 +153,16 @@ module.exports = {
       console.log(`Component type: ${componentType}`);
       
       // Merge default config with type-specific rules and any story-specific config
+      const typeSpecificRules = getTypeSpecificRules(componentType);
+      const storySpecificRules = a11yParams.config?.rules || [];
+      
       const axeConfig = {
         ...defaultAxeConfig,
-        rules: {
+        rules: [
           ...defaultAxeConfig.rules,
-          ...getTypeSpecificRules(componentType),
-          ...(a11yParams.config?.rules || {})
-        }
+          ...typeSpecificRules,
+          ...storySpecificRules
+        ]
       };
       
       // Configure axe with the merged configuration

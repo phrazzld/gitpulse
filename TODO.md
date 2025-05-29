@@ -139,7 +139,7 @@
   - Verify tests pass locally before committing
   - Expected time: 15 minutes
 
-- [ ] **Fix Storybook test-runner configuration**
+- [x] **Fix Storybook test-runner configuration**
   - Review `.storybook/test-runner.js` configuration
   - Correct the `rules` property format to be an array as expected by axe-core
   - Test locally with `npm run test-storybook`
