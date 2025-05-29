@@ -167,7 +167,9 @@ describe('OperationsPanel', () => {
       renderWithProviders(<OperationsPanel {...props} />);
       
       // Should show OAuth authentication text
-      expect(screen.getByText(/USING OAUTH AUTHENTICATION/i)).toBeInTheDocument();
+      // Use getAllByText since there might be multiple elements (including ARIA live regions)
+      const oauthTexts = screen.getAllByText(/USING OAUTH AUTHENTICATION/i);
+      expect(oauthTexts.length).toBeGreaterThan(0);
       
       // Should not show GitHub App text
       expect(screen.queryByText(/GITHUB APP INTEGRATION ACTIVE/i)).not.toBeInTheDocument();
@@ -205,7 +207,9 @@ describe('OperationsPanel', () => {
       renderWithProviders(<OperationsPanel {...props} />);
       
       // Check for error message
-      expect(screen.getByText(/Authentication token expired/i)).toBeInTheDocument();
+      // Use getAllByText since there might be multiple elements (including ARIA live regions)
+      const errorTexts = screen.getAllByText(/Authentication token expired/i);
+      expect(errorTexts.length).toBeGreaterThan(0);
       
       // Note: We can't test the sign out button click because it's not being rendered
       // This suggests that either the ErrorAlert component has changed or its
@@ -293,7 +297,9 @@ describe('OperationsPanel', () => {
       renderWithProviders(<OperationsPanel {...props} />);
       
       // Should show error message
-      expect(screen.getByText(/GitHub App not configured/i)).toBeInTheDocument();
+      // Use getAllByText since there might be multiple elements (including ARIA live regions)
+      const errorTexts = screen.getAllByText(/GitHub App not configured/i);
+      expect(errorTexts.length).toBeGreaterThan(0);
     });
   });
 });

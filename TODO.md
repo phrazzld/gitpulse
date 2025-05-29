@@ -153,7 +153,7 @@
   - Ensure test passes locally before committing
   - Expected time: 5 minutes
 
-- [ ] **Fix OperationsPanel test DOM query ambiguity**
+- [x] **Fix OperationsPanel test DOM query ambiguity**
   - Investigate failing test in `src/components/organisms/__tests__/OperationsPanel.test.tsx`
   - Replace ambiguous `/start/i` text selector with more specific query
   - Use getByRole, data-testid, or more specific text matching
