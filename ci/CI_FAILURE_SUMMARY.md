@@ -1,66 +1,94 @@
 # CI Failure Summary
 
-This document serves as a central reference for tracking CI failures and their resolutions in the GitPulse project.
+**Date**: 2025-05-28
+**Branch**: feature/atomic-design-storybook
+**PR**: #19
+**Commit**: Latest push after accessibility documentation enhancements
 
-## Recent CI Failures
+## Overview
 
-| Date | Failure ID | Description | Severity | Status | Post-mortem |
-|------|------------|-------------|----------|--------|------------|
-| 2025-05-15 | [Run #512](https://github.com/organization/gitpulse/actions/runs/512) | TypeScript version conflict | High | Resolved | [View](../postmortems/2025-05-15-typescript-version-conflict.md) |
+Two CI checks are failing, preventing PR merge:
+1. build-and-test (Jest unit tests)
+2. storybook-a11y (Storybook accessibility tests)
 
-## Failure Categories
+## Failure Details
 
-### Environment Issues
+### 1. build-and-test Job Failure
 
-- **Missing Dependencies**: Failures due to missing or conflicting package dependencies
-  - Example: [TypeScript version conflict](../postmortems/2025-05-15-typescript-version-conflict.md)
+**Status**: ❌ Failed
+**Duration**: ~2 minutes
+**Failed Step**: Run tests
 
-### Test Failures
+#### Error Details
 
-- **Flaky Tests**: Tests that intermittently fail due to timing or environmental conditions
-- **Broken Tests**: Tests that consistently fail due to application code changes
+```
+FAIL src/components/atoms/__tests__/Button.icon-accessibility.test.tsx
+  Button Component - Icon Accessibility
+    Icon-only buttons
+      ✕ should have aria-label for icon-only primary button (89 ms)
+      ✕ should have aria-label for icon-only secondary button (17 ms)
+      ✕ should have aria-label for icon-only danger button (14 ms)
+      ✓ should not require aria-label when button has text content (12 ms)
 
-### Build Failures
+  ● Button Component - Icon Accessibility › Icon-only buttons › should have aria-label for icon-only primary button
 
-- **Compilation Errors**: TypeScript or JavaScript compilation failures
-- **Asset Processing**: Failures in processing CSS, images, or other assets
+    expect(element).toHaveAccessibleName()
 
-### Deployment Failures
+    Expected element to have an accessible name, but it does not.
+    Icon-only button must have an accessible name. Add aria-label, aria-labelledby, or visible text content.
 
-- **Infrastructure Issues**: Problems with deployment infrastructure
-- **Configuration Errors**: Misconfiguration of deployment settings
+      18 |     render(<Button icon="github" />);
+      19 |     const button = screen.getByRole('button');
+    > 20 |     expect(button).toHaveAccessibleName();
+         |                    ^
+```
 
-## Common Patterns and Trends
+**Root Cause**: Button component tests are expecting icon-only buttons to have accessible names (aria-label), but the test cases are not providing aria-label props when rendering icon-only buttons.
 
-This section will be updated based on failure patterns observed over time.
+**Affected Files**:
+- `src/components/atoms/__tests__/Button.icon-accessibility.test.tsx`
 
-### Current Trends
+### 2. storybook-a11y Job Failure
 
-- TypeScript dependency management has been a recurring issue (1 incidents)
+**Status**: ❌ Failed
+**Duration**: ~1 minute
+**Failed Step**: Run accessibility tests on Storybook
 
-## Key Metrics
+#### Error Details
 
-| Metric | Current | Previous Month | Trend |
-|--------|---------|----------------|-------|
-| Total CI Failures | 1 | - | - |
-| Mean Time to Resolve | 24h | - | - |
-| Recurring Issue Rate | 0% | - | - |
-| Action Item Completion | 25% | - | - |
+```
+Running 2 tests using 2 workers
 
-## Upcoming Improvements
+  ✘ [chromium] › src/components/atoms/Button.stories.tsx:6:5 › smoke-test (529ms)
 
-| Improvement | Status | Target Date |
-|-------------|--------|-------------|
-| CI Environment Documentation | In Progress | 2025-05-25 |
-| Dependency Validation Script | Planned | 2025-05-30 |
-| Local CI Simulation | Planned | 2025-06-05 |
+  1) [chromium] › src/components/atoms/Button.stories.tsx:6:5 › smoke-test ─────────────────────
 
-## Post-mortem Archive
+    TypeError: Rules property must be an array
 
-For a complete list of all previous CI failure post-mortems, see the [postmortems](../postmortems/) directory.
+       at .../node_modules/axe-core/lib/core/base/audit.js:147:11
+       at node_modules/@storybook/test-runner/dist/test-storybook.js:6:1146
+```
 
----
+**Root Cause**: The Storybook test-runner configuration for axe-playwright is receiving an invalid `rules` configuration. The axe-core library expects the `rules` property to be an array, but it's receiving a different type.
 
-**Document Metadata:**
-- Last Updated: 2025-05-20
-- Update Frequency: Weekly
+**Affected Files**:
+- `.storybook/test-runner.js` (configuration issue)
+- Potentially all Storybook story files during a11y testing
+
+## Impact
+
+1. **Development Workflow**: PR cannot be merged until both checks pass
+2. **Test Coverage**: Accessibility tests are not running properly in Storybook
+3. **Quality Gates**: Pre-merge quality checks are blocked
+
+## Immediate Actions Required
+
+1. Fix Button component test cases to properly test icon-only accessibility
+2. Correct the Storybook test-runner configuration for axe-playwright
+3. Re-run CI checks to verify fixes
+
+## Related Documentation
+
+- [Button Component Tests](src/components/atoms/__tests__/Button.icon-accessibility.test.tsx)
+- [Storybook Test Runner Config](.storybook/test-runner.js)
+- [CI Workflow](.github/workflows/ci.yml)
