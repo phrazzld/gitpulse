@@ -204,10 +204,10 @@ export default function Button(props: ButtonProps) {
     },
     outline: {
       bg: "transparent",
-      text: "var(--brand-electric-blue, #2563eb)",  // 4.90:1 contrast on light
-      border: "var(--brand-electric-blue, #2563eb)",
-      hoverBg: "rgba(37, 99, 235, 0.1)",          // Subtle hover background
-      hoverText: "var(--brand-dark-blue, #1a4bbd)", // Enhanced hover contrast
+      text: "var(--brand-dark-blue, #1a4bbd)",    // 7.54:1 contrast on white, better on various backgrounds
+      border: "var(--brand-dark-blue, #1a4bbd)",
+      hoverBg: "rgba(26, 75, 189, 0.1)",          // Subtle hover background
+      hoverText: "var(--brand-dark-blue, #1a4bbd)", // Consistent text color
     },
     disabled: {
       bg: "#e0e0e0",

@@ -77,10 +77,10 @@ const ColorSwatch: React.FC<{
         <p className="text-xs text-gray-600 mt-1">{description}</p>
       )}
       {contrastInfo && (
-        <p className="text-xs text-green-600 mt-1 font-medium">{contrastInfo}</p>
+        <p className="text-xs text-green-700 mt-1 font-medium">{contrastInfo}</p>
       )}
       {usage && (
-        <p className="text-xs text-blue-600 mt-1 italic">{usage}</p>
+        <p className="text-xs text-blue-700 mt-1 italic">{usage}</p>
       )}
     </div>
   </div>
@@ -152,7 +152,7 @@ export const BrandColors: Story = {
             description="WCAG AA compliant green"
             contrastInfo="3.51:1 for large text"
             usage="Success states, large text"
-            textColor="#ffffff"
+            textColor={colors.brand.darkSlate}
           />
           <ColorSwatch
             name="Electric Blue"
@@ -226,6 +226,7 @@ export const SemanticColors: Story = {
                 description="Positive actions, completion"
                 contrastInfo="3.51:1 for large text"
                 usage="Success messages, checkmarks"
+                textColor={colors.brand.darkSlate}
               />
               <ColorSwatch
                 name="Warning"
@@ -277,6 +278,7 @@ export const SemanticColors: Story = {
                 description="Less important text"
                 contrastInfo="3.51:1 for large text"
                 usage="Timestamps, metadata"
+                textColor={colors.brand.darkSlate}
               />
             </div>
           </div>
@@ -298,6 +300,7 @@ export const SemanticColors: Story = {
                 description="Link hover state"
                 contrastInfo="3.51:1 for large text"
                 usage="Hovered links"
+                textColor={colors.brand.darkSlate}
               />
               <ColorSwatch
                 name="Focus Ring"

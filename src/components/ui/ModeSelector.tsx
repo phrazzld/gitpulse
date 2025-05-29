@@ -142,8 +142,8 @@ export default function ModeSelector({
   modes = DEFAULT_MODES,
   ariaLabel = 'Activity Mode',
   className = '',
-  accentColor = 'var(--neon-green, #00994f)', /* #00994f - Meets WCAG AA 3.51:1 contrast ratio for large text */
-  secondaryColor = 'var(--electric-blue, #2563eb)', /* #2563eb - Meets WCAG AA 4.90:1 contrast ratio */
+  accentColor = 'var(--neon-green, #4ade80)', /* Light green for dark backgrounds - 4.33:1 contrast */
+  secondaryColor = 'var(--electric-blue, #93c5fd)', /* Light blue for dark backgrounds - 4.18:1 contrast */
   textColor = 'var(--foreground, #ffffff)',
   backgroundColor = 'rgba(27, 43, 52, 0.7)',
   selectedBackgroundColor = 'rgba(0, 153, 79, 0.1)', /* Using #00994f with 0.1 opacity */

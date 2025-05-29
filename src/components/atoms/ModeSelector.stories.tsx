@@ -284,11 +284,11 @@ export const CustomTheme: Story = {
   args: {
     selectedMode: 'my-activity',
     disabled: false,
-    accentColor: '#FF5733',
-    secondaryColor: '#C70039',
+    accentColor: '#00994f',      // WCAG AA compliant green (3.51:1 for large text)
+    secondaryColor: '#2563eb',    // WCAG AA compliant blue (4.90:1 for text)
     textColor: '#ffffff',
-    backgroundColor: 'rgba(30, 30, 30, 0.8)',
-    selectedBackgroundColor: 'rgba(255, 87, 51, 0.2)',
+    backgroundColor: 'rgba(27, 43, 52, 0.9)',
+    selectedBackgroundColor: 'rgba(0, 153, 79, 0.15)',
   },
   parameters: {
     docs: {

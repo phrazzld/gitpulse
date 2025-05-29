@@ -86,13 +86,13 @@ export interface ModeSelectorProps {
   
   /**
    * Primary color for accents (selected items, indicators)
-   * @default 'var(--neon-green, #00ff87)'
+   * @default 'var(--brand-accessible-green, #00994f)'
    */
   accentColor?: string;
   
   /**
    * Text color for descriptions
-   * @default 'var(--electric-blue, #0066cc)'
+   * @default 'var(--brand-electric-blue, #2563eb)'
    */
   secondaryColor?: string;
   
@@ -110,7 +110,7 @@ export interface ModeSelectorProps {
   
   /**
    * Background color for selected items
-   * @default 'rgba(0, 255, 135, 0.1)'
+   * @default 'rgba(0, 153, 79, 0.1)'
    */
   selectedBackgroundColor?: string;
 }
@@ -140,12 +140,11 @@ export default function ModeSelector({
   modes = DEFAULT_MODES,
   ariaLabel = 'Activity Mode',
   className = '',
-  accentColor = 'var(--neon-green, #00ff87)',
-  // Using a darker blue for better contrast with backgrounds (WCAG AA 4.5:1 ratio)
-  secondaryColor = 'var(--electric-blue, #0066cc)', // Changed from #3b8eea to #0066cc
+  accentColor = 'var(--brand-accessible-green, #4ade80)', // Light green for dark backgrounds  
+  secondaryColor = 'var(--brand-electric-blue, #93c5fd)', // Light blue for dark backgrounds
   textColor = 'var(--foreground, #ffffff)',
   backgroundColor = 'rgba(27, 43, 52, 0.7)',
-  selectedBackgroundColor = 'rgba(0, 255, 135, 0.1)',
+  selectedBackgroundColor = 'rgba(0, 153, 79, 0.1)', // Using accessible green with 0.1 opacity
 }: ModeSelectorProps) {
   // Use stable IDs
   const headerId = useId();
