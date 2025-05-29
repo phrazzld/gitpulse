@@ -71,7 +71,8 @@ describe("Button Icon-Only Accessibility", () => {
 
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalledWith(
-          "Icon-only button must have an accessible name",
+          "Accessibility Error: Icon-only button must have an aria-label attribute that describes its action. " +
+          "This is required for screen reader users to understand the button's purpose.",
         );
       });
 
@@ -98,7 +99,8 @@ describe("Button Icon-Only Accessibility", () => {
 
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalledWith(
-          "Icon-only button must have an accessible name",
+          "Accessibility Error: Icon-only button must have an aria-label attribute that describes its action. " +
+          "This is required for screen reader users to understand the button's purpose.",
         );
       });
 
@@ -125,7 +127,8 @@ describe("Button Icon-Only Accessibility", () => {
 
       await waitFor(() => {
         expect(consoleError).toHaveBeenCalledWith(
-          "Icon-only button must have an accessible name",
+          "Accessibility Error: Icon-only button must have an aria-label attribute that describes its action. " +
+          "This is required for screen reader users to understand the button's purpose.",
         );
       });
 

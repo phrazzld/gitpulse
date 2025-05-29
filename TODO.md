@@ -133,7 +133,7 @@
 
 ## CI Failure Resolution
 
-- [ ] **Fix Button icon accessibility tests**
+- [x] **Fix Button icon accessibility tests**
   - Add aria-label props to icon-only button test renders in `Button.icon-accessibility.test.tsx`
   - Ensure all icon-only button test cases provide accessible names
   - Verify tests pass locally before committing
