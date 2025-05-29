@@ -162,7 +162,7 @@
 
 ### Phase 2: ModeSelector Accessibility Violations
 
-- [ ] **Investigate ModeSelector accessibility violations**
+- [x] **Investigate ModeSelector accessibility violations**
   - Run `npm run check:a11y:all` locally to get detailed violation reports
   - Examine specific axe violations for ModeSelector stories
   - Document findings: types of violations, affected elements, WCAG criteria
