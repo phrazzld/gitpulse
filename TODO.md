@@ -168,21 +168,21 @@
   - Document findings: types of violations, affected elements, WCAG criteria
   - Expected time: 15 minutes
 
-- [ ] **Fix ModeSelector color contrast violations** 
+- [x] **Fix ModeSelector color contrast violations** 
   - Review color usage in ModeSelector component and stories
   - Ensure all text meets 4.5:1 contrast ratio (normal text) or 3:1 (large text)
   - Update any non-compliant colors using approved color tokens
   - Test with colorContrast utility
   - Expected time: 20 minutes
 
-- [ ] **Fix ModeSelector ARIA and semantic violations**
+- [x] **Fix ModeSelector ARIA and semantic violations**
   - Add missing ARIA labels, roles, and properties as identified
   - Ensure proper semantic HTML structure (buttons vs divs)
   - Implement proper keyboard navigation and focus management
   - Add aria-describedby relationships where needed
   - Expected time: 25 minutes
 
-- [ ] **Verify ModeSelector accessibility fixes**
+- [x] **Verify ModeSelector accessibility fixes**
   - Run accessibility tests locally for all ModeSelector stories
   - Manually test with keyboard navigation and screen reader
   - Ensure no regressions in existing functionality
@@ -191,7 +191,7 @@
 
 ### Phase 3: Final Verification
 
-- [ ] **Run complete CI verification**
+- [x] **Run complete CI verification**
   - Execute full test suite locally: `npm test`
   - Run type checking: `npm run typecheck` 
   - Run linting: `npm run lint`
