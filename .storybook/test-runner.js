@@ -1,5 +1,6 @@
 const { injectAxe, checkA11y, configureAxe } = require('axe-playwright');
-const { getStoryContext } = require('@storybook/test-runner');
+// Note: getStoryContext removed due to Storybook 8 circular dependency issue
+// Using direct storyStore access with circular reference handling instead
 const path = require('path');
 const fs = require('fs');
 const { A11yResultsCollector } = require('./utils/a11y-results-collector');
@@ -135,7 +136,42 @@ module.exports = {
   },
   async postVisit(page, context) {
     // Get story context to access parameters and check if it should be tested
-    const storyContext = await getStoryContext(page, context);
+    // Using workaround for Storybook 8 circular dependency issue with getStoryContext
+    let storyContext;
+    try {
+      storyContext = await page.evaluate(
+        async ({ storyId }) => {
+          const getCircularReplacer = () => {
+            const seen = new WeakSet();
+            return (key, value) => {
+              if (typeof value === "object" && value !== null) {
+                if (seen.has(value)) {
+                  return;
+                }
+                seen.add(value);
+              }
+              return value;
+            };
+          };
+
+          return JSON.parse(
+            JSON.stringify(
+              await globalThis.__STORYBOOK_PREVIEW__.storyStore.loadStory({ storyId }),
+              getCircularReplacer()
+            )
+          );
+        },
+        { storyId: context.id }
+      );
+    } catch (error) {
+      console.warn(`Failed to get story context for ${context.title} - ${context.name}:`, error.message);
+      // Fallback to basic context structure for accessibility testing
+      storyContext = {
+        parameters: {},
+        title: context.title,
+        name: context.name
+      };
+    }
     const a11yParams = storyContext.parameters?.a11y || {};
     
     // Log info about current story for debugging

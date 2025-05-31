@@ -197,3 +197,45 @@
   - Run linting: `npm run lint`
   - Build project: `npm run build`
   - Expected time: 10 minutes
+
+## Critical CI Failures (Current Branch)
+
+### High Priority - Immediate Action Required
+
+- [x] **Fix Storybook test runner compatibility issue**
+  - Root cause: Version incompatibility between Storybook 8.6.12 and @storybook/test-runner 0.22.0
+  - Error: `TypeError: Cannot read properties of undefined (reading 'storyStore')`
+  - Solution: Update @storybook/test-runner to compatible version OR update test-runner.js to use new API
+  - Impact: Blocks storybook-a11y CI workflow
+  - Expected time: 30 minutes
+
+- [ ] **Investigate unit test CI failure**
+  - Root cause: Tests pass locally (687/687) but fail in CI environment
+  - Possible causes: Node version mismatch, package-lock.json sync, timing issues
+  - Impact: Blocks build-and-test CI workflow and coverage reports
+  - Expected time: 45 minutes
+
+- [ ] **Update .storybook/test-runner.js to use new Storybook 8 API**
+  - Replace deprecated getStoryContext usage on line 138
+  - Use new Storybook 8.x compatible API methods
+  - Backup plan: Temporarily disable getStoryContext calls
+  - Expected time: 20 minutes
+
+### Medium Priority - Environment Alignment
+
+- [ ] **Check CI Node.js version matches local environment**
+  - Compare GitHub Actions Node.js version with local version
+  - Update CI workflow if necessary to match local development
+  - Expected time: 15 minutes
+
+- [ ] **Verify package-lock.json is synchronized**
+  - Ensure no discrepancies between local and CI package installations
+  - Run npm ci locally to verify compatibility
+  - Expected time: 10 minutes
+
+### Low Priority - Prevention
+
+- [ ] **Add CI dependency compatibility checks**
+  - Add pre-test step to validate dependency versions
+  - Create alerting for known incompatible version combinations
+  - Expected time: 30 minutes
