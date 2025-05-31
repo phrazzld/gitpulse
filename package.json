@@ -34,7 +34,8 @@
     "check:a11y:staged": "node scripts/accessibility/check-a11y-staged-stories.js",
     "check:a11y:all": "test-storybook",
     "generate-color-docs": "node scripts/accessibility/generate-color-docs-simple.js",
-    "validate-color-docs": "node scripts/accessibility/generate-color-docs-simple.js --validate"
+    "validate-color-docs": "node scripts/accessibility/generate-color-docs-simple.js --validate",
+    "validate:deps": "node scripts/validate-dependencies.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",

@@ -24,11 +24,15 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
         
     - name: Install dependencies
       run: npm ci
+      
+    - name: Validate dependency compatibility
+      run: node scripts/validate-dependencies.js
+      # Ensures build fails if incompatible dependency versions are detected
       
     - name: Run enhanced security audit
       # This ensures the build fails if any high or critical severity vulnerabilities are found in production dependencies

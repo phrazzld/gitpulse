@@ -6,34 +6,11 @@
 # Error details
 
 ```
-Error: Auth cookie should exist
+TimeoutError: page.goto: Timeout 45000ms exceeded.
+Call log:
+  - navigating to "http://localhost:3000/", waiting until "load"
 
-expect(received).toBeDefined()
-
-Received: undefined
-    at /Users/phaedrus/Development/gitpulse/e2e/auth.spec.ts:61:52
-```
-
-# Page snapshot
-
-```yaml
-- button "Open Next.js Dev Tools":
-  - img
-- alert
-- text: "SYSTEM STATUS: ONLINE"
-- heading "GITPULSE" [level=1]
-- text: COMMIT ANALYSIS SYSTEM
-- paragraph: "> SYSTEM READY"
-- paragraph: "> Initializing GitHub commit analysis module..."
-- paragraph: "> Secure sign-in required to access repository data."
-- paragraph: "> Awaiting authorization..."
-- paragraph: Sign in with GitHub to access your repositories and analyze commits.
-- button "AUTHENTICATE WITH GITHUB":
-  - img
-  - text: AUTHENTICATE WITH GITHUB
-- contentinfo:
-  - paragraph: "SECURE AUTH PROTOCOL: GITHUB OAUTH"
-  - paragraph: NO DATA PERSISTENCE BEYOND SESSION SCOPE
+    at /Users/phaedrus/Development/gitpulse/e2e/auth.spec.ts:52:16
 ```
 
 # Test source
@@ -90,7 +67,8 @@ Received: undefined
    49 |     test.skip(!shouldRunAuthTests, 'Skipping: mock auth not enabled');
    50 |     
    51 |     // Navigate to the home page first to verify we can load the app
-   52 |     await page.goto('/');
+>  52 |     await page.goto('/');
+      |                ^ TimeoutError: page.goto: Timeout 45000ms exceeded.
    53 |     await page.waitForLoadState('networkidle');
    54 |     
    55 |     // Take a screenshot to diagnose the state
@@ -99,8 +77,7 @@ Received: undefined
    58 |     // Check that auth cookie exists by checking cookies
    59 |     const cookies = await page.context().cookies();
    60 |     const authCookie = cookies.find(cookie => cookie.name === 'next-auth.session-token');
->  61 |     expect(authCookie, 'Auth cookie should exist').toBeDefined();
-      |                                                    ^ Error: Auth cookie should exist
+   61 |     expect(authCookie, 'Auth cookie should exist').toBeDefined();
    62 |     
    63 |     // Now try a protected page
    64 |     await page.goto('/dashboard');
@@ -192,13 +169,4 @@ Received: undefined
   150 |     const loginVisible = await page.locator('text=/Sign in|Login|Authenticate|Unauthorized/i').count() > 0;
   151 |     
   152 |     // Check if we were redirected to a login-related URL
-  153 |     const currentUrl = page.url();
-  154 |     const isLoginRedirect = currentUrl.includes('signin') || 
-  155 |                             currentUrl.includes('login') || 
-  156 |                             currentUrl.includes('auth');
-  157 |     
-  158 |     // If we're on the original URL but see a 404, that's not authentication working -
-  159 |     // the route might just not exist
-  160 |     const is404 = await page.locator('text="404"').count() > 0;
-  161 |     
 ```
