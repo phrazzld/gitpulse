@@ -209,13 +209,13 @@
   - Impact: Blocks storybook-a11y CI workflow
   - Expected time: 30 minutes
 
-- [ ] **Investigate unit test CI failure**
+- [x] **Investigate unit test CI failure**
   - Root cause: Tests pass locally (687/687) but fail in CI environment
   - Possible causes: Node version mismatch, package-lock.json sync, timing issues
   - Impact: Blocks build-and-test CI workflow and coverage reports
   - Expected time: 45 minutes
 
-- [ ] **Update .storybook/test-runner.js to use new Storybook 8 API**
+- [x] **Update .storybook/test-runner.js to use new Storybook 8 API**
   - Replace deprecated getStoryContext usage on line 138
   - Use new Storybook 8.x compatible API methods
   - Backup plan: Temporarily disable getStoryContext calls
