@@ -239,3 +239,65 @@
   - Add pre-test step to validate dependency versions
   - Create alerting for known incompatible version combinations
   - Expected time: 30 minutes
+
+## Current CI Failures (After Environment Fixes)
+
+### High Priority - New Issues Discovered
+
+- [x] **Fix CI coverage summary parsing failure**
+  - Root cause: Invalid format error when CI tries to read coverage JSON
+  - Error: `,"/home/runner/work/gitpulse/gitpulse/src/app/layout.tsx"` - malformed JSON
+  - Investigation needed: Check if Jest config changes affected coverage output format
+  - Solution: Fix Jest coverage reporter or CI workflow parsing logic
+  - Impact: Blocks coverage reporting in CI (tests pass but reports fail)
+  - Expected time: 20 minutes
+
+- [ ] **Complete Storybook accessibility test fix for CI environment**
+  - Root cause: Our storyStore fix works locally but fails in CI
+  - Error: Process exit code 1 during "Start Storybook server and run tests"
+  - Investigation needed: CI environment differences (ports, timing, resources)
+  - Solution: Enhance Storybook test runner robustness for CI
+  - Impact: Blocks accessibility testing in CI workflow
+  - Expected time: 30 minutes
+
+- [ ] **Investigate and fix coverage JSON format issue**
+  - Analyze Jest coverage output after recent threshold changes
+  - Compare local coverage format with CI expectations  
+  - Test coverage generation with different Jest reporter configurations
+  - Identify root cause of malformed JSON with leading comma
+  - Expected time: 15 minutes
+
+- [ ] **Debug Storybook CI startup issues**
+  - Add debugging output to Storybook CI workflow
+  - Test Storybook server startup in CI-like conditions locally
+  - Check for port conflicts or timing issues in CI environment
+  - Identify exact failure point beyond "exit code 1"
+  - Expected time: 15 minutes
+
+### Medium Priority - Robustness Improvements
+
+- [ ] **Add CI workflow error handling for coverage processing**
+  - Implement fallback behavior if coverage parsing fails
+  - Add validation of coverage JSON format before processing
+  - Include detailed error messages for troubleshooting
+  - Expected time: 10 minutes
+
+- [ ] **Enhance Storybook test runner CI resilience**
+  - Add retry logic for Storybook server startup
+  - Implement proper cleanup and error handling
+  - Add conditional logic for CI vs local environment differences
+  - Expected time: 15 minutes
+
+### Low Priority - Prevention
+
+- [ ] **Add coverage format validation to local development**
+  - Create local script to validate coverage JSON format
+  - Add pre-commit hook to catch coverage format issues
+  - Document coverage format requirements
+  - Expected time: 15 minutes
+
+- [ ] **Create Storybook CI testing documentation**
+  - Document differences between local and CI Storybook testing
+  - Create troubleshooting guide for common CI issues
+  - Add debugging steps for future Storybook CI failures
+  - Expected time: 15 minutes
