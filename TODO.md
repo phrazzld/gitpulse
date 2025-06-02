@@ -252,13 +252,13 @@
   - Impact: Blocks coverage reporting in CI (tests pass but reports fail)
   - Expected time: 20 minutes
 
-- [~] **Complete Storybook accessibility test fix for CI environment**
-  - Root cause: Our storyStore fix works locally but fails in CI
+- [x] **Complete Storybook accessibility test fix for CI environment**
+  - Root cause: Server startup race conditions and port conflicts in CI
   - Error: Process exit code 1 during "Start Storybook server and run tests"
-  - Investigation needed: CI environment differences (ports, timing, resources)
-  - Solution: Enhance Storybook test runner robustness for CI
-  - Impact: Blocks accessibility testing in CI workflow
-  - Expected time: 30 minutes
+  - Solution implemented: Created robust CI runner with retry logic, health checks, and enhanced error reporting
+  - Scripts added: debug-ci-server.js, start-server-with-retry.js, run-a11y-tests-ci.js
+  - Updated both CI workflows to use new enhanced runner
+  - Actual time: 45 minutes
 
 - [ ] **Investigate and fix coverage JSON format issue**
   - Analyze Jest coverage output after recent threshold changes
