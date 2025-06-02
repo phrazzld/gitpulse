@@ -252,7 +252,7 @@
   - Impact: Blocks coverage reporting in CI (tests pass but reports fail)
   - Expected time: 20 minutes
 
-- [ ] **Complete Storybook accessibility test fix for CI environment**
+- [~] **Complete Storybook accessibility test fix for CI environment**
   - Root cause: Our storyStore fix works locally but fails in CI
   - Error: Process exit code 1 during "Start Storybook server and run tests"
   - Investigation needed: CI environment differences (ports, timing, resources)

@@ -200,9 +200,8 @@ jobs:
         A11Y_FAILING_IMPACTS: 'critical,serious'
         GEMINI_API_KEY: 'test-api-key-for-testing-only'
       run: |
-        # Run accessibility tests with Storybook Test Runner
-        # This will respect the CI=true environment and fail on critical/serious issues
-        npx test-storybook --stories-json=./storybook-static/stories.json --static-dir=./storybook-static
+        # Use enhanced CI runner for better reliability and error reporting
+        node scripts/storybook/run-a11y-tests-ci.js
 
     - name: Upload Accessibility Test Results
       if: always() # Run even if accessibility tests fail

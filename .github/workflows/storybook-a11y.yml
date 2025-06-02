@@ -9,6 +9,8 @@ on:
       - 'src/**/*.stories.ts'
       - 'src/**/*.stories.js'
       - '.storybook/**/*'
+      - 'scripts/storybook/**/*'
+      - '.github/workflows/storybook-a11y.yml'
   pull_request:
     branches: [master, main]
     paths:
@@ -17,6 +19,18 @@ on:
       - 'src/**/*.stories.ts'
       - 'src/**/*.stories.js'
       - '.storybook/**/*'
+      - 'scripts/storybook/**/*'
+      - '.github/workflows/storybook-a11y.yml'
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug mode'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 # Set required permissions
 permissions:
@@ -90,51 +104,18 @@ jobs:
         echo "Created test-storybook.config.js:"
         cat test-storybook.config.js
         
-    - name: Start Storybook server and run tests
+    - name: Debug Server Startup (Optional)
+      if: ${{ github.event.inputs.debug == 'true' || env.DEBUG_CI == 'true' }}
       run: |
-        # Create directory for logs
-        mkdir -p test-logs
-
-        # Run with enhanced output for better visualization in GitHub Actions logs
-        echo "::group::Starting Storybook server and running accessibility tests"
-        
-        # Run the test with concurrently
-        npx concurrently -k -s first -n "SB,TEST" \
-          "npx http-server storybook-static --port 6006 --silent" \
-          "npx wait-on tcp:6006 && npx test-storybook --url http://localhost:6006 --ci --junit --maxWorkers=2" | tee test-logs/a11y-raw-output.log
-        
-        # Capture exit code
-        A11Y_EXIT_CODE=${PIPESTATUS[0]}
+        echo "::group::🔍 Running server startup diagnostics"
+        node scripts/storybook/debug-ci-server.js
         echo "::endgroup::"
         
-        # Check if there were violations and provide a formatted summary
-        if [ $A11Y_EXIT_CODE -ne 0 ]; then
-          echo "::group::⚠️ Accessibility Violations Found"
-          echo ""
-          
-          # Extract and display violation summary in a more readable format
-          cat test-logs/a11y-raw-output.log | grep -A 2 "========== ACCESSIBILITY VIOLATIONS SUMMARY ==========" | grep -v "======" || true
-          
-          echo ""
-          echo "For detailed information:"
-          echo "1. See the generated a11y-summary.md file in the artifacts"
-          echo "2. Check 'Rule-based Violation Summary' in the logs below"
-          echo "3. Run locally with: npm run check:a11y:all"
-          echo ""
-          echo "::endgroup::"
-          
-          # Display rule-based summary for quick analysis
-          echo "::group::Rule-based Violation Summary"
-          cat test-logs/a11y-raw-output.log | grep -A 20 "Rule-based Violation Summary:" | grep -v "Detailed Violations" || true
-          echo "::endgroup::"
-        else
-          echo "::group::✅ All accessibility tests passed!"
-          echo "No accessibility violations found"
-          echo "::endgroup::"
-        fi
-        
-        # Exit with original status code
-        exit $A11Y_EXIT_CODE
+    - name: Run Accessibility Tests with Enhanced CI Runner
+      run: |
+        echo "::group::🚀 Running accessibility tests with CI runner"
+        node scripts/storybook/run-a11y-tests-ci.js
+        echo "::endgroup::"
       env:
         # Ensure tests know they're running in CI
         CI: true
