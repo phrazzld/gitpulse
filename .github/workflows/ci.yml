@@ -70,45 +70,17 @@ jobs:
       # 2. Coverage thresholds are not met (configured in jest.config.js)
       # Coverage thresholds: Global ≥ 80%, Atoms ≥ 90%, Molecules ≥ 85%, Organisms ≥ 80%
     
-    - name: Read Coverage Summary
+    - name: Process Coverage Summary
       id: read-coverage
       if: github.event_name == 'pull_request'
       run: |
-        # Fix malformed coverage JSON and extract coverage percentages safely using jq
-        if [[ -f "coverage/coverage-summary.json" ]]; then
-          echo "🔧 Fixing malformed coverage JSON format..."
-          node scripts/fix-coverage-json-simple.js
-          
-          if [[ -f "coverage/coverage-summary-fixed.json" ]]; then
-            echo "✅ Using fixed coverage JSON"
-            COVERAGE_FILE="coverage/coverage-summary-fixed.json"
-          else
-            echo "⚠️ Fix failed, attempting to use original file"
-            COVERAGE_FILE="coverage/coverage-summary.json"
-          fi
-          
-          TOTAL_LINES=$(jq -r '.total.lines.pct // 0' "$COVERAGE_FILE")
-          TOTAL_STATEMENTS=$(jq -r '.total.statements.pct // 0' "$COVERAGE_FILE")
-          TOTAL_FUNCTIONS=$(jq -r '.total.functions.pct // 0' "$COVERAGE_FILE")
-          TOTAL_BRANCHES=$(jq -r '.total.branches.pct // 0' "$COVERAGE_FILE")
-          
-          echo "total_lines=${TOTAL_LINES}" >> $GITHUB_OUTPUT
-          echo "total_statements=${TOTAL_STATEMENTS}" >> $GITHUB_OUTPUT
-          echo "total_functions=${TOTAL_FUNCTIONS}" >> $GITHUB_OUTPUT
-          echo "total_branches=${TOTAL_BRANCHES}" >> $GITHUB_OUTPUT
-          
-          # Component-level coverage not available in json-summary format
-          # Jest threshold enforcement handles component-level requirements
-          echo "✅ Global coverage extracted - component coverage enforced by Jest thresholds"
-          
-          echo "✅ Coverage summary extracted successfully"
-        else
-          echo "❌ Coverage summary file not found"
-          echo "total_lines=0" >> $GITHUB_OUTPUT
-          echo "total_statements=0" >> $GITHUB_OUTPUT
-          echo "total_functions=0" >> $GITHUB_OUTPUT
-          echo "total_branches=0" >> $GITHUB_OUTPUT
-        fi
+        # Use enhanced coverage processing script with comprehensive error handling
+        chmod +x scripts/ci/process-coverage.sh
+        scripts/ci/process-coverage.sh
+        
+        # Component-level coverage not available in json-summary format
+        # Jest threshold enforcement handles component-level requirements
+        echo "✅ Global coverage extracted - component coverage enforced by Jest thresholds"
       
     - name: Upload Coverage Reports
       uses: actions/upload-artifact@v4
@@ -124,15 +96,17 @@ jobs:
         header: "test-coverage"
         message: |
           # Test Coverage Report
+          
+          ${{ steps.read-coverage.outputs.coverage_status == 'missing' && '⚠️ **Coverage data not available** - This may indicate tests were not run with coverage or a build issue occurred.' || steps.read-coverage.outputs.coverage_status == 'failed' && '⚠️ **Coverage processing failed** - See build logs for details. Using fallback values.' || '' }}
 
           | Metric | Current | Threshold | Status |
           | ------ | ------- | --------- | ------ |
-          | **Line Coverage** | ${{ steps.read-coverage.outputs.total_lines }}% | ≥36% | ${{ steps.read-coverage.outputs.total_lines < 36 && '❌ Below' || '✅ Pass' }} |
-          | **Statement Coverage** | ${{ steps.read-coverage.outputs.total_statements }}% | ≥35% | ${{ steps.read-coverage.outputs.total_statements < 35 && '❌ Below' || '✅ Pass' }} |
-          | **Function Coverage** | ${{ steps.read-coverage.outputs.total_functions }}% | ≥32% | ${{ steps.read-coverage.outputs.total_functions < 32 && '❌ Below' || '✅ Pass' }} |
-          | **Branch Coverage** | ${{ steps.read-coverage.outputs.total_branches }}% | ≥24% | ${{ steps.read-coverage.outputs.total_branches < 24 && '❌ Below' || '✅ Pass' }} |
+          | **Line Coverage** | ${{ steps.read-coverage.outputs.total_lines || '0' }}% | ≥36% | ${{ (steps.read-coverage.outputs.total_lines || 0) < 36 && '❌ Below' || '✅ Pass' }} |
+          | **Statement Coverage** | ${{ steps.read-coverage.outputs.total_statements || '0' }}% | ≥35% | ${{ (steps.read-coverage.outputs.total_statements || 0) < 35 && '❌ Below' || '✅ Pass' }} |
+          | **Function Coverage** | ${{ steps.read-coverage.outputs.total_functions || '0' }}% | ≥32% | ${{ (steps.read-coverage.outputs.total_functions || 0) < 32 && '❌ Below' || '✅ Pass' }} |
+          | **Branch Coverage** | ${{ steps.read-coverage.outputs.total_branches || '0' }}% | ≥24% | ${{ (steps.read-coverage.outputs.total_branches || 0) < 24 && '❌ Below' || '✅ Pass' }} |
 
-          **Coverage Status**: Based on current realistic thresholds set to prevent regression.
+          **Coverage Status**: ${{ steps.read-coverage.outputs.coverage_status == 'success' && 'Successfully processed' || steps.read-coverage.outputs.coverage_status == 'failed' && 'Processing failed - using fallback values' || steps.read-coverage.outputs.coverage_status == 'missing' && 'Coverage data not available' || 'Unknown status' }}
 
           ### About These Thresholds
           - These are **realistic thresholds** set to prevent regression, not aspirational targets
@@ -144,6 +118,8 @@ jobs:
           > - **Atoms**: Lines ≥75%, Statements ≥75%, Functions ≥83%, Branches ≥50%  
           > - **Molecules**: Lines ≥43%, Statements ≥42%, Functions ≥41%, Branches ≥43%
           > - **Organisms**: Lines ≥25%, Statements ≥24%, Functions ≥25%, Branches ≥31%
+          
+          ${{ steps.read-coverage.outputs.coverage_status != 'success' && '### Troubleshooting\nIf coverage data is missing or failed to process:\n1. Check that tests ran successfully with coverage enabled\n2. Verify Jest configuration includes coverage settings\n3. Check build logs for coverage processing errors\n4. Ensure coverage thresholds are met to prevent build failures' || '' }}
       
     - name: Cache build output
       uses: actions/cache@v4
