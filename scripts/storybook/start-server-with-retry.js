@@ -203,18 +203,20 @@ class StorybookServer {
         // Check critical endpoints
         const healthResults = await checkServerHealth(baseUrl);
         
-        const storiesEndpoint = healthResults.find(r => r.url === '/stories.json');
+        // Storybook 8 uses index.json instead of stories.json
+        const storiesEndpoint = healthResults.find(r => r.url === '/index.json') || 
+                                healthResults.find(r => r.url === '/stories.json'); // fallback for older versions
         const iframeEndpoint = healthResults.find(r => r.url === '/iframe.html');
         
         if (storiesEndpoint?.ok && iframeEndpoint?.ok) {
           console.log('✅ Server health check passed');
           
-          // Additional verification for stories.json
+          // Additional verification for stories/index data
           if (storiesEndpoint.storiesCount > 0) {
             console.log(`📚 Found ${storiesEndpoint.storiesCount} stories`);
             return true;
           } else {
-            console.warn('⚠️  No stories found in stories.json');
+            console.warn('⚠️  No stories found in index/stories data');
           }
         }
       } catch (error) {

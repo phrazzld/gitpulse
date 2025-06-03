@@ -184,6 +184,105 @@ function generateSummaryReport(testResult, serverInfo) {
 }
 
 /**
+ * Pre-flight checks to identify issues before starting
+ */
+async function preFlightChecks() {
+  console.log('🔍 Running pre-flight checks...\n');
+  
+  const checks = [];
+  
+  // Node.js version check
+  checks.push({
+    name: 'Node.js version',
+    check: () => {
+      const version = process.version;
+      const major = parseInt(version.split('.')[0].substring(1));
+      return { value: version, passed: major >= 18 };
+    }
+  });
+  
+  // Storybook build check
+  checks.push({
+    name: 'Storybook build exists',
+    check: () => {
+      const exists = fs.existsSync('storybook-static/index.html');
+      return { value: exists ? 'Found' : 'Missing', passed: exists };
+    }
+  });
+  
+  // Stories JSON check (Storybook 8 generates index.json instead of stories.json)
+  checks.push({
+    name: 'Stories JSON exists',
+    check: () => {
+      const exists = fs.existsSync('storybook-static/index.json');
+      return { value: exists ? 'Found' : 'Missing', passed: exists };
+    }
+  });
+  
+  // Environment variables check
+  checks.push({
+    name: 'CI environment',
+    check: () => {
+      const isCI = process.env.CI === 'true';
+      return { value: isCI ? 'CI mode' : 'Local mode', passed: true };
+    }
+  });
+  
+  // Critical dependencies check
+  checks.push({
+    name: 'Test runner installed',
+    check: () => {
+      const exists = fs.existsSync('node_modules/@storybook/test-runner');
+      return { value: exists ? 'Installed' : 'Missing', passed: exists };
+    }
+  });
+  
+  // Run all checks
+  const results = [];
+  for (const check of checks) {
+    try {
+      const result = await check.check();
+      results.push({
+        name: check.name,
+        ...result,
+        status: result.passed ? '✅' : '❌'
+      });
+    } catch (error) {
+      results.push({
+        name: check.name,
+        value: `Error: ${error.message}`,
+        passed: false,
+        status: '❌'
+      });
+    }
+  }
+  
+  // Display results in table format
+  console.log('Pre-flight Check Results:');
+  console.log('------------------------');
+  results.forEach(result => {
+    console.log(`${result.status} ${result.name}: ${result.value}`);
+  });
+  console.log('------------------------\n');
+  
+  // Check if any critical checks failed
+  const criticalFailures = results.filter(r => !r.passed && r.name !== 'CI environment');
+  if (criticalFailures.length > 0) {
+    throw new Error(`Pre-flight checks failed: ${criticalFailures.map(r => r.name).join(', ')}`);
+  }
+  
+  // Log additional diagnostic info if debug mode
+  if (process.env.DEBUG === 'true' || process.env.DEBUG_CI === 'true') {
+    console.log('📊 Additional Diagnostics:');
+    console.log(`- Current directory: ${process.cwd()}`);
+    console.log(`- Process ID: ${process.pid}`);
+    console.log(`- Platform: ${process.platform}`);
+    console.log(`- Memory usage: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
+    console.log();
+  }
+}
+
+/**
  * Main execution
  */
 async function main() {
@@ -195,6 +294,9 @@ async function main() {
   let exitCode = 0;
   
   try {
+    // Run pre-flight checks
+    await preFlightChecks();
+    
     // Check prerequisites
     if (!fs.existsSync('storybook-static')) {
       throw new Error('storybook-static directory not found. Please build Storybook first.');

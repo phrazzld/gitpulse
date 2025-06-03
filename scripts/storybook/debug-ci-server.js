@@ -123,9 +123,19 @@ async function checkServerHealth(baseUrl) {
         headers: Object.fromEntries(response.headers.entries())
       });
       
-      if (endpoint.url === '/stories.json' && response.ok) {
+      // Count stories from either index.json (Storybook 8) or stories.json (older versions)
+      if ((endpoint.url === '/stories.json' || endpoint.url === '/index.json') && response.ok) {
         const text = await response.text();
-        const storiesCount = (text.match(/"kind":/g) || []).length;
+        let storiesCount = 0;
+        
+        if (endpoint.url === '/index.json') {
+          // Storybook 8: count entries with "type":"story"
+          storiesCount = (text.match(/"type":"story"/g) || []).length;
+        } else {
+          // Older Storybook versions: count "kind" entries
+          storiesCount = (text.match(/"kind":/g) || []).length;
+        }
+        
         results[results.length - 1].storiesCount = storiesCount;
       }
     } catch (error) {
