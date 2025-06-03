@@ -53,16 +53,92 @@ jobs:
         cache: 'npm'
     
     - name: Install dependencies
-      run: npm ci
+      run: |
+        echo "🔧 Installing dependencies with retry logic..."
+        for i in {1..3}; do
+          echo "Attempt $i/3"
+          if npm ci; then
+            echo "✅ Dependencies installed successfully"
+            break
+          else
+            echo "❌ Attempt $i failed"
+            if [ $i -eq 3 ]; then
+              echo "💥 All attempts failed"
+              exit 1
+            fi
+            echo "⏳ Retrying in 5 seconds..."
+            sleep 5
+          fi
+        done
     
     - name: Build Storybook
-      run: npm run build-storybook
+      timeout-minutes: 10
+      run: |
+        echo "🏗️ Building Storybook with timeout protection..."
+        if timeout 8m npm run build-storybook; then
+          echo "✅ Storybook build completed successfully"
+          
+          # Verify build artifacts
+          if [[ -f "storybook-static/index.html" ]] && [[ -f "storybook-static/index.json" ]]; then
+            echo "✅ Required build artifacts found"
+            ls -la storybook-static/ | head -10
+          else
+            echo "❌ Missing required build artifacts"
+            ls -la storybook-static/ || echo "storybook-static directory not found"
+            exit 1
+          fi
+        else
+          echo "❌ Storybook build timed out or failed"
+          exit 1
+        fi
     
     - name: Install accessibility testing dependencies
-      run: npm install axe-playwright @axe-core/playwright @storybook/test-runner --save-dev
+      timeout-minutes: 5
+      run: |
+        echo "🧪 Installing accessibility testing dependencies..."
+        for i in {1..2}; do
+          echo "Attempt $i/2"
+          if npm install axe-playwright @axe-core/playwright @storybook/test-runner --save-dev; then
+            echo "✅ Accessibility dependencies installed successfully"
+            break
+          else
+            echo "❌ Attempt $i failed"
+            if [ $i -eq 2 ]; then
+              echo "💥 Failed to install accessibility dependencies"
+              exit 1
+            fi
+            echo "⏳ Retrying in 3 seconds..."
+            sleep 3
+          fi
+        done
       
     - name: Install Playwright browsers
-      run: npx playwright install chromium --with-deps
+      timeout-minutes: 8
+      run: |
+        echo "🎭 Installing Playwright browsers..."
+        for i in {1..2}; do
+          echo "Attempt $i/2"
+          if timeout 7m npx playwright install chromium --with-deps; then
+            echo "✅ Playwright browsers installed successfully"
+            
+            # Verify browser installation
+            if npx playwright --version >/dev/null 2>&1; then
+              echo "✅ Playwright installation verified"
+              npx playwright --version
+            else
+              echo "⚠️ Playwright installation verification failed"
+            fi
+            break
+          else
+            echo "❌ Attempt $i failed"
+            if [ $i -eq 2 ]; then
+              echo "💥 Failed to install Playwright browsers"
+              exit 1
+            fi
+            echo "⏳ Retrying in 5 seconds..."
+            sleep 5
+          fi
+        done
       
     - name: Prepare test environment
       run: |
@@ -112,9 +188,44 @@ jobs:
         echo "::endgroup::"
         
     - name: Run Accessibility Tests with Enhanced CI Runner
+      timeout-minutes: 12
       run: |
         echo "::group::🚀 Running accessibility tests with CI runner"
-        node scripts/storybook/run-a11y-tests-ci.js
+        
+        # Set up CI-specific environment
+        export CI_TIMEOUT="10m"
+        export CI_RETRY_COUNT="1"
+        
+        # Run tests with timeout protection
+        if timeout 11m node scripts/storybook/run-a11y-tests-ci.js; then
+          echo "✅ Accessibility tests completed successfully"
+        else
+          echo "❌ Accessibility tests failed or timed out"
+          
+          # Collect debugging information
+          echo "::group::🔍 Collecting debug information"
+          if [[ -d "test-logs" ]]; then
+            echo "Available log files:"
+            ls -la test-logs/ || echo "No log files found"
+            
+            # Show last few lines of server logs if available
+            if ls test-logs/storybook-server-*.log 1> /dev/null 2>&1; then
+              echo "Last server log entries:"
+              tail -20 test-logs/storybook-server-*.log | head -50 || echo "Could not read server logs"
+            fi
+          fi
+          
+          # Check if Storybook build is still valid
+          if [[ -f "storybook-static/index.html" ]]; then
+            echo "✅ Storybook build still present"
+          else
+            echo "❌ Storybook build missing - this may be the cause"
+          fi
+          
+          echo "::endgroup::"
+          exit 1
+        fi
+        
         echo "::endgroup::"
       env:
         # Ensure tests know they're running in CI
@@ -129,6 +240,9 @@ jobs:
         TEST_REPORT_PATH: "test-logs/storybook-a11y.xml"
         # Add paths to environment
         NODE_PATH: "./node_modules"
+        # CI-specific configuration
+        GITHUB_ACTIONS: "true"
+        RUNNER_OS: "Linux"
         
     - name: Upload test reports
       if: always()

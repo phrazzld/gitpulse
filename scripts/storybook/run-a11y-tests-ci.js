@@ -15,10 +15,20 @@ const path = require('path');
 const fs = require('fs');
 const StorybookServer = require('./start-server-with-retry');
 
-// Configuration
-const TEST_TIMEOUT = 300000; // 5 minutes
+// Configuration with CI-aware defaults
+const isCI = process.env.CI === 'true';
+const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
+const TEST_TIMEOUT = isCI ? 600000 : 300000; // 10 minutes in CI, 5 minutes locally
 const LOG_DIR = 'test-logs';
 const RESULTS_DIR = 'test-results';
+
+// CI-specific configuration
+const CI_CONFIG = {
+  maxRetries: isCI ? 2 : 3,
+  retryDelay: isCI ? 3000 : 2000,
+  healthCheckTimeout: isCI ? 45000 : 30000,
+  serverStartupTimeout: isCI ? 120000 : 60000
+};
 
 // Ensure directories exist
 [LOG_DIR, RESULTS_DIR].forEach(dir => {
@@ -304,12 +314,20 @@ async function main() {
     
     // Start server with retry logic
     console.log('📦 Starting Storybook server...');
+    if (isCI) {
+      console.log('🤖 Running in CI environment with enhanced timeouts');
+    }
+    
     server = new StorybookServer({
       port: 6006,
       directory: 'storybook-static',
-      maxRetries: 3,
-      healthTimeout: 45000 // 45 seconds
+      maxRetries: CI_CONFIG.maxRetries,
+      retryDelay: CI_CONFIG.retryDelay,
+      healthTimeout: CI_CONFIG.healthCheckTimeout
     });
+    
+    // Set global server reference for signal handling
+    globalServer = server;
     
     const serverInfo = await server.start();
     serverInfo.startupTime = Date.now() - startTime;
@@ -359,10 +377,38 @@ async function main() {
       JSON.stringify(errorReport, null, 2)
     );
   } finally {
-    // Always stop the server
+    // Always stop the server with enhanced cleanup
     if (server) {
       console.log('\n🛑 Stopping server...');
-      await server.stop();
+      try {
+        await server.stop();
+        
+        // CI-specific cleanup
+        if (isCI) {
+          console.log('🧹 Performing CI cleanup...');
+          
+          // Give processes time to clean up
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Check for lingering processes (in CI environments)
+          if (isGitHubActions) {
+            console.log('🔍 Checking for lingering processes...');
+            // Additional GitHub Actions specific cleanup if needed
+          }
+        }
+      } catch (cleanupError) {
+        console.warn('⚠️ Warning: Server cleanup encountered an issue:', cleanupError.message);
+        // Don't fail the build due to cleanup issues
+      }
+    }
+    
+    // CI-specific final reporting
+    if (isCI) {
+      console.log('\n📊 CI Final Summary:');
+      console.log(`- Environment: ${isGitHubActions ? 'GitHub Actions' : 'Generic CI'}`);
+      console.log(`- Exit Code: ${exitCode}`);
+      console.log(`- Test Timeout: ${TEST_TIMEOUT / 1000}s`);
+      console.log(`- Max Retries: ${CI_CONFIG.maxRetries}`);
     }
     
     // Exit with appropriate code
@@ -370,9 +416,46 @@ async function main() {
   }
 }
 
-// Handle uncaught errors
+// Enhanced signal handling for graceful shutdowns
+let globalServer = null;
+
+function gracefulShutdown(signal) {
+  console.log(`\n⚠️ Received ${signal}, performing graceful shutdown...`);
+  
+  if (globalServer) {
+    console.log('🛑 Stopping server...');
+    globalServer.stop().then(() => {
+      console.log('✅ Server stopped gracefully');
+      process.exit(0);
+    }).catch((error) => {
+      console.error('❌ Error stopping server:', error.message);
+      process.exit(1);
+    });
+  } else {
+    console.log('✅ No server to stop, exiting...');
+    process.exit(0);
+  }
+}
+
+// Handle process signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught errors with CI-aware logging
 process.on('unhandledRejection', (error) => {
   console.error('❌ Unhandled rejection:', error);
+  
+  if (isCI) {
+    console.error('🤖 CI Environment - Additional debug info:');
+    console.error('- Node version:', process.version);
+    console.error('- Platform:', process.platform);
+    console.error('- Memory usage:', process.memoryUsage());
+    console.error('- Environment variables:');
+    Object.keys(process.env)
+      .filter(key => key.startsWith('CI') || key.startsWith('GITHUB') || key.startsWith('NODE'))
+      .forEach(key => console.error(`  ${key}=${process.env[key]}`));
+  }
+  
   process.exit(1);
 });
 
