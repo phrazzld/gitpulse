@@ -74,12 +74,23 @@ jobs:
       id: read-coverage
       if: github.event_name == 'pull_request'
       run: |
-        # Extract coverage percentages safely using jq
+        # Fix malformed coverage JSON and extract coverage percentages safely using jq
         if [[ -f "coverage/coverage-summary.json" ]]; then
-          TOTAL_LINES=$(jq -r '.total.lines.pct // 0' coverage/coverage-summary.json)
-          TOTAL_STATEMENTS=$(jq -r '.total.statements.pct // 0' coverage/coverage-summary.json)
-          TOTAL_FUNCTIONS=$(jq -r '.total.functions.pct // 0' coverage/coverage-summary.json)
-          TOTAL_BRANCHES=$(jq -r '.total.branches.pct // 0' coverage/coverage-summary.json)
+          echo "🔧 Fixing malformed coverage JSON format..."
+          node scripts/fix-coverage-json-simple.js
+          
+          if [[ -f "coverage/coverage-summary-fixed.json" ]]; then
+            echo "✅ Using fixed coverage JSON"
+            COVERAGE_FILE="coverage/coverage-summary-fixed.json"
+          else
+            echo "⚠️ Fix failed, attempting to use original file"
+            COVERAGE_FILE="coverage/coverage-summary.json"
+          fi
+          
+          TOTAL_LINES=$(jq -r '.total.lines.pct // 0' "$COVERAGE_FILE")
+          TOTAL_STATEMENTS=$(jq -r '.total.statements.pct // 0' "$COVERAGE_FILE")
+          TOTAL_FUNCTIONS=$(jq -r '.total.functions.pct // 0' "$COVERAGE_FILE")
+          TOTAL_BRANCHES=$(jq -r '.total.branches.pct // 0' "$COVERAGE_FILE")
           
           echo "total_lines=${TOTAL_LINES}" >> $GITHUB_OUTPUT
           echo "total_statements=${TOTAL_STATEMENTS}" >> $GITHUB_OUTPUT
