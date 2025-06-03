@@ -1,0 +1,304 @@
+name: Debug Storybook CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug_level:
+        description: 'Debug verbosity level'
+        required: false
+        default: 'verbose'
+        type: choice
+        options:
+          - 'minimal'
+          - 'normal'
+          - 'verbose'
+          - 'trace'
+      skip_cache:
+        description: 'Skip dependency cache'
+        required: false
+        default: false
+        type: boolean
+      test_mode:
+        description: 'Test mode'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - 'full'
+          - 'build-only'
+          - 'server-only'
+          - 'tests-only'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  debug-storybook:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: 📊 System Information
+      run: |
+        echo "::group::System Information"
+        echo "=== System Information ==="
+        echo "Date: $(date)"
+        echo "Timezone: $(date +%Z)"
+        uname -a
+        echo ""
+        echo "=== CPU Information ==="
+        nproc
+        lscpu | grep -E "Model name|CPU\(s\)|Thread|Core|Socket"
+        echo ""
+        echo "=== Memory Information ==="
+        free -h
+        echo ""
+        echo "=== Disk Space ==="
+        df -h
+        echo ""
+        echo "=== Network Configuration ==="
+        ip addr show
+        echo ""
+        echo "=== Process Limits ==="
+        ulimit -a
+        echo ""
+        echo "=== Environment Variables (CI-related) ==="
+        env | grep -E "CI|GITHUB|RUNNER|NODE" | sort
+        echo "::endgroup::"
+        
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: 🔍 Verify Repository Files
+      run: |
+        echo "::group::Repository Structure"
+        echo "=== Key directories ==="
+        ls -la
+        echo ""
+        echo "=== Storybook config ==="
+        ls -la .storybook/
+        echo ""
+        echo "=== Scripts directory ==="
+        ls -la scripts/storybook/
+        echo ""
+        echo "=== Checking for .nvmrc ==="
+        if [ -f .nvmrc ]; then
+          echo "Found .nvmrc with version: $(cat .nvmrc)"
+        else
+          echo "No .nvmrc file found"
+        fi
+        echo "::endgroup::"
+        
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: ${{ github.event.inputs.skip_cache == 'false' && 'npm' || '' }}
+        
+    - name: 🔍 Verify Node.js Setup
+      run: |
+        echo "::group::Node.js Environment"
+        echo "Node version: $(node --version)"
+        echo "NPM version: $(npm --version)"
+        echo "NPX version: $(npx --version)"
+        echo ""
+        echo "Node binary location: $(which node)"
+        echo "NPM binary location: $(which npm)"
+        echo ""
+        echo "NPM config:"
+        npm config list
+        echo "::endgroup::"
+        
+    - name: 📦 Install Dependencies
+      run: |
+        echo "::group::Dependency Installation"
+        echo "Running npm ci..."
+        npm ci
+        echo ""
+        echo "Checking critical dependencies:"
+        npm ls @storybook/react @storybook/test-runner axe-playwright || true
+        echo "::endgroup::"
+        
+    - name: 🔍 Run CI Conditions Check
+      run: |
+        echo "::group::CI Conditions Check"
+        node scripts/storybook/test-ci-conditions.js || true
+        echo "::endgroup::"
+        
+    - name: 🏗️ Build Storybook
+      if: ${{ github.event.inputs.test_mode != 'server-only' && github.event.inputs.test_mode != 'tests-only' }}
+      run: |
+        echo "::group::Building Storybook"
+        echo "Starting build at: $(date)"
+        npm run build-storybook
+        echo "Build completed at: $(date)"
+        echo ""
+        echo "=== Build output verification ==="
+        if [ -d storybook-static ]; then
+          echo "storybook-static directory contents:"
+          ls -la storybook-static/
+          echo ""
+          echo "Checking key files:"
+          for file in index.html iframe.html stories.json; do
+            if [ -f "storybook-static/$file" ]; then
+              echo "✅ $file exists ($(stat -c%s "storybook-static/$file") bytes)"
+            else
+              echo "❌ $file is missing!"
+            fi
+          done
+          echo ""
+          echo "Total size: $(du -sh storybook-static | cut -f1)"
+        else
+          echo "❌ storybook-static directory not found!"
+        fi
+        echo "::endgroup::"
+        
+    - name: 🔍 Network Diagnostics
+      run: |
+        echo "::group::Network Diagnostics"
+        echo "=== Port availability check ==="
+        for port in 6006 6007 8080 3000; do
+          if nc -z localhost $port 2>/dev/null; then
+            echo "❌ Port $port is in use"
+            lsof -i :$port || true
+          else
+            echo "✅ Port $port is available"
+          fi
+        done
+        echo ""
+        echo "=== Localhost connectivity ==="
+        for addr in 127.0.0.1 localhost ::1; do
+          if ping -c 1 -W 1 $addr >/dev/null 2>&1; then
+            echo "✅ $addr is reachable"
+          else
+            echo "❌ $addr is not reachable"
+          fi
+        done
+        echo ""
+        echo "=== DNS resolution ==="
+        nslookup localhost || true
+        echo "::endgroup::"
+        
+    - name: 🚀 Test Server Startup (Debug Mode)
+      if: ${{ github.event.inputs.test_mode != 'build-only' }}
+      run: |
+        echo "::group::Server Startup Test"
+        echo "Running server diagnostics..."
+        export DEBUG=true
+        export DEBUG_CI=true
+        export DEBUG_LEVEL=${{ github.event.inputs.debug_level }}
+        
+        # First, try the debug script
+        echo "=== Running debug-ci-server.js ==="
+        timeout 60s node scripts/storybook/debug-ci-server.js || {
+          EXIT_CODE=$?
+          echo "Debug server exited with code: $EXIT_CODE"
+          if [ $EXIT_CODE -eq 124 ]; then
+            echo "Server startup timed out after 60 seconds"
+          fi
+        }
+        echo "::endgroup::"
+        
+    - name: 🧪 Run Accessibility Tests
+      if: ${{ github.event.inputs.test_mode == 'full' || github.event.inputs.test_mode == 'tests-only' }}
+      run: |
+        echo "::group::Running Accessibility Tests"
+        export CI=true
+        export DEBUG=true
+        export DEBUG_CI=true
+        export DEBUG_LEVEL=${{ github.event.inputs.debug_level }}
+        export A11Y_FAILING_IMPACTS='critical,serious'
+        
+        echo "Environment setup:"
+        env | grep -E "DEBUG|CI|A11Y" | sort
+        echo ""
+        
+        # Create test directories
+        mkdir -p test-logs test-results
+        
+        # Run the CI test runner
+        echo "=== Starting test runner ==="
+        node scripts/storybook/run-a11y-tests-ci.js 2>&1 | tee test-logs/full-output.log || {
+          EXIT_CODE=$?
+          echo "Test runner exited with code: $EXIT_CODE"
+          echo ""
+          echo "=== Last 50 lines of output ==="
+          tail -50 test-logs/full-output.log
+        }
+        echo "::endgroup::"
+        
+    - name: 📋 Collect Diagnostic Information
+      if: always()
+      run: |
+        echo "::group::Diagnostic Information"
+        echo "=== Process list ==="
+        ps aux | grep -E "node|storybook" | grep -v grep || true
+        echo ""
+        echo "=== Network connections ==="
+        netstat -tlnp 2>/dev/null | grep -E "LISTEN|node" || true
+        echo ""
+        echo "=== Test log files ==="
+        if [ -d test-logs ]; then
+          ls -la test-logs/
+          echo ""
+          for log in test-logs/*.log; do
+            if [ -f "$log" ]; then
+              echo "=== Content of $log (last 50 lines) ==="
+              tail -50 "$log"
+              echo ""
+            fi
+          done
+        fi
+        echo ""
+        echo "=== Test results ==="
+        if [ -d test-results ]; then
+          ls -la test-results/
+          for result in test-results/*.json; do
+            if [ -f "$result" ]; then
+              echo "=== Content of $result ==="
+              cat "$result" | jq . || cat "$result"
+              echo ""
+            fi
+          done
+        fi
+        echo "::endgroup::"
+        
+    - name: 📤 Upload All Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-artifacts-${{ github.run_id }}
+        path: |
+          test-logs/
+          test-results/
+          storybook-static/build-info.json
+          npm-debug.log
+        retention-days: 7
+        
+    - name: 🎯 Generate Debug Summary
+      if: always()
+      run: |
+        echo "## 🔍 Debug Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "- Debug Level: ${{ github.event.inputs.debug_level }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Test Mode: ${{ github.event.inputs.test_mode }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Skip Cache: ${{ github.event.inputs.skip_cache }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Environment" >> $GITHUB_STEP_SUMMARY
+        echo "- Node.js: $(node --version)" >> $GITHUB_STEP_SUMMARY
+        echo "- NPM: $(npm --version)" >> $GITHUB_STEP_SUMMARY
+        echo "- OS: $(uname -s)" >> $GITHUB_STEP_SUMMARY
+        echo "- CPUs: $(nproc)" >> $GITHUB_STEP_SUMMARY
+        echo "- Memory: $(free -h | grep Mem | awk '{print $2}')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f test-results/a11y-test-report.json ]; then
+          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          cat test-results/a11y-test-report.json >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi

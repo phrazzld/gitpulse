@@ -22,6 +22,8 @@ This guide outlines our development principles and practices for building robust
 ### Quality & Testing
 - `npm run lint` - Run ESLint
 - `npm run typecheck` - Run TypeScript type checking
+- `npm run validate:coverage` - Validate Jest coverage JSON format
+- `node scripts/coverage/validate-coverage-format.js` - Manual coverage validation
 
 ## Project Structure
 - `src/lib` - Core utilities and services
@@ -71,3 +73,32 @@ This guide outlines our development principles and practices for building robust
 ### Continuous Improvement
 - Regularly conduct retrospectives
 - Actively manage and reduce technical debt
+
+## Coverage Validation
+
+### Overview
+Coverage format validation prevents CI failures caused by malformed Jest coverage JSON files. The validation script checks for common syntax errors and provides actionable fix suggestions.
+
+### Usage
+- **Local validation**: `npm run validate:coverage`
+- **Specific file**: `node scripts/coverage/validate-coverage-format.js coverage/coverage-final.json`
+- **Help**: `node scripts/coverage/validate-coverage-format.js --help`
+
+### Common Issues and Solutions
+- **Leading comma errors**: Remove commas at the beginning of JSON files
+- **Trailing comma errors**: Remove extra commas before closing braces/brackets
+- **Incomplete JSON**: Ensure files aren't truncated during generation
+- **Empty coverage files**: Regenerate with `npm test -- --coverage`
+
+### Integration
+- Run validation before commits to catch issues early
+- Coverage validation is part of the local development workflow
+- CI will fail if malformed coverage files are detected
+
+### Troubleshooting
+If validation fails:
+1. Check the specific error message and suggested fix
+2. Regenerate coverage: `npm test -- --coverage`
+3. Verify Jest configuration in `jest.config.js`
+4. Review recent changes to test files or configuration
+5. For persistent issues, check `scripts/coverage/validate-coverage-format.js` logs

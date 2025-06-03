@@ -24,6 +24,10 @@ const config: StorybookConfig = {
   "staticDirs": [
     "../public"
   ],
+  // Enable stories.json generation for test runner
+  "features": {
+    "buildStoriesJson": true
+  },
   // Add webpack configuration to handle Next.js features
   "webpackFinal": async (config) => {
     // Add mock for Next.js features

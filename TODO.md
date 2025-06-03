@@ -267,7 +267,7 @@
   - Identify root cause of malformed JSON with leading comma
   - Expected time: 15 minutes
 
-- [ ] **Debug Storybook CI startup issues**
+- [x] **Debug Storybook CI startup issues**
   - Add debugging output to Storybook CI workflow
   - Test Storybook server startup in CI-like conditions locally
   - Check for port conflicts or timing issues in CI environment
@@ -276,13 +276,13 @@
 
 ### Medium Priority - Robustness Improvements
 
-- [ ] **Add CI workflow error handling for coverage processing**
+- [x] **Add CI workflow error handling for coverage processing**
   - Implement fallback behavior if coverage parsing fails
   - Add validation of coverage JSON format before processing
   - Include detailed error messages for troubleshooting
   - Expected time: 10 minutes
 
-- [ ] **Enhance Storybook test runner CI resilience**
+- [x] **Enhance Storybook test runner CI resilience**
   - Add retry logic for Storybook server startup
   - Implement proper cleanup and error handling
   - Add conditional logic for CI vs local environment differences
@@ -290,14 +290,20 @@
 
 ### Low Priority - Prevention
 
-- [ ] **Add coverage format validation to local development**
-  - Create local script to validate coverage JSON format
-  - Add pre-commit hook to catch coverage format issues
-  - Document coverage format requirements
-  - Expected time: 15 minutes
+- [x] **Add coverage format validation to local development**
+  - ✅ Created comprehensive validation script at `scripts/coverage/validate-coverage-format.js`
+  - ✅ Added `npm run validate:coverage` command to package.json
+  - ✅ Documented coverage validation process in CLAUDE.md with usage examples and troubleshooting
+  - ✅ Implemented JSON syntax validation with detailed error reporting and fix suggestions
+  - ✅ Added support for common malformation patterns (leading/trailing commas, incomplete JSON)
+  - Note: Pre-commit hook integration available via manual setup (Husky configuration not automated)
+  - Actual time: 25 minutes
 
-- [ ] **Create Storybook CI testing documentation**
-  - Document differences between local and CI Storybook testing
-  - Create troubleshooting guide for common CI issues
-  - Add debugging steps for future Storybook CI failures
-  - Expected time: 15 minutes
+- [x] **Create Storybook CI testing documentation**
+  - ✅ Created comprehensive CI testing guide at `docs/development/STORYBOOK_CI.md`
+  - ✅ Documented CI vs local environment differences with detailed explanations
+  - ✅ Created troubleshooting guide covering server startup, accessibility tests, coverage issues, and dependency conflicts
+  - ✅ Added step-by-step debugging procedures with log analysis techniques
+  - ✅ Included CI configuration reference and emergency procedures
+  - ✅ Integrated with existing Storybook documentation and project standards
+  - Actual time: 20 minutes
