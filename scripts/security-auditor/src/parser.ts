@@ -58,7 +58,7 @@ export function parseAuditOutput(jsonString: string): ProcessedVulnerability[] {
       vulnerableVersions: primaryAdvisory.vulnerableVersions,
       currentVersion: extractCurrentVersion(vulnerability.nodes[0], packageName),
       paths: vulnerability.nodes,
-      advisoryId: String(primaryAdvisory.source),
+      advisoryId: extractAdvisoryId(primaryAdvisory.url),
     };
 
     // Add fix information if available
@@ -70,6 +70,26 @@ export function parseAuditOutput(jsonString: string): ProcessedVulnerability[] {
   }
 
   return processedVulnerabilities;
+}
+
+/**
+ * Extract advisory ID (GHSA ID) from advisory URL
+ * @param url Advisory URL from npm audit
+ * @returns Advisory ID (e.g., GHSA-8cj5-5rvv-wf4v) or fallback string
+ */
+function extractAdvisoryId(url: string): string {
+  try {
+    // Extract GHSA ID from GitHub advisory URL
+    const match = url.match(/\/advisories\/(GHSA-[a-z0-9-]+)/i);
+    if (match && match[1]) {
+      return match[1];
+    }
+    
+    // If not a GitHub advisory, use the URL as ID
+    return url;
+  } catch (error) {
+    return url;
+  }
 }
 
 /**
