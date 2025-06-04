@@ -355,20 +355,20 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
 
 ### Critical - Immediate Fix Required (1 Test Failing)
 
-- [~] **Implement hybrid wait strategy for authentication persistence test**
+- [x] **Implement hybrid wait strategy for authentication persistence test**
   - Locate the failing test in `e2e/auth.spec.ts` (line 92-122)
   - Add conditional delay after `waitForLoadState` in CI environment
   - Implement: `if (process.env.CI) { await page.waitForTimeout(500); }`
   - Apply to both navigation points in the test
   - Expected time: 15 minutes
 
-- [ ] **Test the fix locally with CI environment simulation**
+- [x] **Test the fix locally with CI environment simulation**
   - Run with `CI=true npm run test:e2e -- --project=chromium`
   - Verify the authentication persistence test passes
   - Check that other tests aren't negatively impacted
   - Expected time: 10 minutes
 
-- [ ] **Document the timing workaround**
+- [x] **Document the timing workaround**
   - Add comment explaining the cookie synchronization issue
   - Include TODO for future investigation
   - Reference this CI resolution plan
@@ -376,7 +376,7 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
 
 ### Medium Priority - Investigation
 
-- [ ] **Compare E2E workflow configurations**
+- [x] **Compare E2E workflow configurations**
   - Diff `.github/workflows/ci.yml` vs `.github/workflows/e2e-tests.yml`
   - Focus on environment variables, timeouts, and execution order
   - Document any differences that could affect timing
