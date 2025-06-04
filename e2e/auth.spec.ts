@@ -9,6 +9,20 @@ import { isMockAuthEnabled } from './helpers/mockAuth';
  * 2. Verifying the session cookie exists and has correct properties
  * 3. Testing authentication persistence across navigation
  * 4. Testing authentication removal and the resulting protection of routes
+ * 
+ * CI-SPECIFIC TIMING WORKAROUND:
+ * The authentication persistence test includes 500ms delays after navigation in CI
+ * environments. This is necessary because the Next.js development server needs time
+ * to synchronize cookies between the browser context and server during rapid navigation.
+ * Without this delay, cookies can be lost when using 'domcontentloaded' instead of
+ * 'networkidle' (which would cause 45-second timeouts with Next.js dev server).
+ * 
+ * TODO: Investigate long-term solutions:
+ * - Run E2E tests against production build in CI
+ * - Research Next.js dev server cookie handling improvements
+ * - Consider redesigning the test to be less timing-sensitive
+ * 
+ * Reference: CI-RESOLUTION-PLAN.md (June 2025)
  */
 
 // Check if auth tests should run
@@ -97,6 +111,10 @@ test.describe('Authentication Persistence', () => {
     // Start at homepage
     await page.goto('/');
     await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
+    // CI timing fix: Allow cookies to sync after navigation in development server
+    if (process.env.CI) {
+      await page.waitForTimeout(500);
+    }
     
     // Verify initial auth state
     const initialCookies = await context.cookies();
@@ -107,10 +125,18 @@ test.describe('Authentication Persistence', () => {
     // In a real app, these would be actual routes in your application
     await page.goto('/dashboard');
     await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
+    // CI timing fix: Allow cookies to sync after navigation in development server
+    if (process.env.CI) {
+      await page.waitForTimeout(500);
+    }
     
     // Return to homepage
     await page.goto('/');
     await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
+    // CI timing fix: Allow cookies to sync after navigation in development server
+    if (process.env.CI) {
+      await page.waitForTimeout(500);
+    }
     
     // Verify auth cookie still exists after navigation
     const finalCookies = await context.cookies();

@@ -310,9 +310,9 @@
 
 ## E2E Test Server Configuration Fix
 
-### ✅ COMPLETED - June 4, 2025
+### ✅ MOSTLY COMPLETED - June 4, 2025
 
-All E2E server configuration tasks have been completed:
+E2E test server configuration has been successfully implemented:
 
 - [x] **Analyze working E2E workflow configuration**
   - Compared `.github/workflows/e2e-tests.yml` with `.github/workflows/ci.yml`
@@ -340,5 +340,71 @@ All E2E server configuration tasks have been completed:
   - Documented specific endpoints and routes that tests interact with
   - Listed all required environment variables
 
-**Result**: E2E tests in the build-and-test workflow now have a running development server at http://localhost:3000, matching the configuration of the working Playwright E2E Tests workflow.
+**Result**: E2E tests in the build-and-test workflow now have a running development server at http://localhost:3000. 8 out of 9 E2E tests pass successfully. The remaining issue is with the authentication persistence test, which loses the auth cookie during navigation when using `domcontentloaded` instead of `networkidle`.
+
+**Status**: 
+- ✅ Server startup and configuration: Complete
+- ✅ Environment variable alignment: Complete  
+- ✅ Test execution optimization: Complete (Chromium-only, proper timeouts)
+- ✅ Port conflict resolution: Complete
+- ⚠️ 1 test failing: Authentication persistence across navigation
+
+The separate Playwright E2E Tests workflow passes all tests, suggesting the issue is specific to the CI environment timing.
+
+## E2E Authentication Persistence Fix
+
+### Critical - Immediate Fix Required (1 Test Failing)
+
+- [~] **Implement hybrid wait strategy for authentication persistence test**
+  - Locate the failing test in `e2e/auth.spec.ts` (line 92-122)
+  - Add conditional delay after `waitForLoadState` in CI environment
+  - Implement: `if (process.env.CI) { await page.waitForTimeout(500); }`
+  - Apply to both navigation points in the test
+  - Expected time: 15 minutes
+
+- [ ] **Test the fix locally with CI environment simulation**
+  - Run with `CI=true npm run test:e2e -- --project=chromium`
+  - Verify the authentication persistence test passes
+  - Check that other tests aren't negatively impacted
+  - Expected time: 10 minutes
+
+- [ ] **Document the timing workaround**
+  - Add comment explaining the cookie synchronization issue
+  - Include TODO for future investigation
+  - Reference this CI resolution plan
+  - Expected time: 5 minutes
+
+### Medium Priority - Investigation
+
+- [ ] **Compare E2E workflow configurations**
+  - Diff `.github/workflows/ci.yml` vs `.github/workflows/e2e-tests.yml`
+  - Focus on environment variables, timeouts, and execution order
+  - Document any differences that could affect timing
+  - Expected time: 20 minutes
+
+- [ ] **Test against production build**
+  - Modify local test to use production server instead of dev
+  - Run: `npm run build && npm run start` then run E2E tests
+  - Verify if the issue is specific to development server
+  - Expected time: 15 minutes
+
+### Low Priority - Long-term Solutions
+
+- [ ] **Research Next.js dev server cookie handling**
+  - Search Next.js issues for similar cookie timing problems
+  - Check if newer versions have fixes
+  - Document findings for team discussion
+  - Expected time: 30 minutes
+
+- [ ] **Design more robust authentication test**
+  - Consider adding explicit cookie verification between navigations
+  - Evaluate if test design could be improved
+  - Create alternative test approach if needed
+  - Expected time: 30 minutes
+
+- [ ] **Consider alternative CI test strategy**
+  - Evaluate running E2E tests against production build in CI
+  - Research other teams' approaches to this issue
+  - Document pros/cons of different approaches
+  - Expected time: 45 minutes
 
