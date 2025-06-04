@@ -166,7 +166,8 @@ jobs:
       run: |
         # Set CI to true explicitly to enable CI-specific settings in playwright.config.ts
         # This includes longer timeouts, retries, and disabling "only" tests
-        CI=true npm run test:e2e
+        # Run only on Chromium in CI to reduce runtime (other browsers tested in separate workflow)
+        CI=true npm run test:e2e -- --project=chromium --reporter=list --timeout=120000
       # This step will automatically fail if any E2E tests fail
       env:
         CI: true
