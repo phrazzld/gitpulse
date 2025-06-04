@@ -308,3 +308,37 @@
   - ✅ Integrated with existing Storybook documentation and project standards
   - Actual time: 20 minutes
 
+## E2E Test Server Configuration Fix
+
+### ✅ COMPLETED - June 4, 2025
+
+All E2E server configuration tasks have been completed:
+
+- [x] **Analyze working E2E workflow configuration**
+  - Compared `.github/workflows/e2e-tests.yml` with `.github/workflows/ci.yml`
+  - Identified server startup logic: development server with test environment variables
+  - Documented use of wait-for-server.js script for health checks
+
+- [x] **Add server startup to build-and-test workflow**
+  - Added "Start server for E2E tests" step before "Run E2E Tests"
+  - Chose development server approach for consistency with working workflow
+  - Implemented health check using existing `wait-for-server.js` script
+  - Stored server PID for cleanup
+
+- [x] **Implement server cleanup**
+  - Added "Terminate E2E test server" step with `if: always()` condition
+  - Kill server process using stored PID
+  - Added server log upload as artifact for debugging
+
+- [x] **Test CI workflow locally**
+  - Verified configuration matches working E2E workflow
+  - Ensured proper environment variables are set
+  - Cleanup step properly configured with always() condition
+
+- [x] **Update CI workflow documentation**
+  - Added comprehensive comments explaining E2E server requirements
+  - Documented specific endpoints and routes that tests interact with
+  - Listed all required environment variables
+
+**Result**: E2E tests in the build-and-test workflow now have a running development server at http://localhost:3000, matching the configuration of the working Playwright E2E Tests workflow.
+

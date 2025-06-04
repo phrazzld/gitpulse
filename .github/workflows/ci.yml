@@ -137,6 +137,28 @@ jobs:
       run: npx playwright install --with-deps
       # This installs all browsers (Chromium, Firefox, WebKit) required for E2E tests
 
+    # E2E tests require a running Next.js server at http://localhost:3000
+    # The tests interact with actual application endpoints including:
+    # - Authentication routes (/api/auth/*)
+    # - Application pages (/, /dashboard)
+    # - API endpoints that require authenticated requests
+    - name: Start server for E2E tests
+      run: |
+        # Start the Next.js development server in the background with test configuration
+        NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true NEXTAUTH_URL=http://localhost:3000 NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer NEXTAUTH_SECRET=ci-test-secret-key npm run dev > e2e-server.log 2>&1 &
+        
+        # Store the process ID for cleanup
+        echo $! > server.pid
+        
+        echo "Development server started with PID $(cat server.pid)"
+        
+        # Wait for the server to be ready (timeout after 120 seconds)
+        node scripts/wait-for-server.js http://localhost:3000 120000 1000
+        
+        # Show last 20 lines of server log for debugging
+        echo "Server log (last 20 lines):"
+        tail -n 20 e2e-server.log || true
+
     - name: Run E2E Tests
       run: |
         # Set CI to true explicitly to enable CI-specific settings in playwright.config.ts
@@ -146,6 +168,13 @@ jobs:
       env:
         CI: true
         E2E_MOCK_AUTH_ENABLED: true
+        NODE_ENV: test
+        NEXTAUTH_URL: http://localhost:3000
+        NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
+        NEXTAUTH_SECRET: ci-test-secret-key
+        # Mock GitHub credentials for testing
+        GITHUB_OAUTH_CLIENT_ID: mock-client-id
+        GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
 
     - name: Upload E2E Test Results
       if: always() # Run even if tests fail
@@ -163,6 +192,33 @@ jobs:
         path: |
           test-results/
           screenshots/
+        retention-days: 3
+        if-no-files-found: ignore
+
+    - name: Terminate E2E test server
+      if: always()
+      run: |
+        # Clean up the development server process
+        if [ -f server.pid ]; then
+          SERVER_PID=$(cat server.pid)
+          echo "Terminating server process (PID: $SERVER_PID)"
+          kill -TERM $SERVER_PID || true
+          rm server.pid
+        fi
+        
+        # Upload server log for debugging if it exists
+        if [ -f e2e-server.log ]; then
+          echo "Server log exists, uploading for debugging"
+          mkdir -p e2e-logs
+          mv e2e-server.log e2e-logs/
+        fi
+
+    - name: Upload E2E Server Logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-server-logs
+        path: e2e-logs/
         retention-days: 3
         if-no-files-found: ignore
 
