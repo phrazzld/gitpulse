@@ -142,10 +142,13 @@ jobs:
     # - Authentication routes (/api/auth/*)
     # - Application pages (/, /dashboard)
     # - API endpoints that require authenticated requests
+    # Note: The development server can be slow on first page loads in CI,
+    # causing timeouts. Pre-building helps reduce initial compilation time.
     - name: Start server for E2E tests
       run: |
         # Start the Next.js development server in the background with test configuration
-        NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true NEXTAUTH_URL=http://localhost:3000 NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer NEXTAUTH_SECRET=ci-test-secret-key npm run dev > e2e-server.log 2>&1 &
+        # The build step has already been run, so the .next directory exists
+        NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true NEXTAUTH_URL=http://localhost:3000 NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer NEXTAUTH_SECRET=playwright-test-secret-key npm run dev > e2e-server.log 2>&1 &
         
         # Store the process ID for cleanup
         echo $! > server.pid
@@ -171,7 +174,7 @@ jobs:
         NODE_ENV: test
         NEXTAUTH_URL: http://localhost:3000
         NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
-        NEXTAUTH_SECRET: ci-test-secret-key
+        NEXTAUTH_SECRET: playwright-test-secret-key
         # Mock GitHub credentials for testing
         GITHUB_OAUTH_CLIENT_ID: mock-client-id
         GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
