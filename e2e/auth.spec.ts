@@ -50,7 +50,9 @@ test.describe('Protected Route Access', () => {
     
     // Navigate to the home page first to verify we can load the app
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    // In CI, networkidle can timeout with Next.js dev server due to constant polling
+    // Using domcontentloaded is more reliable and sufficient for our tests
+    await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
     
     // Take a screenshot to diagnose the state
     await page.screenshot({ path: 'test-artifacts/screenshots/auth-test-homepage.png' });
@@ -62,7 +64,7 @@ test.describe('Protected Route Access', () => {
     
     // Now try a protected page
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
     
     // Take screenshot for visual verification
     await page.screenshot({ path: 'test-artifacts/screenshots/auth-test-dashboard.png' });
@@ -94,7 +96,7 @@ test.describe('Authentication Persistence', () => {
     
     // Start at homepage
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
     
     // Verify initial auth state
     const initialCookies = await context.cookies();
@@ -104,11 +106,11 @@ test.describe('Authentication Persistence', () => {
     // Navigate to different pages to test persistence
     // In a real app, these would be actual routes in your application
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
     
     // Return to homepage
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
     
     // Verify auth cookie still exists after navigation
     const finalCookies = await context.cookies();
@@ -138,7 +140,7 @@ test.describe('Authentication Removal', () => {
     
     // Try to access protected route
     await page.goto('/dashboard');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
     
     // Take screenshot for debugging
     await page.screenshot({ path: 'test-artifacts/screenshots/auth-test-unauthenticated.png' });
