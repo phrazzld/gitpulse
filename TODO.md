@@ -307,3 +307,58 @@
   - ✅ Included CI configuration reference and emergency procedures
   - ✅ Integrated with existing Storybook documentation and project standards
   - Actual time: 20 minutes
+
+## Critical Technical Debt (Post-PR Merge)
+
+### High Priority - Security (Due: 2025-06-17)
+
+- [ ] **Resolve tar-fs HIGH severity vulnerability**
+  - Investigate dependency chain for tar-fs (currently transitive dependency)
+  - Determine if vulnerability actually affects our application
+  - Update dependencies or find alternative packages to eliminate vulnerability
+  - Remove GHSA-8cj5-5rvv-wf4v from CI allowlist
+  - **Context**: Currently bypassed in CI to unblock long-standing PR
+  - **Impact**: HIGH severity security vulnerability in production dependency chain
+  - Expected time: 2-4 hours
+
+### Medium Priority - Accessibility (Due: 2025-06-17)
+
+- [ ] **Fix color contrast violations in Button component**
+  - Address "Notifications Off" text contrast in Toggle Button story
+  - Address "Show Details" text contrast in Expandable Content Button story
+  - Ensure all button text meets WCAG 2 AA minimum contrast ratio (4.5:1)
+  - Test with colorContrast utility to verify compliance
+  - Expected time: 1 hour
+
+- [ ] **Fix color contrast violations in ModeSelector component**
+  - Review and update colors to meet WCAG 2 AA standards
+  - Focus on Default, Light Theme, Dark Theme, and Custom Classes stories
+  - Ensure selected state indicators and description text have proper contrast
+  - Expected time: 1.5 hours
+
+- [ ] **Fix color contrast violations in ColorTokens component**
+  - Address violations in gray-600, gray-500, gray-700, gray-900, gray-950 colors
+  - Update design system documentation with compliant color values
+  - Ensure all color examples in Storybook meet accessibility standards
+  - Expected time: 2 hours
+
+- [ ] **Revert CI accessibility threshold to include 'serious' violations**
+  - Change A11Y_FAILING_IMPACTS back to 'critical,serious' in both CI workflows
+  - Remove temporary TODO comments from workflow files
+  - Verify all components pass with restored strict threshold
+  - **Location**: .github/workflows/ci.yml and .github/workflows/storybook-a11y.yml
+  - Expected time: 15 minutes
+
+### Documentation Tasks
+
+- [ ] **Create accessibility improvement tracking issue**
+  - Document current state of color contrast violations
+  - Create plan for systematic accessibility improvements
+  - Set timeline for achieving full WCAG 2 AA compliance
+  - Expected time: 30 minutes
+
+- [ ] **Update DEVELOPMENT_PHILOSOPHY.md with temporary CI bypass policy**
+  - Document when and why temporary CI bypasses are acceptable
+  - Add process for tracking and resolving technical debt
+  - Include escalation procedures for overdue technical debt
+  - Expected time: 45 minutes
