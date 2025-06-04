@@ -80,12 +80,18 @@ export function parseAuditOutput(jsonString: string): ProcessedVulnerability[] {
 function extractAdvisoryId(url: string): string {
   try {
     // Extract GHSA ID from GitHub advisory URL
-    const match = url.match(/\/advisories\/(GHSA-[a-z0-9-]+)/i);
-    if (match && match[1]) {
-      return match[1];
+    const ghsaMatch = url.match(/\/advisories\/(GHSA-[a-z0-9-]+)/i);
+    if (ghsaMatch && ghsaMatch[1]) {
+      return ghsaMatch[1];
     }
     
-    // If not a GitHub advisory, use the URL as ID
+    // Extract numeric ID from npm advisory URL
+    const npmMatch = url.match(/\/advisories\/(\d+)/i);
+    if (npmMatch && npmMatch[1]) {
+      return npmMatch[1];
+    }
+    
+    // If neither format, use the URL as ID
     return url;
   } catch (error) {
     return url;
