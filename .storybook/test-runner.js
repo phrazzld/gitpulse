@@ -204,72 +204,73 @@ module.exports = {
       // Configure axe with the merged configuration
       await configureAxe(page, axeConfig);
       
-      // Run accessibility checks with enhanced options
-      const violations = await checkA11y(
-        page, 
-        '#storybook-root', 
-        {
-          // Provide detailed report for better understanding of issues
-          detailedReport: true,
-          detailedReportOptions: {
-            html: true,
-          },
-          // Use custom test result handler to control test failures
-          resultHandler: async (axeResults) => {
-            // Extract total check count for reporting
-            const checkCount = axeResults.passes.length + 
-                              axeResults.incomplete.length + 
-                              axeResults.violations.length;
-            
-            // Track results in collector for comprehensive reporting
-            resultsCollector.recordResults(
-              context.title, 
-              context.name,
-              axeResults.violations,
-              checkCount
-            );
-            
-            const totalViolations = axeResults.violations.length;
-            
-            // Group violations by impact for better reporting
-            const violationsByImpact = {
-              critical: axeResults.violations.filter(v => v.impact === 'critical').length,
-              serious: axeResults.violations.filter(v => v.impact === 'serious').length,
-              moderate: axeResults.violations.filter(v => v.impact === 'moderate').length,
-              minor: axeResults.violations.filter(v => v.impact === 'minor').length,
-            };
-            
-            // Improved logging with structured information
-            if (totalViolations > 0) {
-              console.log('🔍 Accessibility violations found:');
-              console.log('----------------------------');
-              console.log(`Total: ${totalViolations} violation(s)`);
-              console.log(`Critical: ${violationsByImpact.critical}`);
-              console.log(`Serious: ${violationsByImpact.serious}`);
-              console.log(`Moderate: ${violationsByImpact.moderate}`);
-              console.log(`Minor: ${violationsByImpact.minor}`);
-              console.log('----------------------------');
-              
-              // Log individual violations with more details
-              axeResults.violations.forEach((violation, index) => {
-                console.log(`Violation #${index + 1}: ${violation.id} (${violation.impact})`);
-                console.log(`Description: ${violation.description}`);
-                console.log(`Help: ${violation.help}`);
-                console.log(`WCAG: ${violation.tags.filter(t => t.includes('wcag')).join(', ')}`);
-                console.log(`Help URL: ${violation.helpUrl}`);
-                console.log(`Affected nodes: ${violation.nodes.length}`);
-                console.log('----------------------------');
-              });
-            } else {
-              console.log('✅ No accessibility violations found');
-            }
-            
-            // Use custom function to determine if test should fail
-            const shouldFail = customTestResultDependsOnViolations(axeResults.violations);
-            return { violations: axeResults.violations, results: axeResults, shouldFail };
-          }
-        }
+      // Run accessibility analysis directly with axe-core for custom control
+      const axeResults = await page.evaluate(async () => {
+        // Run axe analysis with our configured rules
+        return await window.axe.run();
+      });
+      
+      // Extract total check count for reporting
+      const checkCount = axeResults.passes.length + 
+                        axeResults.incomplete.length + 
+                        axeResults.violations.length;
+      
+      // Track results in collector for comprehensive reporting
+      resultsCollector.recordResults(
+        context.title, 
+        context.name,
+        axeResults.violations,
+        checkCount
       );
+      
+      const totalViolations = axeResults.violations.length;
+      
+      // Group violations by impact for better reporting
+      const violationsByImpact = {
+        critical: axeResults.violations.filter(v => v.impact === 'critical').length,
+        serious: axeResults.violations.filter(v => v.impact === 'serious').length,
+        moderate: axeResults.violations.filter(v => v.impact === 'moderate').length,
+        minor: axeResults.violations.filter(v => v.impact === 'minor').length,
+      };
+      
+      // Improved logging with structured information
+      if (totalViolations > 0) {
+        console.log('🔍 Accessibility violations found:');
+        console.log('----------------------------');
+        console.log(`Total: ${totalViolations} violation(s)`);
+        console.log(`Critical: ${violationsByImpact.critical}`);
+        console.log(`Serious: ${violationsByImpact.serious}`);
+        console.log(`Moderate: ${violationsByImpact.moderate}`);
+        console.log(`Minor: ${violationsByImpact.minor}`);
+        console.log('----------------------------');
+        
+        // Log individual violations with more details
+        axeResults.violations.forEach((violation, index) => {
+          console.log(`Violation #${index + 1}: ${violation.id} (${violation.impact})`);
+          console.log(`Description: ${violation.description}`);
+          console.log(`Help: ${violation.help}`);
+          console.log(`WCAG: ${violation.tags.filter(t => t.includes('wcag')).join(', ')}`);
+          console.log(`Help URL: ${violation.helpUrl}`);
+          console.log(`Affected nodes: ${violation.nodes.length}`);
+          console.log('----------------------------');
+        });
+      } else {
+        console.log('✅ No accessibility violations found');
+      }
+      
+      // Use custom function to determine if test should fail
+      const shouldFail = customTestResultDependsOnViolations(axeResults.violations);
+      
+      // Only throw an error if we determine the test should fail
+      if (shouldFail) {
+        const criticalViolations = axeResults.violations.filter(violation => {
+          const failingImpacts = process.env.A11Y_FAILING_IMPACTS ? 
+            process.env.A11Y_FAILING_IMPACTS.split(',').map(s => s.trim().toLowerCase()) : 
+            ['critical', 'serious'];
+          return failingImpacts.includes(violation.impact.toLowerCase());
+        });
+        throw new Error(`${criticalViolations.length} critical accessibility violation${criticalViolations.length === 1 ? '' : 's'} detected`);
+      }
       
       // Save results after each story is tested (in case of early termination)
       saveTestResults();
