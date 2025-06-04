@@ -30,6 +30,13 @@
 
 ### Security Issues
 
+- **Fix**: Resolve tar-fs HIGH severity vulnerability
+  - **Complexity**: Medium
+  - **Rationale**: HIGH severity security vulnerability in production dependency chain (currently bypassed in CI)
+  - **Expected Outcome**: Investigate dependency chain, update dependencies or find alternatives, remove GHSA-8cj5-5rvv-wf4v from CI allowlist
+  - **Dependencies**: None
+  - **Due Date**: 2025-06-17
+
 - **Fix**: Verify repository history for sensitive configuration files exposure
   - **Complexity**: Medium
   - **Rationale**: The explicit exclusion of `.claude/settings.local.json` in `.gitignore` suggests it might exist or has existed, posing potential security risk
@@ -326,6 +333,34 @@
   - **Rationale**: Makes the application usable for people with disabilities; meets compliance standards
   - **Expected Outcome**: Application passes accessibility audits (keyboard navigation, screen readers, color contrast)
   - **Dependencies**: shadcn/ui migration
+
+- **Fix**: Resolve color contrast violations in Button component
+  - **Complexity**: Simple
+  - **Rationale**: "Notifications Off" and "Show Details" text in Button stories don't meet WCAG 2 AA minimum contrast ratio (currently causing CI warnings)
+  - **Expected Outcome**: All button text meets 4.5:1 contrast ratio, verified with colorContrast utility
+  - **Dependencies**: None
+  - **Due Date**: 2025-06-17
+
+- **Fix**: Resolve color contrast violations in ModeSelector component
+  - **Complexity**: Simple  
+  - **Rationale**: Default, Light Theme, Dark Theme, and Custom Classes stories have contrast violations (currently causing CI warnings)
+  - **Expected Outcome**: Selected state indicators and description text have proper contrast, colors meet WCAG 2 AA standards
+  - **Dependencies**: None
+  - **Due Date**: 2025-06-17
+
+- **Fix**: Resolve color contrast violations in ColorTokens component
+  - **Complexity**: Medium
+  - **Rationale**: Multiple gray color examples (gray-600, gray-500, gray-700, gray-900, gray-950) fail contrast checks (currently causing CI warnings)
+  - **Expected Outcome**: All color examples in Storybook meet accessibility standards, design system documentation updated
+  - **Dependencies**: None
+  - **Due Date**: 2025-06-17
+
+- **Task**: Revert CI accessibility threshold to include 'serious' violations
+  - **Complexity**: Simple
+  - **Rationale**: Currently only failing on 'critical' violations to unblock PR - needs to be restored after color contrast fixes
+  - **Expected Outcome**: A11Y_FAILING_IMPACTS changed back to 'critical,serious' in both CI workflows, temporary TODO comments removed
+  - **Dependencies**: Color contrast fixes above
+  - **Due Date**: 2025-06-17
 
 - **Enhancement**: Clarify the "Generate Summary" button context
   - **Complexity**: Simple
