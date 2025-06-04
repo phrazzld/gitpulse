@@ -277,6 +277,9 @@ jobs:
 
     - name: Run Lighthouse CI
       run: |
+        # Kill any existing processes on port 3000 first
+        lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+        
         # Start the server in the background
         npm run build
         npx http-server ./.next -p 3000 --silent &
