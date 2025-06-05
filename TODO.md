@@ -437,12 +437,13 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - Target: Prevent port conflicts that may cause E2E test server startup failures
   - Actual time: 15 minutes
 
-- [ ] **Fix accessibility report PR comment path issue**
-  - Examine current accessibility report generation in `.github/workflows/ci.yml`
-  - Add fallback message if accessibility report file is missing
-  - Ensure proper conditional logic for report existence
+- [x] **Fix accessibility report PR comment path issue**
+  - ✅ Examined current accessibility report generation in `.github/workflows/ci.yml`
+  - ✅ Replaced path-based approach with always-available message fallback
+  - ✅ Added informative message about test completion and artifact location
+  - ✅ Removed conditional logic complexity that could cause failures
   - Target: Resolve "Either message or path input is required" error
-  - Expected time: 20 minutes
+  - Actual time: 20 minutes
 
 ### Important Priority - Debugging and Monitoring
 
