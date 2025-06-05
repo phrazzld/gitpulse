@@ -456,12 +456,14 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - Target: Provide visibility into CI environment state for future troubleshooting
   - Actual time: 15 minutes
 
-- [ ] **Verify environment variable alignment between CI workflows**
-  - Compare environment variables between `.github/workflows/ci.yml` and `.github/workflows/e2e-tests.yml`
-  - Identify missing or different environment variables in main workflow
-  - Add any missing environment variables (PWDEBUG, DEBUG flags, auth variables)
+- [x] **Verify environment variable alignment between CI workflows**
+  - ✅ Compared environment variables between `.github/workflows/ci.yml` and `.github/workflows/e2e-tests.yml`
+  - ✅ Identified missing environment variables: `DEBUG: pw:api,pw:browser*` and `PWDEBUG=console`
+  - ✅ Added missing `DEBUG: pw:api,pw:browser*` environment variable to main workflow
+  - ✅ Added missing `PWDEBUG=console` to E2E test execution command
+  - ✅ Main workflow now has identical environment setup to successful dedicated workflow
   - Target: Ensure main workflow has same environment setup as successful dedicated workflow
-  - Expected time: 25 minutes
+  - Actual time: 25 minutes
 
 ### Validation Priority - Testing and Verification
 

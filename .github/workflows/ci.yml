@@ -229,7 +229,7 @@ jobs:
         # This includes longer timeouts, retries, and disabling "only" tests
         # Run only on Chromium in CI to reduce runtime (other browsers tested in separate workflow)
         # Configuration aligned with working dedicated E2E workflow for consistency
-        CI=true npm run test:e2e -- --project=chromium --reporter=list,html --timeout=120000 --retries=2
+        CI=true PWDEBUG=console npm run test:e2e -- --project=chromium --reporter=list,html --timeout=120000 --retries=2
       # This step will automatically fail if any E2E tests fail
       env:
         CI: true
@@ -241,6 +241,8 @@ jobs:
         # Mock GitHub credentials for testing
         GITHUB_OAUTH_CLIENT_ID: mock-client-id
         GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
+        # Additional debugging aligned with dedicated E2E workflow
+        DEBUG: pw:api,pw:browser*
 
     - name: Upload E2E Test Results
       if: always() # Run even if tests fail
