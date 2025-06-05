@@ -43,7 +43,10 @@ async function globalSetup(config: FullConfig) {
   console.log(`Using base URL: ${baseURL} (domain: ${domain})`);
 
   // Launch a browser (headless for CI compatibility)
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ 
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+  });
   
   try {
     // Create a new browser context
