@@ -382,7 +382,7 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - Document any differences that could affect timing
   - Expected time: 20 minutes
 
-- [ ] **Test against production build**
+- [x] **Test against production build**
   - Modify local test to use production server instead of dev
   - Run: `npm run build && npm run start` then run E2E tests
   - Verify if the issue is specific to development server
