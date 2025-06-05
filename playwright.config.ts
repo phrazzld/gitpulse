@@ -34,6 +34,12 @@ export default defineConfig({
     video: process.env.CI ? 'on-first-retry' : 'off',
     /* Increase timeouts in CI */
     navigationTimeout: process.env.CI ? 45000 : 30000,
+    /* Force headless mode in CI environment to avoid X server issues */
+    headless: !!process.env.CI,
+    /* Additional browser args for CI compatibility */
+    launchOptions: process.env.CI ? {
+      args: ['--headless', '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+    } : undefined,
   },
 
   /* Configure projects for major browsers */
