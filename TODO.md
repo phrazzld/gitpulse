@@ -417,3 +417,73 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - **Solution**: Current development server approach with CI timing fixes remains optimal
   - Actual time: 45 minutes
 
+## Current CI Failures (June 5, 2025)
+
+### Critical Priority - Immediate Action Required
+
+- [ ] **Fix E2E test configuration alignment in main CI workflow**
+  - Update `.github/workflows/ci.yml` line ~170 to add missing `--retries=2` flag
+  - Change reporter from `list` to `list,html` for consistency with working workflow
+  - Verify timeout value matches (120000ms)
+  - Target: Make main workflow E2E execution match successful dedicated E2E workflow
+  - Expected time: 10 minutes
+
+- [ ] **Add port cleanup before E2E tests in main CI workflow**
+  - Add port cleanup step before "Start server for E2E tests" in `.github/workflows/ci.yml`
+  - Kill any existing processes on port 3000 with `lsof -ti:3000 | xargs kill -9 2>/dev/null || true`
+  - Add brief wait period (sleep 2) for port to be freed
+  - Target: Prevent port conflicts that may cause E2E test server startup failures
+  - Expected time: 15 minutes
+
+- [ ] **Fix accessibility report PR comment path issue**
+  - Examine current accessibility report generation in `.github/workflows/ci.yml`
+  - Add fallback message if accessibility report file is missing
+  - Ensure proper conditional logic for report existence
+  - Target: Resolve "Either message or path input is required" error
+  - Expected time: 20 minutes
+
+### Important Priority - Debugging and Monitoring
+
+- [ ] **Add debug output for CI environment troubleshooting**
+  - Add debug step before E2E test execution in `.github/workflows/ci.yml`
+  - Log process status, port usage, system resources, and environment variables
+  - Include Node processes, port 3000 usage, working directory, and memory status
+  - Target: Provide visibility into CI environment state for future troubleshooting
+  - Expected time: 15 minutes
+
+- [ ] **Verify environment variable alignment between CI workflows**
+  - Compare environment variables between `.github/workflows/ci.yml` and `.github/workflows/e2e-tests.yml`
+  - Identify missing or different environment variables in main workflow
+  - Add any missing environment variables (PWDEBUG, DEBUG flags, auth variables)
+  - Target: Ensure main workflow has same environment setup as successful dedicated workflow
+  - Expected time: 25 minutes
+
+### Validation Priority - Testing and Verification
+
+- [ ] **Test CI fixes in pull request**
+  - Commit CI workflow changes to feature branch
+  - Monitor all three CI workflows (build-and-test, E2E, storybook-a11y)
+  - Verify successful completion: ✅ build-and-test passes, ✅ E2E tests pass, ✅ accessibility report works
+  - Target: Validate that CI fixes resolve failures without introducing new issues
+  - Expected time: 30 minutes
+
+- [ ] **Monitor CI stability over multiple runs**
+  - Trigger at least 3 CI runs via small commits or re-runs
+  - Monitor for intermittent failures or timing issues
+  - Verify retry logic activates appropriately and execution times are consistent
+  - Target: Ensure fixes provide consistent CI reliability, not just one-time success
+  - Expected time: 45 minutes
+
+### Cleanup and Documentation
+
+- [ ] **Document CI workflow alignment**
+  - Update project documentation explaining workflow relationships
+  - Document importance of keeping E2E configurations aligned
+  - Add troubleshooting guide for future CI failures
+  - Expected time: 20 minutes
+
+- [ ] **Clean up CI analysis files**
+  - Delete temporary analysis files: `CI-FAILURE-SUMMARY.md`, `CI-RESOLUTION-PLAN.md`, `CI-RESOLUTION-TASKS.md`
+  - Ensure repository cleanliness after analysis completion
+  - Expected time: 5 minutes
+
