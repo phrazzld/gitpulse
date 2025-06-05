@@ -45,7 +45,7 @@ async function globalSetup(config: FullConfig) {
   // Launch a browser (headless for CI compatibility)
   const browser = await chromium.launch({ 
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+    args: ['--headless', '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
   });
   
   try {
