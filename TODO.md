@@ -447,12 +447,14 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
 
 ### Important Priority - Debugging and Monitoring
 
-- [ ] **Add debug output for CI environment troubleshooting**
-  - Add debug step before E2E test execution in `.github/workflows/ci.yml`
-  - Log process status, port usage, system resources, and environment variables
-  - Include Node processes, port 3000 usage, working directory, and memory status
+- [x] **Add debug output for CI environment troubleshooting**
+  - ✅ Added debug step before E2E test execution in `.github/workflows/ci.yml`
+  - ✅ Log process status (Node processes, port 3000 processes) and network connections
+  - ✅ Include system resources (memory, disk usage) and environment variables
+  - ✅ Added file system checks, server PID status, and working directory info
+  - ✅ Organized output with clear sections and error handling for robustness
   - Target: Provide visibility into CI environment state for future troubleshooting
-  - Expected time: 15 minutes
+  - Actual time: 15 minutes
 
 - [ ] **Verify environment variable alignment between CI workflows**
   - Compare environment variables between `.github/workflows/ci.yml` and `.github/workflows/e2e-tests.yml`

@@ -173,6 +173,56 @@ jobs:
         echo "Server log (last 20 lines):"
         tail -n 20 e2e-server.log || true
 
+    - name: Debug CI environment before E2E tests
+      run: |
+        echo "=== CI Environment Debug Information ==="
+        echo "Timestamp: $(date)"
+        echo
+        
+        echo "=== System Resources ==="
+        echo "Free memory:"
+        free -h || true
+        echo "Disk usage:"
+        df -h . || true
+        echo
+        
+        echo "=== Process Information ==="
+        echo "Node.js processes:"
+        ps aux | grep -E "(node|npm)" | grep -v grep || true
+        echo
+        echo "All processes on port 3000:"
+        lsof -i:3000 || echo "No processes found on port 3000"
+        echo
+        echo "Network connections (port 3000):"
+        netstat -tulpn | grep :3000 || echo "No network connections on port 3000"
+        echo
+        
+        echo "=== Environment Variables ==="
+        echo "Working directory: $(pwd)"
+        echo "NODE_ENV: ${NODE_ENV:-not set}"
+        echo "CI: ${CI:-not set}"
+        echo "E2E_MOCK_AUTH_ENABLED: ${E2E_MOCK_AUTH_ENABLED:-not set}"
+        echo "NEXTAUTH_URL: ${NEXTAUTH_URL:-not set}"
+        echo "NEXT_PUBLIC_GITHUB_APP_NAME: ${NEXT_PUBLIC_GITHUB_APP_NAME:-not set}"
+        echo "PATH (first 200 chars): ${PATH:0:200}..."
+        echo
+        
+        echo "=== File System Check ==="
+        echo "Contents of current directory:"
+        ls -la | head -20
+        echo
+        echo "Server PID file:"
+        if [ -f server.pid ]; then
+          echo "Server PID: $(cat server.pid)"
+          echo "Server process status:"
+          ps -p "$(cat server.pid)" || echo "Server process not found"
+        else
+          echo "No server.pid file found"
+        fi
+        echo
+        
+        echo "=== End Debug Information ==="
+
     - name: Run E2E Tests
       run: |
         # Set CI to true explicitly to enable CI-specific settings in playwright.config.ts
