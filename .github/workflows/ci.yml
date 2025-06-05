@@ -144,6 +144,17 @@ jobs:
     # - API endpoints that require authenticated requests
     # Note: The development server can be slow on first page loads in CI,
     # causing timeouts. Pre-building helps reduce initial compilation time.
+    - name: Clean up port 3000 before E2E tests
+      run: |
+        # Kill any existing processes on port 3000 to prevent conflicts
+        # This ensures a clean environment for E2E test server startup
+        lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+        
+        # Wait briefly for port to be freed
+        sleep 2
+        
+        echo "Port 3000 cleanup completed"
+
     - name: Start server for E2E tests
       run: |
         # Start the Next.js development server in the background with test configuration

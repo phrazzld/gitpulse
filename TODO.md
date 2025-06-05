@@ -429,12 +429,13 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - Target: Make main workflow E2E execution match successful dedicated E2E workflow
   - Actual time: 10 minutes
 
-- [ ] **Add port cleanup before E2E tests in main CI workflow**
-  - Add port cleanup step before "Start server for E2E tests" in `.github/workflows/ci.yml`
-  - Kill any existing processes on port 3000 with `lsof -ti:3000 | xargs kill -9 2>/dev/null || true`
-  - Add brief wait period (sleep 2) for port to be freed
+- [x] **Add port cleanup before E2E tests in main CI workflow**
+  - ✅ Added port cleanup step before "Start server for E2E tests" in `.github/workflows/ci.yml`
+  - ✅ Kill any existing processes on port 3000 with `lsof -ti:3000 | xargs kill -9 2>/dev/null || true`
+  - ✅ Added brief wait period (sleep 2) for port to be freed
+  - ✅ Added helpful comments and logging for debugging
   - Target: Prevent port conflicts that may cause E2E test server startup failures
-  - Expected time: 15 minutes
+  - Actual time: 15 minutes
 
 - [ ] **Fix accessibility report PR comment path issue**
   - Examine current accessibility report generation in `.github/workflows/ci.yml`
