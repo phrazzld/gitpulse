@@ -421,12 +421,13 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
 
 ### Critical Priority - Immediate Action Required
 
-- [ ] **Fix E2E test configuration alignment in main CI workflow**
-  - Update `.github/workflows/ci.yml` line ~170 to add missing `--retries=2` flag
-  - Change reporter from `list` to `list,html` for consistency with working workflow
-  - Verify timeout value matches (120000ms)
+- [x] **Fix E2E test configuration alignment in main CI workflow**
+  - ✅ Updated `.github/workflows/ci.yml` line 171 to add missing `--retries=2` flag
+  - ✅ Changed reporter from `list` to `list,html` for consistency with working workflow
+  - ✅ Verified timeout value matches (120000ms)
+  - ✅ Added explanatory comment about configuration alignment
   - Target: Make main workflow E2E execution match successful dedicated E2E workflow
-  - Expected time: 10 minutes
+  - Actual time: 10 minutes
 
 - [ ] **Add port cleanup before E2E tests in main CI workflow**
   - Add port cleanup step before "Start server for E2E tests" in `.github/workflows/ci.yml`
