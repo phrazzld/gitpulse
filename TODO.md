@@ -390,7 +390,7 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
 
 ### Low Priority - Long-term Solutions
 
-- [ ] **Research Next.js dev server cookie handling**
+- [x] **Research Next.js dev server cookie handling**
   - Search Next.js issues for similar cookie timing problems
   - Check if newer versions have fixes
   - Document findings for team discussion
