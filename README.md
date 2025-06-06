@@ -13,6 +13,7 @@ GitPulse is a web application that generates summaries of GitHub commits for ind
 - **Comprehensive Logging**: Detailed structured logging for debugging and monitoring
 - **Robust Error Handling**: Comprehensive error handling chain from API to UI with graceful degradation
 - **Responsive UI**: Clean, modern interface that works on both mobile and desktop
+- **CI/CD Monitoring**: Continuous integration workflows with stability monitoring and automated quality gates
 
 ## Tech Stack
 
