@@ -44,10 +44,11 @@ npm run test:a11y
 When a CI failure occurs:
 
 1. Analyze the failure using logs and artifacts
-2. Follow the post-mortem process documented in `CI_FAILURE_POSTMORTEM_PROCESS.md`
-3. Create a post-mortem document using the template
-4. Implement fixes and preventive measures
-5. Update documentation if necessary
+2. Check for workflow configuration alignment issues (see [CI Workflow Alignment Guide](../docs/development/CI_WORKFLOW_ALIGNMENT.md))
+3. Follow the post-mortem process documented in `CI_FAILURE_POSTMORTEM_PROCESS.md`
+4. Create a post-mortem document using the template
+5. Implement fixes and preventive measures
+6. Update documentation if necessary
 
 ## CI Stability Monitoring
 
