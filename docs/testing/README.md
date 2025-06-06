@@ -5,6 +5,8 @@ This directory contains documentation related to testing practices, patterns, an
 ## Contents
 
 - `APPROVED_TESTING_PATTERNS.md`: Official testing patterns and best practices
+- `AUTHENTICATION_TROUBLESHOOTING.md`: Comprehensive guide for debugging authentication issues in E2E tests
+- `auth-debug-quickref.md`: Quick reference for common authentication debugging commands
 - `E2E_MOCK_AUTH_STRATEGY.md`: Strategy for mocking authentication in E2E tests
 - `MOCKING_POLICY.md`: Guidelines for what should and should not be mocked
 - `REACT_HOOKS_TESTING.md`: Patterns and utilities for testing React hooks

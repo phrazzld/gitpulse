@@ -67,6 +67,8 @@ When tests fail in CI, you can examine:
 2. Screenshots of failed tests (uploaded on failure)
 3. The authentication storage state (uploaded for debugging)
 
+For comprehensive troubleshooting of authentication issues, see the **[Authentication Troubleshooting Guide](../docs/testing/AUTHENTICATION_TROUBLESHOOTING.md)**.
+
 ## Adding New Tests
 
 When adding new tests:
