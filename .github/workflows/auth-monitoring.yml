@@ -1,0 +1,279 @@
+name: Authentication Monitoring
+
+on:
+  # Monitor on key events
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  # Schedule regular monitoring
+  schedule:
+    # Run every 6 hours to maintain health baseline
+    - cron: '0 */6 * * *'
+  # Allow manual triggering
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  monitor-authentication:
+    name: Authentication Health Monitor
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        
+      - name: Run authentication health monitoring
+        id: monitor
+        run: |
+          # Ensure metrics directory exists
+          mkdir -p ci-metrics
+          
+          # Run monitoring script
+          node scripts/ci/monitor-auth-health.js
+        env:
+          NODE_ENV: test
+          E2E_MOCK_AUTH_ENABLED: true
+          NEXTAUTH_URL: http://localhost:3000
+          NEXTAUTH_SECRET: monitoring-secret-key
+          
+      - name: Generate authentication dashboard
+        run: |
+          # Generate updated dashboard
+          node scripts/ci/generate-auth-dashboard.js
+          
+      - name: Upload monitoring artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: auth-monitoring-${{ github.run_id }}
+          path: |
+            ci-metrics/
+            ci-dashboard/
+          retention-days: 30
+          
+      - name: Check for alert conditions
+        id: alert-check
+        run: |
+          # Check if latest metrics indicate alert conditions
+          if [ -f "ci-metrics/auth-health-latest.json" ]; then
+            HEALTH_SCORE=$(cat ci-metrics/auth-health-latest.json | jq -r '.healthScore // 0')
+            PASS_RATE=$(cat ci-metrics/auth-health-latest.json | jq -r '.authTests.passRate // 0')
+            ERROR_COUNT=$(cat ci-metrics/auth-health-latest.json | jq -r '.errors | length')
+            
+            echo "health_score=$HEALTH_SCORE" >> $GITHUB_OUTPUT
+            echo "pass_rate=$PASS_RATE" >> $GITHUB_OUTPUT
+            echo "error_count=$ERROR_COUNT" >> $GITHUB_OUTPUT
+            
+            # Determine alert severity
+            if [ $(echo "$HEALTH_SCORE < 60" | bc -l) -eq 1 ] || [ "$ERROR_COUNT" -gt 2 ]; then
+              echo "alert_severity=critical" >> $GITHUB_OUTPUT
+              echo "should_alert=true" >> $GITHUB_OUTPUT
+            elif [ $(echo "$HEALTH_SCORE < 80" | bc -l) -eq 1 ] || [ $(echo "$PASS_RATE < 90" | bc -l) -eq 1 ]; then
+              echo "alert_severity=warning" >> $GITHUB_OUTPUT
+              echo "should_alert=true" >> $GITHUB_OUTPUT
+            else
+              echo "should_alert=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "should_alert=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Create or update monitoring issue
+        if: steps.alert-check.outputs.should_alert == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read latest metrics
+            let metrics = {};
+            try {
+              metrics = JSON.parse(fs.readFileSync('ci-metrics/auth-health-latest.json', 'utf8'));
+            } catch (error) {
+              console.log('Could not read metrics file');
+              return;
+            }
+            
+            const alertSeverity = '${{ steps.alert-check.outputs.alert_severity }}';
+            const healthScore = '${{ steps.alert-check.outputs.health_score }}';
+            const passRate = '${{ steps.alert-check.outputs.pass_rate }}';
+            const errorCount = '${{ steps.alert-check.outputs.error_count }}';
+            
+            // Create issue title and body
+            const title = `🚨 Authentication CI Health Alert - ${alertSeverity.toUpperCase()}`;
+            
+            const body = `# Authentication CI Health Alert
+            
+            **Alert Severity:** ${alertSeverity.toUpperCase()}
+            **Triggered:** ${new Date().toISOString()}
+            **Workflow:** ${context.workflow}
+            **Branch:** ${context.ref}
+            **Commit:** ${context.sha.substring(0, 7)}
+            
+            ## Current Metrics
+            
+            - 🎯 **Health Score:** ${healthScore}/100
+            - 📈 **Pass Rate:** ${passRate}%
+            - ❌ **Error Count:** ${errorCount}
+            - 🏃 **Runner:** ubuntu-latest
+            
+            ## Issues Detected
+            
+            ${metrics.recommendations?.map(rec => 
+              `- **${rec.severity.toUpperCase()}:** ${rec.message}\n  - *Action:* ${rec.action}`
+            ).join('\n') || 'No specific recommendations available'}
+            
+            ## Next Steps
+            
+            1. 📋 Review the [Authentication Troubleshooting Guide](./docs/testing/AUTHENTICATION_TROUBLESHOOTING.md)
+            2. 🔍 Check the monitoring artifacts for detailed analysis
+            3. 🛠️ Apply recommended fixes based on error analysis
+            4. ✅ Re-run authentication tests to verify improvements
+            
+            ## Artifacts
+            
+            - [Monitoring Dashboard](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            - [Detailed Metrics](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            
+            ---
+            
+            *This issue was automatically created by the Authentication Monitoring workflow.*
+            *It will be automatically closed when the alert condition is resolved.*
+            `;
+            
+            // Look for existing monitoring issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['auth-monitoring', 'automated'],
+              state: 'open'
+            });
+            
+            let issueNumber = null;
+            
+            if (issues.data.length > 0) {
+              // Update existing issue
+              issueNumber = issues.data[0].number;
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                title: title,
+                body: body
+              });
+              
+              console.log(`Updated existing monitoring issue #${issueNumber}`);
+            } else {
+              // Create new issue
+              const newIssue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['auth-monitoring', 'automated', 'bug']
+              });
+              
+              issueNumber = newIssue.data.number;
+              console.log(`Created new monitoring issue #${issueNumber}`);
+            }
+            
+      - name: Close resolved monitoring issues
+        if: steps.alert-check.outputs.should_alert == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Look for open monitoring issues to close
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['auth-monitoring', 'automated'],
+              state: 'open'
+            });
+            
+            for (const issue of issues.data) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `✅ **Alert Resolved**
+                
+                Authentication system health has returned to normal levels.
+                
+                **Resolution Time:** ${new Date().toISOString()}
+                **Current Health Score:** ${{ steps.alert-check.outputs.health_score }}/100
+                **Current Pass Rate:** ${{ steps.alert-check.outputs.pass_rate }}%
+                
+                This issue is being automatically closed.`
+              });
+              
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'completed'
+              });
+              
+              console.log(`Closed resolved monitoring issue #${issue.number}`);
+            }
+            
+      - name: Notify on Slack/Discord (if configured)
+        if: steps.alert-check.outputs.should_alert == 'true' && steps.alert-check.outputs.alert_severity == 'critical'
+        run: |
+          # This step can be configured with Slack/Discord webhooks
+          echo "🚨 CRITICAL: Authentication CI health alert triggered"
+          echo "Health Score: ${{ steps.alert-check.outputs.health_score }}/100"
+          echo "Pass Rate: ${{ steps.alert-check.outputs.pass_rate }}%"
+          echo "Review monitoring artifacts for details"
+          
+          # Example Slack notification (requires webhook URL secret)
+          # curl -X POST -H 'Content-type: application/json' \
+          #   --data '{"text":"🚨 CRITICAL: GitPulse Authentication CI health alert triggered\nHealth Score: ${{ steps.alert-check.outputs.health_score }}/100\nPass Rate: ${{ steps.alert-check.outputs.pass_rate }}%"}' \
+          #   ${{ secrets.SLACK_WEBHOOK_URL }}
+          
+      - name: Update status badge
+        run: |
+          # Generate status badge data
+          HEALTH_SCORE="${{ steps.alert-check.outputs.health_score }}"
+          
+          if [ "$HEALTH_SCORE" -ge 90 ]; then
+            COLOR="brightgreen"
+            STATUS="healthy"
+          elif [ "$HEALTH_SCORE" -ge 70 ]; then
+            COLOR="yellow"
+            STATUS="warning"
+          else
+            COLOR="red"
+            STATUS="critical"
+          fi
+          
+          # Create badge JSON for shields.io
+          mkdir -p ci-dashboard
+          cat > ci-dashboard/auth-health-badge.json << EOF
+          {
+            "schemaVersion": 1,
+            "label": "auth health",
+            "message": "${HEALTH_SCORE}/100",
+            "color": "${COLOR}"
+          }
+          EOF
+          
+          echo "Generated health badge with score: ${HEALTH_SCORE}/100 (${STATUS})"

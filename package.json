@@ -28,6 +28,8 @@
     "chromatic": "npx chromatic --exit-zero-on-changes",
     "audit:security": "ts-node ./scripts/security-auditor/src/index.ts --fail-on-severity=high --fail-on-env=prod",
     "lighthouse": "node scripts/lighthouse/run-lighthouse.js autorun",
+    "monitor:auth": "node scripts/ci/monitor-auth-health.js",
+    "dashboard:auth": "node scripts/ci/generate-auth-dashboard.js",
     "lighthouse:collect": "node scripts/lighthouse/run-lighthouse.js collect",
     "lighthouse:assert": "node scripts/lighthouse/run-lighthouse.js assert",
     "lighthouse:ci": "lhci autorun",

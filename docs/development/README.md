@@ -4,6 +4,7 @@ This directory contains documentation related to development practices, tools, a
 
 ## Contents
 
+- `AUTHENTICATION_MONITORING.md`: Comprehensive CI monitoring and alerting for authentication tests
 - `CHROMATIC_SETUP.md`: Configuration and setup for Chromatic visual testing
 - `CI_WORKFLOW_ALIGNMENT.md`: CI workflow relationships and configuration alignment guide
 - `COMPONENT_LIBRARY.md`: Overview of the component library structure
