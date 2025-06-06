@@ -223,6 +223,14 @@ jobs:
         
         echo "=== End Debug Information ==="
 
+    - name: Check Authentication Endpoints
+      run: |
+        echo "Verifying NextAuth API endpoints are ready..."
+        # Run authentication health checks with 30 second timeout
+        # This ensures authentication endpoints are available before E2E tests begin
+        node scripts/check-auth-health.js http://localhost:3000 30000 1000
+        echo "Authentication endpoints verified successfully!"
+
     - name: Run E2E Tests
       run: |
         # Set CI to true explicitly to enable CI-specific settings in playwright.config.ts

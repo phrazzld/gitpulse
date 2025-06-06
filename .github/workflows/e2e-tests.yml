@@ -55,6 +55,14 @@ jobs:
           # Print last 20 lines of server log for debugging
           echo "Last 20 lines of server log:"
           tail -n 20 e2e/server.log
+
+      - name: Check Authentication Endpoints
+        run: |
+          echo "Verifying NextAuth API endpoints are ready..."
+          # Run authentication health checks with 30 second timeout
+          # This ensures authentication endpoints are available before E2E tests begin
+          node scripts/check-auth-health.js http://localhost:3000 30000 1000
+          echo "Authentication endpoints verified successfully!"
       
       - name: Run Playwright tests
         run: |
