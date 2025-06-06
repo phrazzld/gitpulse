@@ -287,8 +287,13 @@ export async function navigateWithAuthVerification(
   
   // CI-specific delay for cookie synchronization
   if (process.env.CI && ciDelay > 0) {
-    debugLog(`Applying CI-specific delay of ${ciDelay}ms for cookie synchronization`);
-    await page.waitForTimeout(ciDelay);
+    try {
+      const { applyAdaptiveDelay } = await import('./adaptiveTiming');
+      await applyAdaptiveDelay(page, `navigation-sync-${url}`, 1, { baseDelay: ciDelay });
+    } catch (error) {
+      debugLog(`Using fallback CI delay for navigation to ${url}`, { ciDelay });
+      await page.waitForTimeout(ciDelay);
+    }
   }
   
   const navDuration = Date.now() - navStartTime;

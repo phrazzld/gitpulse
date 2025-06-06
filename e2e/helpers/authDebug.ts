@@ -346,17 +346,24 @@ export async function applyCISyncDelay(
     return;
   }
 
-  // Progressive delay: base * attempt with maximum cap
-  const delay = Math.min(baseDelay * attempt, 2000);
+  const { applyAdaptiveDelay } = await import('./adaptiveTiming');
   
-  debugLog(`Applying CI sync delay for ${step}`, {
-    attempt,
-    baseDelay,
-    actualDelay: delay,
-    reason: 'CI cookie synchronization'
-  });
-  
-  await page.waitForTimeout(delay);
+  // Use adaptive timing if available, fallback to legacy logic
+  try {
+    await applyAdaptiveDelay(page, step, attempt, { baseDelay });
+  } catch (error) {
+    // Fallback to original progressive delay logic
+    const delay = Math.min(baseDelay * attempt, 2000);
+    
+    debugLog(`Applying CI sync delay for ${step} (fallback)`, {
+      attempt,
+      baseDelay,
+      actualDelay: delay,
+      reason: 'CI cookie synchronization (fallback)'
+    });
+    
+    await page.waitForTimeout(delay);
+  }
 }
 
 /**
@@ -415,6 +422,47 @@ export async function waitForAuthStabilization(
     isCI: !!process.env.CI
   });
 
+  // Try to use adaptive timing system
+  try {
+    const { waitWithAdaptiveTiming } = await import('./adaptiveTiming');
+    
+    const result = await waitWithAdaptiveTiming(
+      async () => {
+        // Force session synchronization
+        await forceSessionSync(page, context, `${step}-adaptive-sync`);
+        
+        // Check authentication state
+        const cookies = await context.cookies();
+        const authCookie = cookies.find(c => c.name === 'next-auth.session-token');
+        const hasAuthCookie = !!authCookie;
+        
+        debugLog(`Authentication stabilization check (adaptive)`, {
+          hasAuthCookie,
+          expectedAuthenticated,
+          stabilized: hasAuthCookie === expectedAuthenticated,
+          cookieExpiry: authCookie?.expires || 'none'
+        });
+        
+        return hasAuthCookie === expectedAuthenticated ? true : null;
+      },
+      {
+        step: `auth-stabilization-${step}`,
+        maxAttempts,
+        successCondition: (result) => result === true
+      }
+    );
+    
+    if (result) {
+      debugLog(`Authentication stabilized using adaptive timing for ${step}`);
+      return true;
+    }
+  } catch (adaptiveError) {
+    debugLog('Failed to use adaptive timing, falling back to legacy method', {
+      error: adaptiveError instanceof Error ? adaptiveError.message : String(adaptiveError)
+    });
+  }
+
+  // Fallback to original logic
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     // Apply CI-specific delay
     await applyCISyncDelay(page, `${step}-attempt-${attempt}`, attempt, baseDelay);
