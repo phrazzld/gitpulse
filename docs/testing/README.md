@@ -35,6 +35,9 @@ npm test -- --coverage
 
 # Run API tests
 npm run test:api
+
+# Run E2E tests
+npm run test:e2e
 ```
 
 ## Mocking Strategy
