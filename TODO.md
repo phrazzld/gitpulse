@@ -467,14 +467,14 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
 
 ### Validation Priority - Testing and Verification
 
-- [ ] **Test CI fixes in pull request**
+- [~] **Test CI fixes in pull request**
   - Commit CI workflow changes to feature branch
   - Monitor all three CI workflows (build-and-test, E2E, storybook-a11y)
   - Verify successful completion: ✅ build-and-test passes, ✅ E2E tests pass, ✅ accessibility report works
   - Target: Validate that CI fixes resolve failures without introducing new issues
   - Expected time: 30 minutes
 
-- [ ] **Monitor CI stability over multiple runs**
+- [~] **Monitor CI stability over multiple runs**
   - Trigger at least 3 CI runs via small commits or re-runs
   - Monitor for intermittent failures or timing issues
   - Verify retry logic activates appropriately and execution times are consistent
