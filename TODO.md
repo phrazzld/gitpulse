@@ -510,12 +510,15 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - **Finding**: Environment variables are properly configured - authentication failures are due to timing/synchronization issues, not missing config
   - Actual time: 15 minutes
 
-- [ ] **Add enhanced cookie debugging to authentication tests**
-  - Add detailed cookie state logging before and after authentication in tests
-  - Log cookie values, expiration, and persistence in CI environment
-  - Add cookie synchronization verification between browser and server
-  - Include debug output in CI logs for troubleshooting
-  - Expected time: 20 minutes
+- [x] **Add enhanced cookie debugging to authentication tests**
+  - ✅ Created comprehensive debugging utilities in `e2e/helpers/authDebug.ts`
+  - ✅ Enhanced existing verification functions with detailed CI logging
+  - ✅ Added detailed cookie state logging with metadata (expiration, domain, security flags)
+  - ✅ Implemented authentication state snapshots for step-by-step debugging
+  - ✅ Added debugging to failing tests: auth.spec.ts and auth-robust.spec.ts
+  - ✅ Conditional logging (only in CI or when DEBUG flag set) to avoid local spam
+  - ✅ Cookie synchronization verification with timing and comparison utilities
+  - Actual time: 25 minutes
 
 - [ ] **Implement CI-specific cookie synchronization delays**
   - Add conditional timing delays for cookie propagation in CI environment

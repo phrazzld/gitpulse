@@ -1,10 +1,12 @@
 import { Page, BrowserContext, expect } from '@playwright/test';
+import { debugLog, captureAuthDebugSnapshot, verifySessionAPIWithRetries, waitForCookieSync } from './authDebug';
 
 /**
  * Authentication Verification Helpers
  * 
  * Provides robust methods for verifying authentication state
  * without relying on timing or specific implementation details.
+ * Enhanced with detailed debugging for CI environments.
  */
 
 export interface AuthVerificationResult {
@@ -17,25 +19,42 @@ export interface AuthVerificationResult {
  * Verify authentication through the NextAuth session API
  */
 export async function verifyAuthViaAPI(page: Page): Promise<AuthVerificationResult> {
+  debugLog('Starting API authentication verification');
+  
   try {
     const response = await page.request.get('/api/auth/session');
+    const status = response.status();
+    
+    debugLog(`Session API response status: ${status}`);
+    
     if (!response.ok()) {
-      return { isAuthenticated: false, method: 'api', details: { status: response.status() } };
+      debugLog(`Session API failed with status ${status}`);
+      return { isAuthenticated: false, method: 'api', details: { status } };
     }
     
     const session = await response.json();
     const isAuthenticated = !!(session && session.user);
     
+    debugLog('Session API verification result', {
+      isAuthenticated,
+      hasSession: !!session,
+      hasUser: !!(session && session.user),
+      userEmail: session?.user?.email || 'none'
+    });
+    
     return {
       isAuthenticated,
       method: 'api',
-      details: { session, status: response.status() }
+      details: { session, status }
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    debugLog(`Session API verification error: ${errorMessage}`);
+    
     return {
       isAuthenticated: false,
       method: 'api',
-      details: { error: error instanceof Error ? error.message : String(error) }
+      details: { error: errorMessage }
     };
   }
 }
@@ -44,19 +63,46 @@ export async function verifyAuthViaAPI(page: Page): Promise<AuthVerificationResu
  * Verify authentication through cookie presence and validity
  */
 export async function verifyAuthViaCookies(context: BrowserContext): Promise<AuthVerificationResult> {
+  debugLog('Starting cookie authentication verification');
+  
   const cookies = await context.cookies();
+  const allCookieNames = cookies.map(c => c.name);
   const authCookie = cookies.find(cookie => cookie.name === 'next-auth.session-token');
   
+  debugLog('Cookie verification details', {
+    totalCookies: cookies.length,
+    allCookieNames,
+    hasAuthCookie: !!authCookie
+  });
+  
   if (!authCookie) {
-    return { isAuthenticated: false, method: 'cookie', details: { reason: 'No auth cookie found' } };
+    debugLog('Authentication cookie not found');
+    return { isAuthenticated: false, method: 'cookie', details: { reason: 'No auth cookie found', allCookieNames } };
   }
   
   // Check cookie hasn't expired
   const now = Date.now() / 1000;
-  if (authCookie.expires > 0 && authCookie.expires < now) {
+  const isExpired = authCookie.expires > 0 && authCookie.expires < now;
+  
+  debugLog('Authentication cookie details', {
+    name: authCookie.name,
+    domain: authCookie.domain,
+    path: authCookie.path,
+    expires: authCookie.expires,
+    expiresDate: authCookie.expires > 0 ? new Date(authCookie.expires * 1000).toISOString() : 'session',
+    httpOnly: authCookie.httpOnly,
+    secure: authCookie.secure,
+    sameSite: authCookie.sameSite,
+    isExpired,
+    valueLength: authCookie.value.length
+  });
+  
+  if (isExpired) {
+    debugLog('Authentication cookie is expired');
     return { isAuthenticated: false, method: 'cookie', details: { reason: 'Cookie expired' } };
   }
   
+  debugLog('Cookie verification successful');
   return {
     isAuthenticated: true,
     method: 'cookie',
@@ -64,7 +110,9 @@ export async function verifyAuthViaCookies(context: BrowserContext): Promise<Aut
       cookieName: authCookie.name,
       expires: new Date(authCookie.expires * 1000).toISOString(),
       domain: authCookie.domain,
-      httpOnly: authCookie.httpOnly
+      httpOnly: authCookie.httpOnly,
+      secure: authCookie.secure,
+      sameSite: authCookie.sameSite
     }
   };
 }
@@ -213,22 +261,51 @@ export async function navigateWithAuthVerification(
     waitStrategy?: 'domcontentloaded' | 'networkidle' | 'load';
     verifyBefore?: boolean;
     verifyAfter?: boolean;
+    ciDelay?: number;
   } = {}
 ): Promise<void> {
   const { 
     waitStrategy = 'domcontentloaded', 
     verifyBefore = true, 
-    verifyAfter = true 
+    verifyAfter = true,
+    ciDelay = 500 
   } = options;
   
+  debugLog(`Starting navigation to ${url}`, { waitStrategy, verifyBefore, verifyAfter });
+  
+  // Capture state before navigation
+  let beforeSnapshot;
   if (verifyBefore) {
+    beforeSnapshot = await captureAuthDebugSnapshot(page, context, `before-navigation-to-${url}`);
     await assertAuthenticated(page, context, `Authentication required before navigating to ${url}`);
   }
   
+  // Navigate
+  const navStartTime = Date.now();
   await page.goto(url);
   await page.waitForLoadState(waitStrategy);
   
+  // CI-specific delay for cookie synchronization
+  if (process.env.CI && ciDelay > 0) {
+    debugLog(`Applying CI-specific delay of ${ciDelay}ms for cookie synchronization`);
+    await page.waitForTimeout(ciDelay);
+  }
+  
+  const navDuration = Date.now() - navStartTime;
+  debugLog(`Navigation completed in ${navDuration}ms`);
+  
+  // Capture state after navigation and compare
   if (verifyAfter) {
+    const afterSnapshot = await captureAuthDebugSnapshot(page, context, `after-navigation-to-${url}`);
+    
+    if (beforeSnapshot) {
+      const { compareAuthSnapshots } = await import('./authDebug');
+      const comparison = compareAuthSnapshots(beforeSnapshot, afterSnapshot);
+      if (comparison.significantChanges) {
+        debugLog(`Detected authentication state changes during navigation to ${url}`, comparison);
+      }
+    }
+    
     await assertAuthenticated(page, context, `Authentication lost after navigating to ${url}`);
   }
 }
