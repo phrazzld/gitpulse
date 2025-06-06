@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { isMockAuthEnabled } from './helpers/mockAuth';
-import { initializeAuthDebug, finalizeAuthDebug, captureAuthDebugSnapshot, debugLog } from './helpers/authDebug';
+import { 
+  initializeAuthDebug, 
+  finalizeAuthDebug, 
+  captureAuthDebugSnapshot, 
+  debugLog,
+  navigateWithCISync,
+  waitForAuthStabilization,
+  testAuthPersistenceWithCISync
+} from './helpers/authDebug';
 
 /**
  * Comprehensive Authentication Flow Tests
@@ -109,102 +117,92 @@ test.describe('Authentication Persistence', () => {
   test('should maintain authenticated state across navigation', async ({ page, context }) => {
     test.skip(!shouldRunAuthTests, 'Skipping: mock auth not enabled');
     
-    initializeAuthDebug('Authentication Persistence - Navigation Test');
+    initializeAuthDebug('Authentication Persistence - Navigation Test with CI Sync');
     let testSuccess = false;
     
     try {
-      // Capture initial state
-      await captureAuthDebugSnapshot(page, context, 'test-start');
+      // Use the new comprehensive CI synchronization test
+      const navigationSequence = ['/', '/dashboard', '/'];
+      testSuccess = await testAuthPersistenceWithCISync(
+        page, 
+        context, 
+        'Navigation Test', 
+        navigationSequence
+      );
       
-      // Start at homepage
-      debugLog('Navigating to homepage');
-      await page.goto('/');
-      await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
-      
-      // CI timing fix with debugging
-      if (process.env.CI) {
-        debugLog('Applying CI timing fix - 500ms delay after homepage load');
-        await page.waitForTimeout(500);
+      if (!testSuccess) {
+        throw new Error('Authentication persistence test failed using CI synchronization utilities');
       }
       
-      // Capture state after homepage load
-      await captureAuthDebugSnapshot(page, context, 'after-homepage-load');
+      debugLog('✅ Authentication state maintained across navigation with CI synchronization');
       
-      // Verify initial auth state
-      const initialCookies = await context.cookies();
-      const initialAuthCookie = initialCookies.find(cookie => cookie.name === 'next-auth.session-token');
-      
-      debugLog('Initial authentication state', {
-        totalCookies: initialCookies.length,
-        hasAuthCookie: !!initialAuthCookie,
-        authCookieDetails: initialAuthCookie ? {
-          name: initialAuthCookie.name,
-          domain: initialAuthCookie.domain,
-          expires: initialAuthCookie.expires,
-          httpOnly: initialAuthCookie.httpOnly
-        } : null
-      });
-      
-      expect(initialAuthCookie, 'Initial auth cookie should exist').toBeDefined();
-      
-      // Navigate to different pages to test persistence
-      debugLog('Navigating to dashboard');
-      await page.goto('/dashboard');
-      await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
-      
-      // CI timing fix with debugging
-      if (process.env.CI) {
-        debugLog('Applying CI timing fix - 500ms delay after dashboard load');
-        await page.waitForTimeout(500);
-      }
-      
-      // Capture state after dashboard navigation
-      await captureAuthDebugSnapshot(page, context, 'after-dashboard-navigation');
-      
-      // Return to homepage
-      debugLog('Returning to homepage');
-      await page.goto('/');
-      await page.waitForLoadState(process.env.CI ? 'domcontentloaded' : 'networkidle');
-      
-      // CI timing fix with debugging
-      if (process.env.CI) {
-        debugLog('Applying CI timing fix - 500ms delay after return to homepage');
-        await page.waitForTimeout(500);
-      }
-      
-      // Capture final state
-      await captureAuthDebugSnapshot(page, context, 'after-return-to-homepage');
-      
-      // Verify auth cookie still exists after navigation
-      const finalCookies = await context.cookies();
-      const finalAuthCookie = finalCookies.find(cookie => cookie.name === 'next-auth.session-token');
-      
-      debugLog('Final authentication state', {
-        totalCookies: finalCookies.length,
-        hasAuthCookie: !!finalAuthCookie,
-        authCookieDetails: finalAuthCookie ? {
-          name: finalAuthCookie.name,
-          domain: finalAuthCookie.domain,
-          expires: finalAuthCookie.expires,
-          httpOnly: finalAuthCookie.httpOnly
-        } : null,
-        cookiePersistedAcrossNavigation: !!initialAuthCookie && !!finalAuthCookie,
-        cookieValueChanged: initialAuthCookie && finalAuthCookie ? 
-          initialAuthCookie.value !== finalAuthCookie.value : 'N/A'
-      });
-      
-      expect(finalAuthCookie, 'Auth cookie should persist across navigation').toBeDefined();
-      
-      testSuccess = true;
-      debugLog('✅ Authentication state maintained across navigation');
     } catch (error) {
-      debugLog('❌ Authentication persistence test failed', {
+      debugLog('❌ Authentication persistence test with CI sync failed', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined
       });
       throw error;
     } finally {
-      finalizeAuthDebug('Authentication Persistence - Navigation Test', testSuccess);
+      finalizeAuthDebug('Authentication Persistence - Navigation Test with CI Sync', testSuccess);
+    }
+  });
+
+  test('should maintain authenticated state with manual CI synchronization', async ({ page, context }) => {
+    test.skip(!shouldRunAuthTests, 'Skipping: mock auth not enabled');
+    
+    initializeAuthDebug('Authentication Persistence - Manual CI Sync');
+    let testSuccess = false;
+    
+    try {
+      // Test with manual step-by-step CI synchronization for detailed control
+      
+      // Start at homepage with CI synchronization
+      debugLog('Starting homepage navigation with CI sync');
+      const homepageSuccess = await navigateWithCISync(page, context, '/', 'initial-homepage', {
+        verifyAuth: true,
+        maxSyncAttempts: 3
+      });
+      expect(homepageSuccess, 'Homepage navigation with CI sync should succeed').toBeTruthy();
+      
+      // Wait for authentication to stabilize
+      const initialStable = await waitForAuthStabilization(page, context, 'initial-auth-check', {
+        maxAttempts: 3,
+        expectedAuthenticated: true
+      });
+      expect(initialStable, 'Initial authentication should be stable').toBeTruthy();
+      
+      // Navigate to dashboard with CI synchronization
+      debugLog('Navigating to dashboard with CI sync');
+      const dashboardSuccess = await navigateWithCISync(page, context, '/dashboard', 'dashboard-nav', {
+        verifyAuth: true,
+        maxSyncAttempts: 3
+      });
+      expect(dashboardSuccess, 'Dashboard navigation with CI sync should succeed').toBeTruthy();
+      
+      // Return to homepage with CI synchronization
+      debugLog('Returning to homepage with CI sync');
+      const returnHomeSuccess = await navigateWithCISync(page, context, '/', 'return-homepage', {
+        verifyAuth: true,
+        maxSyncAttempts: 3
+      });
+      expect(returnHomeSuccess, 'Return to homepage with CI sync should succeed').toBeTruthy();
+      
+      // Final verification
+      const finalCookies = await context.cookies();
+      const finalAuthCookie = finalCookies.find(cookie => cookie.name === 'next-auth.session-token');
+      expect(finalAuthCookie, 'Auth cookie should persist after CI-synchronized navigation').toBeDefined();
+      
+      testSuccess = true;
+      debugLog('✅ Authentication state maintained with manual CI synchronization');
+      
+    } catch (error) {
+      debugLog('❌ Manual CI sync authentication test failed', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      throw error;
+    } finally {
+      finalizeAuthDebug('Authentication Persistence - Manual CI Sync', testSuccess);
     }
   });
 });

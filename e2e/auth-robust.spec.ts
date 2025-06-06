@@ -1,6 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { isMockAuthEnabled } from './helpers/mockAuth';
-import { initializeAuthDebug, finalizeAuthDebug, captureAuthDebugSnapshot, debugLog } from './helpers/authDebug';
+import { 
+  initializeAuthDebug, 
+  finalizeAuthDebug, 
+  captureAuthDebugSnapshot, 
+  debugLog,
+  navigateWithCISync,
+  waitForAuthStabilization,
+  applyCISyncDelay,
+  forceSessionSync
+} from './helpers/authDebug';
 import { 
   verifyAuthViaAPI as verifyAuthViaAPIHelper, 
   verifyAuthViaCookies, 
@@ -102,54 +111,63 @@ test.describe('Robust Authentication State Management', () => {
       
       debugLog('✅ Initial authentication verified through multiple methods');
       
-      // Step 2: Navigate and verify persistence
-      debugLog('Testing authentication persistence through navigation');
-      await page.goto('/dashboard');
+      // Step 2: Navigate to dashboard with CI synchronization
+      debugLog('Testing authentication persistence through navigation with CI sync');
       
-      // Wait for page to be fully loaded by checking for specific content
-      await page.waitForSelector('body', { state: 'attached' });
+      const dashboardSuccess = await navigateWithCISync(page, context, '/dashboard', 'dashboard-persistence', {
+        verifyAuth: true,
+        maxSyncAttempts: 3
+      });
       
-      // Capture state after dashboard navigation
-      await captureAuthDebugSnapshot(page, context, 'after-dashboard-navigation');
+      if (!dashboardSuccess) {
+        throw new Error('Authentication failed to persist during navigation to dashboard');
+      }
       
-      // Re-verify authentication after navigation
+      // Additional verification using multiple methods
       const dashboardAuth = await verifyAuthViaAPIHelper(page);
-      expect(dashboardAuth.isAuthenticated, 'Authentication should persist on dashboard').toBeTruthy();
+      expect(dashboardAuth.isAuthenticated, 'API verification should confirm dashboard authentication').toBeTruthy();
       
-      // Verify session consistency
+      // Verify session consistency with CI synchronization
+      await forceSessionSync(page, context, 'dashboard-session-check');
       const dashboardSession = await page.request.get('/api/auth/session').then(r => r.json());
       expect(dashboardSession?.user?.id).toBe(initialSession?.user?.id);
       
-      debugLog('✅ Authentication persisted to dashboard');
+      debugLog('✅ Authentication persisted to dashboard with CI sync');
       
-      // Step 3: Return to homepage and verify again
-      await page.goto('/');
-      await page.waitForSelector('body', { state: 'attached' });
+      // Step 3: Return to homepage with CI synchronization
+      const homepageSuccess = await navigateWithCISync(page, context, '/', 'homepage-return', {
+        verifyAuth: true,
+        maxSyncAttempts: 3
+      });
       
-      // Capture final state
-      await captureAuthDebugSnapshot(page, context, 'final-homepage-return');
+      if (!homepageSuccess) {
+        throw new Error('Authentication failed to persist during return to homepage');
+      }
       
+      // Final comprehensive verification
       const finalAuth = await verifyAuthViaAPIHelper(page);
-      expect(finalAuth.isAuthenticated, 'Authentication should persist after returning home').toBeTruthy();
+      expect(finalAuth.isAuthenticated, 'Authentication should persist after CI-synchronized return home').toBeTruthy();
+      
+      // Wait for authentication to stabilize and verify
+      const finalStable = await waitForAuthStabilization(page, context, 'final-verification', {
+        maxAttempts: 3,
+        expectedAuthenticated: true
+      });
+      expect(finalStable, 'Final authentication state should be stable').toBeTruthy();
       
       // Final cookie check
       const finalCookies = await context.cookies();
       const finalAuthCookie = finalCookies.find(cookie => cookie.name === 'next-auth.session-token');
       expect(finalAuthCookie).toBeDefined();
       
-      // Compare initial and final cookie values
-      const initialAuthCookie = results.find(r => r.method === 'cookie')?.details;
-      if (initialAuthCookie && finalAuthCookie) {
-        debugLog('Cookie consistency check', {
-          initialCookieExists: true,
-          finalCookieExists: true,
-          valuesMatch: 'values not compared for security',
-          expiryMatch: initialAuthCookie.expires === new Date(finalAuthCookie.expires * 1000).toISOString()
-        });
-      }
+      debugLog('Cookie persistence verification', {
+        initialCookieExists: !!(results.find(r => r.method === 'cookie')?.isAuthenticated),
+        finalCookieExists: !!finalAuthCookie,
+        authenticationStabilized: finalStable
+      });
       
       testSuccess = true;
-      debugLog('✅ Authentication maintained across multiple navigations');
+      debugLog('✅ Authentication maintained across multiple navigations with CI synchronization');
       
     } catch (error) {
       debugLog('❌ Multi-method authentication verification failed', {
@@ -165,50 +183,92 @@ test.describe('Robust Authentication State Management', () => {
   test('should handle authentication state with explicit checkpoints', async ({ page, context }) => {
     test.skip(!shouldRunAuthTests, 'Skipping: mock auth not enabled');
     
-    // Define checkpoints for verification
-    const checkpoints = [
-      { url: '/', name: 'Homepage' },
-      { url: '/dashboard', name: 'Dashboard' },
-      { url: '/', name: 'Homepage (return)' }
-    ];
+    initializeAuthDebug('Robust Auth - Explicit Checkpoints with CI Sync');
+    let testSuccess = false;
     
-    let previousSession = null;
-    
-    for (const checkpoint of checkpoints) {
-      await page.goto(checkpoint.url);
-      await page.waitForLoadState('domcontentloaded');
+    try {
+      // Define checkpoints for verification
+      const checkpoints = [
+        { url: '/', name: 'Homepage' },
+        { url: '/dashboard', name: 'Dashboard' },
+        { url: '/', name: 'Homepage (return)' }
+      ];
       
-      // Checkpoint verification
-      console.log(`Verifying authentication at ${checkpoint.name}...`);
+      let previousSession = null;
       
-      // 1. Verify cookies exist
-      const cookies = await context.cookies();
-      const hasAuthCookie = cookies.some(c => c.name === 'next-auth.session-token');
-      expect(hasAuthCookie, `Should have auth cookie at ${checkpoint.name}`).toBe(true);
-      
-      // 2. Verify API recognizes authentication
-      const response = await page.request.get('/api/auth/session');
-      expect(response.ok(), `Session API should respond successfully at ${checkpoint.name}`).toBe(true);
-      
-      const session = await response.json();
-      expect(session?.user, `Should have user session at ${checkpoint.name}`).toBeDefined();
-      
-      // 3. Verify session consistency
-      if (previousSession) {
-        expect(session.user.id).toBe(previousSession.user.id);
-        expect(session.user.email).toBe(previousSession.user.email);
+      for (let i = 0; i < checkpoints.length; i++) {
+        const checkpoint = checkpoints[i];
+        const stepName = `checkpoint-${i + 1}-${checkpoint.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+        
+        debugLog(`Processing checkpoint ${i + 1}/${checkpoints.length}: ${checkpoint.name} (${checkpoint.url})`);
+        
+        // Navigate with CI synchronization
+        const navSuccess = await navigateWithCISync(page, context, checkpoint.url, stepName, {
+          verifyAuth: true,
+          maxSyncAttempts: 3
+        });
+        
+        expect(navSuccess, `Navigation to ${checkpoint.name} should succeed with CI sync`).toBeTruthy();
+        
+        // Wait for authentication to stabilize at this checkpoint
+        const stable = await waitForAuthStabilization(page, context, `${stepName}-stable`, {
+          maxAttempts: 3,
+          expectedAuthenticated: true
+        });
+        expect(stable, `Authentication should be stable at ${checkpoint.name}`).toBeTruthy();
+        
+        // Comprehensive verification using multiple methods
+        const { isAuthenticated, results } = await verifyAuthentication(page, context);
+        expect(isAuthenticated, `Authentication should be verified at ${checkpoint.name}`).toBeTruthy();
+        
+        debugLog(`Checkpoint verification results for ${checkpoint.name}`, {
+          overall: isAuthenticated,
+          methods: results.map(r => ({ method: r.method, authenticated: r.isAuthenticated }))
+        });
+        
+        // Session consistency check with CI synchronization
+        await forceSessionSync(page, context, `${stepName}-session-sync`);
+        const response = await page.request.get('/api/auth/session');
+        expect(response.ok(), `Session API should respond successfully at ${checkpoint.name}`).toBe(true);
+        
+        const session = await response.json();
+        expect(session?.user, `Should have user session at ${checkpoint.name}`).toBeDefined();
+        
+        // Verify session consistency across checkpoints
+        if (previousSession) {
+          expect(session.user.id).toBe(previousSession.user.id);
+          expect(session.user.email).toBe(previousSession.user.email);
+          debugLog(`Session consistency maintained from previous checkpoint`);
+        }
+        previousSession = session;
+        
+        // Protected content verification for dashboard
+        if (checkpoint.url === '/dashboard') {
+          debugLog('Testing protected API access from dashboard');
+          
+          // Apply CI delay before protected API test
+          await applyCISyncDelay(page, `${stepName}-protected-api-test`, 1, 300);
+          
+          const protectedResponse = await page.request.get('/api/summary?startDate=2024-01-01&endDate=2024-12-31');
+          expect(protectedResponse.status()).not.toBe(401);
+          
+          debugLog('Protected API access verified from dashboard');
+        }
+        
+        debugLog(`✅ Authentication verified at ${checkpoint.name} with CI synchronization`);
       }
-      previousSession = session;
       
-      // 4. Optional: Verify protected content is accessible
-      if (checkpoint.url === '/dashboard') {
-        // Try to access a protected API endpoint
-        const protectedResponse = await page.request.get('/api/summary?startDate=2024-01-01&endDate=2024-12-31');
-        // Should not get 401 Unauthorized
-        expect(protectedResponse.status()).not.toBe(401);
-      }
+      testSuccess = true;
+      debugLog('✅ All authentication checkpoints passed with CI synchronization');
       
-      console.log(`✅ Authentication verified at ${checkpoint.name}`);
+    } catch (error) {
+      debugLog('❌ Explicit checkpoints test with CI sync failed', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      throw error;
+    } finally {
+      finalizeAuthDebug('Robust Auth - Explicit Checkpoints with CI Sync', testSuccess);
     }
   });
   

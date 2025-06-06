@@ -327,3 +327,228 @@ export function finalizeAuthDebug(testName: string, success: boolean): void {
     });
   }
 }
+
+/**
+ * CI-specific cookie synchronization utilities
+ */
+
+/**
+ * Apply CI-specific delay with progressive timing based on attempt number
+ */
+export async function applyCISyncDelay(
+  page: Page,
+  step: string,
+  attempt: number = 1,
+  baseDelay: number = 500
+): Promise<void> {
+  if (!process.env.CI) {
+    debugLog(`Skipping CI sync delay for ${step} - not in CI environment`);
+    return;
+  }
+
+  // Progressive delay: base * attempt with maximum cap
+  const delay = Math.min(baseDelay * attempt, 2000);
+  
+  debugLog(`Applying CI sync delay for ${step}`, {
+    attempt,
+    baseDelay,
+    actualDelay: delay,
+    reason: 'CI cookie synchronization'
+  });
+  
+  await page.waitForTimeout(delay);
+}
+
+/**
+ * Force session synchronization by triggering storage state update
+ */
+export async function forceSessionSync(
+  page: Page,
+  context: BrowserContext,
+  step: string
+): Promise<void> {
+  if (!process.env.CI) {
+    debugLog(`Skipping session sync for ${step} - not in CI environment`);
+    return;
+  }
+
+  debugLog(`Forcing session synchronization for ${step}`);
+  
+  try {
+    // Force storage state synchronization
+    const storageState = await context.storageState();
+    debugLog('Storage state synchronized', {
+      cookieCount: storageState.cookies?.length || 0,
+      originCount: storageState.origins?.length || 0
+    });
+    
+    // Force a lightweight API call to ensure session cookie is sent
+    await page.request.head('/api/auth/session');
+    debugLog('Session API head request completed for sync');
+    
+  } catch (error) {
+    debugLog('Session sync encountered error (non-critical)', {
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+}
+
+/**
+ * Wait for authentication state to stabilize with CI-specific logic
+ */
+export async function waitForAuthStabilization(
+  page: Page,
+  context: BrowserContext,
+  step: string,
+  options: {
+    maxAttempts?: number;
+    baseDelay?: number;
+    expectedAuthenticated?: boolean;
+  } = {}
+): Promise<boolean> {
+  const { maxAttempts = 3, baseDelay = 500, expectedAuthenticated = true } = options;
+  
+  debugLog(`Waiting for authentication stabilization - ${step}`, {
+    maxAttempts,
+    baseDelay,
+    expectedAuthenticated,
+    isCI: !!process.env.CI
+  });
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    // Apply CI-specific delay
+    await applyCISyncDelay(page, `${step}-attempt-${attempt}`, attempt, baseDelay);
+    
+    // Force session synchronization
+    await forceSessionSync(page, context, `${step}-sync-${attempt}`);
+    
+    // Check authentication state
+    const cookies = await context.cookies();
+    const authCookie = cookies.find(c => c.name === 'next-auth.session-token');
+    const hasAuthCookie = !!authCookie;
+    
+    debugLog(`Authentication stabilization check - attempt ${attempt}`, {
+      hasAuthCookie,
+      expectedAuthenticated,
+      stabilized: hasAuthCookie === expectedAuthenticated,
+      cookieExpiry: authCookie?.expires || 'none'
+    });
+    
+    if (hasAuthCookie === expectedAuthenticated) {
+      debugLog(`Authentication stabilized on attempt ${attempt} for ${step}`);
+      return true;
+    }
+    
+    if (attempt < maxAttempts) {
+      debugLog(`Authentication not stabilized, will retry (attempt ${attempt + 1}/${maxAttempts})`);
+    }
+  }
+  
+  debugLog(`Authentication failed to stabilize after ${maxAttempts} attempts for ${step}`);
+  return false;
+}
+
+/**
+ * Perform navigation with comprehensive CI synchronization
+ */
+export async function navigateWithCISync(
+  page: Page,
+  context: BrowserContext,
+  url: string,
+  step: string,
+  options: {
+    waitStrategy?: 'domcontentloaded' | 'networkidle' | 'load';
+    verifyAuth?: boolean;
+    maxSyncAttempts?: number;
+  } = {}
+): Promise<boolean> {
+  const { 
+    waitStrategy = 'domcontentloaded', 
+    verifyAuth = true, 
+    maxSyncAttempts = 3 
+  } = options;
+  
+  debugLog(`Starting CI-synchronized navigation to ${url}`, { step, waitStrategy, verifyAuth });
+  
+  // Capture state before navigation
+  const beforeSnapshot = await captureAuthDebugSnapshot(page, context, `before-nav-${step}`);
+  
+  // Navigate
+  const navStart = Date.now();
+  await page.goto(url);
+  await page.waitForLoadState(waitStrategy);
+  const navDuration = Date.now() - navStart;
+  
+  debugLog(`Navigation completed in ${navDuration}ms`);
+  
+  // Wait for authentication to stabilize after navigation
+  const stabilized = await waitForAuthStabilization(
+    page, 
+    context, 
+    `post-nav-${step}`,
+    { maxAttempts: maxSyncAttempts, expectedAuthenticated: verifyAuth }
+  );
+  
+  // Capture state after navigation
+  const afterSnapshot = await captureAuthDebugSnapshot(page, context, `after-nav-${step}`);
+  
+  // Compare states
+  const comparison = compareAuthSnapshots(beforeSnapshot, afterSnapshot);
+  if (comparison.significantChanges) {
+    debugLog(`Authentication state changes detected during navigation to ${url}`, comparison);
+  }
+  
+  return stabilized;
+}
+
+/**
+ * Enhanced authentication persistence test with CI synchronization
+ */
+export async function testAuthPersistenceWithCISync(
+  page: Page,
+  context: BrowserContext,
+  testName: string,
+  navigationSequence: string[]
+): Promise<boolean> {
+  initializeAuthDebug(`CI Auth Persistence - ${testName}`);
+  
+  try {
+    debugLog(`Starting authentication persistence test with ${navigationSequence.length} navigation steps`);
+    
+    // Initial authentication verification
+    const initialStabilized = await waitForAuthStabilization(page, context, 'initial-check');
+    if (!initialStabilized) {
+      debugLog('❌ Initial authentication state not stable');
+      return false;
+    }
+    
+    // Test each navigation step
+    for (let i = 0; i < navigationSequence.length; i++) {
+      const url = navigationSequence[i];
+      const step = `nav-${i + 1}-${url.replace(/[^a-zA-Z0-9]/g, '-')}`;
+      
+      debugLog(`Testing navigation ${i + 1}/${navigationSequence.length}: ${url}`);
+      
+      const navSuccess = await navigateWithCISync(page, context, url, step, {
+        verifyAuth: true,
+        maxSyncAttempts: 3
+      });
+      
+      if (!navSuccess) {
+        debugLog(`❌ Authentication failed to persist during navigation to ${url}`);
+        return false;
+      }
+    }
+    
+    debugLog('✅ Authentication persisted through all navigation steps');
+    return true;
+    
+  } catch (error) {
+    debugLog('❌ Authentication persistence test failed with error', {
+      error: error instanceof Error ? error.message : String(error)
+    });
+    return false;
+  } finally {
+    finalizeAuthDebug(`CI Auth Persistence - ${testName}`, true);
+  }
+}
