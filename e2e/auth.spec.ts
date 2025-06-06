@@ -42,6 +42,8 @@ import {
  * different CI environments while maintaining optimal execution speed.
  * 
  * Reference: e2e/helpers/adaptiveTiming.ts and e2e/helpers/testSetup.ts
+ * 
+ * CI Validation: These tests are being monitored for stability during CI validation.
  */
 
 // Check if auth tests should run

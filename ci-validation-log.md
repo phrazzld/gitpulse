@@ -27,9 +27,10 @@ Execute 3+ consecutive CI runs to verify:
 
 ### Run 2: Stability Check  
 - **Trigger**: Minor documentation update
-- **Commit**: TBD
-- **Status**: Pending
+- **Commit**: 0a291e3
+- **Status**: In Progress
 - **Focus**: Consistency across consecutive runs
+- **Notes**: Added E2E test command to documentation
 
 ### Run 3: Performance Validation
 - **Trigger**: Small comment addition
