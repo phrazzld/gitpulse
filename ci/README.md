@@ -48,3 +48,12 @@ When a CI failure occurs:
 3. Create a post-mortem document using the template
 4. Implement fixes and preventive measures
 5. Update documentation if necessary
+
+## CI Stability Monitoring
+
+Regular monitoring of CI stability helps ensure consistent reliability across deployments. Key metrics to track include:
+
+- Build success rates across different workflows
+- Test execution times and timeout occurrences  
+- Retry logic effectiveness for flaky tests
+- Environment-specific failure patterns
