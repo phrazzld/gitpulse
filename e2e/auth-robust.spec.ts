@@ -11,6 +11,10 @@ import {
   forceSessionSync
 } from './helpers/authDebug';
 import { 
+  handleAuthenticationFailure,
+  assertAuthenticatedWithEnhancedReporting
+} from './helpers/authErrorReporting';
+import { 
   verifyAuthViaAPI as verifyAuthViaAPIHelper, 
   verifyAuthViaCookies, 
   verifyAuthentication 
@@ -120,17 +124,24 @@ test.describe('Robust Authentication State Management', () => {
       });
       
       if (!dashboardSuccess) {
-        throw new Error('Authentication failed to persist during navigation to dashboard');
+        const error = new Error('Authentication failed to persist during navigation to dashboard');
+        await handleAuthenticationFailure(page, context, 'Robust Auth - Multiple Methods Verification', error, 'dashboard-navigation');
       }
       
       // Additional verification using multiple methods
       const dashboardAuth = await verifyAuthViaAPIHelper(page);
-      expect(dashboardAuth.isAuthenticated, 'API verification should confirm dashboard authentication').toBeTruthy();
+      if (!dashboardAuth.isAuthenticated) {
+        const error = new Error('API verification failed to confirm dashboard authentication');
+        await handleAuthenticationFailure(page, context, 'Robust Auth - Multiple Methods Verification', error, 'dashboard-api-verification');
+      }
       
       // Verify session consistency with CI synchronization
       await forceSessionSync(page, context, 'dashboard-session-check');
       const dashboardSession = await page.request.get('/api/auth/session').then(r => r.json());
-      expect(dashboardSession?.user?.id).toBe(initialSession?.user?.id);
+      if (dashboardSession?.user?.id !== initialSession?.user?.id) {
+        const error = new Error(`Session user ID mismatch: expected ${initialSession?.user?.id}, got ${dashboardSession?.user?.id}`);
+        await handleAuthenticationFailure(page, context, 'Robust Auth - Multiple Methods Verification', error, 'dashboard-session-consistency');
+      }
       
       debugLog('✅ Authentication persisted to dashboard with CI sync');
       
@@ -141,28 +152,39 @@ test.describe('Robust Authentication State Management', () => {
       });
       
       if (!homepageSuccess) {
-        throw new Error('Authentication failed to persist during return to homepage');
+        const error = new Error('Authentication failed to persist during return to homepage');
+        await handleAuthenticationFailure(page, context, 'Robust Auth - Multiple Methods Verification', error, 'homepage-return');
       }
       
       // Final comprehensive verification
       const finalAuth = await verifyAuthViaAPIHelper(page);
-      expect(finalAuth.isAuthenticated, 'Authentication should persist after CI-synchronized return home').toBeTruthy();
+      if (!finalAuth.isAuthenticated) {
+        const error = new Error('Authentication failed to persist after CI-synchronized return home');
+        await handleAuthenticationFailure(page, context, 'Robust Auth - Multiple Methods Verification', error, 'final-auth-verification');
+      }
       
       // Wait for authentication to stabilize and verify
       const finalStable = await waitForAuthStabilization(page, context, 'final-verification', {
         maxAttempts: 3,
         expectedAuthenticated: true
       });
-      expect(finalStable, 'Final authentication state should be stable').toBeTruthy();
+      if (!finalStable) {
+        const error = new Error('Final authentication state failed to stabilize');
+        await handleAuthenticationFailure(page, context, 'Robust Auth - Multiple Methods Verification', error, 'final-stabilization');
+      }
       
-      // Final cookie check
-      const finalCookies = await context.cookies();
-      const finalAuthCookie = finalCookies.find(cookie => cookie.name === 'next-auth.session-token');
-      expect(finalAuthCookie).toBeDefined();
+      // Final cookie check using enhanced reporting
+      await assertAuthenticatedWithEnhancedReporting(
+        page, 
+        context, 
+        'Robust Auth - Multiple Methods Verification', 
+        'final-cookie-check',
+        'Final authentication cookie should persist'
+      );
       
       debugLog('Cookie persistence verification', {
         initialCookieExists: !!(results.find(r => r.method === 'cookie')?.isAuthenticated),
-        finalCookieExists: !!finalAuthCookie,
+        finalAuthenticationVerified: true,
         authenticationStabilized: finalStable
       });
       
@@ -170,10 +192,9 @@ test.describe('Robust Authentication State Management', () => {
       debugLog('✅ Authentication maintained across multiple navigations with CI synchronization');
       
     } catch (error) {
-      debugLog('❌ Multi-method authentication verification failed', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
+      if (error instanceof Error) {
+        await handleAuthenticationFailure(page, context, 'Robust Auth - Multiple Methods Verification', error, 'multi-method-verification');
+      }
       throw error;
     } finally {
       finalizeAuthDebug('Robust Auth - Multiple Methods Verification', testSuccess);
@@ -208,18 +229,27 @@ test.describe('Robust Authentication State Management', () => {
           maxSyncAttempts: 3
         });
         
-        expect(navSuccess, `Navigation to ${checkpoint.name} should succeed with CI sync`).toBeTruthy();
+        if (!navSuccess) {
+          const error = new Error(`Navigation to ${checkpoint.name} failed with CI sync`);
+          await handleAuthenticationFailure(page, context, 'Robust Auth - Explicit Checkpoints with CI Sync', error, `${stepName}-navigation`);
+        }
         
         // Wait for authentication to stabilize at this checkpoint
         const stable = await waitForAuthStabilization(page, context, `${stepName}-stable`, {
           maxAttempts: 3,
           expectedAuthenticated: true
         });
-        expect(stable, `Authentication should be stable at ${checkpoint.name}`).toBeTruthy();
+        if (!stable) {
+          const error = new Error(`Authentication failed to stabilize at ${checkpoint.name}`);
+          await handleAuthenticationFailure(page, context, 'Robust Auth - Explicit Checkpoints with CI Sync', error, `${stepName}-stabilization`);
+        }
         
         // Comprehensive verification using multiple methods
         const { isAuthenticated, results } = await verifyAuthentication(page, context);
-        expect(isAuthenticated, `Authentication should be verified at ${checkpoint.name}`).toBeTruthy();
+        if (!isAuthenticated) {
+          const error = new Error(`Authentication verification failed at ${checkpoint.name}`);
+          await handleAuthenticationFailure(page, context, 'Robust Auth - Explicit Checkpoints with CI Sync', error, `${stepName}-verification`);
+        }
         
         debugLog(`Checkpoint verification results for ${checkpoint.name}`, {
           overall: isAuthenticated,
@@ -262,10 +292,9 @@ test.describe('Robust Authentication State Management', () => {
       debugLog('✅ All authentication checkpoints passed with CI synchronization');
       
     } catch (error) {
-      debugLog('❌ Explicit checkpoints test with CI sync failed', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
+      if (error instanceof Error) {
+        await handleAuthenticationFailure(page, context, 'Robust Auth - Explicit Checkpoints with CI Sync', error, 'explicit-checkpoints');
+      }
       throw error;
     } finally {
       finalizeAuthDebug('Robust Auth - Explicit Checkpoints with CI Sync', testSuccess);

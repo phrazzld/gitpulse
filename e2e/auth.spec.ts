@@ -9,6 +9,10 @@ import {
   waitForAuthStabilization,
   testAuthPersistenceWithCISync
 } from './helpers/authDebug';
+import { 
+  handleAuthenticationFailure,
+  assertAuthenticatedWithEnhancedReporting
+} from './helpers/authErrorReporting';
 
 /**
  * Comprehensive Authentication Flow Tests
@@ -131,16 +135,16 @@ test.describe('Authentication Persistence', () => {
       );
       
       if (!testSuccess) {
-        throw new Error('Authentication persistence test failed using CI synchronization utilities');
+        const error = new Error('Authentication persistence test failed using CI synchronization utilities');
+        await handleAuthenticationFailure(page, context, 'Authentication Persistence - Navigation Test', error, 'ci-sync-navigation');
       }
       
       debugLog('✅ Authentication state maintained across navigation with CI synchronization');
       
     } catch (error) {
-      debugLog('❌ Authentication persistence test with CI sync failed', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
+      if (error instanceof Error) {
+        await handleAuthenticationFailure(page, context, 'Authentication Persistence - Navigation Test', error, 'navigation-test');
+      }
       throw error;
     } finally {
       finalizeAuthDebug('Authentication Persistence - Navigation Test with CI Sync', testSuccess);
@@ -162,14 +166,20 @@ test.describe('Authentication Persistence', () => {
         verifyAuth: true,
         maxSyncAttempts: 3
       });
-      expect(homepageSuccess, 'Homepage navigation with CI sync should succeed').toBeTruthy();
+      if (!homepageSuccess) {
+        const error = new Error('Homepage navigation with CI sync failed');
+        await handleAuthenticationFailure(page, context, 'Authentication Persistence - Manual CI Sync', error, 'homepage-navigation');
+      }
       
       // Wait for authentication to stabilize
       const initialStable = await waitForAuthStabilization(page, context, 'initial-auth-check', {
         maxAttempts: 3,
         expectedAuthenticated: true
       });
-      expect(initialStable, 'Initial authentication should be stable').toBeTruthy();
+      if (!initialStable) {
+        const error = new Error('Initial authentication failed to stabilize');
+        await handleAuthenticationFailure(page, context, 'Authentication Persistence - Manual CI Sync', error, 'initial-stabilization');
+      }
       
       // Navigate to dashboard with CI synchronization
       debugLog('Navigating to dashboard with CI sync');
@@ -177,7 +187,10 @@ test.describe('Authentication Persistence', () => {
         verifyAuth: true,
         maxSyncAttempts: 3
       });
-      expect(dashboardSuccess, 'Dashboard navigation with CI sync should succeed').toBeTruthy();
+      if (!dashboardSuccess) {
+        const error = new Error('Dashboard navigation with CI sync failed');
+        await handleAuthenticationFailure(page, context, 'Authentication Persistence - Manual CI Sync', error, 'dashboard-navigation');
+      }
       
       // Return to homepage with CI synchronization
       debugLog('Returning to homepage with CI sync');
@@ -185,21 +198,27 @@ test.describe('Authentication Persistence', () => {
         verifyAuth: true,
         maxSyncAttempts: 3
       });
-      expect(returnHomeSuccess, 'Return to homepage with CI sync should succeed').toBeTruthy();
+      if (!returnHomeSuccess) {
+        const error = new Error('Return to homepage with CI sync failed');
+        await handleAuthenticationFailure(page, context, 'Authentication Persistence - Manual CI Sync', error, 'homepage-return');
+      }
       
       // Final verification
-      const finalCookies = await context.cookies();
-      const finalAuthCookie = finalCookies.find(cookie => cookie.name === 'next-auth.session-token');
-      expect(finalAuthCookie, 'Auth cookie should persist after CI-synchronized navigation').toBeDefined();
+      await assertAuthenticatedWithEnhancedReporting(
+        page, 
+        context, 
+        'Authentication Persistence - Manual CI Sync', 
+        'final-verification',
+        'Auth cookie should persist after CI-synchronized navigation'
+      );
       
       testSuccess = true;
       debugLog('✅ Authentication state maintained with manual CI synchronization');
       
     } catch (error) {
-      debugLog('❌ Manual CI sync authentication test failed', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
+      if (error instanceof Error) {
+        await handleAuthenticationFailure(page, context, 'Authentication Persistence - Manual CI Sync', error, 'manual-ci-sync');
+      }
       throw error;
     } finally {
       finalizeAuthDebug('Authentication Persistence - Manual CI Sync', testSuccess);
