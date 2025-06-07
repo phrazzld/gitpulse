@@ -657,14 +657,14 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
 
 ### High Priority - Validation and Testing
 
-- [ ] **Test authentication fix in isolation**
+- [~] **Test authentication fix in isolation**
   - Run single authentication test in main CI workflow after configuration changes
   - Verify session API returns proper user data instead of empty object
   - Confirm session tokens are not being cleared with Max-Age=0
   - Validate authentication state persistence across test navigation
   - Expected time: 15 minutes
 
-- [ ] **Validate all CI workflows after authentication fixes**
+- [~] **Validate all CI workflows after authentication fixes**
   - Ensure main build-and-test workflow E2E tests pass completely
   - Verify no regression in dedicated E2E workflow functionality
   - Confirm authentication health monitor continues working
