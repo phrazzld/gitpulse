@@ -18,6 +18,60 @@ const TIMEOUT = parseInt(process.argv[3]) || 30000;
 const AUTH_CONTEXT = process.argv[4] || process.env.AUTH_CONTEXT || 'auto';
 const STORAGE_STATE_PATH = 'e2e/storageState.json';
 
+/**
+ * Pure function to detect authentication validation context
+ * @param {string} requestedContext - Explicitly requested context ('auto' for auto-detection)
+ * @param {object} dependencies - Injectable dependencies for testing
+ * @param {function} dependencies.fileExists - Function to check if file exists (default: fs.existsSync)
+ * @param {object} dependencies.env - Environment variables object (default: process.env)
+ * @param {string} dependencies.storageStatePath - Path to storage state file
+ * @returns {string} Detected context ('build', 'e2e', 'monitoring', 'local')
+ */
+function detectAuthContext(requestedContext, dependencies = {}) {
+  const {
+    fileExists = fs.existsSync,
+    env = process.env,
+    storageStatePath = STORAGE_STATE_PATH
+  } = dependencies;
+
+  // If context is explicitly specified, use it
+  if (requestedContext && requestedContext !== 'auto') {
+    return requestedContext;
+  }
+
+  // Auto-detect context based on environment and available files
+  const hasStorageState = fileExists(storageStatePath);
+  const isCI = env.CI === 'true';
+  const authContextEnv = env.AUTH_CONTEXT;
+
+  // Check for E2E context indicators (highest priority after explicit)
+  if (hasStorageState) {
+    return 'e2e';
+  }
+
+  // Check for explicit context from environment (high priority)
+  if (authContextEnv === 'e2e') {
+    return 'e2e';
+  }
+
+  if (authContextEnv === 'monitoring') {
+    return 'monitoring';
+  }
+
+  // Check for build context indicators (CI environment)
+  if (isCI && (!hasStorageState)) {
+    return 'build';
+  }
+
+  // Default to build context for CI environments
+  if (isCI) {
+    return 'build';
+  }
+
+  // Default to local context for development
+  return 'local';
+}
+
 class AuthTokenValidator {
   constructor(baseUrl, timeout, authContext = 'auto') {
     this.baseUrl = baseUrl;
@@ -37,50 +91,37 @@ class AuthTokenValidator {
   }
 
   detectContext(requestedContext) {
-    // If context is explicitly specified, use it
+    const context = detectAuthContext(requestedContext);
+    
+    // Add logging for context detection reasoning
     if (requestedContext && requestedContext !== 'auto') {
       this.log(`Using explicitly specified context: ${requestedContext}`, 'info');
-      return requestedContext;
+    } else {
+      // Log the auto-detection reasoning
+      const hasStorageState = fs.existsSync(STORAGE_STATE_PATH);
+      const isCI = process.env.CI === 'true';
+      const authContextEnv = process.env.AUTH_CONTEXT;
+      
+      if (context === 'e2e') {
+        if (hasStorageState) {
+          this.log('Detected E2E context: storage state file exists', 'info');
+        } else if (authContextEnv === 'e2e') {
+          this.log('Detected E2E context: AUTH_CONTEXT environment variable', 'info');
+        }
+      } else if (context === 'build') {
+        if (isCI && !hasStorageState) {
+          this.log('Detected build context: CI environment without storage state', 'info');
+        } else if (isCI) {
+          this.log('Defaulting to build context: CI environment detected', 'info');
+        }
+      } else if (context === 'monitoring') {
+        this.log('Detected monitoring context: AUTH_CONTEXT environment variable', 'info');
+      } else if (context === 'local') {
+        this.log('Defaulting to local context: development environment', 'info');
+      }
     }
-
-    // Auto-detect context based on environment and available files
-    const hasStorageState = fs.existsSync(STORAGE_STATE_PATH);
-    const isCI = process.env.CI === 'true';
-    const authContextEnv = process.env.AUTH_CONTEXT;
-
-    // Check for E2E context indicators
-    if (hasStorageState) {
-      this.log('Detected E2E context: storage state file exists', 'info');
-      return 'e2e';
-    }
-
-    // Check for explicit context from environment
-    if (authContextEnv === 'e2e') {
-      this.log('Detected E2E context: AUTH_CONTEXT environment variable', 'info');
-      return 'e2e';
-    }
-
-    // Check for build context indicators
-    if (isCI && (!hasStorageState)) {
-      this.log('Detected build context: CI environment without storage state', 'info');
-      return 'build';
-    }
-
-    // Check for monitoring context
-    if (authContextEnv === 'monitoring') {
-      this.log('Detected monitoring context: AUTH_CONTEXT environment variable', 'info');
-      return 'monitoring';
-    }
-
-    // Default to build context for CI environments
-    if (isCI) {
-      this.log('Defaulting to build context: CI environment detected', 'info');
-      return 'build';
-    }
-
-    // Default to local context for development
-    this.log('Defaulting to local context: development environment', 'info');
-    return 'local';
+    
+    return context;
   }
 
   log(message, type = 'info') {
@@ -648,4 +689,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { AuthTokenValidator };
+module.exports = { AuthTokenValidator, detectAuthContext };
