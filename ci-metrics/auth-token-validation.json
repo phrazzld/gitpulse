@@ -1,12 +1,12 @@
 {
-  "timestamp": "2025-06-07T19:55:14.888Z",
+  "timestamp": "2025-06-07T22:43:10.482Z",
   "baseUrl": "http://localhost:3000",
   "authContext": "build",
   "tests": [
     {
       "name": "Environment Variables Validation",
       "status": "passed",
-      "startTime": 1749326114889,
+      "startTime": 1749336190483,
       "error": null,
       "details": {
         "envStatus": {
@@ -28,7 +28,7 @@
           },
           "GITHUB_OAUTH_CLIENT_ID": {
             "present": true,
-            "value": "mock-client-id"
+            "value": "mock-id"
           },
           "GITHUB_OAUTH_CLIENT_SECRET": {
             "present": true,
@@ -44,28 +44,28 @@
           "GITHUB_OAUTH_CLIENT_SECRET"
         ]
       },
-      "endTime": 1749326114889,
+      "endTime": 1749336190483,
       "duration": 0
     },
     {
       "name": "NextAuth Configuration Validation",
       "status": "passed",
-      "startTime": 1749326114889,
+      "startTime": 1749336190483,
       "error": null,
       "details": {
         "configPath": "/Users/phaedrus/Development/gitpulse/src/app/api/auth/[...nextauth]/route.ts",
         "hasGitHubProvider": true,
-        "hasSecret": "ci-test-secret-key",
+        "hasSecret": "test-secret",
         "hasUrl": "http://localhost:3000",
         "configSize": 2072
       },
-      "endTime": 1749326114889,
-      "duration": 0
+      "endTime": 1749336190484,
+      "duration": 1
     },
     {
       "name": "Authentication Endpoints Validation",
       "status": "passed",
-      "startTime": 1749326114889,
+      "startTime": 1749336190484,
       "error": null,
       "details": {
         "endpointResults": {
@@ -95,8 +95,8 @@
           "/api/auth/csrf"
         ]
       },
-      "endTime": 1749326114960,
-      "duration": 71
+      "endTime": 1749336190777,
+      "duration": 293
     }
   ],
   "summary": {

@@ -1,0 +1,83 @@
+{
+  "timestamp": "2025-06-07T22:58:42.074Z",
+  "runId": "local",
+  "branch": "unknown",
+  "commit": "unknown",
+  "workflow": "manual",
+  "authTests": {
+    "passed": 0,
+    "failed": 0,
+    "skipped": 1,
+    "total": 1,
+    "duration": 8560,
+    "passRate": 0
+  },
+  "authValidation": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "duration": 294,
+    "passRate": 100,
+    "context": "build",
+    "contextAccuracy": 0,
+    "validationDetails": [
+      {
+        "name": "Environment Variables Validation",
+        "status": "passed",
+        "duration": 0,
+        "error": null,
+        "hasDetails": true
+      },
+      {
+        "name": "NextAuth Configuration Validation",
+        "status": "passed",
+        "duration": 1,
+        "error": null,
+        "hasDetails": true
+      },
+      {
+        "name": "Authentication Endpoints Validation",
+        "status": "passed",
+        "duration": 293,
+        "error": null,
+        "hasDetails": true
+      }
+    ]
+  },
+  "environment": {
+    "nodeVersion": "v22.15.0",
+    "os": "darwin",
+    "isCI": false,
+    "runner": "unknown"
+  },
+  "errors": [
+    {
+      "type": "test_execution_failed",
+      "message": "Command failed: npx playwright test e2e/auth.spec.ts --reporter=json",
+      "stderr": ""
+    }
+  ],
+  "warnings": [
+    {
+      "type": "context_detection_mismatch",
+      "message": "Context detection mismatch: expected 'local', got 'build'",
+      "expected": "local",
+      "actual": "build"
+    }
+  ],
+  "recommendations": [
+    {
+      "type": "low_pass_rate",
+      "severity": "high",
+      "message": "Authentication test pass rate is 0.0% (below 90% threshold)",
+      "action": "Review authentication troubleshooting guide and investigate failing tests"
+    },
+    {
+      "type": "execution_errors",
+      "severity": "critical",
+      "message": "1 error(s) occurred during monitoring",
+      "action": "Review error details and check CI environment configuration"
+    }
+  ],
+  "healthScore": 70
+}
