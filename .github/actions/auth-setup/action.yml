@@ -1,0 +1,160 @@
+name: 'Authentication Setup'
+description: 'Standardized authentication setup for CI workflows'
+author: 'GitPulse Team'
+
+inputs:
+  auth_context:
+    description: 'Authentication context (e2e, monitoring, ci)'
+    required: true
+  server_timeout:
+    description: 'Server startup timeout in milliseconds'
+    required: false
+    default: '120000'
+  health_check_timeout:
+    description: 'Health check timeout in milliseconds'
+    required: false
+    default: '30000'
+  enable_validation:
+    description: 'Enable comprehensive authentication validation'
+    required: false
+    default: 'false'
+  port_cleanup:
+    description: 'Enable port cleanup before server start'
+    required: false
+    default: 'true'
+
+outputs:
+  server_pid:
+    description: 'Process ID of the started server'
+    value: ${{ steps.start-server.outputs.server_pid }}
+  auth_secret:
+    description: 'Authentication secret used for the context'
+    value: ${{ steps.set-context.outputs.auth_secret }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set Authentication Context
+      id: set-context
+      shell: bash
+      run: |
+        case "${{ inputs.auth_context }}" in
+          "e2e")
+            AUTH_SECRET="playwright-test-secret-key"
+            ;;
+          "monitoring")
+            AUTH_SECRET="monitoring-secret-key"
+            ;;
+          "ci")
+            AUTH_SECRET="ci-test-secret-key"
+            ;;
+          *)
+            AUTH_SECRET="default-test-secret-key"
+            ;;
+        esac
+        
+        echo "auth_secret=$AUTH_SECRET" >> $GITHUB_OUTPUT
+        echo "NEXTAUTH_SECRET=$AUTH_SECRET" >> $GITHUB_ENV
+        
+        echo "🔑 Authentication context set: ${{ inputs.auth_context }}"
+        echo "🔐 Secret configured for context"
+
+    - name: Clean up port 3000
+      if: ${{ inputs.port_cleanup == 'true' }}
+      shell: bash
+      run: |
+        echo "🧹 Cleaning up port 3000 before server startup..."
+        
+        # Kill any existing processes on port 3000 to prevent conflicts
+        lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+        
+        # Wait briefly for port to be freed
+        sleep 2
+        
+        echo "✅ Port 3000 cleanup completed"
+
+    - name: Start Development Server
+      id: start-server
+      shell: bash
+      run: |
+        echo "🚀 Starting development server for authentication context: ${{ inputs.auth_context }}"
+        
+        # Create log directory
+        mkdir -p server-logs
+        
+        # Start server with standardized authentication environment
+        NODE_ENV=test \
+        E2E_MOCK_AUTH_ENABLED=true \
+        NEXTAUTH_URL=http://localhost:3000 \
+        NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer \
+        NEXTAUTH_SECRET=${{ steps.set-context.outputs.auth_secret }} \
+        GITHUB_OAUTH_CLIENT_ID=mock-client-id \
+        GITHUB_OAUTH_CLIENT_SECRET=mock-client-secret \
+        npm run dev > server-logs/${{ inputs.auth_context }}-server.log 2>&1 &
+        
+        # Store the process ID for cleanup
+        SERVER_PID=$!
+        echo $SERVER_PID > server.pid
+        echo "server_pid=$SERVER_PID" >> $GITHUB_OUTPUT
+        
+        echo "📋 Development server started with PID: $SERVER_PID"
+        echo "📁 Logs: server-logs/${{ inputs.auth_context }}-server.log"
+        
+        # Wait for the server to be ready
+        echo "⏳ Waiting for server to be ready (timeout: ${{ inputs.server_timeout }}ms)..."
+        node scripts/wait-for-server.js http://localhost:3000 ${{ inputs.server_timeout }} 1000
+        
+        # Show last 20 lines of server log for debugging
+        echo "📜 Server log (last 20 lines):"
+        tail -n 20 server-logs/${{ inputs.auth_context }}-server.log || true
+
+    - name: Check Authentication Endpoints
+      shell: bash
+      run: |
+        echo "🔍 Verifying NextAuth API endpoints are ready..."
+        
+        # Run authentication health checks with configured timeout
+        node scripts/check-auth-health.js http://localhost:3000 ${{ inputs.health_check_timeout }} 1000
+        
+        echo "✅ Authentication endpoints verified successfully!"
+
+    - name: Validate Authentication Configuration
+      if: ${{ inputs.enable_validation == 'true' }}
+      shell: bash
+      run: |
+        echo "🔬 Running comprehensive authentication validation..."
+        
+        # Create metrics directory for validation results
+        mkdir -p ci-metrics
+        
+        # Run comprehensive authentication token validation
+        node scripts/ci/validate-auth-tokens.js http://localhost:3000 ${{ inputs.health_check_timeout }}
+        
+        echo "✅ Authentication validation completed!"
+      env:
+        NODE_ENV: test
+        E2E_MOCK_AUTH_ENABLED: true
+        NEXTAUTH_URL: http://localhost:3000
+        NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
+        NEXTAUTH_SECRET: ${{ steps.set-context.outputs.auth_secret }}
+        GITHUB_OAUTH_CLIENT_ID: mock-client-id
+        GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
+
+    - name: Verify NextAuth Initialization
+      if: ${{ inputs.enable_validation == 'true' }}
+      shell: bash
+      run: |
+        echo "🔧 Verifying NextAuth is fully initialized..."
+        
+        # Verify NextAuth initialization and timing
+        node scripts/ci/verify-nextauth-initialization.js http://localhost:3000 45000 2000
+        
+        echo "✅ NextAuth initialization verification completed!"
+      env:
+        NODE_ENV: test
+        E2E_MOCK_AUTH_ENABLED: true
+        NEXTAUTH_URL: http://localhost:3000
+        NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
+        NEXTAUTH_SECRET: ${{ steps.set-context.outputs.auth_secret }}
+        GITHUB_OAUTH_CLIENT_ID: mock-client-id
+        GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret

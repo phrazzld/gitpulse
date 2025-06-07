@@ -35,34 +35,13 @@ jobs:
           NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
           NODE_ENV: production
       
-      - name: Start server and wait for it to be ready
-        run: |
-          # Create log directory
-          mkdir -p e2e
-          
-          # Start the server in the background with output captured to log file
-          NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true NEXTAUTH_URL=http://localhost:3000 NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer NEXTAUTH_SECRET=playwright-test-secret-key npm run dev > e2e/server.log 2>&1 &
-          
-          # Store the process ID so we can terminate it later
-          echo $! > server.pid
-          
-          # Print the server start command for logging
-          echo "Server started with PID $(cat server.pid) and environment: NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true"
-          
-          # Wait for the server to be ready
-          node scripts/wait-for-server.js http://localhost:3000 120000 1000
-          
-          # Print last 20 lines of server log for debugging
-          echo "Last 20 lines of server log:"
-          tail -n 20 e2e/server.log
-
-      - name: Check Authentication Endpoints
-        run: |
-          echo "Verifying NextAuth API endpoints are ready..."
-          # Run authentication health checks with 30 second timeout
-          # This ensures authentication endpoints are available before E2E tests begin
-          node scripts/check-auth-health.js http://localhost:3000 30000 1000
-          echo "Authentication endpoints verified successfully!"
+      - name: Setup Authentication Environment
+        id: auth-setup
+        uses: ./.github/actions/auth-setup
+        with:
+          auth_context: "e2e"
+          server_timeout: 120000
+          health_check_timeout: 30000
       
       - name: Run Playwright tests
         run: |
@@ -95,22 +74,6 @@ jobs:
           # Exit with the original test exit code
           exit $TEST_EXIT_CODE
         env:
-          # Basic configuration
-          NEXTAUTH_URL: http://localhost:3000
-          NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
-          
-          # Enable mock authentication for CI
-          CI: true
-          NODE_ENV: test
-          E2E_MOCK_AUTH_ENABLED: true
-          
-          # Add mock GitHub credentials for testing
-          GITHUB_OAUTH_CLIENT_ID: mock-client-id
-          GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
-          
-          # Set NextAuth secret for secure cookie handling (mock for tests)
-          NEXTAUTH_SECRET: playwright-test-secret-key
-          
           # Additional debugging in CI
           DEBUG: pw:api,pw:browser*
       
@@ -188,12 +151,9 @@ jobs:
           path: env-report/
           retention-days: 7
       
-      - name: Terminate server
+      - name: Cleanup Authentication Environment
         if: always()
-        run: |
-          if [ -f server.pid ]; then
-            SERVER_PID=$(cat server.pid)
-            echo "Terminating server process (PID: $SERVER_PID)"
-            kill -TERM $SERVER_PID || true
-            rm server.pid
-          fi
+        uses: ./.github/actions/auth-cleanup
+        with:
+          server_pid: ${{ steps.auth-setup.outputs.server_pid }}
+          auth_context: "e2e"

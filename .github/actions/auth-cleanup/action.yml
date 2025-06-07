@@ -1,0 +1,94 @@
+name: 'Authentication Cleanup'
+description: 'Cleanup authentication server and resources'
+author: 'GitPulse Team'
+
+inputs:
+  server_pid:
+    description: 'Process ID of the server to terminate'
+    required: false
+  auth_context:
+    description: 'Authentication context for logging'
+    required: false
+    default: 'unknown'
+
+runs:
+  using: composite
+  steps:
+    - name: Terminate Authentication Server
+      shell: bash
+      run: |
+        echo "🛑 Terminating authentication server..."
+        
+        # Try to get server PID from input or file
+        SERVER_PID="${{ inputs.server_pid }}"
+        
+        if [ -z "$SERVER_PID" ] && [ -f "server.pid" ]; then
+          SERVER_PID=$(cat server.pid)
+          echo "📋 Found server PID in file: $SERVER_PID"
+        fi
+        
+        if [ -n "$SERVER_PID" ]; then
+          if kill -0 "$SERVER_PID" 2>/dev/null; then
+            echo "📋 Terminating server with PID: $SERVER_PID"
+            
+            # Graceful shutdown first
+            kill -TERM "$SERVER_PID" 2>/dev/null || true
+            
+            # Wait for graceful shutdown
+            sleep 3
+            
+            # Force kill if still running
+            if kill -0 "$SERVER_PID" 2>/dev/null; then
+              echo "🔨 Force terminating server..."
+              kill -9 "$SERVER_PID" 2>/dev/null || true
+            fi
+            
+            echo "✅ Server terminated successfully"
+          else
+            echo "ℹ️ Server with PID $SERVER_PID is not running"
+          fi
+        else
+          echo "⚠️ Server PID not found, checking for running processes..."
+          
+          # Try to find and kill any node processes on port 3000
+          PORT_PIDS=$(lsof -ti:3000 2>/dev/null || true)
+          if [ -n "$PORT_PIDS" ]; then
+            echo "🔍 Found processes on port 3000: $PORT_PIDS"
+            echo "$PORT_PIDS" | xargs kill -TERM 2>/dev/null || true
+            sleep 2
+            echo "$PORT_PIDS" | xargs kill -9 2>/dev/null || true
+            echo "🧹 Cleaned up port 3000"
+          else
+            echo "ℹ️ No processes found on port 3000"
+          fi
+        fi
+
+    - name: Cleanup Authentication Files
+      shell: bash
+      run: |
+        echo "🧹 Cleaning up authentication setup files..."
+        
+        # Clean up PID file
+        if [ -f "server.pid" ]; then
+          rm server.pid
+          echo "🗑️ Removed server.pid"
+        fi
+        
+        # Show final server log summary if available
+        if [ -d "server-logs" ]; then
+          echo "📜 Server log summary:"
+          for log in server-logs/*.log; do
+            if [ -f "$log" ]; then
+              echo "--- Log: $(basename "$log") ---"
+              echo "Lines: $(wc -l < "$log")"
+              echo "Size: $(du -h "$log" | cut -f1)"
+              
+              # Show last few lines for debugging
+              echo "Last 10 lines:"
+              tail -n 10 "$log" || true
+              echo ""
+            fi
+          done
+        fi
+        
+        echo "✅ Authentication cleanup completed for context: ${{ inputs.auth_context }}"

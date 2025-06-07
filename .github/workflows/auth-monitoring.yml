@@ -40,6 +40,14 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
         
+      - name: Setup Authentication Environment
+        id: auth-setup
+        uses: ./.github/actions/auth-setup
+        with:
+          auth_context: "monitoring"
+          server_timeout: 120000
+          health_check_timeout: 60000
+
       - name: Run authentication health monitoring
         id: monitor
         run: |
@@ -48,11 +56,6 @@ jobs:
           
           # Run monitoring script
           node scripts/ci/monitor-auth-health.js
-        env:
-          NODE_ENV: test
-          E2E_MOCK_AUTH_ENABLED: true
-          NEXTAUTH_URL: http://localhost:3000
-          NEXTAUTH_SECRET: monitoring-secret-key
           
       - name: Generate authentication dashboard
         run: |
@@ -277,3 +280,10 @@ jobs:
           EOF
           
           echo "Generated health badge with score: ${HEALTH_SCORE}/100 (${STATUS})"
+
+      - name: Cleanup Authentication Environment
+        if: always()
+        uses: ./.github/actions/auth-cleanup
+        with:
+          server_pid: ${{ steps.auth-setup.outputs.server_pid }}
+          auth_context: "monitoring"

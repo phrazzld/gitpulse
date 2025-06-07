@@ -144,34 +144,15 @@ jobs:
     # - API endpoints that require authenticated requests
     # Note: The development server can be slow on first page loads in CI,
     # causing timeouts. Pre-building helps reduce initial compilation time.
-    - name: Clean up port 3000 before E2E tests
-      run: |
-        # Kill any existing processes on port 3000 to prevent conflicts
-        # This ensures a clean environment for E2E test server startup
-        lsof -ti:3000 | xargs kill -9 2>/dev/null || true
-        
-        # Wait briefly for port to be freed
-        sleep 2
-        
-        echo "Port 3000 cleanup completed"
-
-    - name: Start server for E2E tests
-      run: |
-        # Start the Next.js development server in the background with test configuration
-        # The build step has already been run, so the .next directory exists
-        NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true NEXTAUTH_URL=http://localhost:3000 NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer NEXTAUTH_SECRET=playwright-test-secret-key npm run dev > e2e-server.log 2>&1 &
-        
-        # Store the process ID for cleanup
-        echo $! > server.pid
-        
-        echo "Development server started with PID $(cat server.pid)"
-        
-        # Wait for the server to be ready (timeout after 120 seconds)
-        node scripts/wait-for-server.js http://localhost:3000 120000 1000
-        
-        # Show last 20 lines of server log for debugging
-        echo "Server log (last 20 lines):"
-        tail -n 20 e2e-server.log || true
+    - name: Setup Authentication Environment
+      id: auth-setup
+      uses: ./.github/actions/auth-setup
+      with:
+        auth_context: "ci"
+        server_timeout: 120000
+        health_check_timeout: 30000
+        enable_validation: true
+        port_cleanup: true
 
     - name: Debug CI environment before E2E tests
       run: |
@@ -223,48 +204,6 @@ jobs:
         
         echo "=== End Debug Information ==="
 
-    - name: Check Authentication Endpoints
-      run: |
-        echo "Verifying NextAuth API endpoints are ready..."
-        # Run authentication health checks with 30 second timeout
-        # This ensures authentication endpoints are available before E2E tests begin
-        node scripts/check-auth-health.js http://localhost:3000 30000 1000
-        echo "Authentication endpoints verified successfully!"
-
-    - name: Validate Authentication Tokens and Configuration
-      run: |
-        echo "Running comprehensive authentication token validation..."
-        # This step validates JWT token structure, NextAuth configuration, and session API
-        # It helps diagnose authentication issues before E2E tests run
-        # Results are saved to ci-metrics/auth-token-validation.json for debugging
-        node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000
-        echo "Authentication token validation completed successfully!"
-      env:
-        NODE_ENV: test
-        E2E_MOCK_AUTH_ENABLED: true
-        NEXTAUTH_URL: http://localhost:3000
-        NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
-        NEXTAUTH_SECRET: playwright-test-secret-key
-        GITHUB_OAUTH_CLIENT_ID: mock-client-id
-        GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
-
-    - name: Verify NextAuth Initialization and Timing
-      run: |
-        echo "Verifying NextAuth is fully initialized and ready for E2E tests..."
-        # This step ensures NextAuth has completed initialization beyond basic endpoint availability
-        # It verifies configuration loading, JWT secret functionality, and session handling readiness
-        # Adds strategic delays in CI environment for stability and prevents timing-related failures
-        # Results saved to ci-metrics/nextauth-initialization.json for analysis
-        node scripts/ci/verify-nextauth-initialization.js http://localhost:3000 45000 2000
-        echo "NextAuth initialization verification completed successfully!"
-      env:
-        NODE_ENV: test
-        E2E_MOCK_AUTH_ENABLED: true
-        NEXTAUTH_URL: http://localhost:3000
-        NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
-        NEXTAUTH_SECRET: playwright-test-secret-key
-        GITHUB_OAUTH_CLIENT_ID: mock-client-id
-        GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
 
     - name: Run E2E Tests
       run: |
@@ -326,23 +265,12 @@ jobs:
         retention-days: 7
         if-no-files-found: ignore
 
-    - name: Terminate E2E test server
+    - name: Cleanup Authentication Environment
       if: always()
-      run: |
-        # Clean up the development server process
-        if [ -f server.pid ]; then
-          SERVER_PID=$(cat server.pid)
-          echo "Terminating server process (PID: $SERVER_PID)"
-          kill -TERM $SERVER_PID || true
-          rm server.pid
-        fi
-        
-        # Upload server log for debugging if it exists
-        if [ -f e2e-server.log ]; then
-          echo "Server log exists, uploading for debugging"
-          mkdir -p e2e-logs
-          mv e2e-server.log e2e-logs/
-        fi
+      uses: ./.github/actions/auth-cleanup
+      with:
+        server_pid: ${{ steps.auth-setup.outputs.server_pid }}
+        auth_context: "ci"
 
     - name: Upload E2E Server Logs
       if: always()
