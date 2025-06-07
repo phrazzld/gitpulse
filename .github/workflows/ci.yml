@@ -34,6 +34,11 @@ jobs:
       run: node scripts/validate-dependencies.js
       # Ensures build fails if incompatible dependency versions are detected
       
+    - name: Validate authentication configuration
+      run: npm run validate:auth-config
+      # Ensures authentication setup is consistent across all CI workflows
+      # This check detects configuration drift and missing environment variables
+      
     - name: Run enhanced security audit
       # This ensures the build fails if any high or critical severity vulnerabilities are found in production dependencies
       # See our Development Philosophy: CI builds MUST FAIL on discovery of critical/high severity vulnerabilities
@@ -262,6 +267,16 @@ jobs:
         name: nextauth-initialization-results
         path: |
           ci-metrics/nextauth-initialization.json
+        retention-days: 7
+        if-no-files-found: ignore
+
+    - name: Upload Authentication Configuration Validation Results
+      if: always() # Run even if configuration validation fails
+      uses: actions/upload-artifact@v4
+      with:
+        name: auth-config-validation-results
+        path: |
+          ci-metrics/auth-config-validation.json
         retention-days: 7
         if-no-files-found: ignore
 

@@ -4,24 +4,27 @@ This document describes the standardized authentication setup patterns for CI wo
 
 ## Overview
 
-Authentication setup across CI workflows has been standardized using a shared workflow component (`auth-shared.yml`) that provides consistent:
+Authentication setup across CI workflows has been standardized using composite actions that provide consistent:
 
 - Environment variable configuration
 - Server startup and health checks
 - Authentication validation (optional)
 - Cleanup procedures
+- Configuration drift detection
 
-## Shared Authentication Component
+## Composite Actions
 
 ### Location
-`.github/workflows/auth-shared.yml`
+- Setup: `.github/actions/auth-setup/action.yml`
+- Cleanup: `.github/actions/auth-cleanup/action.yml`
 
 ### Usage Pattern
 
 ```yaml
-jobs:
-  setup-authentication:
-    uses: ./.github/workflows/auth-shared.yml
+steps:
+  - name: Setup Authentication Environment
+    id: auth-setup
+    uses: ./.github/actions/auth-setup
     with:
       auth_context: "e2e"                    # Required: e2e, monitoring, ci
       server_timeout: 120000                 # Optional: default 120000ms
@@ -29,14 +32,14 @@ jobs:
       enable_validation: true               # Optional: default false
       port_cleanup: true                    # Optional: default true
 
-  your-job:
-    needs: setup-authentication
-    runs-on: ubuntu-latest
-    steps:
-      - name: Your test steps
-        run: |
-          # Server is available at http://localhost:3000
-          # Authentication is configured and ready
+  # Your test steps here - server available at http://localhost:3000
+
+  - name: Cleanup Authentication Environment
+    if: always()
+    uses: ./.github/actions/auth-cleanup
+    with:
+      server_pid: ${{ steps.auth-setup.outputs.server_pid }}
+      auth_context: "e2e"
 ```
 
 ## Authentication Contexts
@@ -56,12 +59,33 @@ jobs:
 - **Secret**: `ci-test-secret-key`  
 - **Use case**: Build and test workflows with authentication
 
-## Environment Variables
+## Configuration Validation
 
-The shared component automatically configures:
+All workflows automatically validate authentication configuration consistency:
 
 ```yaml
-NODE_ENV: test
+- name: Validate authentication configuration
+  run: npm run validate:auth-config
+  # Ensures authentication setup is consistent across all CI workflows
+```
+
+This validation performs:
+- ✅ Checks that all authentication workflows use composite actions consistently
+- ✅ Validates required environment variables are defined
+- ✅ Detects configuration drift between workflows  
+- ✅ Ensures authentication readiness across all contexts
+- ⚠️ Allows expected differences (e.g., NODE_ENV varies by workflow purpose)
+
+**Local validation**: `npm run validate:auth-config`
+
+**Results**: Saved to `ci-metrics/auth-config-validation.json`
+
+## Environment Variables
+
+The composite actions automatically configure:
+
+```yaml
+NODE_ENV: test                              # Or production for build contexts
 E2E_MOCK_AUTH_ENABLED: true
 NEXTAUTH_URL: http://localhost:3000
 NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
@@ -107,17 +131,37 @@ on: [push, pull_request]
 
 jobs:
   e2e-tests:
-    uses: ./.github/workflows/auth-shared.yml
-    with:
-      auth_context: "e2e"
-      
-  run-tests:
-    needs: e2e-tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Validate authentication configuration
+        run: npm run validate:auth-config
+      
+      - name: Setup Authentication Environment
+        id: auth-setup
+        uses: ./.github/actions/auth-setup
+        with:
+          auth_context: "e2e"
+          
       - name: Run Playwright tests
         run: npm run test:e2e
+        
+      - name: Cleanup Authentication Environment
+        if: always()
+        uses: ./.github/actions/auth-cleanup
+        with:
+          server_pid: ${{ steps.auth-setup.outputs.server_pid }}
+          auth_context: "e2e"
 ```
 
 ### CI with Validation
@@ -128,21 +172,45 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  auth-setup:
-    uses: ./.github/workflows/auth-shared.yml
-    with:
-      auth_context: "ci"
-      enable_validation: true
-      
   build-and-test:
-    needs: auth-setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Validate authentication configuration
+        run: npm run validate:auth-config
+        
+      - name: Build
+        run: npm run build
+        
+      - name: Setup Authentication Environment
+        id: auth-setup
+        uses: ./.github/actions/auth-setup
+        with:
+          auth_context: "ci"
+          enable_validation: true
+          
       - name: Run tests
         run: npm test
+        
       - name: Run E2E tests
         run: npm run test:e2e
+        
+      - name: Cleanup Authentication Environment
+        if: always()
+        uses: ./.github/actions/auth-cleanup
+        with:
+          server_pid: ${{ steps.auth-setup.outputs.server_pid }}
+          auth_context: "ci"
 ```
 
 ### Monitoring Workflow
@@ -155,18 +223,39 @@ on:
     - cron: '0 */6 * * *'
 
 jobs:
-  monitor:
-    uses: ./.github/workflows/auth-shared.yml
-    with:
-      auth_context: "monitoring"
-      health_check_timeout: 60000
-      
-  collect-metrics:
-    needs: monitor
+  monitor-authentication:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Validate authentication configuration
+        run: npm run validate:auth-config
+        
+      - name: Setup Authentication Environment
+        id: auth-setup
+        uses: ./.github/actions/auth-setup
+        with:
+          auth_context: "monitoring"
+          health_check_timeout: 60000
+          
       - name: Run monitoring script
         run: node scripts/ci/monitor-auth-health.js
+        
+      - name: Cleanup Authentication Environment
+        if: always()
+        uses: ./.github/actions/auth-cleanup
+        with:
+          server_pid: ${{ steps.auth-setup.outputs.server_pid }}
+          auth_context: "monitoring"
 ```
 
 ## Server Lifecycle
@@ -190,16 +279,17 @@ jobs:
 
 ## Artifacts
 
-The shared component uploads:
+Workflows using authentication composite actions upload:
 
-- **Setup Artifacts**: `auth-setup-{context}-{run_id}`
-  - Server logs
-  - Validation metrics (if enabled)
-  - Server PID file
+- **Authentication Configuration Validation**: `auth-config-validation-results`
+  - Configuration drift analysis
+  - Environment variable validation
+  - Composite action usage verification
 
-- **Server Logs**: `auth-server-logs-{context}-{run_id}`
+- **Server Logs**: Located in workflow artifacts
   - Complete server output
-  - Error logs
+  - Authentication validation metrics
+  - Health check results
 
 ## Migration Guide
 
@@ -212,19 +302,32 @@ steps:
     run: |
       NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true npm run dev &
       node scripts/wait-for-server.js http://localhost:3000
+      
+  - name: Kill server
+    if: always()
+    run: killall node || true
 ```
 
 **After:**
 ```yaml
-jobs:
-  auth-setup:
-    uses: ./.github/workflows/auth-shared.yml
+steps:
+  - name: Validate authentication configuration
+    run: npm run validate:auth-config
+    
+  - name: Setup Authentication Environment
+    id: auth-setup
+    uses: ./.github/actions/auth-setup
     with:
       auth_context: "e2e"
       
-  your-job:
-    needs: auth-setup
-    # ... rest of your job
+  # Your test steps here
+      
+  - name: Cleanup Authentication Environment
+    if: always()
+    uses: ./.github/actions/auth-cleanup
+    with:
+      server_pid: ${{ steps.auth-setup.outputs.server_pid }}
+      auth_context: "e2e"
 ```
 
 ### Benefits of Migration
@@ -234,10 +337,25 @@ jobs:
 3. **Debugging**: Standardized logging and artifact collection
 4. **Reliability**: Consistent health checks and validation
 5. **Flexibility**: Configurable timeouts and validation levels
+6. **Configuration Validation**: Automatic detection of configuration drift
+7. **Alerting**: Integration with monitoring workflows for issue detection
 
 ## Troubleshooting
 
-### Common Issues
+### Configuration Issues
+
+1. **Configuration drift detected**
+   - Run `npm run validate:auth-config` locally
+   - Review authentication configuration validation results
+   - Ensure environment variables match across workflows
+   - Check composite action usage consistency
+
+2. **Authentication configuration validation fails**
+   - Check that required environment variables are defined
+   - Verify composite actions are being used in authentication workflows
+   - Review validation artifacts for specific error details
+
+### Runtime Issues
 
 1. **Server startup timeout**
    - Increase `server_timeout`
@@ -263,11 +381,14 @@ env:
 
 ## Best Practices
 
-1. **Use appropriate context** for your workflow type
-2. **Enable validation** for critical workflows
-3. **Set appropriate timeouts** based on your CI environment
+1. **Use appropriate context** for your workflow type (e2e, ci, monitoring)
+2. **Enable validation** for critical workflows with `enable_validation: true`
+3. **Set appropriate timeouts** based on your CI environment performance
 4. **Review artifacts** when debugging authentication issues
 5. **Follow cleanup** patterns to prevent resource leaks
+6. **Run configuration validation** locally before committing: `npm run validate:auth-config`
+7. **Monitor alerts** from authentication monitoring workflow for configuration drift
+8. **Always use composite actions** for authentication setup (no inline configuration)
 
 ## Related Documentation
 

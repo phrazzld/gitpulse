@@ -37,6 +37,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
+      - name: Validate authentication configuration
+        run: npm run validate:auth-config
+        # Ensures authentication setup is consistent across all CI workflows
+        
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
         
@@ -85,11 +89,23 @@ jobs:
             echo "pass_rate=$PASS_RATE" >> $GITHUB_OUTPUT
             echo "error_count=$ERROR_COUNT" >> $GITHUB_OUTPUT
             
-            # Determine alert severity
-            if [ $(echo "$HEALTH_SCORE < 60" | bc -l) -eq 1 ] || [ "$ERROR_COUNT" -gt 2 ]; then
+            # Check for configuration drift
+            CONFIG_DRIFT_COUNT=0
+            if [ -f "ci-metrics/auth-config-validation.json" ]; then
+              CONFIG_DRIFT_COUNT=$(cat ci-metrics/auth-config-validation.json | jq -r '.configDrift | length')
+              VALIDATION_ERRORS=$(cat ci-metrics/auth-config-validation.json | jq -r '.validationErrors | length')
+              echo "config_drift_count=$CONFIG_DRIFT_COUNT" >> $GITHUB_OUTPUT
+              echo "validation_errors=$VALIDATION_ERRORS" >> $GITHUB_OUTPUT
+            else
+              echo "config_drift_count=0" >> $GITHUB_OUTPUT
+              echo "validation_errors=0" >> $GITHUB_OUTPUT
+            fi
+            
+            # Determine alert severity including configuration issues
+            if [ $(echo "$HEALTH_SCORE < 60" | bc -l) -eq 1 ] || [ "$ERROR_COUNT" -gt 2 ] || [ "$CONFIG_DRIFT_COUNT" -gt 0 ]; then
               echo "alert_severity=critical" >> $GITHUB_OUTPUT
               echo "should_alert=true" >> $GITHUB_OUTPUT
-            elif [ $(echo "$HEALTH_SCORE < 80" | bc -l) -eq 1 ] || [ $(echo "$PASS_RATE < 90" | bc -l) -eq 1 ]; then
+            elif [ $(echo "$HEALTH_SCORE < 80" | bc -l) -eq 1 ] || [ $(echo "$PASS_RATE < 90" | bc -l) -eq 1 ] || [ "$VALIDATION_ERRORS" -gt 0 ]; then
               echo "alert_severity=warning" >> $GITHUB_OUTPUT
               echo "should_alert=true" >> $GITHUB_OUTPUT
             else
@@ -119,6 +135,8 @@ jobs:
             const healthScore = '${{ steps.alert-check.outputs.health_score }}';
             const passRate = '${{ steps.alert-check.outputs.pass_rate }}';
             const errorCount = '${{ steps.alert-check.outputs.error_count }}';
+            const configDriftCount = '${{ steps.alert-check.outputs.config_drift_count }}';
+            const validationErrors = '${{ steps.alert-check.outputs.validation_errors }}';
             
             // Create issue title and body
             const title = `🚨 Authentication CI Health Alert - ${alertSeverity.toUpperCase()}`;
@@ -136,6 +154,8 @@ jobs:
             - 🎯 **Health Score:** ${healthScore}/100
             - 📈 **Pass Rate:** ${passRate}%
             - ❌ **Error Count:** ${errorCount}
+            - 🔄 **Configuration Drift:** ${configDriftCount} issues
+            - ⚠️ **Validation Errors:** ${validationErrors}
             - 🏃 **Runner:** ubuntu-latest
             
             ## Issues Detected
@@ -148,8 +168,11 @@ jobs:
             
             1. 📋 Review the [Authentication Troubleshooting Guide](./docs/testing/AUTHENTICATION_TROUBLESHOOTING.md)
             2. 🔍 Check the monitoring artifacts for detailed analysis
+            ${configDriftCount > 0 ? '3. 🔧 Review authentication configuration validation results for drift details' : ''}
+            ${validationErrors > 0 ? '4. ⚠️ Fix authentication configuration validation errors' : ''}
             3. 🛠️ Apply recommended fixes based on error analysis
             4. ✅ Re-run authentication tests to verify improvements
+            ${configDriftCount > 0 ? '5. 🔄 Run \`npm run validate:auth-config\` locally to verify configuration alignment' : ''}
             
             ## Artifacts
             

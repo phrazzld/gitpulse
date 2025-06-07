@@ -1,0 +1,258 @@
+{
+  "workflows": {
+    "main": {
+      "path": ".github/workflows/ci.yml",
+      "envVars": {
+        "GEMINI_API_KEY": "test-api-key-for-testing-only",
+        "CI": "true",
+        "E2E_MOCK_AUTH_ENABLED": true,
+        "NODE_ENV": "test",
+        "NEXTAUTH_URL": "http://localhost:3000",
+        "NEXT_PUBLIC_GITHUB_APP_NAME": "pulse-summarizer",
+        "NEXTAUTH_SECRET": "playwright-test-secret-key",
+        "GITHUB_OAUTH_CLIENT_ID": "mock-client-id",
+        "GITHUB_OAUTH_CLIENT_SECRET": "mock-client-secret",
+        "DEBUG": "pw:api,pw:browser*",
+        "A11Y_FAILING_IMPACTS": "critical",
+        "LHCI_BUILD_CONTEXT__GITHUB_REPO_OWNER": "${{ github.repository_owner }}",
+        "LHCI_BUILD_CONTEXT__GITHUB_REPO_NAME": "${{ github.repository }}",
+        "LHCI_BUILD_CONTEXT__GITHUB_RUN_ID": "${{ github.run_id }}",
+        "LHCI_BUILD_CONTEXT__CURRENT_HASH": "${{ github.sha }}",
+        "LHCI_BUILD_CONTEXT__COMMIT_TIME": "${{ github.event.head_commit.timestamp }}",
+        "LHCI_TOKEN": "${{ secrets.LHCI_TOKEN }}"
+      },
+      "usesCompositeActions": true,
+      "authenticationSteps": [
+        {
+          "job": "build-and-test",
+          "setup": {
+            "name": "Setup Authentication Environment",
+            "id": "auth-setup",
+            "uses": "./.github/actions/auth-setup",
+            "with": {
+              "auth_context": "ci",
+              "server_timeout": 120000,
+              "health_check_timeout": 30000,
+              "enable_validation": true,
+              "port_cleanup": true
+            }
+          },
+          "cleanup": {
+            "name": "Cleanup Authentication Environment",
+            "if": "always()",
+            "uses": "./.github/actions/auth-cleanup",
+            "with": {
+              "server_pid": "${{ steps.auth-setup.outputs.server_pid }}",
+              "auth_context": "ci"
+            }
+          }
+        }
+      ],
+      "validationIssues": []
+    },
+    "e2e": {
+      "path": ".github/workflows/e2e-tests.yml",
+      "envVars": {
+        "NEXTAUTH_URL": "http://localhost:3000",
+        "NEXT_PUBLIC_GITHUB_APP_NAME": "pulse-summarizer",
+        "NODE_ENV": "production",
+        "DEBUG": "pw:api,pw:browser*"
+      },
+      "usesCompositeActions": true,
+      "authenticationSteps": [
+        {
+          "job": "e2e-tests",
+          "setup": {
+            "name": "Setup Authentication Environment",
+            "id": "auth-setup",
+            "uses": "./.github/actions/auth-setup",
+            "with": {
+              "auth_context": "e2e",
+              "server_timeout": 120000,
+              "health_check_timeout": 30000
+            }
+          },
+          "cleanup": {
+            "name": "Cleanup Authentication Environment",
+            "if": "always()",
+            "uses": "./.github/actions/auth-cleanup",
+            "with": {
+              "server_pid": "${{ steps.auth-setup.outputs.server_pid }}",
+              "auth_context": "e2e"
+            }
+          }
+        }
+      ],
+      "validationIssues": []
+    },
+    "monitoring": {
+      "path": ".github/workflows/auth-monitoring.yml",
+      "envVars": {},
+      "usesCompositeActions": true,
+      "authenticationSteps": [
+        {
+          "job": "monitor-authentication",
+          "setup": {
+            "name": "Setup Authentication Environment",
+            "id": "auth-setup",
+            "uses": "./.github/actions/auth-setup",
+            "with": {
+              "auth_context": "monitoring",
+              "server_timeout": 120000,
+              "health_check_timeout": 60000
+            }
+          },
+          "cleanup": {
+            "name": "Cleanup Authentication Environment",
+            "if": "always()",
+            "uses": "./.github/actions/auth-cleanup",
+            "with": {
+              "server_pid": "${{ steps.auth-setup.outputs.server_pid }}",
+              "auth_context": "monitoring"
+            }
+          }
+        }
+      ],
+      "validationIssues": []
+    }
+  },
+  "compositeActions": {
+    "setup": {
+      "path": ".github/actions/auth-setup/action.yml",
+      "inputs": {
+        "auth_context": {
+          "description": "Authentication context (e2e, monitoring, ci)",
+          "required": true
+        },
+        "server_timeout": {
+          "description": "Server startup timeout in milliseconds",
+          "required": false,
+          "default": "120000"
+        },
+        "health_check_timeout": {
+          "description": "Health check timeout in milliseconds",
+          "required": false,
+          "default": "30000"
+        },
+        "enable_validation": {
+          "description": "Enable comprehensive authentication validation",
+          "required": false,
+          "default": "false"
+        },
+        "port_cleanup": {
+          "description": "Enable port cleanup before server start",
+          "required": false,
+          "default": "true"
+        }
+      },
+      "outputs": {
+        "server_pid": {
+          "description": "Process ID of the started server",
+          "value": "${{ steps.start-server.outputs.server_pid }}"
+        },
+        "auth_secret": {
+          "description": "Authentication secret used for the context",
+          "value": "${{ steps.set-context.outputs.auth_secret }}"
+        }
+      },
+      "steps": [
+        {
+          "name": "Set Authentication Context",
+          "id": "set-context",
+          "shell": "bash",
+          "run": "case \"${{ inputs.auth_context }}\" in\n  \"e2e\")\n    AUTH_SECRET=\"playwright-test-secret-key\"\n    ;;\n  \"monitoring\")\n    AUTH_SECRET=\"monitoring-secret-key\"\n    ;;\n  \"ci\")\n    AUTH_SECRET=\"ci-test-secret-key\"\n    ;;\n  *)\n    AUTH_SECRET=\"default-test-secret-key\"\n    ;;\nesac\n\necho \"auth_secret=$AUTH_SECRET\" >> $GITHUB_OUTPUT\necho \"NEXTAUTH_SECRET=$AUTH_SECRET\" >> $GITHUB_ENV\n\necho \"🔑 Authentication context set: ${{ inputs.auth_context }}\"\necho \"🔐 Secret configured for context\"\n"
+        },
+        {
+          "name": "Clean up port 3000",
+          "if": "${{ inputs.port_cleanup == 'true' }}",
+          "shell": "bash",
+          "run": "echo \"🧹 Cleaning up port 3000 before server startup...\"\n\n# Kill any existing processes on port 3000 to prevent conflicts\nlsof -ti:3000 | xargs kill -9 2>/dev/null || true\n\n# Wait briefly for port to be freed\nsleep 2\n\necho \"✅ Port 3000 cleanup completed\"\n"
+        },
+        {
+          "name": "Start Development Server",
+          "id": "start-server",
+          "shell": "bash",
+          "run": "echo \"🚀 Starting development server for authentication context: ${{ inputs.auth_context }}\"\n\n# Create log directory\nmkdir -p server-logs\n\n# Start server with standardized authentication environment\nNODE_ENV=test \\\nE2E_MOCK_AUTH_ENABLED=true \\\nNEXTAUTH_URL=http://localhost:3000 \\\nNEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer \\\nNEXTAUTH_SECRET=${{ steps.set-context.outputs.auth_secret }} \\\nGITHUB_OAUTH_CLIENT_ID=mock-client-id \\\nGITHUB_OAUTH_CLIENT_SECRET=mock-client-secret \\\nnpm run dev > server-logs/${{ inputs.auth_context }}-server.log 2>&1 &\n\n# Store the process ID for cleanup\nSERVER_PID=$!\necho $SERVER_PID > server.pid\necho \"server_pid=$SERVER_PID\" >> $GITHUB_OUTPUT\n\necho \"📋 Development server started with PID: $SERVER_PID\"\necho \"📁 Logs: server-logs/${{ inputs.auth_context }}-server.log\"\n\n# Wait for the server to be ready\necho \"⏳ Waiting for server to be ready (timeout: ${{ inputs.server_timeout }}ms)...\"\nnode scripts/wait-for-server.js http://localhost:3000 ${{ inputs.server_timeout }} 1000\n\n# Show last 20 lines of server log for debugging\necho \"📜 Server log (last 20 lines):\"\ntail -n 20 server-logs/${{ inputs.auth_context }}-server.log || true\n"
+        },
+        {
+          "name": "Check Authentication Endpoints",
+          "shell": "bash",
+          "run": "echo \"🔍 Verifying NextAuth API endpoints are ready...\"\n\n# Run authentication health checks with configured timeout\nnode scripts/check-auth-health.js http://localhost:3000 ${{ inputs.health_check_timeout }} 1000\n\necho \"✅ Authentication endpoints verified successfully!\"\n"
+        },
+        {
+          "name": "Validate Authentication Configuration",
+          "if": "${{ inputs.enable_validation == 'true' }}",
+          "shell": "bash",
+          "run": "echo \"🔬 Running comprehensive authentication validation...\"\n\n# Create metrics directory for validation results\nmkdir -p ci-metrics\n\n# Run comprehensive authentication token validation\nnode scripts/ci/validate-auth-tokens.js http://localhost:3000 ${{ inputs.health_check_timeout }}\n\necho \"✅ Authentication validation completed!\"\n",
+          "env": {
+            "NODE_ENV": "test",
+            "E2E_MOCK_AUTH_ENABLED": true,
+            "NEXTAUTH_URL": "http://localhost:3000",
+            "NEXT_PUBLIC_GITHUB_APP_NAME": "pulse-summarizer",
+            "NEXTAUTH_SECRET": "${{ steps.set-context.outputs.auth_secret }}",
+            "GITHUB_OAUTH_CLIENT_ID": "mock-client-id",
+            "GITHUB_OAUTH_CLIENT_SECRET": "mock-client-secret"
+          }
+        },
+        {
+          "name": "Verify NextAuth Initialization",
+          "if": "${{ inputs.enable_validation == 'true' }}",
+          "shell": "bash",
+          "run": "echo \"🔧 Verifying NextAuth is fully initialized...\"\n\n# Verify NextAuth initialization and timing\nnode scripts/ci/verify-nextauth-initialization.js http://localhost:3000 45000 2000\n\necho \"✅ NextAuth initialization verification completed!\"\n",
+          "env": {
+            "NODE_ENV": "test",
+            "E2E_MOCK_AUTH_ENABLED": true,
+            "NEXTAUTH_URL": "http://localhost:3000",
+            "NEXT_PUBLIC_GITHUB_APP_NAME": "pulse-summarizer",
+            "NEXTAUTH_SECRET": "${{ steps.set-context.outputs.auth_secret }}",
+            "GITHUB_OAUTH_CLIENT_ID": "mock-client-id",
+            "GITHUB_OAUTH_CLIENT_SECRET": "mock-client-secret"
+          }
+        }
+      ],
+      "validationIssues": []
+    },
+    "cleanup": {
+      "path": ".github/actions/auth-cleanup/action.yml",
+      "inputs": {
+        "server_pid": {
+          "description": "Process ID of the server to terminate",
+          "required": false
+        },
+        "auth_context": {
+          "description": "Authentication context for logging",
+          "required": false,
+          "default": "unknown"
+        }
+      },
+      "outputs": {},
+      "steps": [
+        {
+          "name": "Terminate Authentication Server",
+          "shell": "bash",
+          "run": "echo \"🛑 Terminating authentication server...\"\n\n# Try to get server PID from input or file\nSERVER_PID=\"${{ inputs.server_pid }}\"\n\nif [ -z \"$SERVER_PID\" ] && [ -f \"server.pid\" ]; then\n  SERVER_PID=$(cat server.pid)\n  echo \"📋 Found server PID in file: $SERVER_PID\"\nfi\n\nif [ -n \"$SERVER_PID\" ]; then\n  if kill -0 \"$SERVER_PID\" 2>/dev/null; then\n    echo \"📋 Terminating server with PID: $SERVER_PID\"\n    \n    # Graceful shutdown first\n    kill -TERM \"$SERVER_PID\" 2>/dev/null || true\n    \n    # Wait for graceful shutdown\n    sleep 3\n    \n    # Force kill if still running\n    if kill -0 \"$SERVER_PID\" 2>/dev/null; then\n      echo \"🔨 Force terminating server...\"\n      kill -9 \"$SERVER_PID\" 2>/dev/null || true\n    fi\n    \n    echo \"✅ Server terminated successfully\"\n  else\n    echo \"ℹ️ Server with PID $SERVER_PID is not running\"\n  fi\nelse\n  echo \"⚠️ Server PID not found, checking for running processes...\"\n  \n  # Try to find and kill any node processes on port 3000\n  PORT_PIDS=$(lsof -ti:3000 2>/dev/null || true)\n  if [ -n \"$PORT_PIDS\" ]; then\n    echo \"🔍 Found processes on port 3000: $PORT_PIDS\"\n    echo \"$PORT_PIDS\" | xargs kill -TERM 2>/dev/null || true\n    sleep 2\n    echo \"$PORT_PIDS\" | xargs kill -9 2>/dev/null || true\n    echo \"🧹 Cleaned up port 3000\"\n  else\n    echo \"ℹ️ No processes found on port 3000\"\n  fi\nfi\n"
+        },
+        {
+          "name": "Cleanup Authentication Files",
+          "shell": "bash",
+          "run": "echo \"🧹 Cleaning up authentication setup files...\"\n\n# Clean up PID file\nif [ -f \"server.pid\" ]; then\n  rm server.pid\n  echo \"🗑️ Removed server.pid\"\nfi\n\n# Show final server log summary if available\nif [ -d \"server-logs\" ]; then\n  echo \"📜 Server log summary:\"\n  for log in server-logs/*.log; do\n    if [ -f \"$log\" ]; then\n      echo \"--- Log: $(basename \"$log\") ---\"\n      echo \"Lines: $(wc -l < \"$log\")\"\n      echo \"Size: $(du -h \"$log\" | cut -f1)\"\n      \n      # Show last few lines for debugging\n      echo \"Last 10 lines:\"\n      tail -n 10 \"$log\" || true\n      echo \"\"\n    fi\n  done\nfi\n\necho \"✅ Authentication cleanup completed for context: ${{ inputs.auth_context }}\"\n"
+        }
+      ],
+      "validationIssues": []
+    }
+  },
+  "validationErrors": [],
+  "configDrift": [],
+  "summary": {
+    "totalChecks": 16,
+    "passedChecks": 16,
+    "failedChecks": 0,
+    "warningChecks": 0
+  },
+  "metadata": {
+    "timestamp": "2025-06-07T19:14:06.936Z",
+    "version": "1.0.0",
+    "validator": "AuthConfigValidator",
+    "nodeVersion": "v22.15.0"
+  }
+}

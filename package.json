@@ -40,6 +40,7 @@
     "validate:deps": "node scripts/validate-dependencies.js",
     "validate:coverage": "node scripts/coverage/validate-coverage-format.js",
     "validate:auth-tokens": "node scripts/ci/validate-auth-tokens.js",
+    "validate:auth-config": "node scripts/ci/validate-auth-configuration.js",
     "verify:nextauth-init": "node scripts/ci/verify-nextauth-initialization.js"
   },
   "dependencies": {

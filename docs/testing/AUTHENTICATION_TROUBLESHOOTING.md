@@ -14,7 +14,7 @@ This guide focuses on **troubleshooting authentication failures** after the syst
 
 ## Quick Reference
 
-### Common Commands
+### Authentication Test Commands
 ```bash
 # Run authentication tests locally
 NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true npm run test:e2e -- e2e/auth.spec.ts
@@ -29,12 +29,40 @@ cat e2e/storageState.json | jq '.cookies[] | select(.name=="next-auth.session-to
 node scripts/check-auth-health.js
 ```
 
+### CI Workflow Configuration Commands
+```bash
+# Validate authentication configuration across workflows
+npm run validate:auth-config
+
+# Check for configuration drift
+node scripts/ci/validate-auth-configuration.js
+
+# Quick workflow health check
+for workflow in .github/workflows/{ci,e2e-tests,auth-monitoring}.yml; do
+  echo "=== $(basename $workflow) ==="
+  grep -A 5 "auth-setup" $workflow && echo "✅ Uses composite actions" || echo "❌ Missing composite actions"
+done
+
+# Compare environment variables between workflows
+diff <(grep -A 20 "env:" .github/workflows/ci.yml) <(grep -A 20 "env:" .github/workflows/e2e-tests.yml)
+
+# Download CI artifacts for analysis
+gh run download <run-id> -n auth-config-validation-results
+```
+
 ### Environment Variables Checklist
-- ✅ `NODE_ENV=test`
+
+**Test-Level Variables:**
+- ✅ `NODE_ENV=test` (or `production` for build contexts)
 - ✅ `E2E_MOCK_AUTH_ENABLED=true`
 - ✅ `NEXTAUTH_SECRET` (set to any value for tests)
 - ✅ `NEXTAUTH_URL=http://localhost:3000` (or appropriate URL)
 - ✅ `CI=true` (in CI environments)
+
+**Workflow-Level Variables:**
+- ✅ `GITHUB_OAUTH_CLIENT_ID=mock-client-id`
+- ✅ `GITHUB_OAUTH_CLIENT_SECRET=mock-client-secret`
+- ✅ `NEXT_PUBLIC_GITHUB_APP_NAME=pulse-summarizer`
 
 ## Authentication Verification System
 
@@ -266,7 +294,158 @@ if (navigationTime > profile.maxDelay) {
 }
 ```
 
-## CI-Specific Debugging
+## CI Workflow Configuration Issues
+
+### Authentication Configuration Validation
+
+GitPulse includes automated validation to detect configuration drift between CI workflows.
+
+#### Configuration Validation Commands
+```bash
+# Validate authentication configuration locally
+npm run validate:auth-config
+
+# Check for configuration drift between workflows
+node scripts/ci/validate-auth-configuration.js
+
+# View validation results
+cat ci-metrics/auth-config-validation.json | jq '.configDrift'
+```
+
+#### Common Configuration Issues
+
+**1. Environment Variable Drift**
+- **Symptoms**: Different authentication behavior between workflows
+- **Cause**: Inconsistent environment variables across CI workflows
+- **Detection**: `npm run validate:auth-config` shows ENV_VAR_DRIFT errors
+
+**2. Missing Composite Actions**
+- **Symptoms**: Workflow uses inline authentication setup instead of composite actions
+- **Cause**: Old workflow patterns not migrated to composite actions
+- **Detection**: Validation shows "missing composite actions" errors
+
+**3. Authentication Context Mismatch**
+- **Symptoms**: Wrong authentication secrets or timeouts
+- **Cause**: Using wrong auth_context parameter in composite actions
+- **Detection**: Tests fail due to incorrect authentication setup
+
+### Workflow Alignment Troubleshooting
+
+#### Environment Variable Alignment
+
+```bash
+# Compare environment variables between workflows
+diff <(grep -A 20 "env:" .github/workflows/ci.yml) \
+     <(grep -A 20 "env:" .github/workflows/e2e-tests.yml)
+
+# Check for required variables
+for workflow in ci.yml e2e-tests.yml auth-monitoring.yml; do
+  echo "=== $workflow ==="
+  grep -E "(NEXTAUTH_|E2E_|NODE_ENV)" .github/workflows/$workflow || echo "No auth vars found"
+done
+```
+
+#### Composite Action Usage Verification
+
+```bash
+# Check if all auth workflows use composite actions
+grep -r "uses.*auth-setup" .github/workflows/
+grep -r "uses.*auth-cleanup" .github/workflows/
+
+# Verify composite action inputs are consistent
+grep -A 10 "auth_context" .github/workflows/*.yml
+```
+
+### Authentication Configuration Failure Patterns
+
+#### Pattern 1: Configuration Drift Alert
+```
+❌ Configuration drift detected: 1 issues
+🔄 Configuration Drift (1):
+   1. ENV_VAR_DRIFT: Environment variable 'NEXTAUTH_SECRET' has different values across workflows
+```
+
+**Solution:**
+```bash
+# Review environment variable values
+npm run validate:auth-config
+# Fix inconsistent variables in workflow files
+# Allowed differences: NODE_ENV (test vs production), DEBUG levels
+```
+
+#### Pattern 2: Missing Composite Action Usage
+```
+❌ Workflow 'main' should use composite actions
+COMPOSITE_ACTION_DRIFT: Workflow 'main' uses authentication but not composite actions
+```
+
+**Solution:**
+```yaml
+# Replace inline auth setup with composite actions
+- name: Setup Authentication Environment
+  id: auth-setup
+  uses: ./.github/actions/auth-setup
+  with:
+    auth_context: "ci"
+    
+- name: Cleanup Authentication Environment
+  if: always()
+  uses: ./.github/actions/auth-cleanup
+  with:
+    server_pid: ${{ steps.auth-setup.outputs.server_pid }}
+```
+
+#### Pattern 3: Validation Errors in CI
+```
+🚨 Authentication CI Health Alert - CRITICAL
+- ⚠️ Validation Errors: 3
+- 🔄 Configuration Drift: 1 issues
+```
+
+**Solution:**
+1. Check monitoring artifacts for detailed validation results
+2. Run `npm run validate:auth-config` locally to identify issues
+3. Fix configuration drift using allowed patterns
+4. Ensure all authentication workflows use composite actions
+
+### CI Workflow Debugging Commands
+
+#### Quick Health Check
+```bash
+# Check all authentication workflows at once
+for workflow in .github/workflows/{ci,e2e-tests,auth-monitoring}.yml; do
+  echo "=== $(basename $workflow) ==="
+  grep -A 5 "auth-setup" $workflow && echo "✅ Uses composite actions" || echo "❌ Missing composite actions"
+done
+
+# Validate current configuration
+npm run validate:auth-config && echo "✅ Configuration valid" || echo "❌ Configuration issues found"
+```
+
+#### Configuration Analysis
+```bash
+# Analyze composite action inputs across workflows
+grep -A 10 "uses.*auth-setup" .github/workflows/*.yml | grep -E "(auth_context|server_timeout|enable_validation)"
+
+# Check environment variable consistency
+for var in NEXTAUTH_URL NEXTAUTH_SECRET E2E_MOCK_AUTH_ENABLED; do
+  echo "=== $var ==="
+  grep -n "$var" .github/workflows/*.yml
+done
+```
+
+#### Workflow Artifact Investigation
+```bash
+# Download and examine authentication validation results
+gh run download <run-id> -n auth-config-validation-results
+cat auth-config-validation.json | jq '.validationErrors'
+
+# Check authentication health monitoring results
+gh run download <run-id> -n auth-monitoring-*
+cat auth-health-latest.json | jq '.healthScore'
+```
+
+## CI-Specific Environment Debugging
 
 ### CI Environment Differences
 
@@ -276,40 +455,55 @@ CI environments often have different characteristics that affect authentication:
 2. **Different timing**: Cookie propagation delays
 3. **Security restrictions**: Some headers or cookies may behave differently
 4. **Process isolation**: Different process boundaries
+5. **Configuration drift**: Inconsistent setup between workflows
 
 ### CI Debugging Workflow
 
-1. **Enable debug logging** in CI:
+1. **Validate configuration first**:
+```bash
+npm run validate:auth-config
+```
+
+2. **Enable debug logging** in CI:
 ```yaml
 env:
   DEBUG: 'pw:api,pw:browser*'
   PWDEBUG: 'console'
 ```
 
-2. **Collect artifacts** after failures:
+3. **Collect comprehensive artifacts** after failures:
 ```yaml
 - name: Upload test artifacts
   if: failure()
-  uses: actions/upload-artifact@v3
+  uses: actions/upload-artifact@v4
   with:
     name: test-artifacts
     path: |
       test-results/
       e2e/storageState*.json
       e2e/server.log
+      ci-metrics/auth-*.json
 ```
 
-3. **Add debug steps** to CI workflow:
+4. **Add workflow debug steps** to CI:
 ```yaml
-- name: Debug authentication state
+- name: Debug authentication configuration
   if: failure()
   run: |
-    echo "=== Authentication Debug ==="
+    echo "=== Authentication Configuration Debug ==="
+    npm run validate:auth-config || echo "Configuration validation failed"
+    
+    echo "=== Authentication State ==="
     cat e2e/storageState.json | jq '.cookies[] | select(.name=="next-auth.session-token")'
+    
     echo "=== Server logs (last 50 lines) ==="
     tail -50 e2e/server.log
-    echo "=== Environment ==="
+    
+    echo "=== Environment Variables ==="
     env | grep -E "(NODE_ENV|E2E_|NEXT|AUTH)" | sort
+    
+    echo "=== Workflow Configuration ==="
+    grep -A 5 "auth-setup" .github/workflows/ci.yml
 ```
 
 ### CI Performance Optimization
@@ -539,11 +733,14 @@ Keep this guide updated when:
 
 ## References
 
+- [Authentication CI Debugging Quick Reference](./auth-debug-quickref.md) - Emergency commands and troubleshooting patterns
 - [E2E Mock Auth Strategy](./E2E_MOCK_AUTH_STRATEGY.md) - Authentication system setup
 - [Testing Guidelines](./TESTING_GUIDELINES.md) - General testing practices
 - [CI Workflow Alignment](../development/CI_WORKFLOW_ALIGNMENT.md) - CI configuration
+- [Authentication CI Patterns](../development/AUTHENTICATION_CI_PATTERNS.md) - Workflow standardization patterns
 - Code references:
   - `e2e/helpers/authVerification.ts` - Verification methods
   - `e2e/helpers/authDebug.ts` - Debugging utilities
   - `e2e/helpers/adaptiveTiming.ts` - Timing optimization
   - `e2e/helpers/authErrorReporting.ts` - Error analysis
+  - `scripts/ci/validate-auth-configuration.js` - Configuration validation

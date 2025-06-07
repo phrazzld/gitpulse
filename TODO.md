@@ -684,21 +684,32 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - ✅ Validated no regressions with comprehensive testing
   - Actual time: 25 minutes
 
-- [ ] **Add authentication configuration validation to CI**
-  - Create automated check to detect configuration drift between workflows
-  - Implement validation that authentication environment is properly configured
-  - Add alerts if authentication setup differs between main and dedicated workflows
-  - Include authentication readiness verification in CI workflow health checks
-  - Expected time: 20 minutes
+- [x] **Add authentication configuration validation to CI**
+  - ✅ Created comprehensive validation script `scripts/ci/validate-auth-configuration.js`
+  - ✅ Added automated check to detect configuration drift between workflows
+  - ✅ Implemented validation that authentication environment is properly configured
+  - ✅ Added npm script `validate:auth-config` for local and CI validation
+  - ✅ Integrated validation step into all authentication-using CI workflows
+  - ✅ Added alerts for configuration drift in authentication monitoring workflow
+  - ✅ Included authentication readiness verification in CI workflow health checks
+  - ✅ Added artifact upload for validation results and troubleshooting
+  - ✅ Updated authentication CI patterns documentation with validation guide
+  - ✅ Configured allowlist for expected environment variable differences (NODE_ENV)
+  - Actual time: 25 minutes
 
 ### Low Priority - Long-term Improvements
 
-- [ ] **Document authentication CI troubleshooting patterns**
-  - Update authentication troubleshooting guide with CI-specific workflow issues
-  - Add section on authentication configuration alignment between workflows
-  - Document common authentication validation failure patterns in CI
-  - Create quick reference for authentication CI debugging
-  - Expected time: 15 minutes
+- [x] **Document authentication CI troubleshooting patterns**
+  - ✅ Updated authentication troubleshooting guide with CI-specific workflow issues
+  - ✅ Added comprehensive section on authentication configuration alignment between workflows
+  - ✅ Documented common authentication validation failure patterns in CI
+  - ✅ Created quick reference for authentication CI debugging at `docs/testing/auth-debug-quickref.md`
+  - ✅ Added CI workflow configuration validation troubleshooting procedures
+  - ✅ Documented environment variable drift detection and resolution
+  - ✅ Included composite action usage verification and debugging steps
+  - ✅ Added workflow artifact analysis procedures for CI debugging
+  - ✅ Updated cross-references to link all authentication documentation
+  - Actual time: 20 minutes
 
 - [ ] **Clean up temporary CI analysis files**
   - Remove CI-FAILURE-SUMMARY.md and CI-RESOLUTION-PLAN.md after resolution

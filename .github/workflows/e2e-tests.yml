@@ -24,6 +24,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Validate authentication configuration
+        run: npm run validate:auth-config
+        # Ensures authentication setup is consistent across all CI workflows
+      
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
       
