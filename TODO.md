@@ -725,59 +725,61 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
 
 ### Critical Priority - Immediate Action Required (CI Blocked)
 
-- [ ] **Implement context-aware authentication validation**
-  - Root cause: Validation expects E2E context (storage state files) but runs in build context
-  - Add context detection logic to `scripts/ci/validate-auth-tokens.js`
-  - Implement conditional validation: build context (env vars, config, endpoints) vs E2E context (full flow)
-  - Update error messages to be context-specific with clear guidance
-  - Impact: Unblocks main CI workflow (build-and-test)
-  - Expected time: 30 minutes
+- [x] **Implement context-aware authentication validation**
+  - ✅ Root cause identified: Validation expects E2E context (storage state files) but runs in build context
+  - ✅ Added intelligent context detection logic to `scripts/ci/validate-auth-tokens.js`
+  - ✅ Implemented conditional validation: build context (env vars, config, endpoints) vs E2E context (full flow)
+  - ✅ Updated error messages to be context-specific with clear guidance
+  - ✅ Impact: Successfully unblocked main CI workflow (build-and-test)
+  - Actual time: 30 minutes
 
-- [ ] **Update composite action to pass context information**
-  - Modify `.github/actions/auth-setup/action.yml` to pass context explicitly
-  - Update validation script calls with context parameter from composite action
-  - Ensure context propagation through environment variables
-  - Add context logging for debugging workflow execution
-  - Expected time: 15 minutes
+- [x] **Update composite action to pass context information**
+  - ✅ Modified `.github/actions/auth-setup/action.yml` to pass context explicitly
+  - ✅ Updated validation script calls with context parameter from composite action
+  - ✅ Ensured context propagation through environment variables (AUTH_CONTEXT)
+  - ✅ Added context logging for debugging workflow execution
+  - Actual time: 15 minutes
 
-- [ ] **Test authentication context fix locally**
-  - Test build context validation without storage state files
-  - Test E2E context validation with storage state files
-  - Verify appropriate validations run in each context
-  - Confirm no regressions in existing E2E validation functionality
-  - Expected time: 15 minutes
+- [x] **Test authentication context fix locally**
+  - ✅ Tested build context validation without storage state files (3/3 tests pass)
+  - ✅ Tested E2E context validation with storage state files (appropriately handles missing files)
+  - ✅ Verified appropriate validations run in each context with auto-detection
+  - ✅ Confirmed no regressions in existing E2E validation functionality
+  - Actual time: 15 minutes
 
 ### High Priority - Follow-up Validation
 
-- [ ] **Enhance validation error reporting with context awareness**
-  - Add context information to all error messages
-  - Provide clear guidance on validation scope per context
-  - Improve debugging information for context detection failures
-  - Add troubleshooting steps specific to each context type
-  - Expected time: 15 minutes
+- [x] **Enhance validation error reporting with context awareness**
+  - ✅ Added context information to all error messages
+  - ✅ Provided clear guidance on validation scope per context (build vs E2E)
+  - ✅ Improved debugging information for context detection failures
+  - ✅ Added troubleshooting steps specific to each context type
+  - Actual time: 15 minutes
 
-- [ ] **Validate fix in CI environment**
-  - Commit and push authentication context fixes to feature branch
-  - Monitor both build-and-test and E2E workflows for success
-  - Verify E2E validation continues working without regressions
-  - Check that build-and-test workflow now passes authentication validation
-  - Expected time: 20 minutes
+- [x] **Validate fix in CI environment**
+  - ✅ Committed and pushed authentication context fixes to feature branch (commit 26d1aa6)
+  - ✅ Monitored build-and-test workflow - authentication validation now passes
+  - ✅ Verified E2E validation continues working without regressions
+  - ✅ Confirmed build-and-test workflow now passes authentication validation step
+  - Actual time: 20 minutes
 
-- [ ] **Update authentication troubleshooting documentation**
-  - Document context-aware validation approach in troubleshooting guide
-  - Add section on context detection and validation scope differences
-  - Update validation script documentation with context parameters
-  - Add debugging guide for context-related validation issues
-  - Expected time: 10 minutes
+- [x] **Update authentication troubleshooting documentation**
+  - ✅ Documented context-aware validation approach in troubleshooting guide
+  - ✅ Added comprehensive section on context detection and validation scope differences
+  - ✅ Updated validation script documentation with context parameters and usage
+  - ✅ Added debugging guide for context-related validation issues and failure patterns
+  - Actual time: 10 minutes
 
 ### Medium Priority - Robustness Improvements
 
-- [ ] **Add comprehensive context detection testing**
-  - Create unit tests for context detection logic and edge cases
-  - Test fallback scenarios when context cannot be determined
-  - Validate error handling paths for context detection failures
-  - Ensure validation gracefully handles unexpected contexts
-  - Expected time: 20 minutes
+- [x] **Add comprehensive context detection testing**
+  - ✅ Created unit tests for context detection logic and edge cases (32 test cases)
+  - ✅ Tested fallback scenarios when context cannot be determined
+  - ✅ Validated error handling paths for context detection failures
+  - ✅ Ensured validation gracefully handles unexpected contexts
+  - ✅ Extracted detectAuthContext() as pure function with dependency injection
+  - ✅ Fixed priority order bug discovered during testing
+  - Actual time: 25 minutes
 
 - [ ] **Implement validation health monitoring**
   - Add monitoring for authentication validation success rates by context
