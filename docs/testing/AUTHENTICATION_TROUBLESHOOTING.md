@@ -294,6 +294,185 @@ if (navigationTime > profile.maxDelay) {
 }
 ```
 
+## Context-Aware Authentication Validation
+
+GitPulse implements intelligent context-aware authentication validation that automatically detects the execution environment and runs appropriate validations for each context.
+
+### Validation Contexts
+
+The system supports four validation contexts:
+
+1. **Build Context** (`build`)
+   - **When**: CI build environments without E2E setup
+   - **Validations**: Environment variables, NextAuth configuration, endpoint health
+   - **Purpose**: Verify core authentication components are working for build steps
+
+2. **E2E Context** (`e2e`)
+   - **When**: Full E2E test execution with storage state available
+   - **Validations**: All build validations + storage state, JWT structure, session API, authentication flow
+   - **Purpose**: Comprehensive authentication flow validation
+
+3. **Monitoring Context** (`monitoring`)
+   - **When**: Authentication health monitoring workflows
+   - **Validations**: Core authentication components (same as build)
+   - **Purpose**: Periodic health checks without E2E overhead
+
+4. **Local Context** (`local`)
+   - **When**: Development environment testing
+   - **Validations**: Core authentication components
+   - **Purpose**: Developer testing and debugging
+
+### Context Detection Logic
+
+The validation system automatically detects context using:
+
+```bash
+# Manual context specification
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 build
+
+# Auto-detection (default)
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 auto
+```
+
+**Auto-detection rules:**
+1. **E2E context**: `e2e/storageState.json` exists OR `AUTH_CONTEXT=e2e`
+2. **Build context**: `CI=true` without storage state
+3. **Monitoring context**: `AUTH_CONTEXT=monitoring`
+4. **Local context**: Development environment (fallback)
+
+### Context-Specific Validation Behavior
+
+#### Build Context Validation
+```bash
+# Only core validations run
+✅ Environment Variables Validation
+✅ NextAuth Configuration Validation  
+✅ Authentication Endpoints Validation
+⏭️ Storage State Validation (skipped)
+⏭️ JWT Token Structure Validation (skipped)
+⏭️ Session API Response Validation (skipped)
+⏭️ End-to-End Authentication Flow Validation (skipped)
+```
+
+#### E2E Context Validation
+```bash
+# All validations run
+✅ Environment Variables Validation
+✅ NextAuth Configuration Validation
+✅ Authentication Endpoints Validation
+✅ Storage State Validation
+✅ JWT Token Structure Validation
+✅ Session API Response Validation
+✅ End-to-End Authentication Flow Validation
+```
+
+### Context-Related Issues
+
+#### Issue: Wrong Context Detection
+**Symptoms:**
+- Build workflows fail with "Storage state file not found" errors
+- E2E tests skip important validations
+
+**Diagnosis:**
+```bash
+# Check what context is being detected
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 auto
+# Look for: "Detected [context] context" in output
+
+# Check environment indicators
+echo "CI: $CI"
+echo "AUTH_CONTEXT: $AUTH_CONTEXT"
+ls -la e2e/storageState.json
+```
+
+**Solutions:**
+1. **Explicit context**: Pass context parameter to validation script
+2. **Environment setup**: Ensure `AUTH_CONTEXT` is set in CI workflows
+3. **File cleanup**: Remove stale storage state files if they cause wrong detection
+
+#### Issue: Context Mismatch in CI
+**Symptoms:**
+- Authentication validation passes locally but fails in CI
+- Different validation results between workflows
+
+**Diagnosis:**
+```bash
+# Compare context detection between environments
+CI=true node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 auto
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 auto
+
+# Check composite action context passing
+grep -A 5 "validate-auth-tokens" .github/actions/auth-setup/action.yml
+```
+
+**Solutions:**
+1. **Composite action update**: Ensure context is passed to validation script
+2. **Environment alignment**: Set `AUTH_CONTEXT` environment variable
+3. **Manual override**: Specify context explicitly in problematic workflows
+
+### Debugging Context Issues
+
+#### Context Detection Debugging
+```typescript
+// In validation script
+console.log('Context detection factors:');
+console.log('  hasStorageState:', fs.existsSync('e2e/storageState.json'));
+console.log('  isCI:', process.env.CI === 'true');
+console.log('  authContextEnv:', process.env.AUTH_CONTEXT);
+console.log('  Detected context:', detectedContext);
+```
+
+#### Validation Scope Verification
+```bash
+# Check what validations run for each context
+echo "=== Build Context ==="
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 build | grep "Will run"
+
+echo "=== E2E Context ==="  
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 e2e | grep "Will run"
+```
+
+#### Context Override Testing
+```bash
+# Test different contexts manually
+for context in build e2e monitoring local; do
+  echo "=== Testing $context context ==="
+  NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true NEXTAUTH_SECRET=test \
+    node scripts/ci/validate-auth-tokens.js http://localhost:3000 10000 $context
+done
+```
+
+### Context Configuration in CI
+
+#### Composite Action Integration
+The authentication setup composite action automatically passes context:
+
+```yaml
+# In .github/actions/auth-setup/action.yml
+- name: Validate Authentication Configuration
+  run: |
+    node scripts/ci/validate-auth-tokens.js http://localhost:3000 ${{ inputs.health_check_timeout }} ${{ inputs.auth_context }}
+  env:
+    AUTH_CONTEXT: ${{ inputs.auth_context }}
+```
+
+#### Workflow Context Settings
+Ensure workflows pass appropriate context:
+
+```yaml
+# Build-focused workflow
+- name: Setup Authentication Environment
+  uses: ./.github/actions/auth-setup
+  with:
+    auth_context: "ci"  # Will use build context
+
+# E2E-focused workflow  
+- name: Setup Authentication Environment
+  uses: ./.github/actions/auth-setup
+  with:
+    auth_context: "e2e"  # Will use E2E context
+```
+
 ## CI Workflow Configuration Issues
 
 ### Authentication Configuration Validation

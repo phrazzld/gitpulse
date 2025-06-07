@@ -27,6 +27,48 @@ for var in NEXTAUTH_URL NEXTAUTH_SECRET E2E_MOCK_AUTH_ENABLED; do
 done
 ```
 
+## 🎯 Context-Aware Validation
+
+### Context Testing Commands
+```bash
+# Test specific validation context
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 build
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 e2e
+
+# Auto-detect context (default)
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 auto
+
+# Test all contexts
+for context in build e2e monitoring local; do
+  echo "=== $context context ==="
+  NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true NEXTAUTH_SECRET=test \
+    node scripts/ci/validate-auth-tokens.js http://localhost:3000 10000 $context
+done
+```
+
+### Context Detection Debugging
+```bash
+# Check context detection factors
+echo "CI: $CI"
+echo "AUTH_CONTEXT: $AUTH_CONTEXT"  
+ls -la e2e/storageState.json
+
+# Debug context detection
+NODE_ENV=test CI=true node scripts/ci/validate-auth-tokens.js http://localhost:3000 10000 auto | grep "Detected"
+```
+
+### Context-Specific Issues
+```bash
+# Build context: Should skip E2E validations
+# ✅ 3 tests (env, config, endpoints) - ⏭️ 4 tests skipped
+
+# E2E context: Should run all validations  
+# ✅ 7 tests (all validations)
+
+# Check which validations run per context
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000 build | grep "Will run"
+```
+
 ## 🔧 Configuration Debugging
 
 ### Validate Configuration
@@ -169,6 +211,14 @@ COMPOSITE_ACTION_DRIFT: Workflow uses authentication but not composite actions
 ```
 **Fix:** Check artifacts, run local validation, fix drift issues
 
+### Context Validation Failures
+```
+❌ Storage state file not found at e2e/storageState.json
+❌ Build context validation failed for storage state
+❌ Wrong context detected: expected e2e, got build
+```
+**Fix:** Check context detection, verify AUTH_CONTEXT environment variable, ensure proper context in CI
+
 ### Test Authentication Failures
 ```
 Authentication lost after navigation
@@ -225,7 +275,9 @@ NODE_ENV=test E2E_MOCK_AUTH_ENABLED=true npm run test:e2e -- --project=setup
 ### Scripts and Utilities
 - `scripts/ci/validate-auth-configuration.js` - Configuration validation
 - `scripts/check-auth-health.js` - Authentication endpoint health check
-- `scripts/ci/validate-auth-tokens.js` - JWT token validation
+- `scripts/ci/validate-auth-tokens.js` - Context-aware JWT token and authentication validation
+  - Usage: `node scripts/ci/validate-auth-tokens.js <url> <timeout> [context]`
+  - Contexts: `build`, `e2e`, `monitoring`, `local`, `auto` (default)
 - `scripts/ci/verify-nextauth-initialization.js` - NextAuth initialization verification
 
 ### Test Helpers
