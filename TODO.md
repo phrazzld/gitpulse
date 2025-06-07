@@ -613,3 +613,82 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - ✅ Implemented health scoring system (0-100) with intelligent recommendations and threshold-based alerting
   - Actual time: 45 minutes
 
+## Current CI Failures (June 6, 2025) - Main Workflow Authentication Issues
+
+### Critical Priority - Immediate Action Required
+
+- [ ] **Compare environment variables between CI workflows**
+  - Analyze `.github/workflows/ci.yml` vs `.github/workflows/e2e-tests.yml` environment sections
+  - Identify missing or different NextAuth-related environment variables
+  - Document specific differences in authentication configuration
+  - Focus on variables affecting session validation and mock authentication
+  - Expected time: 20 minutes
+
+- [ ] **Align authentication environment configuration in main CI workflow**
+  - Add any missing environment variables from successful dedicated E2E workflow
+  - Ensure identical NextAuth configuration between workflows
+  - Verify mock authentication environment variables are properly set
+  - Test environment variable precedence and availability timing
+  - Expected time: 15 minutes
+
+- [ ] **Add comprehensive authentication token debugging to main CI workflow**
+  - Implement detailed JWT token structure validation before E2E tests
+  - Add session token format verification and signing validation
+  - Create pre-test authentication state verification checkpoint
+  - Include token expiration and format debugging in CI logs
+  - Expected time: 25 minutes
+
+- [ ] **Verify NextAuth server initialization timing in main CI workflow**
+  - Add authentication endpoint readiness verification after server startup
+  - Implement JWT secret and configuration validation checks
+  - Ensure NextAuth is fully initialized before E2E test execution
+  - Add timing delays if needed for proper authentication setup
+  - Expected time: 20 minutes
+
+### High Priority - Validation and Testing
+
+- [ ] **Test authentication fix in isolation**
+  - Run single authentication test in main CI workflow after configuration changes
+  - Verify session API returns proper user data instead of empty object
+  - Confirm session tokens are not being cleared with Max-Age=0
+  - Validate authentication state persistence across test navigation
+  - Expected time: 15 minutes
+
+- [ ] **Validate all CI workflows after authentication fixes**
+  - Ensure main build-and-test workflow E2E tests pass completely
+  - Verify no regression in dedicated E2E workflow functionality
+  - Confirm authentication health monitor continues working
+  - Test storybook-a11y workflow remains unaffected
+  - Expected time: 30 minutes
+
+### Medium Priority - Standardization and Prevention
+
+- [ ] **Standardize authentication setup across all CI workflows**
+  - Extract common authentication configuration into shared workflow components
+  - Implement consistent authentication health checks across workflows
+  - Create unified authentication debugging approach for all workflows
+  - Document authentication workflow requirements and dependencies
+  - Expected time: 25 minutes
+
+- [ ] **Add authentication configuration validation to CI**
+  - Create automated check to detect configuration drift between workflows
+  - Implement validation that authentication environment is properly configured
+  - Add alerts if authentication setup differs between main and dedicated workflows
+  - Include authentication readiness verification in CI workflow health checks
+  - Expected time: 20 minutes
+
+### Low Priority - Long-term Improvements
+
+- [ ] **Document authentication CI troubleshooting patterns**
+  - Update authentication troubleshooting guide with CI-specific workflow issues
+  - Add section on authentication configuration alignment between workflows
+  - Document common authentication validation failure patterns in CI
+  - Create quick reference for authentication CI debugging
+  - Expected time: 15 minutes
+
+- [ ] **Clean up temporary CI analysis files**
+  - Remove CI-FAILURE-SUMMARY.md and CI-RESOLUTION-PLAN.md after resolution
+  - Archive analysis in appropriate documentation location if needed
+  - Ensure repository cleanliness after CI fix completion
+  - Expected time: 5 minutes
+
