@@ -643,12 +643,17 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - ✅ Updated CI scripts documentation with comprehensive usage guide
   - Actual time: 25 minutes
 
-- [ ] **Verify NextAuth server initialization timing in main CI workflow**
-  - Add authentication endpoint readiness verification after server startup
-  - Implement JWT secret and configuration validation checks
-  - Ensure NextAuth is fully initialized before E2E test execution
-  - Add timing delays if needed for proper authentication setup
-  - Expected time: 20 minutes
+- [x] **Verify NextAuth server initialization timing in main CI workflow**
+  - ✅ Added comprehensive authentication endpoint readiness verification in `scripts/ci/verify-nextauth-initialization.js`
+  - ✅ Implemented JWT secret and configuration validation checks with CSRF token generation testing
+  - ✅ Ensured NextAuth is fully initialized before E2E test execution with multi-step verification process
+  - ✅ Added strategic timing delays (3s for CI, 1s for local) for proper authentication setup and stability
+  - ✅ Added CI workflow step "Verify NextAuth Initialization and Timing" with 45s timeout and 2s retry interval
+  - ✅ Added NextAuth initialization results artifact upload for debugging analysis
+  - ✅ Added npm script `verify:nextauth-init` for local testing and development
+  - ✅ Updated CI scripts documentation with comprehensive usage guide and feature descriptions
+  - ✅ Comprehensive verification including providers configuration, session handling, and authentication flow readiness
+  - Actual time: 20 minutes
 
 ### High Priority - Validation and Testing
 

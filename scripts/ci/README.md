@@ -29,6 +29,32 @@ node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000
 - Comprehensive error messages for troubleshooting
 - Authentication flow validation and readiness checks
 
+### `verify-nextauth-initialization.js`
+NextAuth initialization verification script for ensuring proper server readiness.
+
+**Features**:
+- Verifies NextAuth endpoints are responding with valid configuration
+- Validates JWT secret is properly loaded and functional
+- Tests NextAuth providers configuration (GitHub OAuth)
+- Checks session handling readiness and validation
+- Adds strategic delays for CI environment stability
+- Comprehensive timing analysis and retry logic
+
+**Usage**:
+```bash
+# Run NextAuth initialization verification
+npm run verify:nextauth-init
+
+# Direct execution with custom parameters
+node scripts/ci/verify-nextauth-initialization.js http://localhost:3000 45000 2000
+```
+
+**Output**:
+- Detailed verification logs with timing information
+- Results saved to `ci-metrics/nextauth-initialization.json`
+- CI-specific delays for authentication stability
+- Comprehensive error reporting for initialization issues
+
 ### `monitor-auth-health.js`
 Comprehensive monitoring script for authentication test health in CI environments.
 

@@ -39,7 +39,8 @@
     "validate-color-docs": "node scripts/accessibility/generate-color-docs-simple.js --validate",
     "validate:deps": "node scripts/validate-dependencies.js",
     "validate:coverage": "node scripts/coverage/validate-coverage-format.js",
-    "validate:auth-tokens": "node scripts/ci/validate-auth-tokens.js"
+    "validate:auth-tokens": "node scripts/ci/validate-auth-tokens.js",
+    "verify:nextauth-init": "node scripts/ci/verify-nextauth-initialization.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",

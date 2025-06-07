@@ -240,6 +240,16 @@ jobs:
         node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000
         echo "Authentication token validation completed successfully!"
 
+    - name: Verify NextAuth Initialization and Timing
+      run: |
+        echo "Verifying NextAuth is fully initialized and ready for E2E tests..."
+        # This step ensures NextAuth has completed initialization beyond basic endpoint availability
+        # It verifies configuration loading, JWT secret functionality, and session handling readiness
+        # Adds strategic delays in CI environment for stability and prevents timing-related failures
+        # Results saved to ci-metrics/nextauth-initialization.json for analysis
+        node scripts/ci/verify-nextauth-initialization.js http://localhost:3000 45000 2000
+        echo "NextAuth initialization verification completed successfully!"
+
     - name: Run E2E Tests
       run: |
         # Set CI to true explicitly to enable CI-specific settings in playwright.config.ts
@@ -287,6 +297,16 @@ jobs:
         name: auth-validation-results
         path: |
           ci-metrics/auth-token-validation.json
+        retention-days: 7
+        if-no-files-found: ignore
+
+    - name: Upload NextAuth Initialization Results
+      if: always() # Run even if initialization verification fails
+      uses: actions/upload-artifact@v4
+      with:
+        name: nextauth-initialization-results
+        path: |
+          ci-metrics/nextauth-initialization.json
         retention-days: 7
         if-no-files-found: ignore
 
