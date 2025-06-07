@@ -38,7 +38,8 @@
     "generate-color-docs": "node scripts/accessibility/generate-color-docs-simple.js",
     "validate-color-docs": "node scripts/accessibility/generate-color-docs-simple.js --validate",
     "validate:deps": "node scripts/validate-dependencies.js",
-    "validate:coverage": "node scripts/coverage/validate-coverage-format.js"
+    "validate:coverage": "node scripts/coverage/validate-coverage-format.js",
+    "validate:auth-tokens": "node scripts/ci/validate-auth-tokens.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",

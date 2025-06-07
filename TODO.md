@@ -632,12 +632,16 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - ✅ No environment variable changes needed - root cause lies elsewhere
   - Actual time: 0 minutes (completed as part of environment comparison analysis)
 
-- [ ] **Add comprehensive authentication token debugging to main CI workflow**
-  - Implement detailed JWT token structure validation before E2E tests
-  - Add session token format verification and signing validation
-  - Create pre-test authentication state verification checkpoint
-  - Include token expiration and format debugging in CI logs
-  - Expected time: 25 minutes
+- [x] **Add comprehensive authentication token debugging to main CI workflow**
+  - ✅ Implemented detailed JWT token structure validation before E2E tests in `scripts/ci/validate-auth-tokens.js`
+  - ✅ Added session token format verification and signing validation with comprehensive error reporting
+  - ✅ Created pre-test authentication state verification checkpoint with 7 validation tests
+  - ✅ Included token expiration and format debugging in CI logs with timestamped output
+  - ✅ Added CI workflow step "Validate Authentication Tokens and Configuration" before E2E tests
+  - ✅ Added authentication validation results artifact upload for debugging
+  - ✅ Added npm script `validate:auth-tokens` for local testing
+  - ✅ Updated CI scripts documentation with comprehensive usage guide
+  - Actual time: 25 minutes
 
 - [ ] **Verify NextAuth server initialization timing in main CI workflow**
   - Add authentication endpoint readiness verification after server startup

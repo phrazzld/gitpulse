@@ -4,6 +4,31 @@ This directory contains scripts for Continuous Integration (CI) operations and m
 
 ## Authentication Monitoring
 
+### `validate-auth-tokens.js`
+Comprehensive authentication token validation script for CI environments.
+
+**Features**:
+- Validates JWT token structure and NextAuth session tokens
+- Checks NextAuth configuration and endpoint availability
+- Verifies environment variables and authentication setup
+- Tests session API responses and cookie handling
+- Provides detailed debugging output for authentication issues
+
+**Usage**:
+```bash
+# Run authentication token validation
+npm run validate:auth-tokens
+
+# Direct execution with custom URL and timeout
+node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000
+```
+
+**Output**:
+- Detailed validation logs with timestamps
+- Results saved to `ci-metrics/auth-token-validation.json`
+- Comprehensive error messages for troubleshooting
+- Authentication flow validation and readiness checks
+
 ### `monitor-auth-health.js`
 Comprehensive monitoring script for authentication test health in CI environments.
 
