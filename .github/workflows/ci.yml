@@ -239,6 +239,14 @@ jobs:
         # Results are saved to ci-metrics/auth-token-validation.json for debugging
         node scripts/ci/validate-auth-tokens.js http://localhost:3000 30000
         echo "Authentication token validation completed successfully!"
+      env:
+        NODE_ENV: test
+        E2E_MOCK_AUTH_ENABLED: true
+        NEXTAUTH_URL: http://localhost:3000
+        NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
+        NEXTAUTH_SECRET: playwright-test-secret-key
+        GITHUB_OAUTH_CLIENT_ID: mock-client-id
+        GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
 
     - name: Verify NextAuth Initialization and Timing
       run: |
@@ -249,6 +257,14 @@ jobs:
         # Results saved to ci-metrics/nextauth-initialization.json for analysis
         node scripts/ci/verify-nextauth-initialization.js http://localhost:3000 45000 2000
         echo "NextAuth initialization verification completed successfully!"
+      env:
+        NODE_ENV: test
+        E2E_MOCK_AUTH_ENABLED: true
+        NEXTAUTH_URL: http://localhost:3000
+        NEXT_PUBLIC_GITHUB_APP_NAME: pulse-summarizer
+        NEXTAUTH_SECRET: playwright-test-secret-key
+        GITHUB_OAUTH_CLIENT_ID: mock-client-id
+        GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
 
     - name: Run E2E Tests
       run: |
