@@ -15,15 +15,18 @@ const { execSync } = require('child_process');
 // Configuration
 const BASE_URL = process.argv[2] || 'http://localhost:3000';
 const TIMEOUT = parseInt(process.argv[3]) || 30000;
+const AUTH_CONTEXT = process.argv[4] || process.env.AUTH_CONTEXT || 'auto';
 const STORAGE_STATE_PATH = 'e2e/storageState.json';
 
 class AuthTokenValidator {
-  constructor(baseUrl, timeout) {
+  constructor(baseUrl, timeout, authContext = 'auto') {
     this.baseUrl = baseUrl;
     this.timeout = timeout;
+    this.authContext = this.detectContext(authContext);
     this.results = {
       timestamp: new Date().toISOString(),
       baseUrl,
+      authContext: this.authContext,
       tests: [],
       summary: {
         passed: 0,
@@ -31,6 +34,53 @@ class AuthTokenValidator {
         total: 0
       }
     };
+  }
+
+  detectContext(requestedContext) {
+    // If context is explicitly specified, use it
+    if (requestedContext && requestedContext !== 'auto') {
+      this.log(`Using explicitly specified context: ${requestedContext}`, 'info');
+      return requestedContext;
+    }
+
+    // Auto-detect context based on environment and available files
+    const hasStorageState = fs.existsSync(STORAGE_STATE_PATH);
+    const isCI = process.env.CI === 'true';
+    const authContextEnv = process.env.AUTH_CONTEXT;
+
+    // Check for E2E context indicators
+    if (hasStorageState) {
+      this.log('Detected E2E context: storage state file exists', 'info');
+      return 'e2e';
+    }
+
+    // Check for explicit context from environment
+    if (authContextEnv === 'e2e') {
+      this.log('Detected E2E context: AUTH_CONTEXT environment variable', 'info');
+      return 'e2e';
+    }
+
+    // Check for build context indicators
+    if (isCI && (!hasStorageState)) {
+      this.log('Detected build context: CI environment without storage state', 'info');
+      return 'build';
+    }
+
+    // Check for monitoring context
+    if (authContextEnv === 'monitoring') {
+      this.log('Detected monitoring context: AUTH_CONTEXT environment variable', 'info');
+      return 'monitoring';
+    }
+
+    // Default to build context for CI environments
+    if (isCI) {
+      this.log('Defaulting to build context: CI environment detected', 'info');
+      return 'build';
+    }
+
+    // Default to local context for development
+    this.log('Defaulting to local context: development environment', 'info');
+    return 'local';
   }
 
   log(message, type = 'info') {
@@ -468,22 +518,55 @@ class AuthTokenValidator {
     });
   }
 
-  async runAllValidations() {
-    this.log('Starting comprehensive authentication token validation', 'info');
-    this.log(`Base URL: ${this.baseUrl}`, 'info');
-    this.log(`Timeout: ${this.timeout}ms`, 'info');
-
-    const validations = [
+  getValidationsForContext() {
+    const coreValidations = [
       () => this.validateEnvironmentVariables(),
       () => this.validateNextAuthConfiguration(),
-      () => this.validateAuthEndpoints(),
+      () => this.validateAuthEndpoints()
+    ];
+
+    const e2eValidations = [
       () => this.validateStorageState(),
       () => this.validateJWTTokenStructure(),
       () => this.validateSessionAPI(),
       () => this.validateAuthenticationFlow()
     ];
 
+    switch (this.authContext) {
+      case 'e2e':
+        this.log('Running full E2E context validations (core + storage + session)', 'info');
+        return [...coreValidations, ...e2eValidations];
+
+      case 'build':
+      case 'monitoring':
+      case 'local':
+        this.log(`Running ${this.authContext} context validations (core authentication only)`, 'info');
+        return coreValidations;
+
+      default:
+        this.log(`Unknown context '${this.authContext}', running core validations only`, 'warning');
+        return coreValidations;
+    }
+  }
+
+  async runAllValidations() {
+    this.log('Starting context-aware authentication validation', 'info');
+    this.log(`Base URL: ${this.baseUrl}`, 'info');
+    this.log(`Timeout: ${this.timeout}ms`, 'info');
+    this.log(`Authentication Context: ${this.authContext}`, 'info');
+
+    const validations = this.getValidationsForContext();
     let allPassed = true;
+
+    // Log what validations will be run
+    this.log(`Will run ${validations.length} validation(s) for ${this.authContext} context`, 'info');
+    
+    if (this.authContext === 'build') {
+      this.log('Build context: Skipping storage state, JWT structure, session API, and E2E flow validations', 'info');
+      this.log('Build context: Validating environment, configuration, and endpoint health only', 'info');
+    } else if (this.authContext === 'e2e') {
+      this.log('E2E context: Running comprehensive authentication validation including storage state and session flow', 'info');
+    }
 
     for (const validation of validations) {
       try {
@@ -496,9 +579,17 @@ class AuthTokenValidator {
 
     // Generate summary report
     this.log('=== AUTHENTICATION TOKEN VALIDATION SUMMARY ===', 'info');
+    this.log(`Context: ${this.authContext}`, 'info');
     this.log(`Total Tests: ${this.results.summary.total}`, 'info');
     this.log(`Passed: ${this.results.summary.passed}`, 'success');
     this.log(`Failed: ${this.results.summary.failed}`, this.results.summary.failed > 0 ? 'error' : 'info');
+
+    // Context-specific success criteria
+    if (this.authContext === 'build' && this.results.summary.passed >= 3) {
+      this.log('Build context validation successful: Core authentication components are working', 'success');
+    } else if (this.authContext === 'e2e' && this.results.summary.passed >= 6) {
+      this.log('E2E context validation successful: Full authentication flow is ready', 'success');
+    }
 
     // Save detailed results to file for CI artifacts
     const resultsPath = 'ci-metrics/auth-token-validation.json';
@@ -512,10 +603,20 @@ class AuthTokenValidator {
     this.log(`Detailed results saved to ${resultsPath}`, 'info');
 
     if (!allPassed) {
-      this.log('Authentication token validation FAILED - see errors above', 'error');
+      this.log(`Authentication validation FAILED for ${this.authContext} context - see errors above`, 'error');
+      
+      // Provide context-specific guidance
+      if (this.authContext === 'build') {
+        this.log('Build context failures suggest issues with server startup, configuration, or endpoint health', 'error');
+        this.log('Check: environment variables, NextAuth config, server connectivity', 'error');
+      } else if (this.authContext === 'e2e') {
+        this.log('E2E context failures suggest issues with authentication flow or session management', 'error');
+        this.log('Check: storage state file, session tokens, authentication cookies', 'error');
+      }
+      
       process.exit(1);
     } else {
-      this.log('All authentication token validations PASSED', 'success');
+      this.log(`All authentication validations PASSED for ${this.authContext} context`, 'success');
       process.exit(0);
     }
   }
@@ -523,7 +624,7 @@ class AuthTokenValidator {
 
 // Main execution
 async function main() {
-  const validator = new AuthTokenValidator(BASE_URL, TIMEOUT);
+  const validator = new AuthTokenValidator(BASE_URL, TIMEOUT, AUTH_CONTEXT);
   await validator.runAllValidations();
 }
 

@@ -127,8 +127,8 @@ runs:
         # Create metrics directory for validation results
         mkdir -p ci-metrics
         
-        # Run comprehensive authentication token validation
-        node scripts/ci/validate-auth-tokens.js http://localhost:3000 ${{ inputs.health_check_timeout }}
+        # Run comprehensive authentication token validation with context
+        node scripts/ci/validate-auth-tokens.js http://localhost:3000 ${{ inputs.health_check_timeout }} ${{ inputs.auth_context }}
         
         echo "✅ Authentication validation completed!"
       env:
@@ -139,6 +139,7 @@ runs:
         NEXTAUTH_SECRET: ${{ steps.set-context.outputs.auth_secret }}
         GITHUB_OAUTH_CLIENT_ID: mock-client-id
         GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
+        AUTH_CONTEXT: ${{ inputs.auth_context }}
 
     - name: Verify NextAuth Initialization
       if: ${{ inputs.enable_validation == 'true' }}
@@ -158,3 +159,4 @@ runs:
         NEXTAUTH_SECRET: ${{ steps.set-context.outputs.auth_secret }}
         GITHUB_OAUTH_CLIENT_ID: mock-client-id
         GITHUB_OAUTH_CLIENT_SECRET: mock-client-secret
+        AUTH_CONTEXT: ${{ inputs.auth_context }}

@@ -1,98 +1,107 @@
 {
-  "timestamp": "2025-06-07T02:25:00.632Z",
+  "timestamp": "2025-06-07T19:55:14.888Z",
   "baseUrl": "http://localhost:3000",
+  "authContext": "build",
   "tests": [
     {
       "name": "Environment Variables Validation",
-      "status": "failed",
-      "startTime": 1749263100634,
-      "error": "Missing required environment variables: NODE_ENV, E2E_MOCK_AUTH_ENABLED, NEXTAUTH_URL, NEXTAUTH_SECRET, GITHUB_OAUTH_CLIENT_ID, GITHUB_OAUTH_CLIENT_SECRET",
+      "status": "passed",
+      "startTime": 1749326114889,
+      "error": null,
       "details": {
-        "error": "Missing required environment variables: NODE_ENV, E2E_MOCK_AUTH_ENABLED, NEXTAUTH_URL, NEXTAUTH_SECRET, GITHUB_OAUTH_CLIENT_ID, GITHUB_OAUTH_CLIENT_SECRET",
-        "stack": "Error: Missing required environment variables: NODE_ENV, E2E_MOCK_AUTH_ENABLED, NEXTAUTH_URL, NEXTAUTH_SECRET, GITHUB_OAUTH_CLIENT_ID, GITHUB_OAUTH_CLIENT_SECRET\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:118:15\n    at AuthTokenValidator.addTest (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:69:28)\n    at AuthTokenValidator.validateEnvironmentVariables (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:92:17)\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:477:18\n    at AuthTokenValidator.runAllValidations (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:490:15)\n    at main (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:527:19)\n    at Object.<anonymous> (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:544:3)\n    at Module._compile (node:internal/modules/cjs/loader:1730:14)\n    at Object..js (node:internal/modules/cjs/loader:1895:10)\n    at Module.load (node:internal/modules/cjs/loader:1465:32)"
+        "envStatus": {
+          "NODE_ENV": {
+            "present": true,
+            "value": "test"
+          },
+          "E2E_MOCK_AUTH_ENABLED": {
+            "present": true,
+            "value": "true"
+          },
+          "NEXTAUTH_URL": {
+            "present": true,
+            "value": "http://localhost:3000"
+          },
+          "NEXTAUTH_SECRET": {
+            "present": true,
+            "value": "[REDACTED]"
+          },
+          "GITHUB_OAUTH_CLIENT_ID": {
+            "present": true,
+            "value": "mock-client-id"
+          },
+          "GITHUB_OAUTH_CLIENT_SECRET": {
+            "present": true,
+            "value": "[REDACTED]"
+          }
+        },
+        "requiredVars": [
+          "NODE_ENV",
+          "E2E_MOCK_AUTH_ENABLED",
+          "NEXTAUTH_URL",
+          "NEXTAUTH_SECRET",
+          "GITHUB_OAUTH_CLIENT_ID",
+          "GITHUB_OAUTH_CLIENT_SECRET"
+        ]
       },
-      "endTime": 1749263100634,
+      "endTime": 1749326114889,
       "duration": 0
     },
     {
       "name": "NextAuth Configuration Validation",
-      "status": "failed",
-      "startTime": 1749263100634,
-      "error": "NextAuth configuration issues: NEXTAUTH_SECRET not configured, NEXTAUTH_URL not configured",
+      "status": "passed",
+      "startTime": 1749326114889,
+      "error": null,
       "details": {
-        "error": "NextAuth configuration issues: NEXTAUTH_SECRET not configured, NEXTAUTH_URL not configured",
-        "stack": "Error: NextAuth configuration issues: NEXTAUTH_SECRET not configured, NEXTAUTH_URL not configured\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:148:15\n    at AuthTokenValidator.addTest (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:69:28)\n    at AuthTokenValidator.validateNextAuthConfiguration (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:127:17)\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:478:18\n    at AuthTokenValidator.runAllValidations (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:490:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async main (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:527:3)"
+        "configPath": "/Users/phaedrus/Development/gitpulse/src/app/api/auth/[...nextauth]/route.ts",
+        "hasGitHubProvider": true,
+        "hasSecret": "ci-test-secret-key",
+        "hasUrl": "http://localhost:3000",
+        "configSize": 2072
       },
-      "endTime": 1749263100635,
-      "duration": 1
+      "endTime": 1749326114889,
+      "duration": 0
     },
     {
       "name": "Authentication Endpoints Validation",
-      "status": "failed",
-      "startTime": 1749263100635,
-      "error": "All authentication endpoints are failing: /api/auth/session, /api/auth/providers, /api/auth/csrf",
-      "details": {
-        "error": "All authentication endpoints are failing: /api/auth/session, /api/auth/providers, /api/auth/csrf",
-        "stack": "Error: All authentication endpoints are failing: /api/auth/session, /api/auth/providers, /api/auth/csrf\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:218:15\n    at AuthTokenValidator.addTest (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:69:28)\n    at AuthTokenValidator.validateAuthEndpoints (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:163:17)\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:479:18\n    at AuthTokenValidator.runAllValidations (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:490:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async main (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:527:3)"
-      },
-      "endTime": 1749263100671,
-      "duration": 36
-    },
-    {
-      "name": "Storage State Validation",
-      "status": "failed",
-      "startTime": 1749263100672,
-      "error": "Session cookie is expired (expires: 2025-06-06T15:27:50.000Z)",
-      "details": {
-        "error": "Session cookie is expired (expires: 2025-06-06T15:27:50.000Z)",
-        "stack": "Error: Session cookie is expired (expires: 2025-06-06T15:27:50.000Z)\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:268:15\n    at AuthTokenValidator.addTest (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:69:28)\n    at AuthTokenValidator.validateStorageState (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:226:17)\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:480:18\n    at AuthTokenValidator.runAllValidations (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:490:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async main (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:527:3)"
-      },
-      "endTime": 1749263100672,
-      "duration": 0
-    },
-    {
-      "name": "JWT Token Structure Validation",
       "status": "passed",
-      "startTime": 1749263100672,
+      "startTime": 1749326114889,
       "error": null,
       "details": {
-        "tokenType": "session",
-        "format": "valid",
-        "length": 316,
-        "isJWT": false,
-        "validation": "NextAuth session token format detected"
+        "endpointResults": {
+          "/api/auth/session": {
+            "status": 200,
+            "responseSize": 2,
+            "reachable": true,
+            "successful": true
+          },
+          "/api/auth/providers": {
+            "status": 200,
+            "responseSize": 179,
+            "reachable": true,
+            "successful": true
+          },
+          "/api/auth/csrf": {
+            "status": 200,
+            "responseSize": 80,
+            "reachable": true,
+            "successful": true
+          }
+        },
+        "failedEndpoints": [],
+        "testedEndpoints": [
+          "/api/auth/session",
+          "/api/auth/providers",
+          "/api/auth/csrf"
+        ]
       },
-      "endTime": 1749263100672,
-      "duration": 0
-    },
-    {
-      "name": "Session API Response Validation",
-      "status": "failed",
-      "startTime": 1749263100672,
-      "error": "Command failed: curl -s -w \"HTTP_STATUS:%{http_code}\" -m 10 -H \"Cookie: next-auth.session-token=eyJ1c2VyIjp7ImlkIjoicGxheXdyaWdodC10ZXN0LXVzZXIiLCJuYW1lIjoiUGxheXdyaWdodCBUZXN0IFVzZXIiLCJlbWFpbCI6InBsYXl3cmlnaHRAZXhhbXBsZS5jb20iLCJpbWFnZSI6Imh0dHBzOi8vZ2l0aHViLmNvbS9naG9zdC5wbmcifSwiZXhwaXJlcyI6IjIwMjUtMDYtMDZUMTU6Mjc6NTAuNzU2WiIsImFjY2Vzc1Rva2VuIjoibW9jay1naXRodWItdG9rZW4iLCJpbnN0YWxsYXRpb25JZCI6MTIzNDU2Nzh9\" \"http://localhost:3000/api/auth/session\"",
-      "details": {
-        "error": "Command failed: curl -s -w \"HTTP_STATUS:%{http_code}\" -m 10 -H \"Cookie: next-auth.session-token=eyJ1c2VyIjp7ImlkIjoicGxheXdyaWdodC10ZXN0LXVzZXIiLCJuYW1lIjoiUGxheXdyaWdodCBUZXN0IFVzZXIiLCJlbWFpbCI6InBsYXl3cmlnaHRAZXhhbXBsZS5jb20iLCJpbWFnZSI6Imh0dHBzOi8vZ2l0aHViLmNvbS9naG9zdC5wbmcifSwiZXhwaXJlcyI6IjIwMjUtMDYtMDZUMTU6Mjc6NTAuNzU2WiIsImFjY2Vzc1Rva2VuIjoibW9jay1naXRodWItdG9rZW4iLCJpbnN0YWxsYXRpb25JZCI6MTIzNDU2Nzh9\" \"http://localhost:3000/api/auth/session\"",
-        "stack": "Error: Command failed: curl -s -w \"HTTP_STATUS:%{http_code}\" -m 10 -H \"Cookie: next-auth.session-token=eyJ1c2VyIjp7ImlkIjoicGxheXdyaWdodC10ZXN0LXVzZXIiLCJuYW1lIjoiUGxheXdyaWdodCBUZXN0IFVzZXIiLCJlbWFpbCI6InBsYXl3cmlnaHRAZXhhbXBsZS5jb20iLCJpbWFnZSI6Imh0dHBzOi8vZ2l0aHViLmNvbS9naG9zdC5wbmcifSwiZXhwaXJlcyI6IjIwMjUtMDYtMDZUMTU6Mjc6NTAuNzU2WiIsImFjY2Vzc1Rva2VuIjoibW9jay1naXRodWItdG9rZW4iLCJpbnN0YWxsYXRpb25JZCI6MTIzNDU2Nzh9\" \"http://localhost:3000/api/auth/session\"\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at checkExecSyncError (node:child_process:882:11)\n    at execSync (node:child_process:954:15)\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:367:26\n    at AuthTokenValidator.addTest (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:69:28)\n    at AuthTokenValidator.validateSessionAPI (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:346:17)\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:482:18\n    at AuthTokenValidator.runAllValidations (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:490:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
-      },
-      "endTime": 1749263100684,
-      "duration": 12
-    },
-    {
-      "name": "End-to-End Authentication Flow Validation",
-      "status": "failed",
-      "startTime": 1749263100684,
-      "error": "Authentication flow validation failed: Command failed: curl -s -w \"HTTP_STATUS:%{http_code}\" -m 5 \"http://localhost:3000/api/auth/session\"",
-      "details": {
-        "error": "Authentication flow validation failed: Command failed: curl -s -w \"HTTP_STATUS:%{http_code}\" -m 5 \"http://localhost:3000/api/auth/session\"",
-        "stack": "Error: Authentication flow validation failed: Command failed: curl -s -w \"HTTP_STATUS:%{http_code}\" -m 5 \"http://localhost:3000/api/auth/session\"\n    at /Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:466:15\n    at AuthTokenValidator.addTest (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:69:28)\n    at AuthTokenValidator.validateAuthenticationFlow (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:421:17)\n    at validations (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:483:18)\n    at AuthTokenValidator.runAllValidations (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:490:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async main (/Users/phaedrus/Development/gitpulse/scripts/ci/validate-auth-tokens.js:527:3)"
-      },
-      "endTime": 1749263100695,
-      "duration": 11
+      "endTime": 1749326114960,
+      "duration": 71
     }
   ],
   "summary": {
-    "passed": 1,
-    "failed": 6,
-    "total": 7
+    "passed": 3,
+    "failed": 0,
+    "total": 3
   }
 }

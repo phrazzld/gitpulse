@@ -721,3 +721,77 @@ The separate Playwright E2E Tests workflow passes all tests, suggesting the issu
   - ✅ No archiving needed - relevant information already documented in permanent CI documentation
   - Actual time: 5 minutes
 
+## CI Authentication Context Mismatch Resolution (June 7, 2025)
+
+### Critical Priority - Immediate Action Required (CI Blocked)
+
+- [ ] **Implement context-aware authentication validation**
+  - Root cause: Validation expects E2E context (storage state files) but runs in build context
+  - Add context detection logic to `scripts/ci/validate-auth-tokens.js`
+  - Implement conditional validation: build context (env vars, config, endpoints) vs E2E context (full flow)
+  - Update error messages to be context-specific with clear guidance
+  - Impact: Unblocks main CI workflow (build-and-test)
+  - Expected time: 30 minutes
+
+- [ ] **Update composite action to pass context information**
+  - Modify `.github/actions/auth-setup/action.yml` to pass context explicitly
+  - Update validation script calls with context parameter from composite action
+  - Ensure context propagation through environment variables
+  - Add context logging for debugging workflow execution
+  - Expected time: 15 minutes
+
+- [ ] **Test authentication context fix locally**
+  - Test build context validation without storage state files
+  - Test E2E context validation with storage state files
+  - Verify appropriate validations run in each context
+  - Confirm no regressions in existing E2E validation functionality
+  - Expected time: 15 minutes
+
+### High Priority - Follow-up Validation
+
+- [ ] **Enhance validation error reporting with context awareness**
+  - Add context information to all error messages
+  - Provide clear guidance on validation scope per context
+  - Improve debugging information for context detection failures
+  - Add troubleshooting steps specific to each context type
+  - Expected time: 15 minutes
+
+- [ ] **Validate fix in CI environment**
+  - Commit and push authentication context fixes to feature branch
+  - Monitor both build-and-test and E2E workflows for success
+  - Verify E2E validation continues working without regressions
+  - Check that build-and-test workflow now passes authentication validation
+  - Expected time: 20 minutes
+
+- [ ] **Update authentication troubleshooting documentation**
+  - Document context-aware validation approach in troubleshooting guide
+  - Add section on context detection and validation scope differences
+  - Update validation script documentation with context parameters
+  - Add debugging guide for context-related validation issues
+  - Expected time: 10 minutes
+
+### Medium Priority - Robustness Improvements
+
+- [ ] **Add comprehensive context detection testing**
+  - Create unit tests for context detection logic and edge cases
+  - Test fallback scenarios when context cannot be determined
+  - Validate error handling paths for context detection failures
+  - Ensure validation gracefully handles unexpected contexts
+  - Expected time: 20 minutes
+
+- [ ] **Implement validation health monitoring**
+  - Add monitoring for authentication validation success rates by context
+  - Create alerts for context detection or validation failures
+  - Track validation performance and context accuracy metrics
+  - Integrate with existing authentication health monitoring system
+  - Expected time: 10 minutes
+
+### Cleanup Tasks
+
+- [ ] **Remove temporary CI analysis files after resolution**
+  - Delete CI-FAILURE-SUMMARY.md and CI-RESOLUTION-PLAN.md
+  - Clean up any analysis artifacts from ci-metrics/ directory
+  - Archive key findings in permanent documentation if needed
+  - Ensure repository cleanliness after authentication fix completion
+  - Expected time: 5 minutes
+
