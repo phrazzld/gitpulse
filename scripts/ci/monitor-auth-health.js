@@ -28,6 +28,16 @@ class AuthHealthMonitor {
         duration: 0,
         passRate: 0
       },
+      authValidation: {
+        passed: 0,
+        failed: 0,
+        total: 0,
+        duration: 0,
+        passRate: 0,
+        context: 'unknown',
+        contextAccuracy: 100,
+        validationDetails: []
+      },
       environment: {
         nodeVersion: process.version,
         os: process.platform,
@@ -38,6 +48,181 @@ class AuthHealthMonitor {
       warnings: [],
       recommendations: []
     };
+  }
+
+  /**
+   * Monitor authentication validation results
+   */
+  async monitorAuthValidation() {
+    console.log('🔍 Monitoring authentication validation results...');
+    
+    try {
+      const validationResultsPath = path.join(process.cwd(), 'ci-metrics/auth-token-validation.json');
+      
+      if (!fs.existsSync(validationResultsPath)) {
+        this.metrics.warnings.push({
+          type: 'validation_results_missing',
+          message: 'Authentication validation results file not found',
+          path: validationResultsPath
+        });
+        console.log('⚠️ No validation results found - validation may not have run');
+        return;
+      }
+      
+      // Read validation results
+      const validationData = JSON.parse(fs.readFileSync(validationResultsPath, 'utf8'));
+      
+      // Analyze validation results
+      this.analyzeValidationResults(validationData);
+      
+      console.log('✅ Authentication validation monitoring completed');
+      
+    } catch (error) {
+      console.error('❌ Authentication validation monitoring failed:', error.message);
+      this.metrics.errors.push({
+        type: 'validation_monitoring_failed',
+        message: error.message,
+        stack: error.stack
+      });
+    }
+  }
+
+  /**
+   * Analyze authentication validation results
+   */
+  analyzeValidationResults(validationData) {
+    const { authValidation } = this.metrics;
+    
+    // Extract basic metrics
+    authValidation.context = validationData.authContext || 'unknown';
+    authValidation.passed = validationData.summary?.passed || 0;
+    authValidation.failed = validationData.summary?.failed || 0;
+    authValidation.total = validationData.summary?.total || 0;
+    
+    // Calculate pass rate
+    if (authValidation.total > 0) {
+      authValidation.passRate = (authValidation.passed / authValidation.total) * 100;
+    }
+    
+    // Calculate total duration from individual tests
+    if (validationData.tests && Array.isArray(validationData.tests)) {
+      authValidation.duration = validationData.tests.reduce((total, test) => {
+        return total + (test.duration || 0);
+      }, 0);
+      
+      // Store detailed test results
+      authValidation.validationDetails = validationData.tests.map(test => ({
+        name: test.name,
+        status: test.status,
+        duration: test.duration || 0,
+        error: test.error,
+        hasDetails: !!test.details
+      }));
+    }
+    
+    // Analyze context accuracy (validate context detection was correct)
+    this.analyzeContextAccuracy(validationData);
+    
+    // Check for validation-specific issues
+    this.checkValidationIssues(validationData);
+    
+    console.log(`🎯 Validation Context: ${authValidation.context}`);
+    console.log(`📊 Validation Pass Rate: ${authValidation.passRate.toFixed(1)}%`);
+    console.log(`⏱️ Validation Duration: ${authValidation.duration}ms`);
+  }
+
+  /**
+   * Analyze context detection accuracy
+   */
+  analyzeContextAccuracy(validationData) {
+    const { authValidation } = this.metrics;
+    const detectedContext = validationData.authContext;
+    
+    // Determine expected context based on environment
+    let expectedContext = 'local'; // default
+    
+    if (process.env.CI === 'true') {
+      // In CI, expect build context unless E2E specific indicators present
+      expectedContext = 'build';
+      
+      if (fs.existsSync('e2e/storageState.json')) {
+        expectedContext = 'e2e';
+      }
+      
+      if (process.env.AUTH_CONTEXT === 'e2e') {
+        expectedContext = 'e2e';
+      }
+      
+      if (process.env.AUTH_CONTEXT === 'monitoring') {
+        expectedContext = 'monitoring';
+      }
+    }
+    
+    // Calculate context accuracy
+    if (detectedContext === expectedContext) {
+      authValidation.contextAccuracy = 100;
+    } else {
+      authValidation.contextAccuracy = 0;
+      this.metrics.warnings.push({
+        type: 'context_detection_mismatch',
+        message: `Context detection mismatch: expected '${expectedContext}', got '${detectedContext}'`,
+        expected: expectedContext,
+        actual: detectedContext
+      });
+    }
+    
+    console.log(`🎯 Context Accuracy: ${authValidation.contextAccuracy}% (${detectedContext} vs ${expectedContext})`);
+  }
+
+  /**
+   * Check for validation-specific issues
+   */
+  checkValidationIssues(validationData) {
+    // Check for validation failures
+    if (validationData.summary?.failed > 0) {
+      const failedTests = validationData.tests?.filter(test => test.status === 'failed') || [];
+      
+      failedTests.forEach(test => {
+        this.metrics.errors.push({
+          type: 'validation_test_failed',
+          testName: test.name,
+          message: test.error || 'Test failed without specific error',
+          context: validationData.authContext
+        });
+      });
+    }
+    
+    // Check for missing environment variables (specific to validation)
+    const envTest = validationData.tests?.find(test => test.name.includes('Environment Variables'));
+    if (envTest?.status === 'failed') {
+      this.metrics.recommendations.push({
+        type: 'environment_setup',
+        severity: 'high',
+        message: 'Environment variable validation failed',
+        action: 'Review authentication environment setup and ensure all required variables are configured'
+      });
+    }
+    
+    // Check for endpoint connectivity issues
+    const endpointTest = validationData.tests?.find(test => test.name.includes('Endpoints'));
+    if (endpointTest?.status === 'failed') {
+      this.metrics.recommendations.push({
+        type: 'endpoint_connectivity',
+        severity: 'medium',
+        message: 'Authentication endpoint validation failed',
+        action: 'Check server startup and NextAuth configuration'
+      });
+    }
+    
+    // Check for slow validation performance
+    const { authValidation } = this.metrics;
+    if (authValidation.duration > 10000) { // 10 seconds
+      this.metrics.warnings.push({
+        type: 'slow_validation',
+        message: `Validation took ${(authValidation.duration / 1000).toFixed(1)}s (over 10s threshold)`,
+        duration: authValidation.duration
+      });
+    }
   }
 
   /**
@@ -225,22 +410,38 @@ class AuthHealthMonitor {
   calculateHealthScore() {
     let score = 100;
     
-    // Deduct points for failures
+    // Deduct points for E2E test failures (30 points max)
     if (this.metrics.authTests.total > 0) {
       const failureRate = this.metrics.authTests.failed / this.metrics.authTests.total;
-      score -= failureRate * 50; // Up to 50 points for failures
+      score -= failureRate * 30;
     }
     
-    // Deduct points for slow tests
+    // Deduct points for validation failures (20 points max)
+    if (this.metrics.authValidation.total > 0) {
+      const validationFailureRate = this.metrics.authValidation.failed / this.metrics.authValidation.total;
+      score -= validationFailureRate * 20;
+    }
+    
+    // Deduct points for context detection issues (15 points max)
+    if (this.metrics.authValidation.contextAccuracy < 100) {
+      score -= 15;
+    }
+    
+    // Deduct points for slow E2E tests (10 points max)
     if (this.metrics.authTests.duration > 120000) { // 2 minutes
       score -= 10;
     }
     
-    // Deduct points for errors
-    score -= this.metrics.errors.length * 10;
+    // Deduct points for slow validation (5 points max)
+    if (this.metrics.authValidation.duration > 10000) { // 10 seconds
+      score -= 5;
+    }
     
-    // Deduct points for warnings
-    score -= this.metrics.warnings.length * 5;
+    // Deduct points for errors (10 points each, max 20)
+    score -= Math.min(this.metrics.errors.length * 10, 20);
+    
+    // Deduct points for warnings (5 points each, max 10)
+    score -= Math.min(this.metrics.warnings.length * 5, 10);
     
     return Math.max(0, Math.round(score));
   }
@@ -279,24 +480,59 @@ class AuthHealthMonitor {
    * Generate monitoring report
    */
   generateReport() {
-    const { authTests, healthScore } = this.metrics;
+    const { authTests, authValidation, healthScore } = this.metrics;
     
     console.log('\n📊 Authentication Health Report');
     console.log('═══════════════════════════════════');
     console.log(`🎯 Health Score: ${healthScore}/100`);
-    console.log(`📈 Test Pass Rate: ${authTests.passRate.toFixed(1)}%`);
-    console.log(`✅ Tests Passed: ${authTests.passed}`);
-    console.log(`❌ Tests Failed: ${authTests.failed}`);
-    console.log(`⏭️  Tests Skipped: ${authTests.skipped}`);
-    console.log(`📊 Total Tests: ${authTests.total}`);
-    console.log(`⏱️  Duration: ${(authTests.duration / 1000).toFixed(1)}s`);
-    console.log(`🏃 Runner: ${this.metrics.environment.runner}`);
-    console.log(`🌿 Branch: ${this.metrics.branch}`);
+    
+    // E2E Test Metrics
+    console.log('\n🧪 E2E Authentication Tests:');
+    console.log(`  📈 Pass Rate: ${authTests.passRate.toFixed(1)}%`);
+    console.log(`  ✅ Passed: ${authTests.passed}`);
+    console.log(`  ❌ Failed: ${authTests.failed}`);
+    console.log(`  ⏭️  Skipped: ${authTests.skipped}`);
+    console.log(`  📊 Total: ${authTests.total}`);
+    console.log(`  ⏱️  Duration: ${(authTests.duration / 1000).toFixed(1)}s`);
+    
+    // Validation Metrics
+    console.log('\n🔍 Authentication Validation:');
+    console.log(`  🎯 Context: ${authValidation.context}`);
+    console.log(`  🎯 Context Accuracy: ${authValidation.contextAccuracy}%`);
+    console.log(`  📈 Pass Rate: ${authValidation.passRate.toFixed(1)}%`);
+    console.log(`  ✅ Passed: ${authValidation.passed}`);
+    console.log(`  ❌ Failed: ${authValidation.failed}`);
+    console.log(`  📊 Total: ${authValidation.total}`);
+    console.log(`  ⏱️  Duration: ${authValidation.duration}ms`);
+    
+    // Environment Info
+    console.log('\n🌍 Environment:');
+    console.log(`  🏃 Runner: ${this.metrics.environment.runner}`);
+    console.log(`  🌿 Branch: ${this.metrics.branch}`);
+    console.log(`  🤖 CI: ${this.metrics.environment.isCI}`);
+    
+    // Validation Details
+    if (authValidation.validationDetails.length > 0) {
+      console.log('\n📋 Validation Test Details:');
+      authValidation.validationDetails.forEach((test, index) => {
+        const status = test.status === 'passed' ? '✅' : '❌';
+        console.log(`  ${index + 1}. ${status} ${test.name} (${test.duration}ms)`);
+        if (test.error) {
+          console.log(`     Error: ${test.error}`);
+        }
+      });
+    }
     
     if (this.metrics.errors.length > 0) {
       console.log(`\n❌ Errors (${this.metrics.errors.length}):`);
       this.metrics.errors.forEach((error, index) => {
         console.log(`  ${index + 1}. ${error.type}: ${error.message}`);
+        if (error.testName) {
+          console.log(`     Test: ${error.testName}`);
+        }
+        if (error.context) {
+          console.log(`     Context: ${error.context}`);
+        }
       });
     }
     
@@ -323,7 +559,7 @@ class AuthHealthMonitor {
    * Check if alerts should be triggered
    */
   shouldTriggerAlert() {
-    const { authTests, healthScore } = this.metrics;
+    const { authTests, authValidation, healthScore } = this.metrics;
     
     // Trigger alert if health score is below 80
     if (healthScore < 80) {
@@ -334,7 +570,25 @@ class AuthHealthMonitor {
       };
     }
     
-    // Trigger alert if pass rate is below 90%
+    // Trigger alert if validation pass rate is below 90%
+    if (authValidation.passRate < 90 && authValidation.total > 0) {
+      return {
+        trigger: true,
+        severity: 'high',
+        reason: `Authentication validation pass rate is ${authValidation.passRate.toFixed(1)}% (below 90% threshold)`
+      };
+    }
+    
+    // Trigger alert if context detection is incorrect
+    if (authValidation.contextAccuracy < 100 && authValidation.context !== 'unknown') {
+      return {
+        trigger: true,
+        severity: 'medium',
+        reason: `Context detection accuracy is ${authValidation.contextAccuracy}% - validation may be running in wrong context`
+      };
+    }
+    
+    // Trigger alert if E2E test pass rate is below 90%
     if (authTests.passRate < 90 && authTests.total > 0) {
       return {
         trigger: true,
@@ -345,7 +599,10 @@ class AuthHealthMonitor {
     
     // Trigger alert if there are critical errors
     const criticalErrors = this.metrics.errors.filter(e => 
-      e.type === 'test_execution_failed' || e.type === 'monitoring_failed'
+      e.type === 'test_execution_failed' || 
+      e.type === 'monitoring_failed' ||
+      e.type === 'validation_monitoring_failed' ||
+      e.type === 'validation_test_failed'
     );
     
     if (criticalErrors.length > 0) {
@@ -354,6 +611,18 @@ class AuthHealthMonitor {
         severity: 'critical',
         reason: `${criticalErrors.length} critical error(s) detected`
       };
+    }
+    
+    // Trigger alert if validation results are missing in CI
+    if (process.env.CI === 'true') {
+      const missingValidation = this.metrics.warnings.find(w => w.type === 'validation_results_missing');
+      if (missingValidation) {
+        return {
+          trigger: true,
+          severity: 'medium',
+          reason: 'Authentication validation results missing in CI environment'
+        };
+      }
     }
     
     return { trigger: false };
@@ -367,6 +636,9 @@ async function main() {
   const monitor = new AuthHealthMonitor();
   
   try {
+    // Monitor authentication validation first
+    await monitor.monitorAuthValidation();
+    
     // Monitor authentication tests
     await monitor.monitorE2EAuthTests();
     
@@ -388,6 +660,9 @@ async function main() {
         console.log(`::set-output name=alert_triggered::true`);
         console.log(`::set-output name=alert_severity::${alertCheck.severity}`);
         console.log(`::set-output name=health_score::${monitor.metrics.healthScore}`);
+        console.log(`::set-output name=validation_pass_rate::${monitor.metrics.authValidation.passRate}`);
+        console.log(`::set-output name=validation_context::${monitor.metrics.authValidation.context}`);
+        console.log(`::set-output name=context_accuracy::${monitor.metrics.authValidation.contextAccuracy}`);
       }
     } else {
       console.log('✅ No alerts triggered - authentication system healthy');
@@ -395,6 +670,9 @@ async function main() {
       if (process.env.GITHUB_ACTIONS) {
         console.log(`::set-output name=alert_triggered::false`);
         console.log(`::set-output name=health_score::${monitor.metrics.healthScore}`);
+        console.log(`::set-output name=validation_pass_rate::${monitor.metrics.authValidation.passRate}`);
+        console.log(`::set-output name=validation_context::${monitor.metrics.authValidation.context}`);
+        console.log(`::set-output name=context_accuracy::${monitor.metrics.authValidation.contextAccuracy}`);
       }
     }
     
