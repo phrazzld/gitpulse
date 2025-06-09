@@ -9,6 +9,10 @@ import {
   extractUniqueRepositories,
   sortCommitsByDateDesc,
   sortCommitsByDateAsc,
+  applyCommitFilters,
+  analyzeCommits
+} from './commits';
+import {
   calculateTotalAdditions,
   calculateTotalDeletions,
   findMostActiveDay,
@@ -16,10 +20,8 @@ import {
   getTopRepositoriesByCommits,
   getCommitCountByAuthor,
   getCommitCountByDate,
-  calculateSummaryStats,
-  applyCommitFilters,
-  analyzeCommits
-} from './commits';
+  calculateSummaryStats
+} from '../summary/generator';
 import type { CommitData, DateRange } from '../types/index';
 
 describe('GitHub Commit Data Transformations', () => {

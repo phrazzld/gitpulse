@@ -86,7 +86,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. Verify proper handling of repository grouping and author extraction
     - **Depends-on:** [T004]
 
-- [ ] **T006 · Refactor · P1: extract summary generation logic**
+- [x] **T006 · Refactor · P1: extract summary generation logic**
     - **Context:** Phase 2.2 - Extract Summary Generation Logic
     - **Action:**
         1. Create `src/core/summary/generator.ts` with statistical calculations

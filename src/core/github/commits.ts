@@ -4,6 +4,7 @@
  */
 
 import { pipe, groupBy, sortBy, filter, map, uniqueBy } from '../../lib/functional/index';
+import { calculateSummaryStats } from '../summary/generator';
 import type { CommitData, DateRange, SummaryStats } from '../types/index';
 
 /**
@@ -92,114 +93,7 @@ export const sortCommitsByDateAsc =
       new Date(a.date).getTime() - new Date(b.date).getTime()
     )(commits);
 
-/**
- * Calculate total additions across all commits
- */
-export const calculateTotalAdditions = 
-  (commits: readonly CommitData[]): number =>
-    commits.reduce((total, commit) => total + (commit.additions || 0), 0);
-
-/**
- * Calculate total deletions across all commits
- */
-export const calculateTotalDeletions = 
-  (commits: readonly CommitData[]): number =>
-    commits.reduce((total, commit) => total + (commit.deletions || 0), 0);
-
-/**
- * Find the most active day (day with most commits)
- */
-export const findMostActiveDay = 
-  (commits: readonly CommitData[]): string => {
-    const commitsByDate = groupCommitsByDate(commits);
-    const entries = Object.entries(commitsByDate);
-    
-    if (entries.length === 0) return '';
-    
-    return entries
-      .sort(([, commitsA], [, commitsB]) => commitsB.length - commitsA.length)[0][0];
-  };
-
-/**
- * Calculate average commits per day
- */
-export const calculateAverageCommitsPerDay = 
-  (commits: readonly CommitData[]): number => {
-    const commitsByDate = groupCommitsByDate(commits);
-    const uniqueDays = Object.keys(commitsByDate).length;
-    
-    if (uniqueDays === 0) return 0;
-    
-    return commits.length / uniqueDays;
-  };
-
-/**
- * Get top repositories by commit count
- */
-export const getTopRepositoriesByCommits = 
-  (commits: readonly CommitData[], limit: number = 10): Array<{ name: string; commits: number }> => {
-    const commitsByRepo = groupCommitsByRepository(commits);
-    
-    return Object.entries(commitsByRepo)
-      .map(([name, repoCommits]) => ({ name, commits: repoCommits.length }))
-      .sort((a, b) => b.commits - a.commits)
-      .slice(0, limit);
-  };
-
-/**
- * Get commits count by author
- */
-export const getCommitCountByAuthor = 
-  (commits: readonly CommitData[]): Record<string, number> => {
-    const commitsByAuthor = groupCommitsByAuthor(commits);
-    
-    return Object.entries(commitsByAuthor).reduce((acc, [author, authorCommits]) => ({
-      ...acc,
-      [author]: authorCommits.length
-    }), {} as Record<string, number>);
-  };
-
-/**
- * Get commits count by date
- */
-export const getCommitCountByDate = 
-  (commits: readonly CommitData[]): Record<string, number> => {
-    const commitsByDate = groupCommitsByDate(commits);
-    
-    return Object.entries(commitsByDate).reduce((acc, [date, dateCommits]) => ({
-      ...acc,
-      [date]: dateCommits.length
-    }), {} as Record<string, number>);
-  };
-
-/**
- * Calculate comprehensive summary statistics
- */
-export const calculateSummaryStats = 
-  (commits: readonly CommitData[]): SummaryStats => {
-    const uniqueAuthors = extractUniqueAuthors(commits);
-    const uniqueRepositories = extractUniqueRepositories(commits);
-    const mostActiveDay = findMostActiveDay(commits);
-    const averageCommitsPerDay = calculateAverageCommitsPerDay(commits);
-    const totalAdditions = calculateTotalAdditions(commits);
-    const totalDeletions = calculateTotalDeletions(commits);
-    const commitsByDay = getCommitCountByDate(commits);
-    const commitsByAuthor = getCommitCountByAuthor(commits);
-    const topRepositories = getTopRepositoriesByCommits(commits, 5);
-    
-    return {
-      totalCommits: commits.length,
-      uniqueAuthors: uniqueAuthors.length,
-      repositories: uniqueRepositories,
-      mostActiveDay,
-      averageCommitsPerDay,
-      totalAdditions,
-      totalDeletions,
-      commitsByDay,
-      commitsByAuthor,
-      topRepositories
-    };
-  };
+// Summary statistics functions moved to src/core/summary/generator.ts
 
 /**
  * Apply multiple filters to commits in a composable way
