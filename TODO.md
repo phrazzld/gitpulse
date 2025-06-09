@@ -278,3 +278,21 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. Verify configuration validation catches invalid settings
     - **Depends-on:** [T007]
 
+## Critical Fixes Required for Merge
+- [x] **T017 · Fix · P0: fix date range validation to allow single-day ranges**
+    - **Context:** BLOCKING ISSUE - Users cannot generate summaries for single days
+    - **Action:**
+        1. Remove `daysDiff < 1` check from `validateDateRange` in `src/core/validation/summary.ts`
+        2. Keep only `start > end` validation to prevent backwards ranges
+        3. Update related tests to verify single-day ranges are accepted
+        4. Test edge cases with same start/end dates
+    - **Done-when:**
+        1. `validateDateRange` accepts same start and end dates
+        2. Only rejects ranges where start > end
+        3. All validation tests pass with new logic
+        4. Manual testing confirms single-day summary generation works
+    - **Verification:**
+        1. Test API with single-day date range requests
+        2. Verify UI allows single-day range selection and summary generation
+    - **Depends-on:** [T016]
+

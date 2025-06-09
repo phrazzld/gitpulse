@@ -42,7 +42,7 @@ export const DEFAULT_CONFIG: Config = {
     limits: {
       maxRepositories: 100,
       maxDateRangeDays: 365,
-      minDateRangeDays: 1,
+      minDateRangeDays: 0,
       maxUsers: 50,
       maxBranchNameLength: 250,
     },

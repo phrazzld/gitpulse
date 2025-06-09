@@ -140,13 +140,26 @@ describe('Summary Validation', () => {
       }
     });
 
-    it('should reject date range shorter than minimum', () => {
+    it('should accept single-day date ranges', () => {
       const sameDay = new Date('2023-01-01');
       const result = validateDateRange(sameDay, sameDay, defaultConfig);
       
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.start).toEqual(sameDay);
+        expect(result.data.end).toEqual(sameDay);
+      }
+    });
+
+    it('should still reject backwards date ranges', () => {
+      const earlier = new Date('2023-01-01');
+      const later = new Date('2023-01-05');
+      // Test backwards range (start after end)
+      const result = validateDateRange(later, earlier, defaultConfig);
+      
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error).toContain('Date range must be at least 1 day(s)');
+        expect(result.error).toContain('Start date must be before end date');
       }
     });
 
@@ -610,7 +623,8 @@ describe('Summary Validation', () => {
         maxDateRangeDays: 365,
         maxUsers: 50,
         allowFutureDates: false,
-        minDateRangeDays: 1
+        minDateRangeDays: 0,
+        maxBranchNameLength: 250
       });
     });
 
@@ -633,7 +647,7 @@ describe('Summary Validation', () => {
       expect(config.maxDateRangeDays).toBe(180);
       expect(config.maxUsers).toBe(25);
       expect(config.allowFutureDates).toBe(false);
-      expect(config.minDateRangeDays).toBe(1);
+      expect(config.minDateRangeDays).toBe(0);
     });
 
     it('should use defaults for missing limit values', () => {
