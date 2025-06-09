@@ -69,7 +69,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
     - **Depends-on:** none
 
 ## Core Business Logic (Phase 2)
-- [ ] **T005 · Refactor · P1: extract github data transformation functions**
+- [x] **T005 · Refactor · P1: extract github data transformation functions**
     - **Context:** Phase 2.1 - Extract GitHub Data Transformations
     - **Action:**
         1. Create `src/core/github/commits.ts` with pure transformation functions

@@ -3,8 +3,8 @@
  * No side effects, no external dependencies - just data transformations
  */
 
-import { pipe, groupBy, sortBy, filter, map, uniqueBy } from '../../lib/functional/index.js';
-import type { CommitData, DateRange, SummaryStats } from '../types/index.js';
+import { pipe, groupBy, sortBy, filter, map, uniqueBy } from '../../lib/functional/index';
+import type { CommitData, DateRange, SummaryStats } from '../types/index';
 
 /**
  * Filter commits by date range
