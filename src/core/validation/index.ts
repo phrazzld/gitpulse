@@ -3,8 +3,8 @@
  * All validation logic is pure - no side effects, no external dependencies
  */
 
-import { Result, success, failure } from '../../lib/result/index.js';
-import type { SummaryRequest, DateRange, ValidationError } from '../types/index.js';
+import { Result, success, failure } from '../../lib/result/index';
+import type { SummaryRequest, DateRange, ValidationError } from '../types/index';
 
 /**
  * Validate a date range
@@ -88,8 +88,8 @@ export const validateUsers = (users?: readonly string[]): Result<readonly string
     return failure('Cannot filter by more than 50 users');
   }
   
-  // Check for valid GitHub username format
-  const usernamePattern = /^[a-zA-Z0-9]([a-zA-Z0-9-])*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/;
+  // Check for valid GitHub username format (alphanumeric, hyphens, underscores)
+  const usernamePattern = /^[a-zA-Z0-9]([a-zA-Z0-9_-])*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/;
   const invalidUsers = users.filter(user => !usernamePattern.test(user) || user.length > 39);
   
   if (invalidUsers.length > 0) {

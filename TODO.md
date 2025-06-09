@@ -103,7 +103,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. Compare output with existing implementation for consistency
     - **Depends-on:** [T001, T005]
 
-- [ ] **T007 · Refactor · P1: extract validation logic**
+- [x] **T007 · Refactor · P1: extract validation logic**
     - **Context:** Phase 2.3 - Extract Validation Logic
     - **Action:**
         1. Create `src/core/validation/summary.ts` with pure validation functions
