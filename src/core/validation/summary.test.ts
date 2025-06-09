@@ -5,12 +5,15 @@ import {
   validateBranch,
   validateSummaryRequest,
   createErrorMessage,
-  createValidationConfig,
+  createValidationConfig as legacyCreateValidationConfig,
   ValidationConfig
 } from './summary';
+import { createValidationConfig } from '../config/index';
 import type { DateRange, SummaryRequest, ValidationError, Config } from '../types/index';
 
 describe('Summary Validation', () => {
+  // Default validation config for tests
+  const defaultConfig = createValidationConfig();
   describe('createErrorMessage', () => {
     it('should return message for known key', () => {
       const message = createErrorMessage('validation.dateRange.invalidStartDate');
@@ -44,7 +47,7 @@ describe('Summary Validation', () => {
     const validEnd = new Date('2023-01-31');
 
     it('should accept valid date range', () => {
-      const result = validateDateRange(validStart, validEnd);
+      const result = validateDateRange(validStart, validEnd, defaultConfig);
       
       expect(result.success).toBe(true);
       if (result.success) {
@@ -55,7 +58,7 @@ describe('Summary Validation', () => {
 
     it('should reject invalid start date', () => {
       const invalidStart = new Date('invalid');
-      const result = validateDateRange(invalidStart, validEnd);
+      const result = validateDateRange(invalidStart, validEnd, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -65,7 +68,7 @@ describe('Summary Validation', () => {
 
     it('should reject invalid end date', () => {
       const invalidEnd = new Date('invalid');
-      const result = validateDateRange(validStart, invalidEnd);
+      const result = validateDateRange(validStart, invalidEnd, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -76,7 +79,7 @@ describe('Summary Validation', () => {
     it('should reject both invalid dates', () => {
       const invalidStart = new Date('invalid');
       const invalidEnd = new Date('invalid');
-      const result = validateDateRange(invalidStart, invalidEnd);
+      const result = validateDateRange(invalidStart, invalidEnd, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -87,7 +90,7 @@ describe('Summary Validation', () => {
     });
 
     it('should reject start date after end date', () => {
-      const result = validateDateRange(validEnd, validStart);
+      const result = validateDateRange(validEnd, validStart, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -99,7 +102,7 @@ describe('Summary Validation', () => {
       const futureDate = new Date();
       futureDate.setFullYear(futureDate.getFullYear() + 1);
       
-      const result = validateDateRange(validStart, futureDate);
+      const result = validateDateRange(validStart, futureDate, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -112,14 +115,14 @@ describe('Summary Validation', () => {
       const futureDate = new Date(today);
       futureDate.setDate(futureDate.getDate() + 30); // 30 days in future
       
-      const result = validateDateRange(today, futureDate, { allowFutureDates: true });
+      const result = validateDateRange(today, futureDate, createValidationConfig({ allowFutureDates: true }));
       
       expect(result.success).toBe(true);
     });
 
     it('should reject date range exceeding max days', () => {
       const longEnd = new Date('2024-01-02'); // 366 days
-      const result = validateDateRange(validStart, longEnd);
+      const result = validateDateRange(validStart, longEnd, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -129,7 +132,7 @@ describe('Summary Validation', () => {
 
     it('should respect custom max days configuration', () => {
       const longEnd = new Date('2023-02-15'); // 45 days
-      const result = validateDateRange(validStart, longEnd, { maxDateRangeDays: 30 });
+      const result = validateDateRange(validStart, longEnd, createValidationConfig({ maxDateRangeDays: 30 }));
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -139,7 +142,7 @@ describe('Summary Validation', () => {
 
     it('should reject date range shorter than minimum', () => {
       const sameDay = new Date('2023-01-01');
-      const result = validateDateRange(sameDay, sameDay);
+      const result = validateDateRange(sameDay, sameDay, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -152,7 +155,7 @@ describe('Summary Validation', () => {
       const futureDate = new Date();
       futureDate.setFullYear(futureDate.getFullYear() + 1);
       
-      const result = validateDateRange(futureDate, longPastDate);
+      const result = validateDateRange(futureDate, longPastDate, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -165,7 +168,7 @@ describe('Summary Validation', () => {
   describe('validateRepositories', () => {
     it('should accept valid repository list', () => {
       const repos = ['owner/repo1', 'owner/repo2', 'org/project'];
-      const result = validateRepositories(repos);
+      const result = validateRepositories(repos, defaultConfig);
       
       expect(result.success).toBe(true);
       if (result.success) {
@@ -174,7 +177,7 @@ describe('Summary Validation', () => {
     });
 
     it('should reject non-array input', () => {
-      const result = validateRepositories('not-an-array' as any);
+      const result = validateRepositories('not-an-array' as any, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -183,7 +186,7 @@ describe('Summary Validation', () => {
     });
 
     it('should reject empty array', () => {
-      const result = validateRepositories([]);
+      const result = validateRepositories([], defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -193,7 +196,7 @@ describe('Summary Validation', () => {
 
     it('should reject too many repositories', () => {
       const repos = Array(101).fill('owner/repo');
-      const result = validateRepositories(repos);
+      const result = validateRepositories(repos, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -203,7 +206,7 @@ describe('Summary Validation', () => {
 
     it('should respect custom repository limit', () => {
       const repos = Array(11).fill('owner/repo');
-      const result = validateRepositories(repos, { maxRepositories: 10 });
+      const result = validateRepositories(repos, createValidationConfig({ maxRepositories: 10 }));
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -213,7 +216,7 @@ describe('Summary Validation', () => {
 
     it('should reject invalid repository format', () => {
       const repos = ['invalid-format', 'owner/repo', 'also invalid', '@owner/repo'];
-      const result = validateRepositories(repos);
+      const result = validateRepositories(repos, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -224,14 +227,14 @@ describe('Summary Validation', () => {
 
     it('should handle special characters in valid repository names', () => {
       const repos = ['owner-name/repo.name', 'org_name/project-123', 'user/repo_v2.0'];
-      const result = validateRepositories(repos);
+      const result = validateRepositories(repos, defaultConfig);
       
       expect(result.success).toBe(true);
     });
 
     it('should reject duplicates', () => {
       const repos = ['owner/repo1', 'owner/repo2', 'owner/repo1'];
-      const result = validateRepositories(repos);
+      const result = validateRepositories(repos, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -242,7 +245,7 @@ describe('Summary Validation', () => {
 
     it('should collect multiple errors', () => {
       const repos = ['invalid', ...Array(101).fill('owner/repo'), 'owner/repo'];
-      const result = validateRepositories(repos);
+      const result = validateRepositories(repos, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -256,7 +259,7 @@ describe('Summary Validation', () => {
 
   describe('validateUsers', () => {
     it('should accept undefined users', () => {
-      const result = validateUsers(undefined);
+      const result = validateUsers(undefined, defaultConfig);
       
       expect(result.success).toBe(true);
       if (result.success) {
@@ -266,7 +269,7 @@ describe('Summary Validation', () => {
 
     it('should accept valid user list', () => {
       const users = ['user1', 'user-2', 'user_3'];
-      const result = validateUsers(users);
+      const result = validateUsers(users, defaultConfig);
       
       expect(result.success).toBe(true);
       if (result.success) {
@@ -275,7 +278,7 @@ describe('Summary Validation', () => {
     });
 
     it('should reject non-array input', () => {
-      const result = validateUsers('not-an-array' as any);
+      const result = validateUsers('not-an-array' as any, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -284,7 +287,7 @@ describe('Summary Validation', () => {
     });
 
     it('should accept empty array', () => {
-      const result = validateUsers([]);
+      const result = validateUsers([], defaultConfig);
       
       expect(result.success).toBe(true);
       if (result.success) {
@@ -294,7 +297,7 @@ describe('Summary Validation', () => {
 
     it('should reject too many users', () => {
       const users = Array(51).fill('user').map((u, i) => `${u}${i}`);
-      const result = validateUsers(users);
+      const result = validateUsers(users, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -304,7 +307,7 @@ describe('Summary Validation', () => {
 
     it('should respect custom user limit', () => {
       const users = Array(6).fill('user').map((u, i) => `${u}${i}`);
-      const result = validateUsers(users, { maxUsers: 5 });
+      const result = validateUsers(users, createValidationConfig({ maxUsers: 5 }));
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -322,7 +325,7 @@ describe('Summary Validation', () => {
         'a'.repeat(40), // too long
         '' // empty
       ];
-      const result = validateUsers(users);
+      const result = validateUsers(users, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -332,14 +335,14 @@ describe('Summary Validation', () => {
 
     it('should accept single character usernames', () => {
       const users = ['a', 'b', 'c'];
-      const result = validateUsers(users);
+      const result = validateUsers(users, defaultConfig);
       
       expect(result.success).toBe(true);
     });
 
     it('should reject duplicates (case-insensitive)', () => {
       const users = ['user1', 'User2', 'USER1'];
-      const result = validateUsers(users);
+      const result = validateUsers(users, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -353,7 +356,7 @@ describe('Summary Validation', () => {
         'invalid-',
         'user1' // duplicate
       ];
-      const result = validateUsers(users);
+      const result = validateUsers(users, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -364,7 +367,7 @@ describe('Summary Validation', () => {
 
   describe('validateBranch', () => {
     it('should accept undefined branch', () => {
-      const result = validateBranch(undefined);
+      const result = validateBranch(undefined, defaultConfig);
       
       expect(result.success).toBe(true);
       if (result.success) {
@@ -382,7 +385,7 @@ describe('Summary Validation', () => {
       ];
       
       branches.forEach(branch => {
-        const result = validateBranch(branch);
+        const result = validateBranch(branch, defaultConfig);
         expect(result.success).toBe(true);
         if (result.success) {
           expect(result.data).toBe(branch);
@@ -391,7 +394,7 @@ describe('Summary Validation', () => {
     });
 
     it('should reject non-string input', () => {
-      const result = validateBranch(123 as any);
+      const result = validateBranch(123 as any, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -400,7 +403,7 @@ describe('Summary Validation', () => {
     });
 
     it('should reject empty branch name', () => {
-      const result = validateBranch('   ');
+      const result = validateBranch('   ', defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -410,7 +413,7 @@ describe('Summary Validation', () => {
 
     it('should reject too long branch name', () => {
       const longBranch = 'a'.repeat(251);
-      const result = validateBranch(longBranch);
+      const result = validateBranch(longBranch, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -429,7 +432,7 @@ describe('Summary Validation', () => {
       ];
       
       invalidBranches.forEach(branch => {
-        const result = validateBranch(branch);
+        const result = validateBranch(branch, defaultConfig);
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error.some(e => e.includes('invalid characters'))).toBe(true);
@@ -439,7 +442,7 @@ describe('Summary Validation', () => {
 
     it('should collect multiple errors', () => {
       const invalidBranch = 'a b'.repeat(126); // invalid chars and too long
-      const result = validateBranch(invalidBranch);
+      const result = validateBranch(invalidBranch, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -460,7 +463,7 @@ describe('Summary Validation', () => {
     };
 
     it('should accept valid summary request', () => {
-      const result = validateSummaryRequest(validRequest);
+      const result = validateSummaryRequest(validRequest, defaultConfig);
       
       expect(result.success).toBe(true);
       if (result.success) {
@@ -479,7 +482,7 @@ describe('Summary Validation', () => {
         includePrivate: true
       };
       
-      const result = validateSummaryRequest(fullRequest);
+      const result = validateSummaryRequest(fullRequest, defaultConfig);
       
       expect(result.success).toBe(true);
       if (result.success) {
@@ -490,7 +493,7 @@ describe('Summary Validation', () => {
     });
 
     it('should reject non-object request', () => {
-      const result = validateSummaryRequest(null);
+      const result = validateSummaryRequest(null, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -504,7 +507,7 @@ describe('Summary Validation', () => {
         repositories: ['owner/repo']
       };
       
-      const result = validateSummaryRequest(request);
+      const result = validateSummaryRequest(request, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -521,7 +524,7 @@ describe('Summary Validation', () => {
         }
       };
       
-      const result = validateSummaryRequest(request);
+      const result = validateSummaryRequest(request, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -541,7 +544,7 @@ describe('Summary Validation', () => {
         branch: 'invalid branch name' // spaces
       };
       
-      const result = validateSummaryRequest(request);
+      const result = validateSummaryRequest(request, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -561,7 +564,7 @@ describe('Summary Validation', () => {
         }
       };
       
-      const result = validateSummaryRequest(request);
+      const result = validateSummaryRequest(request, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -579,10 +582,10 @@ describe('Summary Validation', () => {
         }
       };
       
-      const config: ValidationConfig = {
+      const config = createValidationConfig({
         maxRepositories: 10,
         maxDateRangeDays: 30
-      };
+      });
       
       const result = validateSummaryRequest(request, config);
       
@@ -611,35 +614,20 @@ describe('Summary Validation', () => {
       });
     });
 
-    it('should return default config when app config has no limits', () => {
-      const appConfig: Partial<Config> = {
-        github: {
-          apiUrl: 'https://api.github.com',
-          timeout: 30000,
-          rateLimit: {
-            maxRequests: 5000,
-            windowMs: 3600000
-          }
-        }
-      };
-      
-      const config = createValidationConfig(appConfig);
+    it('should return default config when no overrides provided', () => {
+      const config = createValidationConfig();
       
       expect(config.maxRepositories).toBe(100);
       expect(config.maxDateRangeDays).toBe(365);
       expect(config.maxUsers).toBe(50);
     });
 
-    it('should use app config limits when provided', () => {
-      const appConfig: Partial<Config> = {
-        limits: {
-          maxRepositories: 50,
-          maxDateRangeDays: 180,
-          maxUsers: 25
-        }
-      };
-      
-      const config = createValidationConfig(appConfig);
+    it('should use partial overrides when provided', () => {
+      const config = createValidationConfig({
+        maxRepositories: 50,
+        maxDateRangeDays: 180,
+        maxUsers: 25
+      });
       
       expect(config.maxRepositories).toBe(50);
       expect(config.maxDateRangeDays).toBe(180);
@@ -649,19 +637,15 @@ describe('Summary Validation', () => {
     });
 
     it('should use defaults for missing limit values', () => {
-      const appConfig: Partial<Config> = {
-        limits: {
-          maxRepositories: 50,
-          maxDateRangeDays: 0, // falsy value
-          maxUsers: undefined as any
-        }
-      };
-      
-      const config = createValidationConfig(appConfig);
+      const config = createValidationConfig({
+        maxRepositories: 50
+        // Other values should use defaults
+      });
       
       expect(config.maxRepositories).toBe(50);
       expect(config.maxDateRangeDays).toBe(365); // default
       expect(config.maxUsers).toBe(50); // default
+      expect(config.allowFutureDates).toBe(false);
     });
   });
 
@@ -669,7 +653,8 @@ describe('Summary Validation', () => {
     it('should handle malformed date objects gracefully', () => {
       const result = validateDateRange(
         new Date('2023-01-01'),
-        {} as Date // malformed date object
+        {} as Date, // malformed date object
+        defaultConfig
       );
       
       expect(result.success).toBe(false);
@@ -680,7 +665,7 @@ describe('Summary Validation', () => {
 
     it('should provide actionable error messages', () => {
       const repos = Array(150).fill('owner/repo');
-      const result = validateRepositories(repos);
+      const result = validateRepositories(repos, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -693,7 +678,7 @@ describe('Summary Validation', () => {
 
     it('should truncate long lists in error messages', () => {
       const invalidRepos = Array(10).fill(null).map((_, i) => `invalid${i}`);
-      const result = validateRepositories(invalidRepos);
+      const result = validateRepositories(invalidRepos, defaultConfig);
       
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -715,7 +700,7 @@ describe('Summary Validation', () => {
         branch: 'main'
       };
       
-      const result = validateSummaryRequest(request);
+      const result = validateSummaryRequest(request, defaultConfig);
       
       expect(result.success).toBe(true);
       // All validations should run independently
@@ -727,7 +712,7 @@ describe('Summary Validation', () => {
       const repos = ['owner/repo1', 'owner/repo2'];
       const originalRepos = [...repos];
       
-      validateRepositories(repos);
+      validateRepositories(repos, defaultConfig);
       
       expect(repos).toEqual(originalRepos);
     });
@@ -742,7 +727,7 @@ describe('Summary Validation', () => {
       };
       const originalRequest = JSON.parse(JSON.stringify(request));
       
-      validateSummaryRequest(request);
+      validateSummaryRequest(request, defaultConfig);
       
       expect(JSON.parse(JSON.stringify(request))).toEqual(originalRequest);
     });
@@ -750,8 +735,8 @@ describe('Summary Validation', () => {
     it('should produce consistent results', () => {
       const repos = ['owner/repo1', 'owner/repo2'];
       
-      const result1 = validateRepositories(repos);
-      const result2 = validateRepositories(repos);
+      const result1 = validateRepositories(repos, defaultConfig);
+      const result2 = validateRepositories(repos, defaultConfig);
       
       expect(result1).toEqual(result2);
     });
@@ -760,8 +745,8 @@ describe('Summary Validation', () => {
       const repos: readonly string[] = ['owner/repo1', 'owner/repo2'];
       const users: readonly string[] = ['user1', 'user2'];
       
-      const repoResult = validateRepositories(repos);
-      const userResult = validateUsers(users);
+      const repoResult = validateRepositories(repos, defaultConfig);
+      const userResult = validateUsers(users, defaultConfig);
       
       expect(repoResult.success).toBe(true);
       expect(userResult.success).toBe(true);

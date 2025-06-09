@@ -5,25 +5,19 @@
 
 import { Result, success, failure } from '../../lib/result/index';
 import type { SummaryRequest, DateRange, ValidationError, Config } from '../types/index';
+import { extractValidationConfig, type ValidationConfig, DEFAULT_CONFIG } from '../config/index';
 
 /**
- * Validation configuration with default limits
+ * Validation configuration for backward compatibility
+ * @deprecated Use Config interface and extractValidationConfig instead
  */
-export interface ValidationConfig {
+export interface LegacyValidationConfig {
   maxRepositories?: number;
   maxDateRangeDays?: number;
   maxUsers?: number;
   allowFutureDates?: boolean;
   minDateRangeDays?: number;
 }
-
-const DEFAULT_CONFIG: Required<ValidationConfig> = {
-  maxRepositories: 100,
-  maxDateRangeDays: 365,
-  maxUsers: 50,
-  allowFutureDates: false,
-  minDateRangeDays: 1
-};
 
 /**
  * I18n-ready error message generator
@@ -76,9 +70,8 @@ export const createErrorMessage = (
 export const validateDateRange = (
   start: Date,
   end: Date,
-  config: ValidationConfig = {}
+  config: ValidationConfig
 ): Result<DateRange, string[]> => {
-  const cfg = { ...DEFAULT_CONFIG, ...config };
   const errors: string[] = [];
 
   // Validate start date
@@ -102,7 +95,7 @@ export const validateDateRange = (
   }
   
   // Check future dates
-  if (!cfg.allowFutureDates) {
+  if (!config.allowFutureDates) {
     const now = new Date();
     if (end > now) {
       errors.push(createErrorMessage('validation.dateRange.futureDate'));
@@ -112,16 +105,16 @@ export const validateDateRange = (
   // Check date range length
   const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
   
-  if (daysDiff > cfg.maxDateRangeDays) {
+  if (daysDiff > config.maxDateRangeDays) {
     errors.push(createErrorMessage('validation.dateRange.tooLong', {
-      maxDays: cfg.maxDateRangeDays,
+      maxDays: config.maxDateRangeDays,
       selectedDays: daysDiff
     }));
   }
   
-  if (daysDiff < cfg.minDateRangeDays) {
+  if (daysDiff < config.minDateRangeDays) {
     errors.push(createErrorMessage('validation.dateRange.tooShort', {
-      minDays: cfg.minDateRangeDays
+      minDays: config.minDateRangeDays
     }));
   }
   
@@ -137,9 +130,8 @@ export const validateDateRange = (
  */
 export const validateRepositories = (
   repos: readonly string[],
-  config: ValidationConfig = {}
+  config: ValidationConfig
 ): Result<readonly string[], string[]> => {
-  const cfg = { ...DEFAULT_CONFIG, ...config };
   const errors: string[] = [];
 
   // Check if array
@@ -154,9 +146,9 @@ export const validateRepositories = (
   }
   
   // Check count limit
-  if (repos.length > cfg.maxRepositories) {
+  if (repos.length > config.maxRepositories) {
     errors.push(createErrorMessage('validation.repositories.tooMany', {
-      maxRepos: cfg.maxRepositories,
+      maxRepos: config.maxRepositories,
       count: repos.length
     }));
   }
@@ -200,13 +192,12 @@ export const validateRepositories = (
  */
 export const validateUsers = (
   users: readonly string[] | undefined,
-  config: ValidationConfig = {}
+  config: ValidationConfig
 ): Result<readonly string[] | undefined, string[]> => {
   if (users === undefined) {
     return success(undefined);
   }
 
-  const cfg = { ...DEFAULT_CONFIG, ...config };
   const errors: string[] = [];
 
   // Check if array
@@ -215,9 +206,9 @@ export const validateUsers = (
   }
   
   // Check count limit
-  if (users.length > cfg.maxUsers) {
+  if (users.length > config.maxUsers) {
     errors.push(createErrorMessage('validation.users.tooMany', {
-      maxUsers: cfg.maxUsers,
+      maxUsers: config.maxUsers,
       count: users.length
     }));
   }
@@ -263,7 +254,8 @@ export const validateUsers = (
  * Validate branch name with enhanced error messages
  */
 export const validateBranch = (
-  branch: string | undefined
+  branch: string | undefined,
+  config: ValidationConfig
 ): Result<string | undefined, string[]> => {
   if (branch === undefined) {
     return success(undefined);
@@ -283,10 +275,9 @@ export const validateBranch = (
   }
   
   // Check length
-  const maxLength = 250;
-  if (branch.length > maxLength) {
+  if (branch.length > config.maxBranchNameLength) {
     errors.push(createErrorMessage('validation.branch.tooLong', {
-      maxLength,
+      maxLength: config.maxBranchNameLength,
       length: branch.length
     }));
   }
@@ -309,7 +300,7 @@ export const validateBranch = (
  */
 export const validateSummaryRequest = (
   request: unknown,
-  config: ValidationConfig = {}
+  config: ValidationConfig
 ): Result<SummaryRequest, ValidationError[]> => {
   // Check if request is an object
   if (typeof request !== 'object' || request === null) {
@@ -392,7 +383,7 @@ export const validateSummaryRequest = (
   
   // Validate branch (optional)
   if (req.branch !== undefined) {
-    const branchResult = validateBranch(req.branch);
+    const branchResult = validateBranch(req.branch, config);
     if (!branchResult.success) {
       branchResult.error.forEach(message => {
         errors.push({
@@ -425,17 +416,15 @@ export const validateSummaryRequest = (
 
 /**
  * Create a validation config from application config
+ * @deprecated Use extractValidationConfig from core/config instead
  */
 export const createValidationConfig = (appConfig?: Partial<Config>): ValidationConfig => {
-  if (!appConfig?.limits) {
-    return DEFAULT_CONFIG;
+  if (!appConfig?.validation) {
+    return extractValidationConfig(DEFAULT_CONFIG);
   }
   
-  return {
-    maxRepositories: appConfig.limits.maxRepositories || DEFAULT_CONFIG.maxRepositories,
-    maxDateRangeDays: appConfig.limits.maxDateRangeDays || DEFAULT_CONFIG.maxDateRangeDays,
-    maxUsers: appConfig.limits.maxUsers || DEFAULT_CONFIG.maxUsers,
-    allowFutureDates: false,
-    minDateRangeDays: 1
-  };
+  return extractValidationConfig(appConfig as Config);
 };
+
+// Re-export for backward compatibility
+export { extractValidationConfig, type ValidationConfig } from '../config/index';

@@ -30,38 +30,44 @@ GitPulse is a web application that generates summaries of GitHub commits for ind
 
 ## Architecture
 
-GitPulse follows a modular architecture with clear separation of concerns:
+GitPulse follows a **Functional Core / Imperative Shell** architecture with emphasis on testability, reliability, and maintainability.
 
 ### Core Architecture Principles
 
-- **TypeScript First**: Strong typing throughout the codebase
-- **Component-Based UI**: Modular React components with clear responsibilities
-- **Custom Hooks for Logic**: Business logic extracted into custom hooks
-- **API Routes for Data**: Next.js API routes as a backend layer
-- **Comprehensive Testing**: Unit and integration tests for critical paths
-- **Defensive Programming**: Robust error handling with graceful degradation
+- **Functional Core**: Pure business logic with no side effects in `src/core/`
+- **Imperative Shell**: I/O and side effects isolated to React hooks and API routes  
+- **Pure Function Testing**: No mocks needed - test with input/output verification
+- **Effect-Based Services**: Deferred computation for composable and testable workflows
+- **TypeScript First**: Strong typing with readonly data structures throughout
+- **Immutable by Default**: All data transformations preserve original data
+- **Composable Logic**: Functions built using functional composition patterns
 
 ### Directory Structure
 
 ```
 src/
-├── app/                  # Next.js App Router pages and API routes
-│   ├── api/              # API endpoints (GitHub data, auth, etc.)
+├── core/                 # FUNCTIONAL CORE - Pure business logic
+│   ├── github/           # Commit data transformations (pure functions)
+│   ├── summary/          # Statistical calculations (pure functions)  
+│   ├── validation/       # Input validation (pure functions)
+│   └── types/            # Domain type definitions
+├── services/             # Service layer connecting core and shell
+│   ├── effects/          # Effect type system for deferred computation
+│   ├── workflows/        # Orchestration of pure functions with effects
+│   └── providers/        # Data provider interfaces and implementations
+├── app/                  # IMPERATIVE SHELL - Next.js App Router  
+│   ├── api/              # API endpoints (I/O operations)
 │   └── dashboard/        # Main application pages
-├── components/           # Reusable UI components
+├── hooks/                # IMPERATIVE SHELL - React hooks (state management)
+│   └── dashboard/        # Dashboard-specific hooks with side effects
+├── components/           # UI components (presentation layer)
 │   ├── dashboard/        # Dashboard-specific components
-│   ├── layout/           # Layout components (header, etc.)
-│   ├── library/          # Generic, reusable components
-│   └── ui/               # Basic UI primitives
-├── hooks/                # Custom React hooks
-│   └── dashboard/        # Dashboard-specific hooks
-├── lib/                  # Core utilities and services
-│   ├── auth/             # Authentication utilities
-│   ├── github/           # GitHub API integration
-│   └── ...               # Other utilities (logging, caching, etc.)
-├── state/                # State management (when needed)
-├── styles/               # Global styles and themes
-└── types/                # TypeScript type definitions
+│   └── ui/               # Reusable UI primitives
+├── lib/                  # Utilities and framework integration
+│   ├── functional/       # Functional programming utilities (pipe, compose)
+│   ├── result/           # Result type system for error handling
+│   └── auth/             # Authentication utilities
+└── types/                # Legacy types (gradually moving to core/types/)
 ```
 
 ### Error Handling Strategy

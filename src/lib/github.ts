@@ -3,6 +3,7 @@
 import { Octokit } from "octokit";
 import { createAppAuth } from "@octokit/auth-app";
 import { logger } from "./logger";
+import { DEFAULT_CONFIG, type Config } from '../core/config/index';
 
 const MODULE_NAME = "github";
 
@@ -252,6 +253,7 @@ export async function getInstallationOctokit(
 // Fetch repositories using user OAuth token
 export async function fetchAllRepositoriesOAuth(
   accessToken: string,
+  config: Config = DEFAULT_CONFIG
 ): Promise<Repository[]> {
   logger.debug(MODULE_NAME, "fetchAllRepositoriesOAuth called", {
     accessTokenLength: accessToken?.length,
@@ -272,7 +274,7 @@ export async function fetchAllRepositoriesOAuth(
           100 - Number(((core.remaining / core.limit) * 100).toFixed(1)),
       });
 
-      if (core.remaining < 100) {
+      if (core.remaining < config.github.rateLimit.maxRequests / 50) { // Warn when < 2% remaining
         logger.warn(MODULE_NAME, "GitHub API rate limit is running low", {
           remaining: core.remaining,
           resetTime: new Date(core.reset * 1000).toISOString(),
@@ -335,7 +337,7 @@ export async function fetchAllRepositoriesOAuth(
     const combinedRepos = await octokit.paginate(
       octokit.rest.repos.listForAuthenticatedUser,
       {
-        per_page: 100,
+        per_page: config.github.pagination.perPage,
         sort: "updated",
         visibility: "all",
         affiliation: "owner,collaborator,organization_member",
@@ -352,7 +354,7 @@ export async function fetchAllRepositoriesOAuth(
       const orgs = await octokit.paginate(
         octokit.rest.orgs.listForAuthenticatedUser,
         {
-          per_page: 100,
+          per_page: config.github.pagination.perPage,
         },
       );
       logger.info(MODULE_NAME, "Fetched user organizations", {
@@ -366,7 +368,7 @@ export async function fetchAllRepositoriesOAuth(
             octokit.rest.repos.listForOrg,
             {
               org: org.login,
-              per_page: 100,
+              per_page: config.github.pagination.perPage,
               sort: "updated",
               type: "all", // private + public + forks, etc. as long as your token can see them
             },
@@ -419,6 +421,7 @@ export async function fetchAllRepositoriesOAuth(
 // Fetch repositories using GitHub App installation
 export async function fetchAllRepositoriesApp(
   installationId: number,
+  config: Config = DEFAULT_CONFIG
 ): Promise<Repository[]> {
   logger.debug(MODULE_NAME, "fetchAllRepositoriesApp called", {
     installationId,
@@ -459,7 +462,7 @@ export async function fetchAllRepositoriesApp(
     const repositories = await octokit.paginate(
       octokit.rest.apps.listReposAccessibleToInstallation,
       {
-        per_page: 100,
+        per_page: config.github.pagination.perPage,
       },
     );
 
@@ -486,6 +489,7 @@ export async function fetchAllRepositoriesApp(
 export async function fetchAllRepositories(
   accessToken?: string,
   installationId?: number,
+  config: Config = DEFAULT_CONFIG
 ): Promise<Repository[]> {
   logger.debug(MODULE_NAME, "fetchAllRepositories called", {
     hasAccessToken: !!accessToken,
@@ -502,10 +506,10 @@ export async function fetchAllRepositories(
           installationId,
         },
       );
-      return await fetchAllRepositoriesApp(installationId);
+      return await fetchAllRepositoriesApp(installationId, config);
     } else if (accessToken) {
       logger.info(MODULE_NAME, "Using OAuth token for repository access");
-      return await fetchAllRepositoriesOAuth(accessToken);
+      return await fetchAllRepositoriesOAuth(accessToken, config);
     } else {
       // Neither authentication method is available
       logger.error(
@@ -532,6 +536,7 @@ export async function fetchRepositoryCommitsOAuth(
   since: string,
   until: string,
   author?: string,
+  config: Config = DEFAULT_CONFIG
 ): Promise<Commit[]> {
   // This function returns GitHub commits cast to our interface
   logger.debug(
@@ -557,7 +562,7 @@ export async function fetchRepositoryCommitsOAuth(
       since,
       until,
       author,
-      per_page: 100,
+      per_page: config.github.pagination.perPage,
     });
 
     logger.info(MODULE_NAME, `Fetched commits for ${owner}/${repo}`, {
@@ -594,6 +599,7 @@ export async function fetchRepositoryCommitsApp(
   since: string,
   until: string,
   author?: string,
+  config: Config = DEFAULT_CONFIG
 ): Promise<Commit[]> {
   logger.debug(
     MODULE_NAME,
@@ -620,7 +626,7 @@ export async function fetchRepositoryCommitsApp(
       since,
       until,
       author,
-      per_page: 100,
+      per_page: config.github.pagination.perPage,
     });
 
     logger.info(
@@ -666,6 +672,7 @@ export async function fetchRepositoryCommits(
   since: string = "",
   until: string = "",
   author?: string,
+  config: Config = DEFAULT_CONFIG
 ): Promise<Commit[]> {
   logger.debug(
     MODULE_NAME,
@@ -696,6 +703,7 @@ export async function fetchRepositoryCommits(
         since,
         until,
         author,
+        config
       );
     } else if (accessToken) {
       logger.info(MODULE_NAME, "Using OAuth token for commit access");
@@ -706,6 +714,7 @@ export async function fetchRepositoryCommits(
         since,
         until,
         author,
+        config
       );
     } else {
       // Neither authentication method is available
@@ -734,6 +743,7 @@ export async function fetchCommitsForRepositories(
   since: string = "",
   until: string = "",
   author?: string,
+  config: Config = DEFAULT_CONFIG
 ): Promise<Commit[]> {
   // The return value will be properly cast to our Commit interface
   logger.debug(MODULE_NAME, "fetchCommitsForRepositories called", {
@@ -757,7 +767,7 @@ export async function fetchCommitsForRepositories(
 
   const allCommits: Commit[] = [];
   let githubUsername = author;
-  const batchSize = 5;
+  const batchSize = config.github.pagination.batchSize;
 
   // first pass with "author" if provided
   for (let i = 0; i < repositories.length; i += batchSize) {
@@ -779,6 +789,7 @@ export async function fetchCommitsForRepositories(
           since,
           until,
           githubUsername,
+          config
         );
       }),
     );
@@ -808,6 +819,7 @@ export async function fetchCommitsForRepositories(
               since,
               until,
               githubUsername,
+              config
             );
           }),
         );
@@ -833,7 +845,8 @@ export async function fetchCommitsForRepositories(
             repo,
             since,
             until,
-            undefined,
+            undefined, // no author filter on retry
+            config
           );
         }),
       );

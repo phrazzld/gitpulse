@@ -533,12 +533,60 @@ describe('Core Domain Types', () => {
           rateLimit: {
             maxRequests: 5000,
             windowMs: 3600000
+          },
+          pagination: {
+            perPage: 100,
+            batchSize: 5
           }
         },
-        limits: {
-          maxRepositories: 50,
-          maxDateRangeDays: 365,
-          maxUsers: 20
+        validation: {
+          limits: {
+            maxRepositories: 50,
+            maxDateRangeDays: 365,
+            minDateRangeDays: 1,
+            maxUsers: 20,
+            maxBranchNameLength: 250
+          },
+          rules: {
+            allowFutureDates: false
+          }
+        },
+        api: {
+          timeout: 30000,
+          defaultLimit: 50,
+          pagination: {
+            defaultPageSize: 50,
+            maxPageSize: 100
+          }
+        },
+        cache: {
+          ttl: {
+            short: 60,
+            medium: 300,
+            long: 3600
+          },
+          staleWhileRevalidate: 60
+        },
+        effects: {
+          retry: {
+            maxAttempts: 3,
+            delayMs: 1000
+          },
+          timeout: {
+            defaultMs: 30000
+          }
+        },
+        ui: {
+          progressiveLoading: {
+            initialLimit: 20,
+            additionalItemsPerPage: 20
+          },
+          summary: {
+            topRepositoriesLimit: 5
+          },
+          debounce: {
+            defaultDelayMs: 300
+          }
         },
         ai: {
           provider: 'openai',
@@ -549,7 +597,7 @@ describe('Core Domain Types', () => {
       };
 
       expect(config.github.apiUrl).toBe('https://api.github.com');
-      expect(config.limits.maxRepositories).toBe(50);
+      expect(config.validation.limits.maxRepositories).toBe(50);
       expect(config.ai.provider).toBe('openai');
     });
   });

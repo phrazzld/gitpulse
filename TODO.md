@@ -121,7 +121,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
     - **Depends-on:** [T002, T004]
 
 ## Service Layer (Phase 3)
-- [ ] **T008 · Refactor · P1: implement effect-based summary service**
+- [x] **T008 · Refactor · P1: implement effect-based summary service**
     - **Context:** Phase 3.1 - Create Effect-Based Services
     - **Action:**
         1. Create `src/services/workflows/summary.ts` with workflow orchestration
@@ -139,7 +139,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
     - **Depends-on:** [T002, T003, T006, T007]
 
 ## Imperative Shell Integration (Phase 4)
-- [ ] **T009 · Refactor · P2: refactor api route to use effects**
+- [x] **T009 · Refactor · P2: refactor api route to use effects**
     - **Context:** Phase 4.1 - API Route Handlers
     - **Action:**
         1. Update `src/shell/api/summary/route.ts` to use `summaryService`
@@ -156,7 +156,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. Verify proper HTTP status codes and error response format
     - **Depends-on:** [T008]
 
-- [ ] **T010 · Refactor · P2: transform react component to use effects**
+- [x] **T010 · Refactor · P2: transform react component to use effects**
     - **Context:** Phase 4.2 - React Component Transformation
     - **Action:**
         1. Update `src/shell/components/SummaryView.tsx` to use `summaryService`
@@ -174,7 +174,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
     - **Depends-on:** [T008]
 
 ## Test Transformation (Phase 5)
-- [ ] **T011 · Test · P0: implement pure function tests**
+- [x] **T011 · Test · P0: implement pure function tests**
     - **Context:** Phase 5.1 - Pure Function Tests (No Mocks!)
     - **Action:**
         1. Create test files for all core modules with comprehensive coverage
@@ -191,7 +191,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. Review coverage reports to ensure complete test coverage
     - **Depends-on:** [T005, T006, T007]
 
-- [ ] **T012 · Test · P1: implement service tests with test effects**
+- [x] **T012 · Test · P1: implement service tests with test effects**
     - **Context:** Phase 5.2 - Service Tests with Test Effects
     - **Action:**
         1. Create `src/services/workflows/summary.test.ts` with workflow tests
@@ -209,7 +209,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
     - **Depends-on:** [T008]
 
 ## Cleanup & Documentation (Phase 6)
-- [ ] **T013 · Chore · P2: eliminate old test infrastructure**
+- [x] **T013 · Chore · P2: eliminate old test infrastructure**
     - **Context:** Phase 6.1 - Delete Old Test Infrastructure
     - **Action:**
         1. Remove `src/__tests__/test-helpers/*` directory completely
@@ -226,7 +226,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. CI pipeline passes without deleted dependencies
     - **Depends-on:** [T011, T012]
 
-- [ ] **T014 · Chore · P2: update documentation and examples**
+- [x] **T014 · Chore · P2: update documentation and examples**
     - **Context:** Phase 6.2 - Update Documentation
     - **Action:**
         1. Document Functional Core / Imperative Shell pattern with examples
@@ -244,7 +244,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
     - **Depends-on:** [T013]
 
 ## Cross-Cutting Concerns
-- [ ] **T015 · Feature · P2: implement structured logging for effects**
+- [x] **T015 · Feature · P2: implement structured logging for effects**
     - **Context:** Logging & Observability - Structured Logging in Effects
     - **Action:**
         1. Create `src/services/effects/logging.ts` with `withLogging` decorator
@@ -261,7 +261,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. Test correlation ID propagation through effect chains
     - **Depends-on:** [T003]
 
-- [ ] **T016 · Refactor · P2: implement configuration dependency injection**
+- [x] **T016 · Refactor · P2: implement configuration dependency injection**
     - **Context:** Security & Configuration - Configuration Approach
     - **Action:**
         1. Define `Config` interface with all configuration parameters

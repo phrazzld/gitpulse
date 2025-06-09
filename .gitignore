@@ -56,3 +56,8 @@ GROOM-PROMPT.md
 thinktank_*/
 
 *storybook.log
+# AI consultation artifacts
+thinktank_*/
+
+# TypeScript build info
+tsconfig.*.tsbuildinfo

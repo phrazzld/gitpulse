@@ -1,7 +1,25 @@
-import { useState, useCallback } from 'react';
+/**
+ * Hook for generating and managing summary data using effect-based architecture
+ * Refactored to use functional core/imperative shell pattern
+ */
+
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { ActivityMode, CommitSummary, DateRange, Installation } from '@/types/dashboard';
 import { logger } from '@/lib/logger';
+import { summaryService } from '@/services/workflows/summary';
+import { 
+  createSummaryRequest, 
+  validateSummaryRequestConfig,
+  applyUserContextToRequest,
+  type SummaryRequestConfig 
+} from './utils/summary-params';
+import { 
+  createSessionDataProvider,
+  transformDashboardError,
+  type DashboardDataProvider 
+} from './adapters/summary-data-provider';
+import type { SummaryStats } from '@/core/types/index';
 
 const MODULE_NAME = 'hooks:useSummary';
 
@@ -25,7 +43,7 @@ interface UseSummaryResult {
 }
 
 /**
- * Hook for generating and managing summary data
+ * Hook for generating and managing summary data using effect-based architecture
  * 
  * @param props - Configuration options for the hook
  * @returns - State and functions for working with summaries
@@ -46,138 +64,193 @@ export function useSummary({
   const [currentInstallations, setCurrentInstallations] = useState<Installation[] | readonly Installation[]>([]);
   const [authMethod, setAuthMethod] = useState<string | null>(null);
 
-  // Function to handle API errors
-  const handleApiError = useCallback((errorData: any, response: Response) => {
-    // Check for installation needed error
-    if (errorData.needsInstallation) {
-      throw new Error('GitHub App installation required. Please install the GitHub App to access all your repositories, including private ones.');
-    }
-    
-    // Check for auth errors
-    if (response.status === 401 || 
-        response.status === 403 ||
-        errorData.code === 'GITHUB_AUTH_ERROR' ||
-        errorData.code === 'GITHUB_APP_CONFIG_ERROR') {
-      throw new Error('GitHub authentication issue detected. Your token may be invalid, expired, or missing required permissions. Please sign out and sign in again to grant all necessary permissions.');
-    }
-    
-    throw new Error(errorData.error || 'Failed to generate summary');
-  }, []);
+  // Ref to track current effect execution for cleanup
+  const currentEffectRef = useRef<{ cancelled: boolean } | null>(null);
 
-  // Function to generate a summary based on current filters
+  /**
+   * Transform SummaryStats to legacy CommitSummary format
+   * Pure function for backward compatibility
+   */
+  const transformStatsToSummary = useCallback((
+    stats: SummaryStats, 
+    rawCommits: any[] = [],
+    userContext: any = {}
+  ): CommitSummary => {
+    return {
+      user: session?.user?.name || undefined,
+      commits: rawCommits,
+      stats: {
+        totalCommits: stats.totalCommits,
+        repositories: stats.repositories,
+        dates: Object.keys(stats.commitsByDay).sort()
+      },
+      aiSummary: undefined, // Will be populated by legacy API compatibility layer
+      filterInfo: {
+        contributors: contributors.length > 0 ? [...contributors] : null,
+        organizations: organizations.length > 0 ? [...organizations] : null,
+        repositories: repositories.length > 0 ? [...repositories] : null,
+        dateRange: { since: dateRange.since, until: dateRange.until }
+      },
+      authMethod: userContext.authMethod || 'oauth',
+      installationId: userContext.installationIds?.[0] || null
+    };
+  }, [session?.user?.name, dateRange, contributors, organizations, repositories]);
+
+  /**
+   * Generate summary using effect-based architecture
+   * Integrates validation, data fetching, and statistics calculation
+   */
   const generateSummary = useCallback(async () => {
+    // Validate authentication
     if (!session?.accessToken && !installationIds.length) {
       logger.warn(MODULE_NAME, 'No authentication available for generating summary');
       setError('Authentication required. Please sign in again.');
       return;
     }
 
+    // Cancel any ongoing effect
+    if (currentEffectRef.current) {
+      currentEffectRef.current.cancelled = true;
+    }
+
+    // Create new effect context
+    const effectContext = { cancelled: false };
+    currentEffectRef.current = effectContext;
+
     try {
       setLoading(true);
       setError(null);
       setSummary(null);
-      
-      // Construct query parameters
-      const params = new URLSearchParams({
-        since: dateRange.since,
-        until: dateRange.until,
-      });
-      
-      // Add installation IDs if available
-      if (installationIds.length > 0) {
-        params.append('installation_ids', installationIds.join(','));
-      }
-      
-      // Add filter parameters
-      if (contributors.length > 0) {
-        params.append('contributors', contributors.join(','));
-      }
-      
-      if (organizations.length > 0) {
-        params.append('organizations', organizations.join(','));
-      }
-      
-      if (repositories.length > 0) {
-        params.append('repositories', repositories.join(','));
-      }
-      
-      // Always use chronological view
-      params.append('groupBy', 'chronological');
 
-      logger.info(MODULE_NAME, 'Generating summary with parameters', {
+      // Create request configuration
+      const requestConfig: SummaryRequestConfig = {
+        dateRange,
+        activityMode,
+        organizations,
+        repositories,
+        contributors
+      };
+
+      // Validate configuration
+      const validationErrors = validateSummaryRequestConfig(requestConfig);
+      if (validationErrors.length > 0) {
+        throw new Error(`Invalid configuration: ${validationErrors.join(', ')}`);
+      }
+
+      // Apply user context (handle 'me' contributor and activity mode)
+      const contextualConfig = applyUserContextToRequest(requestConfig, session?.user?.name || undefined);
+
+      logger.info(MODULE_NAME, 'Generating summary with effect-based service', {
         dateRange,
         activityMode,
         installationIds: installationIds.length,
         filters: {
-          contributors: contributors.length,
-          organizations: organizations.length,
-          repositories: repositories.length
+          contributors: contextualConfig.contributors.length,
+          organizations: contextualConfig.organizations.length,
+          repositories: contextualConfig.repositories.length
         }
       });
 
-      const response = await fetch(`/api/summary?${params.toString()}`);
+      // Create data provider with session context
+      const dataProvider: DashboardDataProvider = createSessionDataProvider(
+        session,
+        installationIds,
+        repositories
+      );
+
+      // Fetch filtered repositories if needed
+      const filteredRepositories = await dataProvider.fetchFilteredRepositories(contextualConfig)();
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        handleApiError(errorData, response);
+      // Check if effect was cancelled
+      if (effectContext.cancelled) {
+        logger.debug(MODULE_NAME, 'Effect cancelled during repository fetching');
+        return;
       }
 
-      const data = await response.json();
-      setSummary(data);
-      
-      // Update auth method and installation information if available
-      if (data.authMethod) {
-        setAuthMethod(data.authMethod);
-        logger.debug(MODULE_NAME, 'Using auth method', { method: data.authMethod });
+      if (filteredRepositories.length === 0) {
+        throw new Error('No repositories found matching your filter criteria. Please adjust your organization or repository filters.');
       }
-      
-      if (data.installationIds && data.installationIds.length > 0) {
-        logger.debug(MODULE_NAME, 'Using GitHub App installation IDs', { 
-          ids: data.installationIds 
-        });
-      }
-      
-      // Update installations list
-      if (data.installations && data.installations.length > 0) {
-        setInstallations(data.installations);
-        logger.debug(MODULE_NAME, 'Available installations', { 
-          count: data.installations.length 
-        });
-      }
-      
-      // Update current installations
-      if (data.currentInstallations && data.currentInstallations.length > 0) {
-        setCurrentInstallations(data.currentInstallations);
-        logger.debug(MODULE_NAME, 'Current installations', { 
-          accounts: data.currentInstallations.map((inst: Installation) => inst.account.login) 
-        });
-      }
-      
-      logger.info(MODULE_NAME, 'Summary generation completed', {
-        commitCount: data.stats?.totalCommits || 0,
-        repositoryCount: data.stats?.repositories?.length || 0
+
+      // Create summary request with filtered repositories
+      const summaryRequest = createSummaryRequest({
+        ...contextualConfig,
+        repositories: filteredRepositories
       });
+
+      // Execute effect-based summary service
+      const summaryEffect = summaryService.generateSummary(summaryRequest, dataProvider);
+      const summaryStats = await summaryEffect();
+
+      // Check if effect was cancelled after execution
+      if (effectContext.cancelled) {
+        logger.debug(MODULE_NAME, 'Effect cancelled after summary generation');
+        return;
+      }
+
+      logger.info(MODULE_NAME, 'Summary generation completed', {
+        totalCommits: summaryStats.totalCommits,
+        uniqueAuthors: summaryStats.uniqueAuthors,
+        repositories: summaryStats.repositories.length
+      });
+
+      // For now, create empty commits array for backward compatibility
+      // In the future, this could be optimized to not fetch raw commits unless needed
+      const legacySummary = transformStatsToSummary(summaryStats, [], {
+        authMethod: installationIds.length > 0 ? 'github_app' : 'oauth',
+        installationIds: installationIds.length > 0 ? installationIds : null
+      });
+
+      setSummary(legacySummary);
+      
+      // Update auth method
+      setAuthMethod(installationIds.length > 0 ? 'github_app' : 'oauth');
+
     } catch (error: any) {
+      // Check if effect was cancelled during error handling
+      if (effectContext.cancelled) {
+        logger.debug(MODULE_NAME, 'Effect cancelled during error handling');
+        return;
+      }
+
       logger.error(MODULE_NAME, 'Error generating summary', { 
         error: error.message,
         activityMode,
         dateRange
       });
       
-      setError(error.message || 'Failed to generate summary. Please try again.');
+      // Transform error to user-friendly message
+      const transformedError = transformDashboardError(error);
+      setError(transformedError.message);
     } finally {
-      setLoading(false);
+      // Only update loading state if effect wasn't cancelled
+      if (!effectContext.cancelled) {
+        setLoading(false);
+      }
+      
+      // Clear effect reference if this is still the current effect
+      if (currentEffectRef.current === effectContext) {
+        currentEffectRef.current = null;
+      }
     }
   }, [
-    session?.accessToken,
+    session,
     dateRange, 
     activityMode, 
     organizations, 
     repositories,
     contributors,
     installationIds,
-    handleApiError
+    transformStatsToSummary
   ]);
+
+  // Cleanup effect on unmount
+  useEffect(() => {
+    return () => {
+      if (currentEffectRef.current) {
+        currentEffectRef.current.cancelled = true;
+      }
+    };
+  }, []);
 
   return {
     loading,

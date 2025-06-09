@@ -151,11 +151,59 @@ export interface Config {
       readonly maxRequests: number;
       readonly windowMs: number;
     };
+    readonly pagination: {
+      readonly perPage: number;
+      readonly batchSize: number;
+    };
   };
-  readonly limits: {
-    readonly maxRepositories: number;
-    readonly maxDateRangeDays: number;
-    readonly maxUsers: number;
+  readonly validation: {
+    readonly limits: {
+      readonly maxRepositories: number;
+      readonly maxDateRangeDays: number;
+      readonly minDateRangeDays: number;
+      readonly maxUsers: number;
+      readonly maxBranchNameLength: number;
+    };
+    readonly rules: {
+      readonly allowFutureDates: boolean;
+    };
+  };
+  readonly api: {
+    readonly timeout: number;
+    readonly defaultLimit: number;
+    readonly pagination: {
+      readonly defaultPageSize: number;
+      readonly maxPageSize: number;
+    };
+  };
+  readonly cache: {
+    readonly ttl: {
+      readonly short: number;
+      readonly medium: number;
+      readonly long: number;
+    };
+    readonly staleWhileRevalidate: number;
+  };
+  readonly effects: {
+    readonly retry: {
+      readonly maxAttempts: number;
+      readonly delayMs: number;
+    };
+    readonly timeout: {
+      readonly defaultMs: number;
+    };
+  };
+  readonly ui: {
+    readonly progressiveLoading: {
+      readonly initialLimit: number;
+      readonly additionalItemsPerPage: number;
+    };
+    readonly summary: {
+      readonly topRepositoriesLimit: number;
+    };
+    readonly debounce: {
+      readonly defaultDelayMs: number;
+    };
   };
   readonly ai: {
     readonly provider: string;
