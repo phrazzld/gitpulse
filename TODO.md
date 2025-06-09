@@ -19,7 +19,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. Verify immutability with object mutation tests
     - **Depends-on:** none
 
-- [ ] **T002 · Feature · P0: establish result type system**
+- [x] **T002 · Feature · P0: establish result type system**
     - **Context:** Phase 1.1 - Create Functional Programming Utilities
     - **Action:**
         1. Create `src/lib/result/index.ts` with discriminated union `Result<T, E>`
@@ -35,7 +35,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. Verify monadic composition preserves types correctly
     - **Depends-on:** none
 
-- [ ] **T003 · Feature · P0: establish effect type system**
+- [x] **T003 · Feature · P0: establish effect type system**
     - **Context:** Phase 1.2 - Establish Effect Type System
     - **Action:**
         1. Create `src/services/effects/types.ts` with `Effect<T>` and `IOEffect<T>`
@@ -51,7 +51,7 @@ This document synthesizes the best insights from 10+ AI model outputs for implem
         2. Test effect composition with simple async operations
     - **Depends-on:** none
 
-- [ ] **T004 · Feature · P0: define core domain types**
+- [x] **T004 · Feature · P0: define core domain types**
     - **Context:** Phase 1.3 - Create Core Domain Types
     - **Action:**
         1. Create `src/core/types/index.ts` with complete domain interfaces
