@@ -49,6 +49,7 @@
     "husky": "^9.1.7",
     "storybook": "^8.6.12",
     "tailwindcss": "^4",
+    "ts-jest": "^29.4.0",
     "typescript": "^5"
   }
 }

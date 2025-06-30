@@ -61,3 +61,5 @@ thinktank_*/
 
 # TypeScript build info
 tsconfig.*.tsbuildinfo
+
+/docs/leyline

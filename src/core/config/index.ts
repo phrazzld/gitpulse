@@ -172,10 +172,10 @@ export const validateConfig = (config: unknown): Result<Config, ConfigValidation
       });
     }
 
-    if (typeof limits.minDateRangeDays !== 'number' || limits.minDateRangeDays <= 0) {
+    if (typeof limits.minDateRangeDays !== 'number' || limits.minDateRangeDays < 0) {
       errors.push({
         field: 'validation.limits.minDateRangeDays',
-        message: 'Min date range days must be a positive number',
+        message: 'Min date range days must be a non-negative number',
         value: limits.minDateRangeDays
       });
     }

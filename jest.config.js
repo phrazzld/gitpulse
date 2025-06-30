@@ -1,8 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
-  transform: {
-    '^.+\\.(t|j)sx?$': '@swc/jest',
-  },
+  preset: 'ts-jest',
   testMatch: [
     '**/__tests__/**/*.ts',
     '**/?(*.)+(spec|test).ts'
@@ -12,4 +10,8 @@ module.exports = {
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
   ],
+  moduleNameMapper: {
+    '^octokit$': '<rootDir>/src/lib/github/__mocks__/octokit.ts',
+    '^@octokit/(.*)$': '<rootDir>/src/lib/github/__mocks__/@octokit/$1.ts'
+  }
 };

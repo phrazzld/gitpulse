@@ -33,7 +33,7 @@ describe('Effect-based Summary Service', () => {
       sha: 'commit1',
       author: 'john.doe',
       date: '2023-06-15T10:00:00Z',
-      repository: 'frontend',
+      repository: 'owner/frontend',
       additions: 120,
       deletions: 20
     }),
@@ -41,7 +41,7 @@ describe('Effect-based Summary Service', () => {
       sha: 'commit2',
       author: 'jane.smith',
       date: '2023-06-16T14:30:00Z',
-      repository: 'frontend',
+      repository: 'owner/frontend',
       additions: 15,
       deletions: 8
     }),
@@ -49,14 +49,14 @@ describe('Effect-based Summary Service', () => {
       sha: 'commit3',
       author: 'john.doe',
       date: '2023-06-17T09:15:00Z',
-      repository: 'backend',
+      repository: 'owner/backend',
       additions: 80,
       deletions: 60
     })
   ];
 
   const validRequest: SummaryRequest = {
-    repositories: ['frontend', 'backend'],
+    repositories: ['owner/frontend', 'owner/backend'],
     dateRange: {
       start: new Date('2023-06-15T00:00:00Z'),
       end: new Date('2023-06-20T00:00:00Z')
@@ -115,7 +115,7 @@ describe('Effect-based Summary Service', () => {
       expect(result).toBeDefined();
       expect(result.totalCommits).toBe(2); // Only frontend and backend repos
       expect(result.uniqueAuthors).toBe(2);
-      expect(result.repositories).toEqual(['frontend', 'backend']);
+      expect(result.repositories).toEqual(['owner/frontend', 'owner/backend']);
     });
 
     it('should handle validation errors', async () => {
