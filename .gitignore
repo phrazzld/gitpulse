@@ -63,3 +63,4 @@ thinktank_*/
 tsconfig.*.tsbuildinfo
 
 /docs/leyline
+.env.local

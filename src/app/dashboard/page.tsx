@@ -20,6 +20,8 @@ import RepositorySection from '@/components/dashboard/RepositorySection';
 import DateRangePicker from '@/components/DateRangePicker';
 import AnalysisParameters from '@/components/dashboard/AnalysisParameters';
 import SummaryView from '@/components/dashboard/SummaryView';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function Dashboard() {
   const { data: session, status } = useSession();
@@ -204,7 +206,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--gradient-bg)' }}>
+    <div className="min-h-screen bg-background">
       {/* Header Component */}
       <Header
         userName={session?.user?.name}
@@ -237,47 +239,42 @@ export default function Dashboard() {
           />
           
           {/* Improved Filters Container with DateRangePicker and Analysis Parameters */}
-          <div className="mb-8 border rounded-lg p-6" style={{ 
-            backgroundColor: 'rgba(27, 43, 52, 0.8)',
-            backdropFilter: 'blur(5px)',
-            borderColor: 'var(--electric-blue)',
-            boxShadow: '0 0 15px rgba(59, 142, 234, 0.15)'
-          }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-                <h3 className="text-sm font-bold uppercase" style={{ color: 'var(--electric-blue)' }}>
-                  ANALYSIS FILTERS
-                </h3>
+          <Card className="mb-8 backdrop-blur-sm shadow-lg">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+                  <h3 className="text-sm font-bold uppercase">
+                    ANALYSIS FILTERS
+                  </h3>
+                </div>
+                <Badge variant="outline" className="text-xs">
+                  CONFIGURE PARAMETERS
+                </Badge>
               </div>
-              <div className="px-2 py-1 text-xs rounded flex items-center" style={{ 
-                backgroundColor: 'rgba(0, 0, 0, 0.3)', 
-                border: '1px solid var(--electric-blue)',
-                color: 'var(--electric-blue)'
-              }}>
-                <span>CONFIGURE PARAMETERS</span>
-              </div>
-            </div>
+            </CardHeader>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left column will be handled by OperationsPanel */}
-              
-              {/* Right column - Date and Analysis Info */}
-              <div className="space-y-6">
-                <DateRangePicker
-                  dateRange={dateRange}
-                  onChange={handleDateRangeChange}
-                  disabled={loading}
-                />
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left column will be handled by OperationsPanel */}
                 
-                <AnalysisParameters
-                  activityMode={activityMode}
-                  dateRange={dateRange}
-                  organizations={filters.organizations}
-                />
+                {/* Right column - Date and Analysis Info */}
+                <div className="space-y-6">
+                  <DateRangePicker
+                    dateRange={dateRange}
+                    onChange={handleDateRangeChange}
+                    disabled={loading}
+                  />
+                  
+                  <AnalysisParameters
+                    activityMode={activityMode}
+                    dateRange={dateRange}
+                    organizations={filters.organizations}
+                  />
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Wrap the entire content below in a form */}
           <form onSubmit={(e) => { e.preventDefault(); generateSummary(); }} className="space-y-8">

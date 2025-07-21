@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import AccountSelector, { Account } from './AccountSelector';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Loader2, ChevronDown } from 'lucide-react';
 
 type Contributor = {
   username: string;
@@ -161,40 +167,24 @@ export default function FilterPanel({
   };
 
   return (
-    <div className="border rounded-lg p-3 mb-6" style={{ 
-      backgroundColor: 'rgba(27, 43, 52, 0.7)',
-      backdropFilter: 'blur(5px)',
-      borderColor: 'var(--electric-blue)',
-      boxShadow: '0 0 15px rgba(59, 142, 234, 0.15)'
-    }}>
+    <Card className="p-3 mb-6 bg-slate-900/70 backdrop-blur-sm border-blue-500 shadow-lg shadow-blue-500/15">
       {/* Header with toggle */}
       <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpanded(!expanded)}>
         <div className="flex items-center">
-          <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-          <h3 className="text-sm uppercase" style={{ color: 'var(--electric-blue)' }}>
+          <div className="w-2 h-2 rounded-full mr-2 bg-blue-500"></div>
+          <h3 className="text-sm uppercase text-blue-500">
             ANALYSIS FILTERS
           </h3>
         </div>
         <div className="flex items-center">
           {/* Show indicators for active filters */}
           {(selectedContributors.length > 0 || selectOnlyMe || selectedOrganizations.length > 0 || selectedRepositories.length > 0 || groupBy !== 'chronological') && (
-            <div className="px-2 py-1 text-xs rounded mr-2" style={{ 
-              backgroundColor: 'rgba(0, 255, 135, 0.1)',
-              color: 'var(--neon-green)'
-            }}>
+            <Badge variant="outline" className="text-xs mr-2 text-green-500 border-green-500">
               FILTERS ACTIVE
-            </div>
+            </Badge>
           )}
           
-          <svg 
-            className={`h-4 w-4 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor"
-            style={{ color: 'var(--electric-blue)' }}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <ChevronDown className={`h-4 w-4 transition-transform duration-200 text-blue-500 ${expanded ? 'rotate-180' : ''}`} />
         </div>
       </div>
       
@@ -203,7 +193,7 @@ export default function FilterPanel({
         <div className="mt-4 space-y-6">
           {/* Contributors filter */}
           <div>
-            <h4 className="text-xs mb-2 font-bold" style={{ color: 'var(--electric-blue)' }}>CONTRIBUTOR FILTER</h4>
+            <h4 className="text-xs mb-2 font-bold text-blue-500">CONTRIBUTOR FILTER</h4>
             <div className="space-y-2">
               {/* "Only My Commits" checkbox */}
               <div className="flex items-center">
@@ -213,15 +203,11 @@ export default function FilterPanel({
                   checked={selectOnlyMe}
                   onChange={(e) => handleOnlyMeChange(e.target.checked)}
                   disabled={isLoading}
-                  className="mr-2"
-                  style={{ 
-                    accentColor: 'var(--neon-green)'
-                  }}
+                  className="mr-2 accent-green-500"
                 />
                 <label 
                   htmlFor="only-me" 
-                  className="text-sm"
-                  style={{ color: 'var(--foreground)' }}
+                  className="text-sm text-foreground"
                 >
                   ONLY MY COMMITS ({currentUsername || 'current user'})
                 </label>
@@ -230,14 +216,13 @@ export default function FilterPanel({
               {/* Contributor selection (hidden when "Only Me" is selected) */}
               {!selectOnlyMe && (
                 <div className="pl-5 pt-2">
-                  <div className="text-xs mb-2" style={{ color: 'var(--electric-blue)' }}>
+                  <div className="text-xs mb-2 text-blue-500">
                     SELECT SPECIFIC CONTRIBUTORS:
                   </div>
                   
                   {loadingContributors ? (
-                    <div className="flex items-center text-xs" style={{ color: 'var(--foreground)' }}>
-                      <span className="inline-block w-3 h-3 border-2 border-t-transparent rounded-full animate-spin mr-2" 
-                        style={{ borderColor: 'var(--neon-green)', borderTopColor: 'transparent' }}></span>
+                    <div className="flex items-center text-xs text-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin mr-2 text-green-500" />
                       <span>Loading contributors...</span>
                     </div>
                   ) : contributors.length > 0 ? (
@@ -250,15 +235,11 @@ export default function FilterPanel({
                             checked={selectedContributors.includes(contributor.username)}
                             onChange={(e) => handleContributorChange(contributor.username, e.target.checked)}
                             disabled={isLoading}
-                            className="mr-2"
-                            style={{ 
-                              accentColor: 'var(--neon-green)'
-                            }}
+                            className="mr-2 accent-green-500"
                           />
                           <label 
                             htmlFor={`contributor-${contributor.username}`} 
-                            className="text-sm flex items-center"
-                            style={{ color: 'var(--foreground)' }}
+                            className="text-sm flex items-center text-foreground"
                           >
                             {contributor.avatarUrl && (
                               <Image 
@@ -271,19 +252,16 @@ export default function FilterPanel({
                             )}
                             <span>{contributor.displayName}</span>
                             {contributor.commitCount && (
-                              <span className="ml-2 text-xs px-1 rounded" style={{ 
-                                backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                                color: 'var(--electric-blue)'
-                              }}>
+                              <Badge variant="secondary" className="ml-2 text-xs">
                                 {contributor.commitCount}
-                              </span>
+                              </Badge>
                             )}
                           </label>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-xs" style={{ color: 'var(--foreground)' }}>
+                    <div className="text-xs text-foreground">
                       No contributors found. Try expanding the date range.
                     </div>
                   )}
@@ -294,7 +272,7 @@ export default function FilterPanel({
           
           {/* Organizations filter */}
           <div>
-            <h4 className="text-xs mb-2 font-bold" style={{ color: 'var(--electric-blue)' }}>ACCOUNT/ORGANIZATION FILTER</h4>
+            <h4 className="text-xs mb-2 font-bold text-blue-500">ACCOUNT/ORGANIZATION FILTER</h4>
             <div className="space-y-2">
               {installations.length > 0 ? (
                 <>
@@ -314,14 +292,14 @@ export default function FilterPanel({
                   />
                   
                   {/* Note about selection */}
-                  <div className="text-xs italic" style={{ color: 'var(--foreground)' }}>
+                  <div className="text-xs italic text-foreground">
                     {selectedOrganizations.length === 0 ? 
                       "No accounts selected. Select accounts to filter results or leave all unchecked to include all." :
                       `Selected ${selectedOrganizations.length} account(s).`}
                   </div>
                 </>
               ) : (
-                <div className="text-xs" style={{ color: 'var(--foreground)' }}>
+                <div className="text-xs text-foreground">
                   No GitHub App installations found. Install the GitHub App to access more accounts.
                 </div>
               )}
@@ -330,7 +308,7 @@ export default function FilterPanel({
           
           {/* Group By options */}
           <div>
-            <h4 className="text-xs mb-2 font-bold" style={{ color: 'var(--electric-blue)' }}>GROUP RESULTS BY</h4>
+            <h4 className="text-xs mb-2 font-bold text-blue-500">GROUP RESULTS BY</h4>
             <div className="space-y-2">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {[
@@ -348,15 +326,11 @@ export default function FilterPanel({
                       checked={groupBy === option.value}
                       onChange={() => setGroupBy(option.value as any)}
                       disabled={isLoading}
-                      className="mr-2"
-                      style={{ 
-                        accentColor: 'var(--neon-green)'
-                      }}
+                      className="mr-2 accent-green-500"
                     />
                     <label 
                       htmlFor={`group-${option.value}`} 
-                      className="text-xs"
-                      style={{ color: 'var(--foreground)' }}
+                      className="text-xs text-foreground"
                     >
                       {option.label}
                     </label>
@@ -373,15 +347,11 @@ export default function FilterPanel({
                     checked={generateGroupSummaries}
                     onChange={(e) => setGenerateGroupSummaries(e.target.checked)}
                     disabled={isLoading}
-                    className="mr-2"
-                    style={{ 
-                      accentColor: 'var(--neon-green)'
-                    }}
+                    className="mr-2 accent-green-500"
                   />
                   <label 
                     htmlFor="generate-group-summaries" 
-                    className="text-xs"
-                    style={{ color: 'var(--foreground)' }}
+                    className="text-xs text-foreground"
                   >
                     GENERATE AI SUMMARY FOR EACH GROUP
                   </label>
@@ -392,22 +362,18 @@ export default function FilterPanel({
           
           {/* Reset button */}
           <div className="pt-2 flex justify-end">
-            <button
+            <Button
               type="button"
               onClick={handleReset}
               disabled={isLoading}
-              className="px-3 py-1 text-xs rounded transition-all duration-200"
-              style={{ 
-                backgroundColor: 'rgba(255, 59, 48, 0.1)',
-                color: 'var(--crimson-red)',
-                border: '1px solid var(--crimson-red)'
-              }}
+              variant="destructive"
+              size="sm"
             >
               RESET FILTERS
-            </button>
+            </Button>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

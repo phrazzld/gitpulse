@@ -5,6 +5,8 @@ import IntersectionObserver from './IntersectionObserver';
 import LoadMoreButton from '@/components/ui/LoadMoreButton';
 import { logger } from '@/lib/logger';
 import CommitItem from './dashboard/activityFeed/components/CommitItem';
+import { Card } from '@/components/ui/card';
+import { AlertCircle, Clock } from 'lucide-react';
 
 const MODULE_NAME = 'components:ActivityFeed';
 
@@ -262,34 +264,23 @@ export default function ActivityFeed({
     const fullErrorMessage = `${errorMessage}${safeErrorMessage ? `: ${safeErrorMessage}` : ''}`;
     
     return (
-      <div className="p-4 rounded-md border" style={{
-        backgroundColor: 'rgba(255, 59, 48, 0.1)',
-        borderColor: 'var(--crimson-red)',
-        color: 'var(--crimson-red)'
-      }}>
+      <Card className="p-4 border-destructive/50 bg-destructive/10 text-destructive">
         <div className="flex items-start">
-          <svg className="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
+          <AlertCircle className="h-5 w-5 mt-0.5 mr-2 flex-shrink-0" />
           <div>{fullErrorMessage}</div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   // Handle empty states
   if (!loading && commits.length === 0) {
     return (
-      <div className="py-8 text-center" style={{ color: 'var(--foreground)' }}>
-        <div className="inline-block p-3 rounded-md border mb-3" style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          borderColor: 'var(--electric-blue)'
-        }}>
-          <svg className="h-6 w-6 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--electric-blue)' }}>
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-          </svg>
+      <div className="py-8 text-center text-foreground">
+        <Card className="inline-block p-3 mb-3 bg-background/50">
+          <Clock className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
           <div className="text-sm">{emptyMessage}</div>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -299,11 +290,8 @@ export default function ActivityFeed({
     return (
       <div className="py-8 flex justify-center">
         <div className="flex flex-col items-center">
-          <div className="w-10 h-10 border-2 border-t-transparent rounded-full animate-spin mb-3" style={{ 
-            borderColor: 'var(--electric-blue)', 
-            borderTopColor: 'transparent' 
-          }}></div>
-          <div style={{ color: 'var(--electric-blue)' }}>Loading activity data...</div>
+          <div className="w-10 h-10 border-2 border-muted-foreground/50 border-t-transparent rounded-full animate-spin mb-3"></div>
+          <div className="text-muted-foreground">Loading activity data...</div>
         </div>
       </div>
     );
@@ -314,17 +302,10 @@ export default function ActivityFeed({
       {/* Incremental loading indicator at the top */}
       {incrementalLoading && commits.length > 0 && (
         <div className="relative w-full">
-          <div 
-            className="absolute top-0 left-0 right-0 animate-incremental-loading" 
-            style={{ 
-              backgroundColor: 'var(--neon-green)',
-              zIndex: 10
-            }}
-          ></div>
+          <div className="absolute top-0 left-0 right-0 animate-incremental-loading bg-green-500 z-10"></div>
           <div className="flex justify-center p-2">
-            <div className="text-xs flex items-center" style={{ color: 'var(--neon-green)' }}>
-              <span className="inline-block w-3 h-3 mr-2 border-2 border-t-transparent rounded-full animate-spin" 
-                style={{ borderColor: 'var(--neon-green)', borderTopColor: 'transparent' }}></span>
+            <div className="text-xs flex items-center text-green-500">
+              <span className="inline-block w-3 h-3 mr-2 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></span>
               Loading more activity data...
             </div>
           </div>
@@ -335,15 +316,11 @@ export default function ActivityFeed({
       {commits.length > 0 && (
         <div className="relative" ref={listContainerRef}>
           {/* List Container - used to measure width */}
-          <div className="relative" style={{ 
-            width: '100%',
+          <div className="relative w-full" style={{ 
             height: calculateListHeight()
           }}>
             {/* Global vertical timeline line - just for visual effect */}
-            <div className="absolute left-5 top-0 bottom-0 w-0.5 z-0" style={{ 
-              backgroundColor: 'var(--electric-blue)',
-              opacity: 0.2
-            }}></div>
+            <div className="absolute left-5 top-0 bottom-0 w-0.5 z-0 bg-muted-foreground/20"></div>
             
             {/* Virtualized List */}
             {listWidth > 0 && (
@@ -380,14 +357,13 @@ export default function ActivityFeed({
                 >
                   <div className="h-16 flex items-center justify-center mt-2">
                     {incrementalLoading && (
-                      <div className="text-xs flex items-center" style={{ color: 'var(--neon-green)' }}>
-                        <div className="w-3 h-3 border-2 border-t-transparent rounded-full animate-spin mr-2" 
-                          style={{ borderColor: 'var(--neon-green)', borderTopColor: 'transparent' }}></div>
+                      <div className="text-xs flex items-center text-green-500">
+                        <div className="w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin mr-2"></div>
                         <div>
                           Loading
                           <span className="inline-block animate-pulse">.</span>
-                          <span className="inline-block animate-pulse" style={{ animationDelay: '0.3s' }}>.</span>
-                          <span className="inline-block animate-pulse" style={{ animationDelay: '0.6s' }}>.</span>
+                          <span className="inline-block animate-pulse animate-delay-300">.</span>
+                          <span className="inline-block animate-pulse animate-delay-600">.</span>
                         </div>
                       </div>
                     )}

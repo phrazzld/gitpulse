@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { signOut } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
 
 interface AuthErrorProps {
   error?: string;
@@ -67,22 +68,23 @@ export function AuthError({
           
           <div className="mt-4">
             {onRetry && !signOutRequired && (
-              <button
-                type="button"
+              <Button
+                variant="destructive"
+                size="sm"
                 onClick={onRetry}
-                className="mr-2 rounded-md bg-red-50 px-2.5 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+                className="mr-2"
               >
                 Try Again
-              </button>
+              </Button>
             )}
             
-            <button
-              type="button"
+            <Button
+              variant="destructive"
+              size="sm"
               onClick={() => signOut({ redirect: true, callbackUrl: window.location.origin + '/' })}
-              className="rounded-md bg-red-50 px-2.5 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
             >
               Sign Out Now
-            </button>
+            </Button>
           </div>
         </div>
       </div>

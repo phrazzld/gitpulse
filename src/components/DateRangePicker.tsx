@@ -1,5 +1,9 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDebounceCallback } from '@/hooks/useDebounce';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 
 export type DateRange = {
   since: string; // YYYY-MM-DD format
@@ -112,16 +116,12 @@ export default function DateRangePicker({
   }, [internalDateRange]);
 
   return (
-    <div className="rounded-lg border" style={{ 
-      backgroundColor: 'rgba(27, 43, 52, 0.7)',
-      backdropFilter: 'blur(5px)',
-      borderColor: 'var(--electric-blue)',
-    }}>
-      <div className="p-3 border-b" style={{ borderColor: 'var(--electric-blue)' }}>
+    <Card className="backdrop-blur-sm">
+      <CardHeader className="p-3 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-            <h3 className="text-sm uppercase" style={{ color: 'var(--electric-blue)' }}>
+            <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+            <h3 className="text-sm font-medium uppercase">
               DATE RANGE
             </h3>
           </div>
@@ -129,20 +129,17 @@ export default function DateRangePicker({
           {/* Loading indicator for debounce */}
           {isDebouncing && (
             <div className="flex items-center">
-              <span 
-                className="inline-block w-3 h-3 border-2 border-t-transparent rounded-full animate-spin mr-1" 
-                style={{ borderColor: 'var(--neon-green)', borderTopColor: 'transparent' }}
-              ></span>
-              <span className="text-xs" style={{ color: 'var(--neon-green)' }}>UPDATING</span>
+              <span className="inline-block w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin mr-1"></span>
+              <span className="text-xs text-green-500">UPDATING</span>
             </div>
           )}
         </div>
-      </div>
+      </CardHeader>
       
-      <div className="p-4">
+      <CardContent className="p-4">
         {/* Preset buttons */}
         <div className="mb-4">
-          <div className="text-xs mb-2" style={{ color: 'var(--electric-blue)' }}>
+          <div className="text-xs mb-2 text-muted-foreground">
             QUICK SELECT
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -152,77 +149,40 @@ export default function DateRangePicker({
               { id: 'thisMonth', label: 'THIS MONTH' },
               { id: 'lastMonth', label: 'LAST MONTH' }
             ].map(preset => (
-              <button
+              <Button
                 key={preset.id}
                 type="button"
                 onClick={() => applyPreset(preset.id as keyof typeof presets)}
                 disabled={disabled || isDebouncing}
-                className={`px-3 py-2 text-xs rounded-md transition-all duration-200 ${
-                  isPresetActive(presets[preset.id as keyof typeof presets]) 
-                    ? 'border-2' 
-                    : 'border'
-                }`}
-                style={{ 
-                  backgroundColor: isPresetActive(presets[preset.id as keyof typeof presets])
-                    ? 'rgba(0, 255, 135, 0.1)'
-                    : 'var(--dark-slate)',
-                  borderColor: isPresetActive(presets[preset.id as keyof typeof presets]) 
-                    ? 'var(--neon-green)'
-                    : 'var(--electric-blue)',
-                  color: isPresetActive(presets[preset.id as keyof typeof presets])
-                    ? 'var(--neon-green)'
-                    : 'var(--electric-blue)',
-                  opacity: (disabled || isDebouncing) ? 0.6 : 1,
-                  cursor: (disabled || isDebouncing) ? 'not-allowed' : 'pointer'
-                }}
+                variant={isPresetActive(presets[preset.id as keyof typeof presets]) ? "default" : "outline"}
+                size="sm"
+                className="text-xs"
               >
                 {preset.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
         
         {/* Manual date inputs */}
         <div>
-          <div className="text-xs mb-2" style={{ color: 'var(--electric-blue)' }}>
+          <div className="text-xs mb-2 text-muted-foreground">
             CUSTOM RANGE
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label
-                htmlFor="since"
-                className="block text-xs mb-1"
-                style={{ color: 'var(--foreground)' }}
-              >
+              <Label htmlFor="since" className="block text-xs mb-1">
                 START DATE
-              </label>
+              </Label>
               <div className="relative">
-                <div 
-                  className="absolute left-0 top-0 h-full w-1" 
-                  style={{ 
-                    backgroundColor: isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)',
-                    transition: 'background-color 0.2s'
-                  }}
-                ></div>
-                <input
+                <div className={`absolute left-0 top-0 h-full w-1 transition-colors ${isDebouncing ? 'bg-green-500' : 'bg-primary'}`}></div>
+                <Input
                   type="date"
                   id="since"
                   value={internalDateRange.since}
                   onChange={(e) => handleDateChange('since', e.target.value)}
                   disabled={disabled}
-                  className="block w-full pl-3 py-2 pr-3 rounded-md focus:outline-none"
-                  style={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                    borderLeft: 'none',
-                    borderTop: `1px solid ${isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)'}`,
-                    borderRight: `1px solid ${isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)'}`,
-                    borderBottom: `1px solid ${isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)'}`,
-                    color: 'var(--foreground)',
-                    paddingLeft: '12px',
-                    opacity: disabled ? 0.6 : 1,
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    transition: 'border-color 0.2s'
-                  }}
+                  className={`pl-3 ${isDebouncing ? 'border-green-500' : ''}`}
                   required
                   max={internalDateRange.until}
                 />
@@ -230,40 +190,18 @@ export default function DateRangePicker({
             </div>
             
             <div>
-              <label
-                htmlFor="until"
-                className="block text-xs mb-1"
-                style={{ color: 'var(--foreground)' }}
-              >
+              <Label htmlFor="until" className="block text-xs mb-1">
                 END DATE
-              </label>
+              </Label>
               <div className="relative">
-                <div 
-                  className="absolute left-0 top-0 h-full w-1" 
-                  style={{ 
-                    backgroundColor: isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)',
-                    transition: 'background-color 0.2s'
-                  }}
-                ></div>
-                <input
+                <div className={`absolute left-0 top-0 h-full w-1 transition-colors ${isDebouncing ? 'bg-green-500' : 'bg-primary'}`}></div>
+                <Input
                   type="date"
                   id="until"
                   value={internalDateRange.until}
                   onChange={(e) => handleDateChange('until', e.target.value)}
                   disabled={disabled}
-                  className="block w-full pl-3 py-2 pr-3 rounded-md focus:outline-none"
-                  style={{ 
-                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                    borderLeft: 'none',
-                    borderTop: `1px solid ${isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)'}`,
-                    borderRight: `1px solid ${isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)'}`,
-                    borderBottom: `1px solid ${isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)'}`,
-                    color: 'var(--foreground)',
-                    paddingLeft: '12px',
-                    opacity: disabled ? 0.6 : 1,
-                    cursor: disabled ? 'not-allowed' : 'pointer',
-                    transition: 'border-color 0.2s'
-                  }}
+                  className={`pl-3 ${isDebouncing ? 'border-green-500' : ''}`}
                   required
                   min={internalDateRange.since}
                 />
@@ -271,7 +209,7 @@ export default function DateRangePicker({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

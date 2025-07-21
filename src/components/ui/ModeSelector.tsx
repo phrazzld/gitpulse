@@ -1,4 +1,5 @@
-import { useId } from 'react';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 /**
  * Activity mode options for data display filtering
@@ -31,17 +32,17 @@ export interface ModeOption {
 export const DEFAULT_MODES: ModeOption[] = [
   { 
     id: 'my-activity', 
-    label: 'MY ACTIVITY', 
+    label: 'My Activity', 
     description: 'View your commits across all repositories'
   },
   { 
     id: 'my-work-activity', 
-    label: 'MY WORK ACTIVITY', 
+    label: 'My Work Activity', 
     description: 'View your commits within selected organizations'
   },
   { 
     id: 'team-activity', 
-    label: 'TEAM ACTIVITY', 
+    label: 'Team Activity', 
     description: 'View all team members\' activity within selected organizations'
   },
 ];
@@ -86,31 +87,31 @@ export interface ModeSelectorProps {
   
   /**
    * Primary color for accents (selected items, indicators)
-   * @default 'var(--neon-green, #00ff87)'
+   * @deprecated Use className instead
    */
   accentColor?: string;
   
   /**
    * Text color for descriptions
-   * @default 'var(--electric-blue, #3b8eea)'
+   * @deprecated Use className instead
    */
   secondaryColor?: string;
   
   /**
    * Main text color
-   * @default 'var(--foreground, #ffffff)'
+   * @deprecated Use className instead
    */
   textColor?: string;
   
   /**
    * Background color for the container
-   * @default 'rgba(27, 43, 52, 0.7)'
+   * @deprecated Use className instead
    */
   backgroundColor?: string;
   
   /**
    * Background color for selected items
-   * @default 'rgba(0, 255, 135, 0.1)'
+   * @deprecated Use className instead
    */
   selectedBackgroundColor?: string;
 }
@@ -120,9 +121,8 @@ export interface ModeSelectorProps {
  * activity modes (personal, work, team).
  * 
  * Accessibility features:
- * - Uses proper radiogroup and radio roles
- * - Supports keyboard navigation with tab, space, and enter
- * - Uses stable, unique IDs for ARIA attributes
+ * - Uses shadcn RadioGroup with built-in ARIA support
+ * - Supports keyboard navigation with arrow keys and tab
  * - Provides descriptive labels for all interactive elements
  * 
  * @example
@@ -140,143 +140,51 @@ export default function ModeSelector({
   modes = DEFAULT_MODES,
   ariaLabel = 'Activity Mode',
   className = '',
-  accentColor = 'var(--neon-green, #00ff87)',
-  secondaryColor = 'var(--electric-blue, #3b8eea)',
-  textColor = 'var(--foreground, #ffffff)',
-  backgroundColor = 'rgba(27, 43, 52, 0.7)',
-  selectedBackgroundColor = 'rgba(0, 255, 135, 0.1)',
+  accentColor,
+  secondaryColor,
+  textColor,
+  backgroundColor,
+  selectedBackgroundColor,
 }: ModeSelectorProps) {
-  // Use stable IDs
-  const headerId = useId();
-  const groupId = useId();
-  
-  // Handle mode change
-  const handleModeChange = (mode: ActivityMode) => {
-    if (!disabled) {
-      onChange(mode);
-    }
-  };
-
-  // Handle keyboard navigation between radio options
-  const handleKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
-    if (disabled) return;
-    
-    // Get all selectable mode IDs
-    const modeIds = modes.map(m => m.id);
-    
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      const nextIndex = (currentIndex + 1) % modes.length;
-      onChange(modeIds[nextIndex]);
-      // Focus the next element
-      const nextElement = document.getElementById(`${groupId}-option-${nextIndex}`);
-      nextElement?.focus();
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-      e.preventDefault();
-      const prevIndex = (currentIndex - 1 + modes.length) % modes.length;
-      onChange(modeIds[prevIndex]);
-      // Focus the previous element
-      const prevElement = document.getElementById(`${groupId}-option-${prevIndex}`);
-      prevElement?.focus();
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onChange(modeIds[currentIndex]);
-    }
-  };
-
   return (
-    <div 
-      className={`rounded-lg border ${className}`} 
-      style={{ 
-        backgroundColor: backgroundColor,
-        backdropFilter: 'blur(5px)',
-        borderColor: accentColor,
-      }}
-      role="radiogroup"
-      aria-labelledby={headerId}
-      aria-disabled={disabled}
-    >
-      <div className="p-3 border-b" style={{ borderColor: accentColor }}>
-        <div className="flex items-center">
-          <div 
-            className="w-2 h-2 rounded-full mr-2" 
-            style={{ backgroundColor: accentColor }}
-            aria-hidden="true"
-          ></div>
-          <h3 
-            id={headerId}
-            className="text-sm uppercase" 
-            style={{ color: accentColor }}
-          >
-            {ariaLabel}
-          </h3>
-        </div>
+    <div className={`rounded-lg border bg-card ${className}`}>
+      <div className="p-3 border-b">
+        <h3 className="text-sm font-medium">
+          {ariaLabel}
+        </h3>
       </div>
 
       <div className="p-4">
-        <div className="space-y-3">
-          {modes.map((mode, index) => {
-            const isSelected = selectedMode === mode.id;
-            const optionId = `${groupId}-option-${index}`;
-            
-            return (
-              <div 
-                id={optionId}
-                key={mode.id}
-                className={`p-3 rounded-md transition-all duration-200 
-                  ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                  ${isSelected ? 'ring-2' : ''}
-                  focus:outline-none focus:ring-2 focus:ring-offset-1`}
-                style={{ 
-                  backgroundColor: isSelected ? selectedBackgroundColor : 'rgba(27, 43, 52, 0.5)',
-                  borderLeft: `3px solid ${isSelected ? accentColor : 'transparent'}`,
-                  // Use type assertion for CSS custom properties
-                  ...({"--tw-ring-color": accentColor} as React.CSSProperties),
-                  ...({"--tw-ring-offset-color": backgroundColor} as React.CSSProperties)
-                }}
-                onClick={() => handleModeChange(mode.id)}
-                role="radio"
-                aria-checked={isSelected}
-                tabIndex={disabled ? -1 : (isSelected ? 0 : -1)}
-                onKeyDown={(e) => handleKeyDown(e, index)}
-                data-testid={`mode-option-${mode.id}`}
-                aria-disabled={disabled}
+        <RadioGroup
+          value={selectedMode}
+          onValueChange={(value) => onChange(value as ActivityMode)}
+          disabled={disabled}
+          className="space-y-3"
+        >
+          {modes.map((mode) => (
+            <div 
+              key={mode.id}
+              className="flex items-start space-x-3 p-3 rounded-md hover:bg-accent/50 transition-colors"
+            >
+              <RadioGroupItem 
+                value={mode.id} 
+                id={mode.id}
+                className="mt-0.5"
+              />
+              <Label 
+                htmlFor={mode.id}
+                className="flex-1 cursor-pointer"
               >
-                <div className="flex items-center">
-                  <div 
-                    className="w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center"
-                    style={{ borderColor: accentColor }}
-                    aria-hidden="true"
-                  >
-                    {isSelected && (
-                      <div 
-                        className="w-2 h-2 rounded-full"
-                        style={{ backgroundColor: accentColor }}
-                        aria-hidden="true"
-                      />
-                    )}
-                  </div>
-                  <div>
-                    <div 
-                      className="text-sm font-bold" 
-                      style={{ color: textColor }}
-                      id={`${optionId}-label`}
-                    >
-                      {mode.label}
-                    </div>
-                    <div 
-                      className="text-xs mt-1" 
-                      style={{ color: secondaryColor }}
-                      id={`${optionId}-description`}
-                    >
-                      {mode.description}
-                    </div>
-                  </div>
+                <div className="font-medium">
+                  {mode.label}
                 </div>
-              </div>
-            );
-          })}
-        </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  {mode.description}
+                </div>
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
       </div>
     </div>
   );
