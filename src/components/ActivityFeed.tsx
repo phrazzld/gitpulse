@@ -374,7 +374,6 @@ export default function ActivityFeed({
                   onClick={loadMore}
                   loading={incrementalLoading}
                   hasMore={hasMore}
-                  className="mt-3"
                 />
               )}
             </>

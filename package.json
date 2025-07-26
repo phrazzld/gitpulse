@@ -12,6 +12,9 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:react": "jest --config jest.config.react.js",
+    "test:react:watch": "jest --config jest.config.react.js --watch",
+    "test:react:coverage": "jest --config jest.config.react.js --coverage",
     "prepare": "husky install",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"

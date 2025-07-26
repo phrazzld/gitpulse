@@ -84,36 +84,6 @@ export interface ModeSelectorProps {
    * CSS class to apply to the root element
    */
   className?: string;
-  
-  /**
-   * Primary color for accents (selected items, indicators)
-   * @deprecated Use className instead
-   */
-  accentColor?: string;
-  
-  /**
-   * Text color for descriptions
-   * @deprecated Use className instead
-   */
-  secondaryColor?: string;
-  
-  /**
-   * Main text color
-   * @deprecated Use className instead
-   */
-  textColor?: string;
-  
-  /**
-   * Background color for the container
-   * @deprecated Use className instead
-   */
-  backgroundColor?: string;
-  
-  /**
-   * Background color for selected items
-   * @deprecated Use className instead
-   */
-  selectedBackgroundColor?: string;
 }
 
 /**
@@ -140,11 +110,6 @@ export default function ModeSelector({
   modes = DEFAULT_MODES,
   ariaLabel = 'Activity Mode',
   className = '',
-  accentColor,
-  secondaryColor,
-  textColor,
-  backgroundColor,
-  selectedBackgroundColor,
 }: ModeSelectorProps) {
   return (
     <div className={`rounded-lg border bg-card ${className}`}>

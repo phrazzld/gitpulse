@@ -7,22 +7,16 @@ export interface SummaryDetailsProps {
    * AI summary data to display
    */
   aiSummary: AISummary;
-  
-  /**
-   * Additional CSS class to apply to the container
-   */
-  className?: string;
 }
 
 /**
  * Displays detailed AI-generated analysis of GitHub activity
  */
 const SummaryDetails: React.FC<SummaryDetailsProps> = ({ 
-  aiSummary,
-  className = ''
+  aiSummary
 }) => {
   return (
-    <div className={className}>
+    <div>
       {/* Key Themes */}
       <div className="mb-8">
         <div className="flex items-center mb-3">

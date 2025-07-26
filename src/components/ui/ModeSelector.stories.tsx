@@ -42,26 +42,6 @@ const meta: Meta<typeof ModeSelector> = {
     className: { 
       description: 'Additional CSS class names',
       control: 'text' 
-    },
-    accentColor: {
-      description: 'Primary color for accents (selected items, indicators)',
-      control: 'color'
-    },
-    secondaryColor: {
-      description: 'Text color for descriptions',
-      control: 'color'
-    },
-    textColor: {
-      description: 'Main text color',
-      control: 'color'
-    },
-    backgroundColor: {
-      description: 'Background color for the container',
-      control: 'color'
-    },
-    selectedBackgroundColor: {
-      description: 'Background color for selected items',
-      control: 'color'
     }
   },
   parameters: {
@@ -191,30 +171,6 @@ export const CustomModes: Story = {
     docs: {
       description: {
         story: 'This example shows how to provide custom modes with different labels and descriptions while maintaining the required ActivityMode types.'
-      }
-    }
-  }
-};
-
-/**
- * ModeSelector with custom theme colors.
- * These colors have been selected to maintain proper contrast ratios
- * for accessibility.
- */
-export const CustomTheme: Story = {
-  args: {
-    selectedMode: 'my-activity',
-    disabled: false,
-    accentColor: '#FF5733',
-    secondaryColor: '#C70039',
-    textColor: '#ffffff',
-    backgroundColor: 'rgba(30, 30, 30, 0.8)',
-    selectedBackgroundColor: 'rgba(255, 87, 51, 0.2)',
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'This example demonstrates how to customize the component\'s appearance with different colors while maintaining accessibility standards.'
       }
     }
   }
