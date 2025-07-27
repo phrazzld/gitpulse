@@ -89,7 +89,7 @@ export default function AccountSelector({
         onClick={() => setShowDropdown(!showDropdown)}
         disabled={isLoading || accounts.length === 0}
         variant="outline"
-        className={`w-full justify-between text-sm ${selectedAccounts.length === 0 ? 'text-blue-500 border-blue-500' : 'text-green-500 border-green-500'}`}
+        className="w-full justify-between text-sm"
       >
         <div className="flex items-center space-x-2 overflow-hidden">
           {selectedAccounts.length === 0 ? (
@@ -142,7 +142,7 @@ export default function AccountSelector({
                 }}
                 variant="outline"
                 size="sm"
-                className="text-green-500 border-green-500"
+                className="text-foreground"
               >
                 SELECT ALL
               </Button>
@@ -153,7 +153,7 @@ export default function AccountSelector({
                 }}
                 variant="outline"
                 size="sm"
-                className="text-blue-500 border-blue-500"
+                className="text-muted-foreground"
               >
                 CLEAR ALL
               </Button>
@@ -169,7 +169,7 @@ export default function AccountSelector({
                     key={account.id}
                     onClick={() => toggleAccountSelection(account.login)}
                     className={`flex items-center px-3 py-2 hover:opacity-80 cursor-pointer text-foreground transition-colors ${
-                      selectedAccounts.includes(account.login) ? 'bg-green-500/10' : 'bg-transparent'
+                      selectedAccounts.includes(account.login) ? 'bg-accent/50' : 'bg-transparent'
                     }`}
                   >
                     <div className="flex-shrink-0 mr-3">
@@ -194,7 +194,7 @@ export default function AccountSelector({
                       <div className="text-sm font-medium flex items-center">
                         {account.login}
                         {currentUsername && account.login === currentUsername && showCurrentLabel && (
-                          <Badge variant="outline" className="ml-2 text-xs text-green-500 border-green-500">
+                          <Badge variant="secondary" className="ml-2 text-xs">
                             YOU
                           </Badge>
                         )}
@@ -211,7 +211,7 @@ export default function AccountSelector({
                         checked={selectedAccounts.includes(account.login)}
                         onChange={() => {}} // Handled by the parent div click
                         onClick={(e) => e.stopPropagation()} // Prevent double-triggering
-                        className="form-checkbox h-4 w-4 accent-green-500"
+                        className="form-checkbox h-4 w-4 accent-primary"
                       />
                     </div>
                   </div>

@@ -136,14 +136,14 @@ export default function OrganizationPicker({
 
   return (
     <Card 
-      className={`bg-slate-900/70 backdrop-blur-sm transition-colors duration-200 ${isDebouncing ? 'border-green-500' : 'border-blue-500'}`}
+      className="transition-colors duration-200"
       ref={dropdownRef}
     >
-      <div className={`p-3 border-b transition-colors duration-200 ${isDebouncing ? 'border-green-500' : 'border-blue-500'}`}>
+      <div className="p-3 border-b transition-colors duration-200 border-muted">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className={`w-2 h-2 rounded-full mr-2 transition-colors duration-200 ${isDebouncing ? 'bg-green-500' : 'bg-blue-500'}`}></div>
-            <h3 className={`text-sm uppercase transition-colors duration-200 ${isDebouncing ? 'text-green-500' : 'text-blue-500'}`}>
+            <div className={`w-2 h-2 rounded-full mr-2 transition-colors duration-200 ${isDebouncing ? 'bg-primary' : 'bg-muted-foreground'}`}></div>
+            <h3 className="text-sm uppercase transition-colors duration-200 text-foreground">
               {multiSelect ? 'ORGANIZATIONS' : 'ORGANIZATION'}
             </h3>
           </div>
@@ -151,15 +151,15 @@ export default function OrganizationPicker({
           {/* Debounce indicator */}
           {isDebouncing && (
             <div className="flex items-center">
-              <Loader2 className="h-3 w-3 animate-spin mr-1 text-green-500" />
-              <span className="text-xs text-green-500">UPDATING</span>
+              <Loader2 className="h-3 w-3 animate-spin mr-1 text-primary" />
+              <span className="text-xs text-primary">UPDATING</span>
             </div>
           )}
         </div>
       </div>
       
       <div className="p-4">
-        <div className="text-xs mb-2 text-blue-500">
+        <div className="text-xs mb-2 text-muted-foreground">
           {multiSelect ? 'SELECT ORGANIZATIONS' : 'SELECT ORGANIZATION'}
         </div>
         
@@ -169,7 +169,7 @@ export default function OrganizationPicker({
           onClick={handleDropdownToggle}
           disabled={disabled || isProcessing || organizations.length === 0}
           variant="outline"
-          className={`w-full justify-between text-sm ${internalSelection.length === 0 ? 'text-blue-500 border-blue-500' : 'text-green-500 border-green-500'}`}
+          className="w-full justify-between text-sm"
         >
           <div className="flex items-center space-x-2 overflow-hidden">
             {internalSelection.length === 0 ? (
@@ -234,7 +234,7 @@ export default function OrganizationPicker({
                   disabled={isDebouncing}
                   variant="outline"
                   size="sm"
-                  className="text-green-500 border-green-500"
+                  className="text-foreground"
                 >
                   SELECT ALL
                 </Button>
@@ -243,7 +243,7 @@ export default function OrganizationPicker({
                   disabled={isDebouncing}
                   variant="outline"
                   size="sm"
-                  className="text-blue-500 border-blue-500"
+                  className="text-muted-foreground"
                 >
                   CLEAR ALL
                 </Button>
@@ -259,7 +259,7 @@ export default function OrganizationPicker({
                       key={org.id}
                       onClick={() => toggleSelection(org.login)}
                       className={`flex items-center px-3 py-2 hover:opacity-80 cursor-pointer text-foreground transition-colors ${
-                        internalSelection.includes(org.login) ? 'bg-green-500/10' : 'bg-transparent'
+                        internalSelection.includes(org.login) ? 'bg-accent/50' : 'bg-transparent'
                       } ${isDebouncing ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex-shrink-0 mr-3">
@@ -284,7 +284,7 @@ export default function OrganizationPicker({
                         <div className="text-sm font-medium flex items-center">
                           {org.login}
                           {currentUsername && org.login === currentUsername && (
-                            <Badge variant="outline" className="ml-2 text-xs text-green-500 border-green-500">
+                            <Badge variant="secondary" className="ml-2 text-xs">
                               YOU
                             </Badge>
                           )}
@@ -301,7 +301,7 @@ export default function OrganizationPicker({
                           checked={internalSelection.includes(org.login)}
                           onChange={() => {}} // Handled by the parent div click
                           onClick={(e) => e.stopPropagation()} // Prevent double-triggering
-                          className="h-4 w-4 accent-green-500"
+                          className="h-4 w-4 accent-primary"
                           disabled={isDebouncing}
                         />
                       </div>

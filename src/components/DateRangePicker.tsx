@@ -129,8 +129,8 @@ export default function DateRangePicker({
           {/* Loading indicator for debounce */}
           {isDebouncing && (
             <div className="flex items-center">
-              <span className="inline-block w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin mr-1"></span>
-              <span className="text-xs text-green-500">UPDATING</span>
+              <span className="inline-block w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin mr-1"></span>
+              <span className="text-xs text-primary">UPDATING</span>
             </div>
           )}
         </div>
@@ -175,14 +175,14 @@ export default function DateRangePicker({
                 START DATE
               </Label>
               <div className="relative">
-                <div className={`absolute left-0 top-0 h-full w-1 transition-colors ${isDebouncing ? 'bg-green-500' : 'bg-primary'}`}></div>
+                <div className={`absolute left-0 top-0 h-full w-1 transition-colors bg-primary`}></div>
                 <Input
                   type="date"
                   id="since"
                   value={internalDateRange.since}
                   onChange={(e) => handleDateChange('since', e.target.value)}
                   disabled={disabled}
-                  className={`pl-3 ${isDebouncing ? 'border-green-500' : ''}`}
+                  className={`pl-3 ${isDebouncing ? 'border-primary' : ''}`}
                   required
                   max={internalDateRange.until}
                 />
@@ -194,14 +194,14 @@ export default function DateRangePicker({
                 END DATE
               </Label>
               <div className="relative">
-                <div className={`absolute left-0 top-0 h-full w-1 transition-colors ${isDebouncing ? 'bg-green-500' : 'bg-primary'}`}></div>
+                <div className={`absolute left-0 top-0 h-full w-1 transition-colors bg-primary`}></div>
                 <Input
                   type="date"
                   id="until"
                   value={internalDateRange.until}
                   onChange={(e) => handleDateChange('until', e.target.value)}
                   disabled={disabled}
-                  className={`pl-3 ${isDebouncing ? 'border-green-500' : ''}`}
+                  className={`pl-3 ${isDebouncing ? 'border-primary' : ''}`}
                   required
                   min={internalDateRange.since}
                 />

@@ -62,8 +62,8 @@ const SummaryView: React.FC<SummaryViewProps> = ({
               COMMIT ANALYSIS: {summary.user?.toUpperCase()}
             </h2>
           </div>
-          <Badge variant="outline" className="text-xs gap-2 border-green-500 text-green-500">
-            <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+          <Badge variant="outline" className="text-xs gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-foreground animate-pulse"></span>
             <span>ANALYSIS COMPLETE</span>
           </Badge>
         </div>

@@ -41,7 +41,7 @@ export default function GroupedResultsView({
   if (groupBy === 'chronological') {
     return (
       <div className="text-center p-4 text-foreground">
-        <Badge variant="outline" className="text-blue-500 border-blue-500 bg-black/30">
+        <Badge variant="secondary" className="text-sm">
           Using chronological view - see overall summary below
         </Badge>
       </div>
@@ -50,7 +50,7 @@ export default function GroupedResultsView({
 
   return (
     <div className="space-y-6">
-      <h3 className="text-sm uppercase mb-3 text-green-500">
+      <h3 className="text-sm uppercase mb-3 text-muted-foreground font-medium">
         GROUPED ANALYSIS RESULTS
       </h3>
       
@@ -58,10 +58,10 @@ export default function GroupedResultsView({
         {groupedResults.map((group) => (
           <Card
             key={group.groupKey}
-            className="overflow-hidden bg-slate-900/70 backdrop-blur-sm border-blue-500 shadow-lg shadow-blue-500/10"
+            className="overflow-hidden"
           >
             {/* Group Header */}
-            <CardHeader className={`flex flex-row items-center justify-between p-4 ${expanded[group.groupKey] ? 'border-b border-blue-500' : ''}`}>
+            <CardHeader className={`flex flex-row items-center justify-between p-4 ${expanded[group.groupKey] ? 'border-b' : ''}`}>
               <div className="flex items-center">
                 {group.groupAvatar && (
                   <Image 
@@ -73,17 +73,17 @@ export default function GroupedResultsView({
                   />
                 )}
                 <div>
-                  <h4 className="font-bold text-green-500">
+                  <h4 className="font-bold">
                     {group.groupName}
                   </h4>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    <Badge variant="outline" className="text-xs text-green-500 border-green-500 bg-green-500/10">
+                    <Badge variant="secondary" className="text-xs">
                       {group.commitCount} commits
                     </Badge>
-                    <Badge variant="outline" className="text-xs text-blue-500 border-blue-500 bg-blue-500/10">
+                    <Badge variant="secondary" className="text-xs">
                       {group.repositories.length} repositories
                     </Badge>
-                    <Badge variant="outline" className="text-xs text-yellow-500 border-yellow-500 bg-yellow-500/10">
+                    <Badge variant="secondary" className="text-xs">
                       {group.dates.length} days active
                     </Badge>
                   </div>
@@ -105,7 +105,7 @@ export default function GroupedResultsView({
               <CardContent className="p-4">
                 {/* Repository List */}
                 <div className="mb-6">
-                  <h5 className="text-xs uppercase mb-2 text-blue-500">
+                  <h5 className="text-xs uppercase mb-2 text-muted-foreground font-medium">
                     REPOSITORIES ({group.repositories.length})
                   </h5>
                   <div className="flex flex-wrap gap-2">
@@ -113,7 +113,7 @@ export default function GroupedResultsView({
                       <Badge
                         key={repo}
                         variant="outline"
-                        className="text-xs text-foreground border-blue-500 bg-black/30"
+                        className="text-xs"
                       >
                         {repo}
                       </Badge>
@@ -124,22 +124,22 @@ export default function GroupedResultsView({
                 {/* AI Summary if available */}
                 {group.aiSummary ? (
                   <>
-                    <h5 className="text-xs uppercase mb-2 text-blue-500">
+                    <h5 className="text-xs uppercase mb-2 text-muted-foreground font-medium">
                       AI ANALYSIS
                     </h5>
                     
                     {/* Key Themes */}
                     {group.aiSummary.keyThemes.length > 0 && (
                       <div className="mb-4">
-                        <div className="text-xs font-bold mb-1 text-green-500">
+                        <div className="text-xs font-bold mb-1 text-muted-foreground">
                           KEY THEMES
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {group.aiSummary.keyThemes.map((theme: string, index: number) => (
                             <Badge
                               key={index}
-                              variant="outline"
-                              className="text-xs text-green-500 border-green-500 bg-green-500/10"
+                              variant="secondary"
+                              className="text-xs"
                             >
                               {theme}
                             </Badge>
@@ -151,7 +151,7 @@ export default function GroupedResultsView({
                     {/* Technical Areas */}
                     {group.aiSummary.technicalAreas.length > 0 && (
                       <div className="mb-4">
-                        <div className="text-xs font-bold mb-1 text-green-500">
+                        <div className="text-xs font-bold mb-1 text-muted-foreground">
                           TECHNICAL FOCUS
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -159,10 +159,10 @@ export default function GroupedResultsView({
                             <Badge
                               key={index}
                               variant="outline"
-                              className="text-xs text-blue-500 border-blue-500 bg-blue-500/10 flex items-center gap-1"
+                              className="text-xs flex items-center gap-1"
                             >
                               {area.name}
-                              <span className="ml-1 px-1 rounded bg-black/30">
+                              <span className="ml-1 px-1 rounded bg-muted">
                                 {area.count}
                               </span>
                             </Badge>
@@ -173,7 +173,7 @@ export default function GroupedResultsView({
                     
                     {/* Summary */}
                     <div className="mb-4">
-                      <div className="text-xs font-bold mb-1 text-green-500">
+                      <div className="text-xs font-bold mb-1 text-muted-foreground">
                         SUMMARY
                       </div>
                       <div className="text-sm text-foreground">

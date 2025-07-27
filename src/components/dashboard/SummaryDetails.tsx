@@ -20,8 +20,8 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Key Themes */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2 bg-blue-500"></div>
-          <h3 className="text-sm uppercase text-blue-500">
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             IDENTIFIED PATTERNS
           </h3>
         </div>
@@ -30,7 +30,7 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
             <Badge
               key={index}
               variant="outline"
-              className="text-green-500 border-green-500 bg-green-500/10"
+              className="text-foreground border-muted bg-muted/10"
             >
               {theme}
             </Badge>
@@ -41,8 +41,8 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Technical Areas */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2 bg-blue-500"></div>
-          <h3 className="text-sm uppercase text-blue-500">
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             TECHNICAL FOCUS AREAS
           </h3>
         </div>
@@ -50,10 +50,10 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
           {aiSummary.technicalAreas.map((area, index) => (
             <div
               key={index}
-              className="flex justify-between items-center p-3 rounded-md bg-black/30 border border-blue-500"
+              className="flex justify-between items-center p-3 rounded-md bg-black/30 border border-muted"
             >
               <span className="text-foreground">{area.name}</span>
-              <Badge variant="secondary" className="text-xs text-blue-500 bg-blue-500/20">
+              <Badge variant="secondary" className="text-xs">
                 {area.count}
               </Badge>
             </div>
@@ -64,16 +64,16 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Accomplishments */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2 bg-blue-500"></div>
-          <h3 className="text-sm uppercase text-blue-500">
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             KEY ACHIEVEMENTS
           </h3>
         </div>
-        <div className="border rounded-md p-4 bg-black/20 border-green-500">
+        <div className="border rounded-md p-4 bg-black/20 border-muted">
           <ul className="space-y-3 text-foreground">
             {aiSummary.accomplishments.map((accomplishment, index) => (
               <li key={index} className="flex items-start">
-                <span className="inline-block w-5 flex-shrink-0 mr-2 text-green-500">→</span>
+                <span className="inline-block w-5 flex-shrink-0 mr-2 text-foreground">→</span>
                 <span>{accomplishment}</span>
               </li>
             ))}
@@ -84,19 +84,19 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Commit Types */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2 bg-blue-500"></div>
-          <h3 className="text-sm uppercase text-blue-500">
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             COMMIT CLASSIFICATION
           </h3>
         </div>
         <div className="space-y-4">
           {aiSummary.commitsByType.map((type, index) => (
-            <div key={index} className="border-l-2 pl-4 py-1 border-green-500">
+            <div key={index} className="border-l-2 pl-4 py-1 border-muted">
               <div className="flex justify-between items-center">
-                <h4 className="font-medium text-green-500">
+                <h4 className="font-medium text-foreground">
                   {type.type}
                 </h4>
-                <Badge variant="outline" className="text-xs text-green-500 border-green-500 bg-green-500/10">
+                <Badge variant="outline" className="text-xs">
                   {type.count}
                 </Badge>
               </div>
@@ -111,19 +111,19 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Timeline */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2 bg-blue-500"></div>
-          <h3 className="text-sm uppercase text-blue-500">
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             TEMPORAL ANALYSIS
           </h3>
         </div>
         <div className="space-y-4">
           {aiSummary.timelineHighlights.map((highlight, index) => (
-            <div key={index} className="flex border-b pb-3 border-blue-500/20">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3 bg-blue-500/10 border border-blue-500 text-blue-500">
+            <div key={index} className="flex border-b pb-3 border-muted/20">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3 bg-primary/10 border border-primary text-primary">
                 {index + 1}
               </div>
               <div>
-                <div className="text-xs font-mono mb-1 text-blue-500">
+                <div className="text-xs font-mono mb-1 text-primary">
                   {new Date(highlight.date).toLocaleDateString()}
                 </div>
                 <div className="text-foreground">
@@ -138,13 +138,13 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Overall Summary */}
       <div>
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2 bg-blue-500"></div>
-          <h3 className="text-sm uppercase text-blue-500">
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             COMPREHENSIVE ANALYSIS
           </h3>
         </div>
-        <div className="p-4 rounded-md border bg-black/30 border-green-500 text-foreground">
-          <div className="text-xs mb-2 font-mono text-green-500">
+        <div className="p-4 rounded-md border bg-black/30 border-muted text-foreground">
+          <div className="text-xs mb-2 font-mono text-foreground">
             $ AI_ANALYSIS --detailed-output
           </div>
           {aiSummary.overallSummary}

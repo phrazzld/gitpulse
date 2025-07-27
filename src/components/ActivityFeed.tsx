@@ -302,10 +302,10 @@ export default function ActivityFeed({
       {/* Incremental loading indicator at the top */}
       {incrementalLoading && commits.length > 0 && (
         <div className="relative w-full">
-          <div className="absolute top-0 left-0 right-0 animate-incremental-loading bg-green-500 z-10"></div>
+          <div className="absolute top-0 left-0 right-0 animate-incremental-loading bg-primary z-10"></div>
           <div className="flex justify-center p-2">
-            <div className="text-xs flex items-center text-green-500">
-              <span className="inline-block w-3 h-3 mr-2 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></span>
+            <div className="text-xs flex items-center text-foreground">
+              <span className="inline-block w-3 h-3 mr-2 border-2 border-foreground border-t-transparent rounded-full animate-spin"></span>
               Loading more activity data...
             </div>
           </div>
@@ -357,8 +357,8 @@ export default function ActivityFeed({
                 >
                   <div className="h-16 flex items-center justify-center mt-2">
                     {incrementalLoading && (
-                      <div className="text-xs flex items-center text-green-500">
-                        <div className="w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin mr-2"></div>
+                      <div className="text-xs flex items-center text-foreground">
+                        <div className="w-3 h-3 border-2 border-foreground border-t-transparent rounded-full animate-spin mr-2"></div>
                         <div>
                           Loading
                           <span className="inline-block animate-pulse">.</span>

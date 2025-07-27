@@ -167,24 +167,24 @@ export default function FilterPanel({
   };
 
   return (
-    <Card className="p-3 mb-6 bg-slate-900/70 backdrop-blur-sm border-blue-500 shadow-lg shadow-blue-500/15">
+    <Card className="p-3 mb-6">
       {/* Header with toggle */}
       <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpanded(!expanded)}>
         <div className="flex items-center">
-          <div className="w-2 h-2 rounded-full mr-2 bg-blue-500"></div>
-          <h3 className="text-sm uppercase text-blue-500">
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-foreground">
             ANALYSIS FILTERS
           </h3>
         </div>
         <div className="flex items-center">
           {/* Show indicators for active filters */}
           {(selectedContributors.length > 0 || selectOnlyMe || selectedOrganizations.length > 0 || selectedRepositories.length > 0 || groupBy !== 'chronological') && (
-            <Badge variant="outline" className="text-xs mr-2 text-green-500 border-green-500">
+            <Badge variant="secondary" className="text-xs mr-2">
               FILTERS ACTIVE
             </Badge>
           )}
           
-          <ChevronDown className={`h-4 w-4 transition-transform duration-200 text-blue-500 ${expanded ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`h-4 w-4 transition-transform duration-200 text-foreground ${expanded ? 'rotate-180' : ''}`} />
         </div>
       </div>
       
@@ -193,7 +193,7 @@ export default function FilterPanel({
         <div className="mt-4 space-y-6">
           {/* Contributors filter */}
           <div>
-            <h4 className="text-xs mb-2 font-bold text-blue-500">CONTRIBUTOR FILTER</h4>
+            <h4 className="text-xs mb-2 font-bold text-foreground">CONTRIBUTOR FILTER</h4>
             <div className="space-y-2">
               {/* "Only My Commits" checkbox */}
               <div className="flex items-center">
@@ -203,7 +203,7 @@ export default function FilterPanel({
                   checked={selectOnlyMe}
                   onChange={(e) => handleOnlyMeChange(e.target.checked)}
                   disabled={isLoading}
-                  className="mr-2 accent-green-500"
+                  className="mr-2 accent-primary"
                 />
                 <label 
                   htmlFor="only-me" 
@@ -216,13 +216,13 @@ export default function FilterPanel({
               {/* Contributor selection (hidden when "Only Me" is selected) */}
               {!selectOnlyMe && (
                 <div className="pl-5 pt-2">
-                  <div className="text-xs mb-2 text-blue-500">
+                  <div className="text-xs mb-2 text-muted-foreground">
                     SELECT SPECIFIC CONTRIBUTORS:
                   </div>
                   
                   {loadingContributors ? (
                     <div className="flex items-center text-xs text-foreground">
-                      <Loader2 className="h-3 w-3 animate-spin mr-2 text-green-500" />
+                      <Loader2 className="h-3 w-3 animate-spin mr-2 text-primary" />
                       <span>Loading contributors...</span>
                     </div>
                   ) : contributors.length > 0 ? (
@@ -235,7 +235,7 @@ export default function FilterPanel({
                             checked={selectedContributors.includes(contributor.username)}
                             onChange={(e) => handleContributorChange(contributor.username, e.target.checked)}
                             disabled={isLoading}
-                            className="mr-2 accent-green-500"
+                            className="mr-2 accent-primary"
                           />
                           <label 
                             htmlFor={`contributor-${contributor.username}`} 
@@ -272,7 +272,7 @@ export default function FilterPanel({
           
           {/* Organizations filter */}
           <div>
-            <h4 className="text-xs mb-2 font-bold text-blue-500">ACCOUNT/ORGANIZATION FILTER</h4>
+            <h4 className="text-xs mb-2 font-bold text-foreground">ACCOUNT/ORGANIZATION FILTER</h4>
             <div className="space-y-2">
               {installations.length > 0 ? (
                 <>
@@ -308,7 +308,7 @@ export default function FilterPanel({
           
           {/* Group By options */}
           <div>
-            <h4 className="text-xs mb-2 font-bold text-blue-500">GROUP RESULTS BY</h4>
+            <h4 className="text-xs mb-2 font-bold text-foreground">GROUP RESULTS BY</h4>
             <div className="space-y-2">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {[
@@ -326,7 +326,7 @@ export default function FilterPanel({
                       checked={groupBy === option.value}
                       onChange={() => setGroupBy(option.value as any)}
                       disabled={isLoading}
-                      className="mr-2 accent-green-500"
+                      className="mr-2 accent-primary"
                     />
                     <label 
                       htmlFor={`group-${option.value}`} 
@@ -347,7 +347,7 @@ export default function FilterPanel({
                     checked={generateGroupSummaries}
                     onChange={(e) => setGenerateGroupSummaries(e.target.checked)}
                     disabled={isLoading}
-                    className="mr-2 accent-green-500"
+                    className="mr-2 accent-primary"
                   />
                   <label 
                     htmlFor="generate-group-summaries" 

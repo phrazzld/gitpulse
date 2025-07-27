@@ -155,15 +155,15 @@ export default function OperationsPanel({
         {authMethod && (
           <div className={`p-3 rounded-md border ${
             authMethod === 'github_app' 
-              ? 'border-green-500/50 bg-green-500/10' 
-              : 'border-blue-500/50 bg-blue-500/10'
+              ? 'border-muted/50 bg-muted/10' 
+              : 'border-muted/50 bg-muted/10'
           }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Shield className={`h-5 w-5 mr-2 ${
-                  authMethod === 'github_app' ? 'text-green-500' : 'text-blue-500'
+                  authMethod === 'github_app' ? 'text-foreground' : 'text-foreground'
                 }`} />
-                <div className={authMethod === 'github_app' ? 'text-green-500' : 'text-blue-500'}>
+                <div className={authMethod === 'github_app' ? 'text-foreground' : 'text-foreground'}>
                   {authMethod === 'github_app' 
                     ? 'GitHub App Integration Active' 
                     : 'Using OAuth Authentication'}

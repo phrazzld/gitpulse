@@ -75,7 +75,7 @@ export default function RepositorySection({
     <div className="mt-6">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center">
-          <label className="text-sm text-blue-500">
+          <label className="text-sm text-muted-foreground font-medium">
             TARGET REPOSITORIES
           </label>
           <Button
@@ -89,23 +89,22 @@ export default function RepositorySection({
             {showRepoList ? 'HIDE' : 'SHOW'} LIST
           </Button>
         </div>
-        <Badge variant="outline" className="text-xs text-green-500 border-green-500">
+        <Badge variant="secondary" className="text-xs">
           DETECTED: {repositories.length}
         </Badge>
       </div>
       
-      {/* Repository info with cyber styling */}
-      <Card className="p-3 bg-black/30 border-blue-500 shadow-inner shadow-blue-500/10">
+      <Card className="p-3">
         {loading && repositories.length === 0 ? (
           <div className="flex items-center justify-center p-3 text-foreground">
-            <Loader2 className="h-4 w-4 animate-spin mr-2 text-green-500" />
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
             <span>SCANNING REPOSITORIES...</span>
           </div>
         ) : (
           <div>
-            <div className="p-3 mb-3 border-b text-foreground border-blue-500/20">
+            <div className="p-3 mb-3 border-b text-foreground">
               <div className="flex items-center justify-center mb-2">
-                <span className="inline-block w-3 h-3 rounded-full mr-2 bg-green-500"></span>
+                <Loader2 className="h-3 w-3 mr-2" />
                 <span>ANALYZING ALL ACCESSIBLE REPOSITORIES</span>
               </div>
               
@@ -113,18 +112,18 @@ export default function RepositorySection({
               {(activeFilters.contributors.length > 0 || 
                 activeFilters.organizations.length > 0 || 
                 activeFilters.repositories.length > 0) && (
-                <div className="mt-2 p-2 border rounded border-green-500/20 bg-black/20">
-                  <div className="text-xs text-green-500">
+                <div className="mt-2 p-2 border rounded">
+                  <div className="text-xs text-muted-foreground">
                     ACTIVE FILTERS
                   </div>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {activeFilters.contributors.length > 0 && (
-                      <Badge variant="outline" className="text-xs text-foreground bg-green-500/10 border-green-500">
+                      <Badge variant="secondary" className="text-xs">
                         Contributors: {activeFilters.contributors.includes('me') ? 'Only Me' : activeFilters.contributors.join(', ')}
                       </Badge>
                     )}
                     {activeFilters.organizations.length > 0 && (
-                      <Badge variant="outline" className="text-xs text-foreground bg-blue-500/10 border-blue-500">
+                      <Badge variant="secondary" className="text-xs">
                         Orgs: {activeFilters.organizations.join(', ')}
                       </Badge>
                     )}
@@ -135,16 +134,16 @@ export default function RepositorySection({
               {/* Repository stats summary */}
               {repositories.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mt-2 text-xs">
-                  <div className="border rounded px-2 py-1 flex flex-col items-center justify-center border-blue-500/30">
-                    <div className="font-bold text-blue-500">REPOS</div>
+                  <div className="border rounded px-2 py-1 flex flex-col items-center justify-center">
+                    <div className="font-bold text-muted-foreground">REPOS</div>
                     <div>{repositories.length}</div>
                   </div>
-                  <div className="border rounded px-2 py-1 flex flex-col items-center justify-center border-blue-500/30">
-                    <div className="font-bold text-blue-500">ORGS</div>
+                  <div className="border rounded px-2 py-1 flex flex-col items-center justify-center">
+                    <div className="font-bold text-muted-foreground">ORGS</div>
                     <div>{new Set(repositories.map(repo => repo.full_name.split('/')[0])).size}</div>
                   </div>
-                  <div className="border rounded px-2 py-1 flex flex-col items-center justify-center border-blue-500/30">
-                    <div className="font-bold text-blue-500">PRIVATE</div>
+                  <div className="border rounded px-2 py-1 flex flex-col items-center justify-center">
+                    <div className="font-bold text-muted-foreground">PRIVATE</div>
                     <div>{repositories.filter(repo => repo.private).length}</div>
                   </div>
                 </div>
@@ -157,7 +156,7 @@ export default function RepositorySection({
                 {repositories.length > 0 ? (
                   groupRepositoriesByOrg().map(([org, repos]) => (
                     <div key={org} className="mb-3">
-                      <div className="flex items-center px-2 py-1 mb-1 bg-blue-500/10 text-blue-500">
+                      <div className="flex items-center px-2 py-1 mb-1 bg-muted/50">
                         <span className="font-bold">{org}</span>
                         <Badge variant="secondary" className="ml-2 text-xs">
                           {repos.length}
@@ -168,7 +167,7 @@ export default function RepositorySection({
                         {repos.map((repo) => (
                           <li key={repo.id} className="text-xs py-1 flex items-center justify-between">
                             <div className="flex items-center">
-                              <span className={`inline-block w-2 h-2 mr-2 ${repo.private ? 'bg-red-500' : 'bg-green-500'}`}></span>
+                              <span className={`inline-block w-2 h-2 mr-2 rounded-full ${repo.private ? 'bg-destructive' : 'bg-muted-foreground'}`}></span>
                               <span>{repo.name}</span>
                             </div>
                             <div className="flex items-center">
@@ -178,7 +177,7 @@ export default function RepositorySection({
                                 </Badge>
                               )}
                               {repo.language && (
-                                <Badge variant="outline" className="ml-2 text-xs text-yellow-500 border-yellow-500">
+                                <Badge variant="outline" className="ml-2 text-xs">
                                   {repo.language}
                                 </Badge>
                               )}
@@ -189,7 +188,7 @@ export default function RepositorySection({
                     </div>
                   ))
                 ) : repositories.length === 0 && !loading ? (
-                  <div className="p-3 text-center text-red-500">
+                  <div className="p-3 text-center text-destructive">
                     NO REPOSITORIES DETECTED
                   </div>
                 ) : null}
