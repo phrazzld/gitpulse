@@ -146,14 +146,6 @@ export const createAuthOptions = (): NextAuthOptions => ({
     }
   },
   
-  // Properly handle the callback URL problems
-  pages: {
-    signIn: '/api/auth/signin',
-    signOut: '/api/auth/signout',
-    error: '/api/auth/error',
-    verifyRequest: '/api/auth/verify-request',
-  },
-  
   // Add debug mode for development
   debug: process.env.NODE_ENV !== 'production'
 });

@@ -29,6 +29,17 @@ export function useProtectedRoute(options: UseProtectedRouteOptions = {}) {
   useEffect(() => {
     if (status === 'loading') return;
     
+    // Redirect loop prevention
+    const currentPath = window.location.pathname;
+    const redirectCount = parseInt(new URLSearchParams(window.location.search).get('_redirects') || '0');
+    
+    // If we've redirected more than 3 times, stop redirecting
+    if (redirectCount > 3) {
+      console.error('Redirect loop detected, stopping redirects');
+      setIsLoading(false);
+      return;
+    }
+    
     // Add a small delay to prevent flash of content
     const timer = setTimeout(() => {
       if (
@@ -37,7 +48,10 @@ export function useProtectedRoute(options: UseProtectedRouteOptions = {}) {
         // If redirectIfFound is false, redirect unauthenticated users
         (!redirectIfFound && status === 'unauthenticated')
       ) {
-        router.replace(redirectTo);
+        // Add redirect count to prevent loops
+        const url = new URL(redirectTo, window.location.origin);
+        url.searchParams.set('_redirects', String(redirectCount + 1));
+        router.replace(url.pathname + url.search);
       } else {
         setIsLoading(false);
       }
