@@ -18,6 +18,7 @@
 ### Security Hardening
 - [ ] [HIGH] [SECURITY] Implement API rate limiting and DDoS protection | Effort: M | Risk: API abuse, denial of service | Automation: Rate limiting middleware with Redis
 - [ ] [HIGH] [SECURITY] Set up automated dependency scanning with Dependabot and Snyk | Effort: M | Risk: Known vulnerabilities in dependencies | Automation: GitHub workflows + npm audit
+- [ ] [HIGH] [SECURITY] Implement CSP headers for additional protection | Effort: S | Source: PR #114 security review | Risk: XSS attacks | Implementation: Next.js middleware
 
 ### Performance & Optimization
 - [ ] [HIGH] [PERF] Implement server-side Redis caching for GitHub API responses | Effort: M | Target: 80% cache hit rate, 10x faster repeated requests | Measurement: Cache metrics monitoring
@@ -28,6 +29,13 @@
 - [ ] [HIGH] [SIMPLIFY] Extract duplicate authentication logic from 6 API routes into middleware | Effort: S | Metrics: Remove ~180 lines duplicate code | Enforcement: Lint rule for auth patterns
 
 ## Medium Priority (MEDIUM)
+
+### UI/UX Enhancements (From PR #114 Review Feedback)
+- [ ] [MEDIUM] [UX] Add subtle animations using Tailwind built-in classes | Effort: S | Source: PR #114 reviews | Impact: Better user feedback and polish
+- [ ] [MEDIUM] [DX] Add JSDoc to shadcn component variants for better DX | Effort: S | Source: PR #114 Claude review | Impact: Improved developer experience
+- [ ] [MEDIUM] [MAINTAIN] Create Storybook stories for new shadcn components | Effort: M | Source: PR #114 reviews | Note: Conflicts with existing task to remove Storybook
+- [ ] [MEDIUM] [UX] Implement smoother theme transitions with CSS transitions | Effort: S | Source: PR #114 Claude review | Impact: Better perceived performance
+- [ ] [MEDIUM] [SECURITY] Add theme toggle system preference detection validation | Effort: S | Source: PR #114 security review | Risk: Minor - prevent invalid theme values
 
 ### Developer Experience
 - [ ] [MEDIUM] [DX] Add commitlint for conventional commits enforcement | Effort: S | Time saved: 1-2 hours/week | Quality: Automated changelog generation

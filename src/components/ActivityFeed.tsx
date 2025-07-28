@@ -302,7 +302,7 @@ export default function ActivityFeed({
       {/* Incremental loading indicator at the top */}
       {incrementalLoading && commits.length > 0 && (
         <div className="relative w-full">
-          <div className="absolute top-0 left-0 right-0 animate-incremental-loading bg-primary z-10"></div>
+          <div className="absolute top-0 left-0 right-0 bg-primary z-10"></div>
           <div className="flex justify-center p-2">
             <div className="text-xs flex items-center text-foreground">
               <span className="inline-block w-3 h-3 mr-2 border-2 border-foreground border-t-transparent rounded-full animate-spin"></span>

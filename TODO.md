@@ -1,5 +1,108 @@
 # TODO - Styling Cleanup Remaining Work
 
+## PR Review Feedback - Critical Issues
+
+### Critical/Merge-blocking - Animation Fixes
+
+- [x] **Fix broken animation classes**
+  - Files: src/components/ActivityFeed.tsx, src/components/dashboard/activityFeed/components/CommitItem.tsx
+  - Issue: Animation classes referenced but keyframes removed from globals.css
+  - Broken animations:
+    - `animate-incremental-loading` (ActivityFeed.tsx:305)
+    - `animate-fadeIn` (CommitItem.tsx:42)
+    - `animate-pulse-highlight` (CommitItem.tsx:52)
+    - `animate-border-pulse` (CommitItem.tsx:52)
+  - Solutions:
+    1. Option A: Remove animation classes entirely (simplest)
+    2. Option B: Replace with Tailwind built-in animations (animate-pulse, animate-spin)
+    3. Option C: Define keyframes in tailwind.config.js if animations are essential
+  - Priority: CRITICAL - Visual regression without fix
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-27 19:45
+  
+  ### Context Discovery
+  - animate-incremental-loading: Used for loading indicator progress bar
+  - animate-fadeIn: Used for new commit items appearing
+  - animate-pulse-highlight & animate-border-pulse: Used for highlighting new commits
+  - Decision: Remove all animation classes (Option A) to maintain minimal styling goal
+  
+  ### Execution Log
+  [19:46] Examining usage of broken animation classes in both files
+  [19:47] Confirmed all animations are decorative, not functional
+  [19:48] Choosing Option A: Remove animations to align with minimal styling goal
+  [19:49] Removed animate-incremental-loading from ActivityFeed.tsx:305
+  [19:50] Removed animate-fadeIn from CommitItem.tsx:42
+  [19:51] Removed animate-pulse-highlight and animate-border-pulse from CommitItem.tsx:52
+  [19:52] Running lint and typecheck to verify no issues
+  
+  ### Results
+  - ✓ All broken animation classes removed successfully
+  - ✓ ESLint passes with no warnings or errors
+  - ✓ TypeScript compilation successful
+  - ✓ Maintains minimal styling goal of the PR
+  - ✓ Visual regression fixed - no console errors expected
+
+### In-scope Improvements
+
+- [x] **Remove or justify tw-animate-css dependency**
+  - File: package.json:68
+  - Issue: Added dependency contradicts goal of removing custom animations
+  - Action: Either remove the dependency or document why it's needed
+  - Priority: HIGH - Adds unnecessary bundle weight
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-27 19:55
+  
+  ### Context Discovery
+  - Dependency located at package.json:68
+  - Searched entire codebase - no usage found
+  - Not referenced in any config files or imports
+  - Decision: Remove the dependency as it's unused and contradicts minimal styling goal
+  
+  ### Execution Log
+  [19:56] Checking package.json to confirm dependency location
+  [19:57] Searching codebase for any usage - none found
+  [19:58] Confirmed tw-animate-css is completely unused
+  [19:59] Proceeding with removal
+  [20:00] Removed dependency from package.json
+  [20:01] Running npm install to update package-lock.json
+  [20:02] Verified removal - 0 references in package-lock.json
+  [20:03] Running lint and typecheck to ensure no issues
+  
+  ### Results
+  - ✓ Dependency removed from package.json
+  - ✓ package-lock.json updated (1 package removed)
+  - ✓ ESLint passes with no warnings or errors
+  - ✓ TypeScript compilation successful
+  - ✓ Bundle size reduced by removing unused dependency
+
+- [x] **Update MIGRATION_NOTES.md with actual PR link**
+  - File: MIGRATION_NOTES.md:115
+  - Issue: Placeholder PR link needs updating
+  - Action: Replace placeholder with https://github.com/phrazzld/gitpulse/pull/114
+  - Priority: LOW - Documentation cleanup
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-27 20:05
+  
+  ### Context Discovery
+  - Located placeholder at MIGRATION_NOTES.md:115
+  - Current text: [Migration PR](#)
+  - Need to replace # with actual PR URL
+  
+  ### Execution Log
+  [20:06] Reading MIGRATION_NOTES.md to locate placeholder
+  [20:07] Found placeholder link at line 115
+  [20:08] Replacing placeholder with actual PR URL
+  [20:09] Verifying update was successful
+  
+  ### Results
+  - ✓ Updated MIGRATION_NOTES.md line 115
+  - ✓ Replaced placeholder (#) with https://github.com/phrazzld/gitpulse/pull/114
+  - ✓ Documentation now contains correct PR reference
+  - ✓ Simple one-line change completed successfully
+
 ## Active Tasks
 
 ### High Priority - Complete Styling Migration

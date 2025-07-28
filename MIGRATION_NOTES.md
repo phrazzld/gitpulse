@@ -112,4 +112,4 @@ However, rollback is not recommended as the new system provides better maintaina
 ## Resources
 - [shadcn/ui Documentation](https://ui.shadcn.com/)
 - [Tailwind CSS v4 Documentation](https://tailwindcss.com/)
-- [Migration PR](#) - Link to the pull request with all changes
+- [Migration PR](https://github.com/phrazzld/gitpulse/pull/114) - Link to the pull request with all changes
