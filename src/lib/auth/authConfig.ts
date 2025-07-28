@@ -32,6 +32,9 @@ function getCallbackUrl() {
 }
 
 export const createAuthOptions = (): NextAuthOptions => ({
+  // Explicitly set the secret for production environments
+  secret: process.env.NEXTAUTH_SECRET,
+  
   providers: [
     GitHubProvider({
       clientId: process.env.GITHUB_OAUTH_CLIENT_ID as string,
