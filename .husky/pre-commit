@@ -1,6 +1,18 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Run secret detection first (fail fast on secrets)
+echo "Checking for secrets in staged files..."
+# Get list of staged files
+staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -n "$staged_files" ]; then
+  echo "$staged_files" | xargs npx secretlint || {
+    echo "❌ Secret detection failed! Found potential secrets in your code."
+    echo "Please remove any secrets before committing."
+    exit 1
+  }
+fi
+
 # Run lint and typecheck
 npm run lint && npm run typecheck
 

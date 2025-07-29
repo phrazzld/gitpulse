@@ -2,6 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { ActivityMode } from './ui/ModeSelector';
 import { useDebounceCallback } from '@/hooks/useDebounce';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { ChevronDown, Plus, Loader2 } from 'lucide-react';
 
 export type Organization = {
   id: number;
@@ -130,27 +135,15 @@ export default function OrganizationPicker({
   const isProcessing = isLoading || isDebouncing;
 
   return (
-    <div 
-      className="rounded-lg border" 
-      style={{ 
-        backgroundColor: 'rgba(27, 43, 52, 0.7)',
-        backdropFilter: 'blur(5px)',
-        borderColor: isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)',
-        transition: 'border-color 0.2s'
-      }}
+    <Card 
+      className="transition-colors duration-200"
       ref={dropdownRef}
     >
-      <div className="p-3 border-b" style={{ borderColor: isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)', transition: 'border-color 0.2s' }}>
+      <div className="p-3 border-b transition-colors duration-200 border-muted">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div 
-              className="w-2 h-2 rounded-full mr-2" 
-              style={{ 
-                backgroundColor: isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)',
-                transition: 'background-color 0.2s'
-              }}
-            ></div>
-            <h3 className="text-sm uppercase" style={{ color: isDebouncing ? 'var(--neon-green)' : 'var(--electric-blue)', transition: 'color 0.2s' }}>
+            <div className={`w-2 h-2 rounded-full mr-2 transition-colors duration-200 ${isDebouncing ? 'bg-primary' : 'bg-muted-foreground'}`}></div>
+            <h3 className="text-sm uppercase transition-colors duration-200 text-foreground">
               {multiSelect ? 'ORGANIZATIONS' : 'ORGANIZATION'}
             </h3>
           </div>
@@ -158,41 +151,30 @@ export default function OrganizationPicker({
           {/* Debounce indicator */}
           {isDebouncing && (
             <div className="flex items-center">
-              <span 
-                className="inline-block w-3 h-3 border-2 border-t-transparent rounded-full animate-spin mr-1" 
-                style={{ borderColor: 'var(--neon-green)', borderTopColor: 'transparent' }}
-              ></span>
-              <span className="text-xs" style={{ color: 'var(--neon-green)' }}>UPDATING</span>
+              <Loader2 className="h-3 w-3 animate-spin mr-1 text-primary" />
+              <span className="text-xs text-primary">UPDATING</span>
             </div>
           )}
         </div>
       </div>
       
       <div className="p-4">
-        <div className="text-xs mb-2" style={{ color: 'var(--electric-blue)' }}>
+        <div className="text-xs mb-2 text-muted-foreground">
           {multiSelect ? 'SELECT ORGANIZATIONS' : 'SELECT ORGANIZATION'}
         </div>
         
         {/* Selection button */}
-        <button
+        <Button
           type="button"
           onClick={handleDropdownToggle}
           disabled={disabled || isProcessing || organizations.length === 0}
-          className="w-full px-3 py-2 text-sm rounded-md transition-all duration-200 flex items-center justify-between border"
-          style={{ 
-            backgroundColor: 'var(--dark-slate)',
-            color: internalSelection.length === 0 ? 'var(--electric-blue)' : 'var(--neon-green)',
-            borderColor: internalSelection.length === 0 ? 'var(--electric-blue)' : 'var(--neon-green)',
-            opacity: (disabled || isProcessing) ? 0.6 : 1,
-            cursor: (disabled || isProcessing) ? 'not-allowed' : 'pointer'
-          }}
+          variant="outline"
+          className="w-full justify-between text-sm"
         >
           <div className="flex items-center space-x-2 overflow-hidden">
             {internalSelection.length === 0 ? (
               <span className="flex items-center">
-                <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-                </svg>
+                <Plus className="h-3 w-3 mr-1" />
                 {multiSelect ? 'Select organizations' : 'Select organization'}
               </span>
             ) : (
@@ -212,86 +194,59 @@ export default function OrganizationPicker({
               </>
             )}
           </div>
-          <svg 
-            className={`h-4 w-4 ml-2 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+          <ChevronDown className={`h-4 w-4 ml-2 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+        </Button>
         
         {/* Loading indicator */}
         {isLoading && (
-          <div className="mt-2 flex items-center text-xs" style={{ color: 'var(--electric-blue)' }}>
-            <span className="inline-block w-3 h-3 border-2 border-t-transparent rounded-full animate-spin mr-2" 
-              style={{ borderColor: 'var(--electric-blue)', borderTopColor: 'transparent' }}></span>
+          <div className="mt-2 flex items-center text-xs text-muted-foreground">
+            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
             <span>Loading organizations...</span>
           </div>
         )}
         
         {/* No organizations message */}
         {!isLoading && organizations.length === 0 && (
-          <div className="mt-2 text-xs" style={{ color: 'var(--foreground)' }}>
+          <div className="mt-2 text-xs text-foreground">
             No organizations available. Install the GitHub App to access more accounts.
           </div>
         )}
         
         {/* Dropdown menu */}
         {showDropdown && organizations.length > 0 && (
-          <div 
-            className="mt-2 rounded-md shadow-lg max-h-96 overflow-hidden flex flex-col border"
-            style={{ backgroundColor: 'var(--dark-slate)', borderColor: 'var(--neon-green)' }}
-          >
+          <div className="mt-2 rounded-md shadow-lg max-h-96 overflow-hidden flex flex-col border border-muted bg-background">
             {/* Search input */}
-            <div className="p-2 border-b" style={{ borderColor: 'rgba(0, 255, 135, 0.2)' }}>
-              <input
+            <div className="p-2 border-b border-muted">
+              <Input
                 type="text"
                 placeholder="Search organizations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-2 py-1 text-sm rounded"
-                style={{ 
-                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                  color: 'var(--foreground)',
-                  border: '1px solid var(--electric-blue)'
-                }}
+                className="h-8 text-sm"
               />
             </div>
             
             {/* Multi-select controls */}
             {multiSelect && organizations.length > 1 && (
-              <div 
-                className="flex justify-between p-2 border-b text-xs" 
-                style={{ borderColor: 'rgba(0, 255, 135, 0.2)' }}
-              >
-                <button
+              <div className="flex justify-between p-2 border-b border-muted text-xs">
+                <Button
                   onClick={() => selectAll(true)}
                   disabled={isDebouncing}
-                  className="px-2 py-1 rounded"
-                  style={{ 
-                    backgroundColor: 'rgba(0, 255, 135, 0.1)',
-                    color: 'var(--neon-green)',
-                    opacity: isDebouncing ? 0.6 : 1,
-                    cursor: isDebouncing ? 'not-allowed' : 'pointer'
-                  }}
+                  variant="outline"
+                  size="sm"
+                  className="text-foreground"
                 >
                   SELECT ALL
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => selectAll(false)}
                   disabled={isDebouncing}
-                  className="px-2 py-1 rounded"
-                  style={{ 
-                    backgroundColor: 'rgba(59, 142, 234, 0.1)',
-                    color: 'var(--electric-blue)',
-                    opacity: isDebouncing ? 0.6 : 1,
-                    cursor: isDebouncing ? 'not-allowed' : 'pointer'
-                  }}
+                  variant="outline"
+                  size="sm"
+                  className="text-muted-foreground"
                 >
                   CLEAR ALL
-                </button>
+                </Button>
               </div>
             )}
             
@@ -303,15 +258,9 @@ export default function OrganizationPicker({
                     <div 
                       key={org.id}
                       onClick={() => toggleSelection(org.login)}
-                      className="flex items-center px-3 py-2 hover:opacity-80 cursor-pointer"
-                      style={{ 
-                        backgroundColor: internalSelection.includes(org.login) 
-                          ? 'rgba(0, 255, 135, 0.1)' 
-                          : 'transparent',
-                        color: 'var(--foreground)',
-                        opacity: isDebouncing ? 0.7 : 1,
-                        cursor: isDebouncing ? 'not-allowed' : 'pointer'
-                      }}
+                      className={`flex items-center px-3 py-2 hover:opacity-80 cursor-pointer text-foreground transition-colors ${
+                        internalSelection.includes(org.login) ? 'bg-accent/50' : 'bg-transparent'
+                      } ${isDebouncing ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
                       <div className="flex-shrink-0 mr-3">
                         {org.avatarUrl ? (
@@ -325,10 +274,7 @@ export default function OrganizationPicker({
                             />
                           </div>
                         ) : (
-                          <div 
-                            className="w-6 h-6 rounded-full flex items-center justify-center"
-                            style={{ backgroundColor: 'var(--electric-blue)' }}
-                          >
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
                             {org.login.substring(0, 1).toUpperCase()}
                           </div>
                         )}
@@ -338,18 +284,12 @@ export default function OrganizationPicker({
                         <div className="text-sm font-medium flex items-center">
                           {org.login}
                           {currentUsername && org.login === currentUsername && (
-                            <span 
-                              className="ml-2 text-xs px-1 rounded" 
-                              style={{ 
-                                backgroundColor: 'rgba(0, 255, 135, 0.2)',
-                                color: 'var(--neon-green)'
-                              }}
-                            >
+                            <Badge variant="secondary" className="ml-2 text-xs">
                               YOU
-                            </span>
+                            </Badge>
                           )}
                         </div>
-                        <div className="text-xs" style={{ color: 'var(--electric-blue)' }}>
+                        <div className="text-xs text-muted-foreground">
                           {org.type}
                         </div>
                       </div>
@@ -361,8 +301,7 @@ export default function OrganizationPicker({
                           checked={internalSelection.includes(org.login)}
                           onChange={() => {}} // Handled by the parent div click
                           onClick={(e) => e.stopPropagation()} // Prevent double-triggering
-                          className="h-4 w-4"
-                          style={{ accentColor: 'var(--neon-green)' }}
+                          className="h-4 w-4 accent-primary"
                           disabled={isDebouncing}
                         />
                       </div>
@@ -370,7 +309,7 @@ export default function OrganizationPicker({
                   ))}
                 </div>
               ) : (
-                <div className="py-3 px-3 text-center" style={{ color: 'var(--foreground)' }}>
+                <div className="py-3 px-3 text-center text-foreground">
                   No organizations match your search
                 </div>
               )}
@@ -378,6 +317,6 @@ export default function OrganizationPicker({
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

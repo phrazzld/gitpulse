@@ -4,6 +4,8 @@ import SummaryStats from '@/components/dashboard/SummaryStats';
 import SummaryDetails from '@/components/dashboard/SummaryDetails';
 import { createActivityFetcher } from '@/lib/activity';
 import { ActivityMode, CommitSummary, DateRange, FilterState } from '@/types/dashboard';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export interface SummaryViewProps {
   /**
@@ -51,39 +53,32 @@ const SummaryView: React.FC<SummaryViewProps> = ({
   if (!summary) return null;
 
   return (
-    <div className="mt-8 border rounded-lg p-6" style={{ 
-      backgroundColor: 'rgba(27, 43, 52, 0.7)',
-      backdropFilter: 'blur(5px)',
-      borderColor: 'var(--electric-blue)',
-      boxShadow: '0 0 20px rgba(59, 142, 234, 0.15)'
-    }}>
-      {/* Terminal-like header */}
-      <div className="flex items-center justify-between mb-6 border-b pb-3" style={{ borderColor: 'var(--electric-blue)' }}>
-        <div className="flex items-center">
-          <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-          <h2 className="text-xl font-bold" style={{ color: 'var(--electric-blue)' }}>
-            COMMIT ANALYSIS: {summary.user?.toUpperCase()}
-          </h2>
-        </div>
-        <div className="px-2 py-1 text-xs rounded flex items-center" style={{ 
-          backgroundColor: 'rgba(0, 0, 0, 0.3)', 
-          border: '1px solid var(--neon-green)',
-          color: 'var(--neon-green)'
-        }}>
-          <span className="inline-block w-2 h-2 rounded-full mr-2 animate-pulse" style={{ backgroundColor: 'var(--neon-green)' }}></span>
-          <span>ANALYSIS COMPLETE</span>
-        </div>
-      </div>
-
-      {/* Activity Feed with Progressive Loading */}
-      {summary.commits && (
-        <div className="mb-8">
-          <div className="flex items-center mb-3">
-            <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-            <h3 className="text-sm uppercase" style={{ color: 'var(--electric-blue)' }}>
-              COMMIT ACTIVITY
-            </h3>
+    <Card className="mt-8">
+      <CardHeader className="border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-3 h-3 rounded-full mr-3 bg-primary"></div>
+            <h2 className="text-xl font-bold text-primary">
+              COMMIT ANALYSIS: {summary.user?.toUpperCase()}
+            </h2>
           </div>
+          <Badge variant="outline" className="text-xs gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-foreground animate-pulse"></span>
+            <span>ANALYSIS COMPLETE</span>
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6">
+        {/* Activity Feed with Progressive Loading */}
+        {summary.commits && (
+          <div className="mb-8">
+            <div className="flex items-center mb-3">
+              <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+              <h3 className="text-sm font-medium uppercase">
+                COMMIT ACTIVITY
+              </h3>
+            </div>
           
           <ActivityFeed
             loadCommits={async (cursor, limit) => {
@@ -124,16 +119,17 @@ const SummaryView: React.FC<SummaryViewProps> = ({
             showContributor={activityMode === 'team-activity'}
             emptyMessage={`No ${activityMode.replace('-', ' ')} data found for the selected filters.`}
           />
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Stats dashboard with cyber styling */}
-      <SummaryStats summary={summary} className="mb-8" />
+        {/* Stats dashboard with cyber styling */}
+        <SummaryStats summary={summary} className="mb-8" />
 
-      {summary.aiSummary && (
-        <SummaryDetails aiSummary={summary.aiSummary} />
-      )}
-    </div>
+        {summary.aiSummary && (
+          <SummaryDetails aiSummary={summary.aiSummary} />
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

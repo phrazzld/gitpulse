@@ -1,48 +1,39 @@
 import React from 'react';
 import { AISummary } from '@/types/dashboard';
+import { Badge } from '@/components/ui/badge';
 
 export interface SummaryDetailsProps {
   /**
    * AI summary data to display
    */
   aiSummary: AISummary;
-  
-  /**
-   * Additional CSS class to apply to the container
-   */
-  className?: string;
 }
 
 /**
  * Displays detailed AI-generated analysis of GitHub activity
  */
 const SummaryDetails: React.FC<SummaryDetailsProps> = ({ 
-  aiSummary,
-  className = ''
+  aiSummary
 }) => {
   return (
-    <div className={className}>
+    <div>
       {/* Key Themes */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-          <h3 className="text-sm uppercase" style={{ color: 'var(--electric-blue)' }}>
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             IDENTIFIED PATTERNS
           </h3>
         </div>
         <div className="flex flex-wrap gap-3">
           {aiSummary.keyThemes.map((theme, index) => (
-            <span
+            <Badge
               key={index}
-              className="px-3 py-1 rounded-md text-sm"
-              style={{ 
-                backgroundColor: 'rgba(0, 255, 135, 0.1)',
-                border: '1px solid var(--neon-green)',
-                color: 'var(--neon-green)'
-              }}
+              variant="outline"
+              className="text-foreground border-muted bg-muted/10"
             >
               {theme}
-            </span>
+            </Badge>
           ))}
         </div>
       </div>
@@ -50,8 +41,8 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Technical Areas */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-          <h3 className="text-sm uppercase" style={{ color: 'var(--electric-blue)' }}>
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             TECHNICAL FOCUS AREAS
           </h3>
         </div>
@@ -59,19 +50,12 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
           {aiSummary.technicalAreas.map((area, index) => (
             <div
               key={index}
-              className="flex justify-between items-center p-3 rounded-md"
-              style={{ 
-                backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                border: '1px solid var(--electric-blue)'
-              }}
+              className="flex justify-between items-center p-3 rounded-md bg-muted/50 border border-muted"
             >
-              <span style={{ color: 'var(--foreground)' }}>{area.name}</span>
-              <span className="px-2 py-1 rounded text-xs" style={{ 
-                backgroundColor: 'rgba(59, 142, 234, 0.2)',
-                color: 'var(--electric-blue)'
-              }}>
+              <span className="text-foreground">{area.name}</span>
+              <Badge variant="secondary" className="text-xs">
                 {area.count}
-              </span>
+              </Badge>
             </div>
           ))}
         </div>
@@ -80,19 +64,16 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Accomplishments */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-          <h3 className="text-sm uppercase" style={{ color: 'var(--electric-blue)' }}>
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             KEY ACHIEVEMENTS
           </h3>
         </div>
-        <div className="border rounded-md p-4" style={{ 
-          backgroundColor: 'rgba(0, 0, 0, 0.2)',
-          borderColor: 'var(--neon-green)'
-        }}>
-          <ul className="space-y-3" style={{ color: 'var(--foreground)' }}>
+        <div className="border rounded-md p-4 bg-muted/30 border-muted">
+          <ul className="space-y-3 text-foreground">
             {aiSummary.accomplishments.map((accomplishment, index) => (
               <li key={index} className="flex items-start">
-                <span className="inline-block w-5 flex-shrink-0 mr-2" style={{ color: 'var(--neon-green)' }}>→</span>
+                <span className="inline-block w-5 flex-shrink-0 mr-2 text-foreground">→</span>
                 <span>{accomplishment}</span>
               </li>
             ))}
@@ -103,26 +84,23 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Commit Types */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-          <h3 className="text-sm uppercase" style={{ color: 'var(--electric-blue)' }}>
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             COMMIT CLASSIFICATION
           </h3>
         </div>
         <div className="space-y-4">
           {aiSummary.commitsByType.map((type, index) => (
-            <div key={index} className="border-l-2 pl-4 py-1" style={{ borderColor: 'var(--neon-green)' }}>
+            <div key={index} className="border-l-2 pl-4 py-1 border-muted">
               <div className="flex justify-between items-center">
-                <h4 className="font-medium" style={{ color: 'var(--neon-green)' }}>
+                <h4 className="font-medium text-foreground">
                   {type.type}
                 </h4>
-                <span className="text-xs px-2 py-1 rounded" style={{ 
-                  backgroundColor: 'rgba(0, 255, 135, 0.1)',
-                  color: 'var(--neon-green)'
-                }}>
+                <Badge variant="outline" className="text-xs">
                   {type.count}
-                </span>
+                </Badge>
               </div>
-              <p className="text-sm mt-1" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              <p className="text-sm mt-1 text-muted-foreground">
                 {type.description}
               </p>
             </div>
@@ -133,26 +111,22 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Timeline */}
       <div className="mb-8">
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-          <h3 className="text-sm uppercase" style={{ color: 'var(--electric-blue)' }}>
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             TEMPORAL ANALYSIS
           </h3>
         </div>
         <div className="space-y-4">
           {aiSummary.timelineHighlights.map((highlight, index) => (
-            <div key={index} className="flex border-b pb-3" style={{ borderColor: 'rgba(59, 142, 234, 0.2)' }}>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3" style={{ 
-                backgroundColor: 'rgba(59, 142, 234, 0.1)',
-                border: '1px solid var(--electric-blue)',
-                color: 'var(--electric-blue)'
-              }}>
+            <div key={index} className="flex border-b pb-3 border-muted/20">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center mr-3 bg-primary/10 border border-primary text-primary">
                 {index + 1}
               </div>
               <div>
-                <div className="text-xs font-mono mb-1" style={{ color: 'var(--electric-blue)' }}>
+                <div className="text-xs font-mono mb-1 text-primary">
                   {new Date(highlight.date).toLocaleDateString()}
                 </div>
-                <div style={{ color: 'var(--foreground)' }}>
+                <div className="text-foreground">
                   {highlight.description}
                 </div>
               </div>
@@ -164,17 +138,13 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
       {/* Overall Summary */}
       <div>
         <div className="flex items-center mb-3">
-          <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--electric-blue)' }}></div>
-          <h3 className="text-sm uppercase" style={{ color: 'var(--electric-blue)' }}>
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm uppercase text-primary">
             COMPREHENSIVE ANALYSIS
           </h3>
         </div>
-        <div className="p-4 rounded-md border" style={{ 
-          backgroundColor: 'rgba(0, 0, 0, 0.3)',
-          borderColor: 'var(--neon-green)',
-          color: 'var(--foreground)'
-        }}>
-          <div className="text-xs mb-2 font-mono" style={{ color: 'var(--neon-green)' }}>
+        <div className="p-4 rounded-md border bg-muted/50 border-muted text-foreground">
+          <div className="text-xs mb-2 font-mono text-foreground">
             $ AI_ANALYSIS --detailed-output
           </div>
           {aiSummary.overallSummary}

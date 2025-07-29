@@ -1,298 +1,455 @@
-# Todo - Functional Architecture Implementation
-## Superior Synthesis from Multiple AI Models
+# TODO - Styling Cleanup Remaining Work
 
-This document synthesizes the best insights from 10+ AI model outputs for implementing the functional core/imperative shell architecture to eliminate testing complexity.
+## Code Review Analysis - John Carmack Perspective
 
-## Foundation (Phase 1)
-- [x] **T001 · Feature · P0: implement functional programming utilities**
-    - **Context:** Phase 1.1 - Create Functional Programming Utilities
-    - **Action:**
-        1. Create `src/lib/functional/index.ts` with `pipe`, `compose`, and `groupBy` functions
-        2. Implement comprehensive unit tests with 100% coverage
-        3. Ensure proper TypeScript typing for function composition chains
-    - **Done-when:**
-        1. All utilities pass strict TypeScript compilation and runtime tests
-        2. Functions demonstrate immutability and no side effects
-        3. Downstream modules can successfully import and use utilities
-    - **Verification:**
-        1. Manual test function composition with sample data transformations
-        2. Verify immutability with object mutation tests
-    - **Depends-on:** none
+### MERGE-BLOCKING Issues (Must Fix Before Merge)
 
-- [x] **T002 · Feature · P0: establish result type system**
-    - **Context:** Phase 1.1 - Create Functional Programming Utilities
-    - **Action:**
-        1. Create `src/lib/result/index.ts` with discriminated union `Result<T, E>`
-        2. Implement `Success<T>` and `Failure<E>` types with proper type guards
-        3. Add `success(data: T)` and `failure(error: E)` helper constructors
-        4. Include monadic operations: `map`, `flatMap`, `fold`
-    - **Done-when:**
-        1. Type system handles both sync and async operations correctly
-        2. Monadic operations maintain type safety through composition
-        3. All error handling paths return typed `Failure` instances
-    - **Verification:**
-        1. Test type narrowing with sample success/failure scenarios
-        2. Verify monadic composition preserves types correctly
-    - **Depends-on:** none
+#### 1. Remove Remaining Custom Styling Effects
+**Priority: HIGH - In scope for this PR**
+- **Issue**: Found remaining `backdrop-blur-sm`, `bg-black/30`, `bg-black/20` effects
+- **Files affected**:
+  - src/components/DateRangePicker.tsx:119
+  - src/components/dashboard/SummaryView.tsx:56
+  - src/app/dashboard/page.tsx:242
+  - src/components/dashboard/SummaryDetails.tsx:53,72,146
+  - src/components/dashboard/activityFeed/components/CommitItem.tsx:52
+  - src/components/dashboard/AnalysisParameters.tsx:54
+- **Why merge-blocking**: These custom effects directly contradict the PR's goal of removing all custom styling and using pure shadcn components
+- **Action**: Remove all backdrop-blur and custom opacity backgrounds
 
-- [x] **T003 · Feature · P0: establish effect type system**
-    - **Context:** Phase 1.2 - Establish Effect Type System
-    - **Action:**
-        1. Create `src/services/effects/types.ts` with `Effect<T>` and `IOEffect<T>`
-        2. Implement `effect(fn)` and `ioEffect(fn)` creator functions
-        3. Add effect composition utilities and execution helpers
-        4. Tag `IOEffect` with `_tag` property for runtime discrimination
-    - **Done-when:**
-        1. Effects properly encapsulate async operations without execution
-        2. Type system distinguishes between pure and I/O effects
-        3. Effect creators work with both sync and async functions
-    - **Verification:**
-        1. Create sample effects and verify deferred execution
-        2. Test effect composition with simple async operations
-    - **Depends-on:** none
+### Action Items for Merge-Blocking Issue
 
-- [x] **T004 · Feature · P0: define core domain types**
-    - **Context:** Phase 1.3 - Create Core Domain Types
-    - **Action:**
-        1. Create `src/core/types/index.ts` with complete domain interfaces
-        2. Define `CommitData` with sha, message, author, date, repository
-        3. Define `SummaryRequest` with repositories, dateRange, optional users
-        4. Add `SummaryStats` interface for calculated statistics
-        5. Include type guards and validation helpers
-    - **Done-when:**
-        1. All domain entities are properly typed with strict null checks
-        2. Types compile and are usable across core, services, and shell layers
-        3. Type guards enable runtime type safety
-    - **Verification:**
-        1. Validate type usage with sample data structures
-        2. Test type guards with valid and invalid inputs
-    - **Depends-on:** none
+- [x] **Remove backdrop-blur-sm from DateRangePicker.tsx:119**
+  - Current: `<Card className="backdrop-blur-sm">`
+  - Change to: `<Card>`
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-29 11:25
+  ### Completed: 2025-07-29 11:28
+  
+  ### Context Discovery
+  - Single line change in src/components/DateRangePicker.tsx
+  - Removing custom effect to align with pure shadcn styling
+  
+  ### Execution Log
+  [11:25] Reading DateRangePicker.tsx to locate line 119
+  [11:26] Found backdrop-blur-sm on line 119 in Card component
+  [11:26] Removed backdrop-blur-sm class from Card
+  [11:27] Running verification tests
+  [11:28] ESLint and TypeScript checks pass successfully
+  
+  ### Results
+  - ✓ Removed backdrop-blur-sm from Card component
+  - ✓ No lint errors
+  - ✓ TypeScript compilation successful
+  - ✓ Component now uses pure shadcn styling
 
-## Core Business Logic (Phase 2)
-- [x] **T005 · Refactor · P1: extract github data transformation functions**
-    - **Context:** Phase 2.1 - Extract GitHub Data Transformations
-    - **Action:**
-        1. Create `src/core/github/commits.ts` with pure transformation functions
-        2. Implement `filterCommitsByDateRange(start, end)` with timezone handling
-        3. Implement `groupCommitsByRepository(commits)` with type-safe keys
-        4. Implement `extractUniqueAuthors(commits)` with case-insensitive deduplication
-        5. Ensure all functions handle edge cases (empty arrays, invalid dates)
-    - **Done-when:**
-        1. All functions are pure with no external dependencies or side effects
-        2. Functions handle all edge cases gracefully (empty input, nulls)
-        3. Comprehensive unit tests achieve 100% coverage
-    - **Verification:**
-        1. Test with various date ranges and commit scenarios
-        2. Verify proper handling of repository grouping and author extraction
-    - **Depends-on:** [T004]
+- [x] **Remove backdrop-blur-sm and shadow-lg from SummaryView.tsx:56**
+  - Current: `<Card className="mt-8 backdrop-blur-sm shadow-lg">`
+  - Change to: `<Card className="mt-8">`
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-29 11:30
+  ### Completed: 2025-07-29 11:33
+  
+  ### Context Discovery
+  - Single line change in src/components/dashboard/SummaryView.tsx
+  - Removing backdrop-blur-sm and shadow-lg classes
+  - Part of merge-blocking fixes to use pure shadcn styling
+  
+  ### Execution Log
+  [11:30] Reading SummaryView.tsx to locate line 56
+  [11:31] Found Card component with backdrop-blur-sm and shadow-lg on line 56
+  [11:31] Removed both custom styling classes, keeping only mt-8
+  [11:32] Running verification tests
+  [11:33] ESLint and TypeScript checks pass successfully
+  
+  ### Results
+  - ✓ Removed backdrop-blur-sm from Card component
+  - ✓ Removed shadow-lg from Card component
+  - ✓ No lint errors
+  - ✓ TypeScript compilation successful
+  - ✓ Component now uses pure shadcn styling with only mt-8 margin class
 
-- [x] **T006 · Refactor · P1: extract summary generation logic**
-    - **Context:** Phase 2.2 - Extract Summary Generation Logic
-    - **Action:**
-        1. Create `src/core/summary/generator.ts` with statistical calculations
-        2. Implement `calculateSummaryStats(commits)` using functional composition
-        3. Calculate totalCommits, uniqueAuthors, repositories, mostActiveDay, averageCommitsPerDay
-        4. Use `pipe` and `groupBy` from functional utilities for data processing
-        5. Add timezone-aware daily calculations
-    - **Done-when:**
-        1. Function produces accurate statistics matching existing behavior
-        2. All calculations are deterministic and testable
-        3. Logic is composed from pure functions with no I/O dependencies
-    - **Verification:**
-        1. Test with known commit data to verify all statistical calculations
-        2. Compare output with existing implementation for consistency
-    - **Depends-on:** [T001, T005]
+- [x] **Remove backdrop-blur-sm and shadow-lg from dashboard/page.tsx:242**
+  - Current: `<Card className="mb-8 backdrop-blur-sm shadow-lg">`
+  - Change to: `<Card className="mb-8">`
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-29 11:35
+  ### Completed: 2025-07-29 11:38
+  
+  ### Context Discovery
+  - Single line change in src/app/dashboard/page.tsx
+  - Removing backdrop-blur-sm and shadow-lg classes
+  - Part of merge-blocking fixes to use pure shadcn styling
+  
+  ### Execution Log
+  [11:35] Reading dashboard/page.tsx to locate line 242
+  [11:36] Found Card component with backdrop-blur-sm and shadow-lg on line 242
+  [11:36] Removed both custom styling classes, keeping only mb-8
+  [11:37] Running verification tests
+  [11:38] ESLint and TypeScript checks pass successfully
+  
+  ### Results
+  - ✓ Removed backdrop-blur-sm from Card component
+  - ✓ Removed shadow-lg from Card component  
+  - ✓ No lint errors
+  - ✓ TypeScript compilation successful
+  - ✓ Component now uses pure shadcn styling with only mb-8 margin class
 
-- [x] **T007 · Refactor · P1: extract validation logic**
-    - **Context:** Phase 2.3 - Extract Validation Logic
-    - **Action:**
-        1. Create `src/core/validation/summary.ts` with pure validation functions
-        2. Implement `validateDateRange(start, end)` returning `Result<DateRange, string[]>`
-        3. Implement `validateRepositories(repos)` with configurable limits
-        4. Add i18n-ready error messages with specific failure details
-        5. Include validation for user filters and other request parameters
-    - **Done-when:**
-        1. All validation rules from existing system are preserved
-        2. Functions return typed `Result` with specific error details
-        3. Validation errors are actionable and user-friendly
-    - **Verification:**
-        1. Test all invalid scenarios covered in current specification
-        2. Verify error messages provide sufficient context for users
-    - **Depends-on:** [T002, T004]
+- [x] **Replace bg-black/30 with standard styling in SummaryDetails.tsx:53**
+  - Current: `className="flex justify-between items-center p-3 rounded-md bg-black/30 border border-muted"`
+  - Change to: `className="flex justify-between items-center p-3 rounded-md bg-muted/50 border border-muted"`
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-29 12:30
+  
+  ### Context Discovery
+  - Single file with 3 custom background replacements needed
+  - Also found text-white/70 on line 103 that needs fixing
+  - All changes follow established pattern of using muted variants
+  
+  ### Execution Log
+  [12:30] Reading SummaryDetails.tsx to locate all custom backgrounds
+  [12:31] Found 3 bg-black instances and 1 text-white/70
+  [12:31] Preparing MultiEdit for all 4 changes
+  [12:32] Applied all 4 edits successfully:
+    - Line 53: bg-black/30 → bg-muted/50
+    - Line 72: bg-black/20 → bg-muted/30
+    - Line 146: bg-black/30 → bg-muted/50
+    - Line 103: text-white/70 → text-muted-foreground
+  [12:33] Running lint and typecheck verification
+  [12:34] All checks pass successfully
+  
+  ### Results
+  - ✓ Replaced bg-black/30 with bg-muted/50 (line 53)
+  - ✓ Replaced bg-black/20 with bg-muted/30 (line 72)
+  - ✓ Replaced bg-black/30 with bg-muted/50 (line 146)
+  - ✓ Fixed text-white/70 to text-muted-foreground (line 103)
+  - ✓ ESLint passes with no warnings or errors
+  - ✓ TypeScript compilation successful
+  - ✓ Component now uses pure shadcn color system
 
-## Service Layer (Phase 3)
-- [x] **T008 · Refactor · P1: implement effect-based summary service**
-    - **Context:** Phase 3.1 - Create Effect-Based Services
-    - **Action:**
-        1. Create `src/services/workflows/summary.ts` with workflow orchestration
-        2. Implement `createSummaryWorkflow(request, dataProvider)` function
-        3. Implement `summaryService.generateSummary` with dependency injection
-        4. Compose validation, data fetching, and statistics calculation
-        5. Handle validation errors through effect failure paths
-    - **Done-when:**
-        1. Service returns `Effect<SummaryStats>` without executing side effects
-        2. All business logic composition is tested and verified
-        3. Validation errors are properly aggregated and returned
-    - **Verification:**
-        1. Test service with both valid and invalid requests
-        2. Verify effect composition preserves all error handling paths
-    - **Depends-on:** [T002, T003, T006, T007]
+- [x] **Replace bg-black/20 with standard styling in SummaryDetails.tsx:72**
+  - Current: `className="border rounded-md p-4 bg-black/20 border-muted"`
+  - Change to: `className="border rounded-md p-4 bg-muted/30 border-muted"`
 
-## Imperative Shell Integration (Phase 4)
-- [x] **T009 · Refactor · P2: refactor api route to use effects**
-    - **Context:** Phase 4.1 - API Route Handlers
-    - **Action:**
-        1. Update `src/shell/api/summary/route.ts` to use `summaryService`
-        2. Inject GitHub API data provider implementation
-        3. Execute effects and handle success/failure with proper HTTP responses
-        4. Implement structured error responses with actionable details
-        5. Maintain existing API contract and response format
-    - **Done-when:**
-        1. Route handler contains only I/O orchestration, no business logic
-        2. All side effects are isolated to the imperative shell boundary
-        3. API maintains backward compatibility with existing clients
-    - **Verification:**
-        1. Manual API testing with various request payloads
-        2. Verify proper HTTP status codes and error response format
-    - **Depends-on:** [T008]
+- [x] **Replace bg-black/30 with standard styling in SummaryDetails.tsx:146**
+  - Current: `className="p-4 rounded-md border bg-black/30 border-muted text-foreground"`
+  - Change to: `className="p-4 rounded-md border bg-muted/50 border-muted text-foreground"`
 
-- [x] **T010 · Refactor · P2: transform react component to use effects**
-    - **Context:** Phase 4.2 - React Component Transformation
-    - **Action:**
-        1. Update `src/shell/components/SummaryView.tsx` to use `summaryService`
-        2. Implement effect execution in `useEffect` with cleanup
-        3. Provide API data fetching implementation as dependency
-        4. Handle loading, success, and error states through component state
-        5. Ensure all business logic is extracted to pure functions
-    - **Done-when:**
-        1. Component contains only UI rendering and effect orchestration
-        2. Loading and error states render correctly with good UX
-        3. Component maintains existing user interface behavior
-    - **Verification:**
-        1. Manual testing of component with various data scenarios
-        2. Verify loading states and error handling in browser
-    - **Depends-on:** [T008]
+- [x] **Remove backdrop-blur-sm from CommitItem.tsx:52**
+  - Current: `<Card className="p-3 mb-3 backdrop-blur-sm shadow-sm">`
+  - Change to: `<Card className="p-3 mb-3">`
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-29 12:35
+  
+  ### Context Discovery
+  - Single line change in src/components/dashboard/activityFeed/components/CommitItem.tsx
+  - Need to remove backdrop-blur-sm and shadow-sm classes
+  - Part of merge-blocking fixes to use pure shadcn styling
+  
+  ### Execution Log
+  [12:35] Reading CommitItem.tsx to locate line 52
+  [12:36] Found Card component with backdrop-blur-sm and shadow-sm on line 52
+  [12:36] Removed both custom styling classes, keeping only p-3 mb-3
+  [12:37] Running verification tests
+  [12:38] ESLint and TypeScript checks pass successfully
+  
+  ### Results
+  - ✓ Removed backdrop-blur-sm from Card component
+  - ✓ Removed shadow-sm from Card component
+  - ✓ No lint errors
+  - ✓ TypeScript compilation successful
+  - ✓ Component now uses pure shadcn styling with only padding and margin classes
 
-## Test Transformation (Phase 5)
-- [x] **T011 · Test · P0: implement pure function tests**
-    - **Context:** Phase 5.1 - Pure Function Tests (No Mocks!)
-    - **Action:**
-        1. Create test files for all core modules with comprehensive coverage
-        2. Write tests for `src/core/github/commits.test.ts` with edge cases
-        3. Write tests for `src/core/summary/generator.test.ts` with known data
-        4. Write tests for `src/core/validation/summary.test.ts` with invalid inputs
-        5. Achieve 100% code coverage without any mocks, spies, or stubs
-    - **Done-when:**
-        1. All pure functions have deterministic, repeatable tests
-        2. Tests cover happy path, edge cases, and error conditions
-        3. Zero dependencies on mocking frameworks or test doubles
-    - **Verification:**
-        1. Run tests multiple times to verify deterministic behavior
-        2. Review coverage reports to ensure complete test coverage
-    - **Depends-on:** [T005, T006, T007]
+- [x] **Remove backdrop-blur-sm from AnalysisParameters.tsx:54**
+  - Current: `<Card className="backdrop-blur-sm">`
+  - Change to: `<Card>`
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-29 12:40
+  
+  ### Context Discovery
+  - Single line change in src/components/dashboard/AnalysisParameters.tsx
+  - Last remaining merge-blocking styling fix
+  - Part of effort to use pure shadcn components
+  
+  ### Execution Log
+  [12:40] Reading AnalysisParameters.tsx to locate line 54
+  [12:41] Found Card component with backdrop-blur-sm on line 54
+  [12:41] Removed backdrop-blur-sm class from Card
+  [12:42] Running verification tests
+  [12:43] ESLint and TypeScript checks pass successfully
+  
+  ### Results
+  - ✓ Removed backdrop-blur-sm from Card component
+  - ✓ No lint errors
+  - ✓ TypeScript compilation successful
+  - ✓ Component now uses pure shadcn styling
+  - ✓ ALL MERGE-BLOCKING STYLING ISSUES RESOLVED!
 
-- [x] **T012 · Test · P1: implement service tests with test effects**
-    - **Context:** Phase 5.2 - Service Tests with Test Effects
-    - **Action:**
-        1. Create `src/services/workflows/summary.test.ts` with workflow tests
-        2. Use test data providers instead of mocks for external dependencies
-        3. Test effect composition and error handling paths
-        4. Verify proper integration of validation and business logic
-        5. Test all success and failure scenarios end-to-end
-    - **Done-when:**
-        1. Service workflows are tested without mocking internal collaborators
-        2. Tests cover all integration points and error scenarios
-        3. Test data providers demonstrate real usage patterns
-    - **Verification:**
-        1. Review test scenarios to ensure comprehensive workflow coverage
-        2. Verify tests run consistently without external dependencies
-    - **Depends-on:** [T008]
+### NON-BLOCKING Issues (Can Address Later)
 
-## Cleanup & Documentation (Phase 6)
-- [x] **T013 · Chore · P2: eliminate old test infrastructure**
-    - **Context:** Phase 6.1 - Delete Old Test Infrastructure
-    - **Action:**
-        1. Remove `src/__tests__/test-helpers/*` directory completely
-        2. Delete all mock factories, builders, and custom render utilities
-        3. Remove test utilities that create mocks or spies
-        4. Clean up any remaining references in configuration files
-        5. Verify all tests pass after infrastructure removal
-    - **Done-when:**
-        1. Approximately 580 lines of testing infrastructure code removed
-        2. No remaining references to deleted test utilities
-        3. Test suite runs successfully without old helpers
-    - **Verification:**
-        1. Git diff confirms complete removal of mock infrastructure
-        2. CI pipeline passes without deleted dependencies
-    - **Depends-on:** [T011, T012]
+#### 1. Husky Deprecation Warnings
+**Priority: LOW - Not related to styling**
+- **Issue**: Husky shows deprecation warnings about v10.0.0
+- **Why not blocking**: Warnings don't affect functionality, unrelated to PR scope
+- **Future action**: Update husky configuration in a separate PR
 
-- [x] **T014 · Chore · P2: update documentation and examples**
-    - **Context:** Phase 6.2 - Update Documentation
-    - **Action:**
-        1. Document Functional Core / Imperative Shell pattern with examples
-        2. Create guide for writing pure function tests without mocks
-        3. Document Effect pattern usage and testing strategies
-        4. Provide step-by-step migration guide for remaining code
-        5. Update project README with new architectural principles
-    - **Done-when:**
-        1. Documentation covers all new patterns with working examples
-        2. Migration guide enables other teams to adopt patterns
-        3. Examples demonstrate real-world usage scenarios
-    - **Verification:**
-        1. Review documentation with team for clarity and completeness
-        2. Validate examples work as documented
-    - **Depends-on:** [T013]
+#### 2. Large Test Files
+**Priority: LOW - Pre-existing issue**
+- **Issue**: Several test files exceed 500 lines
+- **Why not blocking**: Pre-existing issue, not caused by this PR
+- **Future action**: Refactor in a dedicated test cleanup PR
 
-## Cross-Cutting Concerns
-- [x] **T015 · Feature · P2: implement structured logging for effects**
-    - **Context:** Logging & Observability - Structured Logging in Effects
-    - **Action:**
-        1. Create `src/services/effects/logging.ts` with `withLogging` decorator
-        2. Implement correlation ID generation and propagation
-        3. Log effect start, completion, and failure with structured data
-        4. Include performance metrics and error details in logs
-        5. Integrate with existing logging infrastructure
-    - **Done-when:**
-        1. All effects can be wrapped with logging decoration
-        2. Logs include correlation ID, operation name, and timing
-        3. Error logs contain sufficient context for debugging
-    - **Verification:**
-        1. Review log output for structured format and completeness
-        2. Test correlation ID propagation through effect chains
-    - **Depends-on:** [T003]
+#### 3. Shadow-lg Usage
+**Priority: LOW - Standard Tailwind utility**
+- **Issue**: Some components use shadow-lg
+- **Why not blocking**: shadow-lg is a standard Tailwind utility, not custom styling
+- **Future action**: Could standardize to default Card shadows for consistency
 
-- [x] **T016 · Refactor · P2: implement configuration dependency injection**
-    - **Context:** Security & Configuration - Configuration Approach
-    - **Action:**
-        1. Define `Config` interface with all configuration parameters
-        2. Refactor validation functions to accept config as parameter
-        3. Update services to receive configuration through dependency injection
-        4. Remove hardcoded limits and URLs from pure functions
-        5. Add configuration validation and type safety
-    - **Done-when:**
-        1. No pure functions import configuration from external scope
-        2. All configuration is explicitly injected and testable
-        3. Configuration changes don't require code modifications
-    - **Verification:**
-        1. Test with different configuration values in test environment
-        2. Verify configuration validation catches invalid settings
-    - **Depends-on:** [T007]
+## PR Review Feedback - Critical Issues
 
-## Critical Fixes Required for Merge
-- [x] **T017 · Fix · P0: fix date range validation to allow single-day ranges**
-    - **Context:** BLOCKING ISSUE - Users cannot generate summaries for single days
-    - **Action:**
-        1. Remove `daysDiff < 1` check from `validateDateRange` in `src/core/validation/summary.ts`
-        2. Keep only `start > end` validation to prevent backwards ranges
-        3. Update related tests to verify single-day ranges are accepted
-        4. Test edge cases with same start/end dates
-    - **Done-when:**
-        1. `validateDateRange` accepts same start and end dates
-        2. Only rejects ranges where start > end
-        3. All validation tests pass with new logic
-        4. Manual testing confirms single-day summary generation works
-    - **Verification:**
-        1. Test API with single-day date range requests
-        2. Verify UI allows single-day range selection and summary generation
-    - **Depends-on:** [T016]
+### Critical/Merge-blocking - Animation Fixes
 
+- [x] **Fix broken animation classes**
+  - Files: src/components/ActivityFeed.tsx, src/components/dashboard/activityFeed/components/CommitItem.tsx
+  - Issue: Animation classes referenced but keyframes removed from globals.css
+  - Broken animations:
+    - `animate-incremental-loading` (ActivityFeed.tsx:305)
+    - `animate-fadeIn` (CommitItem.tsx:42)
+    - `animate-pulse-highlight` (CommitItem.tsx:52)
+    - `animate-border-pulse` (CommitItem.tsx:52)
+  - Solutions:
+    1. Option A: Remove animation classes entirely (simplest)
+    2. Option B: Replace with Tailwind built-in animations (animate-pulse, animate-spin)
+    3. Option C: Define keyframes in tailwind.config.js if animations are essential
+  - Priority: CRITICAL - Visual regression without fix
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-27 19:45
+  
+  ### Context Discovery
+  - animate-incremental-loading: Used for loading indicator progress bar
+  - animate-fadeIn: Used for new commit items appearing
+  - animate-pulse-highlight & animate-border-pulse: Used for highlighting new commits
+  - Decision: Remove all animation classes (Option A) to maintain minimal styling goal
+  
+  ### Execution Log
+  [19:46] Examining usage of broken animation classes in both files
+  [19:47] Confirmed all animations are decorative, not functional
+  [19:48] Choosing Option A: Remove animations to align with minimal styling goal
+  [19:49] Removed animate-incremental-loading from ActivityFeed.tsx:305
+  [19:50] Removed animate-fadeIn from CommitItem.tsx:42
+  [19:51] Removed animate-pulse-highlight and animate-border-pulse from CommitItem.tsx:52
+  [19:52] Running lint and typecheck to verify no issues
+  
+  ### Results
+  - ✓ All broken animation classes removed successfully
+  - ✓ ESLint passes with no warnings or errors
+  - ✓ TypeScript compilation successful
+  - ✓ Maintains minimal styling goal of the PR
+  - ✓ Visual regression fixed - no console errors expected
+
+### In-scope Improvements
+
+- [x] **Remove or justify tw-animate-css dependency**
+  - File: package.json:68
+  - Issue: Added dependency contradicts goal of removing custom animations
+  - Action: Either remove the dependency or document why it's needed
+  - Priority: HIGH - Adds unnecessary bundle weight
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-27 19:55
+  
+  ### Context Discovery
+  - Dependency located at package.json:68
+  - Searched entire codebase - no usage found
+  - Not referenced in any config files or imports
+  - Decision: Remove the dependency as it's unused and contradicts minimal styling goal
+  
+  ### Execution Log
+  [19:56] Checking package.json to confirm dependency location
+  [19:57] Searching codebase for any usage - none found
+  [19:58] Confirmed tw-animate-css is completely unused
+  [19:59] Proceeding with removal
+  [20:00] Removed dependency from package.json
+  [20:01] Running npm install to update package-lock.json
+  [20:02] Verified removal - 0 references in package-lock.json
+  [20:03] Running lint and typecheck to ensure no issues
+  
+  ### Results
+  - ✓ Dependency removed from package.json
+  - ✓ package-lock.json updated (1 package removed)
+  - ✓ ESLint passes with no warnings or errors
+  - ✓ TypeScript compilation successful
+  - ✓ Bundle size reduced by removing unused dependency
+
+- [x] **Update MIGRATION_NOTES.md with actual PR link**
+  - File: MIGRATION_NOTES.md:115
+  - Issue: Placeholder PR link needs updating
+  - Action: Replace placeholder with https://github.com/phrazzld/gitpulse/pull/114
+  - Priority: LOW - Documentation cleanup
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-27 20:05
+  
+  ### Context Discovery
+  - Located placeholder at MIGRATION_NOTES.md:115
+  - Current text: [Migration PR](#)
+  - Need to replace # with actual PR URL
+  
+  ### Execution Log
+  [20:06] Reading MIGRATION_NOTES.md to locate placeholder
+  [20:07] Found placeholder link at line 115
+  [20:08] Replacing placeholder with actual PR URL
+  [20:09] Verifying update was successful
+  
+  ### Results
+  - ✓ Updated MIGRATION_NOTES.md line 115
+  - ✓ Replaced placeholder (#) with https://github.com/phrazzld/gitpulse/pull/114
+  - ✓ Documentation now contains correct PR reference
+  - ✓ Simple one-line change completed successfully
+
+## Active Tasks
+
+### High Priority - Complete Styling Migration
+
+- [x] **Remove custom cyber styling from RepositorySection component**
+  - Replace `bg-black/30`, `border-blue-500`, shadow effects
+  - Standardize all text colors (remove `text-[color]-500` classes)
+  - Use shadcn Card/Badge components consistently
+  - Files: src/components/dashboard/RepositorySection.tsx
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-27 10:45
+  
+  ### Context Discovery
+  - Single file change: src/components/dashboard/RepositorySection.tsx
+  - Component already uses shadcn Card and Badge components
+  - Need to remove all custom color classes and cyber theme remnants
+  
+  ### Execution Log
+  [10:46] Started removing custom styling from component
+  [10:47] Replaced text-blue-500 with text-muted-foreground
+  [10:48] Removed cyber Card styling (bg-black/30, border-blue-500, shadows)
+  [10:49] Fixing badge variants and removing custom colors
+  [10:50] Standardized stats grid to use default borders
+  [10:51] Fixed organization headers and repository indicators
+  [10:52] Task completed - all custom colors removed
+  
+  ### Results
+  - ✓ Removed all custom color classes (verified with grep)
+  - ✓ Replaced colored status dots with neutral indicators
+  - ✓ Used standard Badge variants (secondary, destructive, outline)
+  - ✓ Card now uses default shadcn styling
+  - ✓ All text uses semantic colors (foreground, muted-foreground, destructive)
+
+- [x] **Remove custom styling from GroupedResultsView component**
+  - Remove `bg-slate-900/70`, `backdrop-blur-sm`
+  - Replace colored borders with default Card styling
+  - Standardize badge variants
+  - Files: src/components/GroupedResultsView.tsx
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-27 10:55
+  
+  ### Context Discovery
+  - Single file change: src/components/GroupedResultsView.tsx
+  - Component uses Card and Badge from shadcn
+  - Need to remove custom background colors and effects
+  
+  ### Execution Log
+  [10:56] Started removing custom styling from component
+  [10:57] Identified all custom color classes and effects to remove
+  [10:58] Removed bg-slate-900/70 and backdrop-blur-sm from Card
+  [10:59] Fixed all text-[color]-500 classes to use semantic colors
+  [11:00] Standardized all Badge variants to use secondary/outline
+  [11:01] Fixed custom backgrounds (bg-black/30) in badges
+  [11:02] Task completed - all custom styling removed
+  
+  ### Results
+  - ✓ Removed bg-slate-900/70 backdrop-blur-sm from Card
+  - ✓ Fixed all colored borders (border-[color]-500) 
+  - ✓ Replaced all text-[color]-500 with text-muted-foreground
+  - ✓ Standardized Badge variants (secondary for metrics, outline for repos)
+  - ✓ Removed all bg-[color]/10 and bg-black/30 classes
+  - ✓ Verified with grep - no custom colors remaining
+
+### Medium Priority - Final Cleanup
+
+- [x] **Remove remaining custom color classes from all components**
+  - Target files: AccountSelector, OrganizationPicker, FilterPanel, SummaryDetails, SummaryView, ActivityFeed, AuthError, OperationsPanel
+  - Replace `text-[color]-500` with appropriate shadcn semantic colors
+  - Use Badge variants for status indicators
+  
+  ### Complexity: MEDIUM
+  ### Started: 2025-07-27 12:04
+  
+  ### Context Discovery
+  - 8 target files with custom color classes to migrate
+  - Pattern analysis shows extensive use of blue-500, green-500, red-500
+  - Established patterns: text-foreground, text-muted-foreground, text-destructive
+  - Badge variants for status: secondary (success), destructive (error), outline (neutral)
+  
+  ### Execution Log
+  [12:05] Analyzing color usage across all target components
+  [12:06] Identified replacement patterns from completed components
+  [12:07] Starting with AuthError - replacing red-50/500/600/700/800 with destructive variants
+  [12:08] AuthError complete - all red colors replaced with destructive/muted-foreground
+  [12:09] AccountSelector - replacing blue-500/green-500 with semantic colors
+  [12:10] AccountSelector complete - using primary, accent/50, and default variants
+  [12:11] OrganizationPicker - removing slate-900/70, blue-500, green-500
+  [12:12] OrganizationPicker complete - removed custom backgrounds, using semantic colors
+  [12:13] FilterPanel - removing slate-900/70, shadows, blue-500, green-500
+  [12:14] FilterPanel complete - all custom styling removed, using primary/foreground
+  [12:15] Batch processing remaining files: SummaryDetails, SummaryView, ActivityFeed, OperationsPanel
+  [12:16] SummaryDetails complete - replaced all blue/green-500 with semantic colors
+  [12:17] SummaryView complete - fixed badge and pulse indicator colors
+  [12:18] ActivityFeed complete - using primary for animations, foreground for text
+  [12:19] OperationsPanel complete - replaced conditional colors with muted variants
+  
+  ### Results
+  - ✓ All 8 target components migrated to semantic colors
+  - ✓ Zero custom color classes remaining (verified)
+  - ✓ Consistent use of shadcn color system throughout
+  - ✓ Theme-responsive design with light/dark mode support
+  - ✓ Final verification: grep returns 0 custom color classes
+  - ✓ Additional files cleaned: AuthLoadingCard, DateRangePicker, Header
+
+- [x] **Fix TypeScript errors in test files**
+  - Fix import/export mismatches in component test files
+  - Add proper type definitions for test props
+  - Files created during priming that need fixes
+  
+  ### Complexity: SIMPLE
+  ### Started: 2025-07-27 12:20
+  
+  ### Execution Log
+  [12:20] Running typecheck to identify TypeScript errors
+  [12:21] TypeScript compilation passes without errors
+  [12:21] ESLint also passes with no warnings or errors
+  [12:22] All test files compile successfully
+  
+  ### Results
+  - ✓ No TypeScript errors found
+  - ✓ All test files have proper type definitions
+  - ✓ Both `npm run typecheck` and `npm run lint` pass successfully
+
+## Success Criteria
+
+- Zero custom color classes (`text-[color]-500`, `bg-[color]`, `border-[color]-500`)
+- All components use shadcn default styling
+- No cyber/neon theme remnants
+- TypeScript compilation passes without errors
+- All tests can be added to git without pre-commit hook failures
+
+## Notes
+
+- Follow patterns from successfully migrated components (DateRangePicker, FilterPanel headers)
+- Use default shadcn colors: foreground, muted-foreground, destructive, etc.
+- Badges should use standard variants: default, secondary, destructive, outline
+- Keep functionality intact while removing custom styling

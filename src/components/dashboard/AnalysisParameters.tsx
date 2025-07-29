@@ -1,6 +1,8 @@
 'use client';
 
 import { ActivityMode, DateRange } from '@/types/dashboard';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export interface AnalysisParametersProps {
   /**
@@ -49,65 +51,52 @@ export default function AnalysisParameters({
   };
 
   return (
-    <div className="rounded-lg border bg-opacity-70 p-4" style={{ 
-      backgroundColor: 'rgba(27, 43, 52, 0.7)',
-      backdropFilter: 'blur(5px)',
-      borderColor: 'var(--neon-green)',
-    }}>
-      {/* Header */}
-      <div className="flex items-center mb-3">
-        <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: 'var(--neon-green)' }}></div>
-        <h3 className="text-sm uppercase" style={{ color: 'var(--neon-green)' }}>
-          ANALYSIS PARAMETERS
-        </h3>
-      </div>
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-center">
+          <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>
+          <h3 className="text-sm font-medium uppercase">
+            ANALYSIS PARAMETERS
+          </h3>
+        </div>
+      </CardHeader>
       
-      {/* Parameters list */}
-      <div className="space-y-3">
+      <CardContent className="space-y-3">
         {/* Activity mode */}
         <div className="flex items-center justify-between">
-          <span className="text-xs" style={{ color: 'var(--electric-blue)' }}>MODE</span>
-          <span className="text-xs px-2 py-1 rounded" style={{ 
-            backgroundColor: 'rgba(0, 255, 135, 0.1)',
-            color: 'var(--neon-green)'
-          }}>
+          <span className="text-xs text-muted-foreground">MODE</span>
+          <Badge variant="secondary" className="text-xs">
             {getActivityModeDisplay(activityMode)}
-          </span>
+          </Badge>
         </div>
         
         {/* Date range */}
         <div className="flex items-center justify-between">
-          <span className="text-xs" style={{ color: 'var(--electric-blue)' }}>DATE RANGE</span>
-          <span className="text-xs px-2 py-1 rounded" style={{ 
-            backgroundColor: 'rgba(59, 142, 234, 0.1)',
-            color: 'var(--electric-blue)'
-          }}>
+          <span className="text-xs text-muted-foreground">DATE RANGE</span>
+          <Badge variant="outline" className="text-xs">
             {dateRange.since} to {dateRange.until}
-          </span>
+          </Badge>
         </div>
         
         {/* Organizations (if any) */}
         {organizations.length > 0 && (
           <div className="flex items-center justify-between">
-            <span className="text-xs" style={{ color: 'var(--electric-blue)' }}>ORGANIZATIONS</span>
-            <span className="text-xs px-2 py-1 rounded" style={{ 
-              backgroundColor: 'rgba(59, 142, 234, 0.1)',
-              color: 'var(--electric-blue)'
-            }}>
+            <span className="text-xs text-muted-foreground">ORGANIZATIONS</span>
+            <Badge variant="outline" className="text-xs">
               {organizations.length} SELECTED
-            </span>
+            </Badge>
           </div>
         )}
         
         {/* Help text */}
         {showHelpText && (
-          <div className="mt-3 pt-3 border-t" style={{ borderColor: 'rgba(0, 255, 135, 0.2)' }}>
-            <div className="text-xs" style={{ color: 'var(--foreground)' }}>
+          <div className="mt-3 pt-3 border-t border-muted">
+            <div className="text-xs text-foreground">
               Configure your analysis parameters above, then click the Analyze Commits button below to generate insights.
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

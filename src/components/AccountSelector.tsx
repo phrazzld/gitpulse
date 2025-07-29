@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { MouseEvent } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { ChevronDown, Plus } from 'lucide-react';
 
 export type Account = {
   id: number;
@@ -80,22 +85,16 @@ export default function AccountSelector({
   return (
     <div className="account-selector-container relative">
       {/* Selected accounts summary button */}
-      <button
+      <Button
         onClick={() => setShowDropdown(!showDropdown)}
         disabled={isLoading || accounts.length === 0}
-        className="w-full px-3 py-2 text-sm rounded-md transition-all duration-200 flex items-center justify-between"
-        style={{ 
-          backgroundColor: 'var(--dark-slate)',
-          color: selectedAccounts.length === 0 ? 'var(--electric-blue)' : 'var(--neon-green)',
-          border: `1px solid ${selectedAccounts.length === 0 ? 'var(--electric-blue)' : 'var(--neon-green)'}`
-        }}
+        variant="outline"
+        className="w-full justify-between text-sm"
       >
         <div className="flex items-center space-x-2 overflow-hidden">
           {selectedAccounts.length === 0 ? (
             <span className="flex items-center">
-              <svg className="h-3 w-3 mr-1 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
-              </svg>
+              <Plus className="h-3 w-3 mr-1 animate-pulse" />
               {multiSelect ? 'Select Accounts' : 'Select Account'}
             </span>
           ) : (
@@ -115,63 +114,49 @@ export default function AccountSelector({
             </>
           )}
         </div>
-        <svg className={`h-4 w-4 ml-2 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} 
-          viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+        <ChevronDown className={`h-4 w-4 ml-2 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
+      </Button>
 
       {/* Dropdown menu */}
       {showDropdown && (
-        <div className="absolute z-50 mt-1 w-full rounded-md shadow-lg max-h-96 overflow-hidden flex flex-col"
-          style={{ backgroundColor: 'var(--dark-slate)', border: '1px solid var(--neon-green)' }}>
+        <Card className="absolute z-50 mt-1 w-full shadow-lg max-h-96 overflow-hidden flex flex-col">
           {/* Search input */}
-          <div className="p-2 border-b" style={{ borderColor: 'rgba(0, 255, 135, 0.2)' }}>
-            <input
+          <div className="p-2 border-b border-muted">
+            <Input
               type="text"
               placeholder="Search accounts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-2 py-1 text-sm rounded"
-              style={{ 
-                backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--electric-blue)'
-              }}
+              className="h-8 text-sm"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
 
           {/* Multi-select controls */}
           {multiSelect && accounts.length > 1 && (
-            <div className="flex justify-between p-2 border-b text-xs" 
-              style={{ borderColor: 'rgba(0, 255, 135, 0.2)' }}>
-              <button
+            <div className="flex justify-between p-2 border-b border-muted text-xs">
+              <Button
                 onClick={(e) => {
                   e.stopPropagation();
                   selectAll(true);
                 }}
-                className="px-2 py-1 rounded"
-                style={{ 
-                  backgroundColor: 'rgba(0, 255, 135, 0.1)',
-                  color: 'var(--neon-green)'
-                }}
+                variant="outline"
+                size="sm"
+                className="text-foreground"
               >
                 SELECT ALL
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={(e) => {
                   e.stopPropagation();
                   selectAll(false);
                 }}
-                className="px-2 py-1 rounded"
-                style={{ 
-                  backgroundColor: 'rgba(59, 142, 234, 0.1)',
-                  color: 'var(--electric-blue)'
-                }}
+                variant="outline"
+                size="sm"
+                className="text-muted-foreground"
               >
                 CLEAR ALL
-              </button>
+              </Button>
             </div>
           )}
 
@@ -183,13 +168,9 @@ export default function AccountSelector({
                   <div 
                     key={account.id}
                     onClick={() => toggleAccountSelection(account.login)}
-                    className="flex items-center px-3 py-2 hover:opacity-80 cursor-pointer"
-                    style={{ 
-                      backgroundColor: selectedAccounts.includes(account.login) 
-                        ? 'rgba(0, 255, 135, 0.1)' 
-                        : 'transparent',
-                      color: 'var(--foreground)'
-                    }}
+                    className={`flex items-center px-3 py-2 hover:opacity-80 cursor-pointer text-foreground transition-colors ${
+                      selectedAccounts.includes(account.login) ? 'bg-accent/50' : 'bg-transparent'
+                    }`}
                   >
                     <div className="flex-shrink-0 mr-3">
                       {account.avatarUrl ? (
@@ -203,8 +184,7 @@ export default function AccountSelector({
                           />
                         </div>
                       ) : (
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: 'var(--electric-blue)' }}>
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
                           {account.login.substring(0, 1).toUpperCase()}
                         </div>
                       )}
@@ -214,15 +194,12 @@ export default function AccountSelector({
                       <div className="text-sm font-medium flex items-center">
                         {account.login}
                         {currentUsername && account.login === currentUsername && showCurrentLabel && (
-                          <span className="ml-2 text-xs px-1 rounded" style={{ 
-                            backgroundColor: 'rgba(0, 255, 135, 0.2)',
-                            color: 'var(--neon-green)'
-                          }}>
+                          <Badge variant="secondary" className="ml-2 text-xs">
                             YOU
-                          </span>
+                          </Badge>
                         )}
                       </div>
-                      <div className="text-xs" style={{ color: 'var(--electric-blue)' }}>
+                      <div className="text-xs text-muted-foreground">
                         {account.type}
                       </div>
                     </div>
@@ -234,20 +211,19 @@ export default function AccountSelector({
                         checked={selectedAccounts.includes(account.login)}
                         onChange={() => {}} // Handled by the parent div click
                         onClick={(e) => e.stopPropagation()} // Prevent double-triggering
-                        className="form-checkbox h-4 w-4"
-                        style={{ accentColor: 'var(--neon-green)' }}
+                        className="form-checkbox h-4 w-4 accent-primary"
                       />
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-3 px-3 text-center" style={{ color: 'var(--foreground)' }}>
+              <div className="py-3 px-3 text-center text-foreground">
                 No accounts match your search
               </div>
             )}
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

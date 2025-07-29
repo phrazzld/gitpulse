@@ -32,6 +32,9 @@ function getCallbackUrl() {
 }
 
 export const createAuthOptions = (): NextAuthOptions => ({
+  // NextAuth v4 automatically reads NEXTAUTH_SECRET environment variable
+  // No need to explicitly set the secret property
+  
   providers: [
     GitHubProvider({
       clientId: process.env.GITHUB_OAUTH_CLIENT_ID as string,
@@ -144,14 +147,6 @@ export const createAuthOptions = (): NextAuthOptions => ({
         secure: process.env.NODE_ENV === 'production'
       }
     }
-  },
-  
-  // Properly handle the callback URL problems
-  pages: {
-    signIn: '/api/auth/signin',
-    signOut: '/api/auth/signout',
-    error: '/api/auth/error',
-    verifyRequest: '/api/auth/verify-request',
   },
   
   // Add debug mode for development
