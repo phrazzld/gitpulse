@@ -32,8 +32,8 @@ function getCallbackUrl() {
 }
 
 export const createAuthOptions = (): NextAuthOptions => ({
-  // Explicitly set the secret for production environments
-  secret: process.env.NEXTAUTH_SECRET,
+  // NextAuth v4 automatically reads NEXTAUTH_SECRET environment variable
+  // No need to explicitly set the secret property
   
   providers: [
     GitHubProvider({

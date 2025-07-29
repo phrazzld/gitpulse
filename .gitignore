@@ -39,6 +39,7 @@ next-env.d.ts
 # logs
 /logs
 *.log
+logs_result.json
 
 # planning files
 AESTHETIC.md
