@@ -1,5 +1,76 @@
 # TODO - Styling Cleanup Remaining Work
 
+## Code Review Analysis - John Carmack Perspective
+
+### MERGE-BLOCKING Issues (Must Fix Before Merge)
+
+#### 1. Remove Remaining Custom Styling Effects
+**Priority: HIGH - In scope for this PR**
+- **Issue**: Found remaining `backdrop-blur-sm`, `bg-black/30`, `bg-black/20` effects
+- **Files affected**:
+  - src/components/DateRangePicker.tsx:119
+  - src/components/dashboard/SummaryView.tsx:56
+  - src/app/dashboard/page.tsx:242
+  - src/components/dashboard/SummaryDetails.tsx:53,72,146
+  - src/components/dashboard/activityFeed/components/CommitItem.tsx:52
+  - src/components/dashboard/AnalysisParameters.tsx:54
+- **Why merge-blocking**: These custom effects directly contradict the PR's goal of removing all custom styling and using pure shadcn components
+- **Action**: Remove all backdrop-blur and custom opacity backgrounds
+
+### Action Items for Merge-Blocking Issue
+
+- [ ] **Remove backdrop-blur-sm from DateRangePicker.tsx:119**
+  - Current: `<Card className="backdrop-blur-sm">`
+  - Change to: `<Card>`
+
+- [ ] **Remove backdrop-blur-sm and shadow-lg from SummaryView.tsx:56**
+  - Current: `<Card className="mt-8 backdrop-blur-sm shadow-lg">`
+  - Change to: `<Card className="mt-8">`
+
+- [ ] **Remove backdrop-blur-sm and shadow-lg from dashboard/page.tsx:242**
+  - Current: `<Card className="mb-8 backdrop-blur-sm shadow-lg">`
+  - Change to: `<Card className="mb-8">`
+
+- [ ] **Replace bg-black/30 with standard styling in SummaryDetails.tsx:53**
+  - Current: `className="flex justify-between items-center p-3 rounded-md bg-black/30 border border-muted"`
+  - Change to: `className="flex justify-between items-center p-3 rounded-md bg-muted/50 border border-muted"`
+
+- [ ] **Replace bg-black/20 with standard styling in SummaryDetails.tsx:72**
+  - Current: `className="border rounded-md p-4 bg-black/20 border-muted"`
+  - Change to: `className="border rounded-md p-4 bg-muted/30 border-muted"`
+
+- [ ] **Replace bg-black/30 with standard styling in SummaryDetails.tsx:146**
+  - Current: `className="p-4 rounded-md border bg-black/30 border-muted text-foreground"`
+  - Change to: `className="p-4 rounded-md border bg-muted/50 border-muted text-foreground"`
+
+- [ ] **Remove backdrop-blur-sm from CommitItem.tsx:52**
+  - Current: `<Card className="p-3 mb-3 backdrop-blur-sm shadow-sm">`
+  - Change to: `<Card className="p-3 mb-3">`
+
+- [ ] **Remove backdrop-blur-sm from AnalysisParameters.tsx:54**
+  - Current: `<Card className="backdrop-blur-sm">`
+  - Change to: `<Card>`
+
+### NON-BLOCKING Issues (Can Address Later)
+
+#### 1. Husky Deprecation Warnings
+**Priority: LOW - Not related to styling**
+- **Issue**: Husky shows deprecation warnings about v10.0.0
+- **Why not blocking**: Warnings don't affect functionality, unrelated to PR scope
+- **Future action**: Update husky configuration in a separate PR
+
+#### 2. Large Test Files
+**Priority: LOW - Pre-existing issue**
+- **Issue**: Several test files exceed 500 lines
+- **Why not blocking**: Pre-existing issue, not caused by this PR
+- **Future action**: Refactor in a dedicated test cleanup PR
+
+#### 3. Shadow-lg Usage
+**Priority: LOW - Standard Tailwind utility**
+- **Issue**: Some components use shadow-lg
+- **Why not blocking**: shadow-lg is a standard Tailwind utility, not custom styling
+- **Future action**: Could standardize to default Card shadows for consistency
+
 ## PR Review Feedback - Critical Issues
 
 ### Critical/Merge-blocking - Animation Fixes
