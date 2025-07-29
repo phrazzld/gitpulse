@@ -39,6 +39,7 @@
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@secretlint/secretlint-rule-preset-recommend": "^10.2.1",
     "@storybook/addon-a11y": "^8.6.12",
     "@storybook/addon-essentials": "^8.6.12",
     "@storybook/addon-interactions": "^8.6.12",
@@ -62,6 +63,7 @@
     "husky": "^9.1.7",
     "identity-obj-proxy": "^3.0.0",
     "jest-environment-jsdom": "^30.0.5",
+    "secretlint": "^10.2.1",
     "storybook": "^8.6.12",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.0",

@@ -157,6 +157,27 @@ Storybook provides an isolated environment for developing and testing UI compone
 
 After running `npm run storybook`, open the displayed URL in your browser (typically http://localhost:6006) to view the component library.
 
+## Security
+
+GitPulse implements multiple layers of security to protect sensitive credentials:
+
+### Pre-commit Secret Detection
+- **Automatic scanning** of staged files using secretlint
+- **Prevents accidental commits** of API keys, tokens, and other secrets
+- Configure patterns in `.secretlintrc.json`
+
+### CI/CD Security Checks
+- **GitHub Actions** workflow for continuous security scanning
+- **Gitleaks** integration for detecting secrets in code
+- **Dependency auditing** with npm audit
+
+### Best Practices
+- Never commit `.env.local` or files with real credentials
+- Use `.env.local.example` as a template with placeholders
+- Generate secure NextAuth secrets: `openssl rand -base64 32 | tr -d "=+/" | cut -c1-32`
+- Regularly rotate API keys and secrets
+- See `.github/SECURITY.md` for detailed security guidelines
+
 ## Usage
 
 1. Sign in with your GitHub account

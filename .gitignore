@@ -19,7 +19,6 @@
 
 # misc
 .DS_Store
-*.pem
 
 # debug
 npm-debug.log*
@@ -31,6 +30,17 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# Security: Never commit files with environment commands or secrets
+VERCEL_ENV*.md
+*secrets*
+*credentials*
+*.key
+*.pem
+
+# Git cleanup artifacts
+.git-backup-*/
+..bfg-report/
 
 # typescript
 *.tsbuildinfo
