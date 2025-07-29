@@ -239,7 +239,7 @@ export default function Dashboard() {
           />
           
           {/* Improved Filters Container with DateRangePicker and Analysis Parameters */}
-          <Card className="mb-8 backdrop-blur-sm shadow-lg">
+          <Card className="mb-8">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
