@@ -116,7 +116,7 @@ export default function DateRangePicker({
   }, [internalDateRange]);
 
   return (
-    <Card className="backdrop-blur-sm">
+    <Card>
       <CardHeader className="p-3 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
