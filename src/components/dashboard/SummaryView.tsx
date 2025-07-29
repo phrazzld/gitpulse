@@ -53,7 +53,7 @@ const SummaryView: React.FC<SummaryViewProps> = ({
   if (!summary) return null;
 
   return (
-    <Card className="mt-8 backdrop-blur-sm shadow-lg">
+    <Card className="mt-8">
       <CardHeader className="border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
