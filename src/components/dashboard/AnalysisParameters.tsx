@@ -51,7 +51,7 @@ export default function AnalysisParameters({
   };
 
   return (
-    <Card className="backdrop-blur-sm">
+    <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center">
           <div className="w-2 h-2 rounded-full mr-2 bg-primary"></div>

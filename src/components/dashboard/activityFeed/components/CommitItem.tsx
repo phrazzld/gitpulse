@@ -49,7 +49,7 @@ const CommitItem = React.memo(({
       <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-primary/40"></div>
       
       {/* Commit card with simplified design */}
-      <Card className="p-3 mb-3 backdrop-blur-sm shadow-sm">
+      <Card className="p-3 mb-3">
         {/* Commit header with author and date */}
         <div className="flex justify-between items-start mb-2 flex-wrap">
           <div className="flex items-center mr-2">

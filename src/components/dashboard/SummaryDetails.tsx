@@ -50,7 +50,7 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
           {aiSummary.technicalAreas.map((area, index) => (
             <div
               key={index}
-              className="flex justify-between items-center p-3 rounded-md bg-black/30 border border-muted"
+              className="flex justify-between items-center p-3 rounded-md bg-muted/50 border border-muted"
             >
               <span className="text-foreground">{area.name}</span>
               <Badge variant="secondary" className="text-xs">
@@ -69,7 +69,7 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
             KEY ACHIEVEMENTS
           </h3>
         </div>
-        <div className="border rounded-md p-4 bg-black/20 border-muted">
+        <div className="border rounded-md p-4 bg-muted/30 border-muted">
           <ul className="space-y-3 text-foreground">
             {aiSummary.accomplishments.map((accomplishment, index) => (
               <li key={index} className="flex items-start">
@@ -100,7 +100,7 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
                   {type.count}
                 </Badge>
               </div>
-              <p className="text-sm mt-1 text-white/70">
+              <p className="text-sm mt-1 text-muted-foreground">
                 {type.description}
               </p>
             </div>
@@ -143,7 +143,7 @@ const SummaryDetails: React.FC<SummaryDetailsProps> = ({
             COMPREHENSIVE ANALYSIS
           </h3>
         </div>
-        <div className="p-4 rounded-md border bg-black/30 border-muted text-foreground">
+        <div className="p-4 rounded-md border bg-muted/50 border-muted text-foreground">
           <div className="text-xs mb-2 font-mono text-foreground">
             $ AI_ANALYSIS --detailed-output
           </div>
